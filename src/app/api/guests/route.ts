@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
@@ -7,7 +8,6 @@ import { createLog } from "@/lib/audit-utils";
 import { sanitizeObject } from "@/lib/sanitize";
 import * as z from "zod";
 
-export const dynamic = 'force-dynamic';
 
 const guestSchema = z.object({
     name: z.string().min(1, "Name is required"),

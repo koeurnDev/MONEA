@@ -1,9 +1,8 @@
+export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
 import { decrypt } from "@/lib/encryption";
-
-export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request) {
     try {
