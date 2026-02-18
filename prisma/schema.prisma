@@ -1,0 +1,204 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String    @id @default(cuid())
+  name              String?
+  email             String    @unique
+  password          String
+  role              String    @default("ADMIN") // SUPERADMIN, ADMIN (User Admin), STAFF
+  failedAttempts    Int       @default(0)
+  lockedUntil       DateTime?
+  sessionsRevokedAt DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  weddings          Wedding[]
+  supportTickets    SupportTicket[]
+}
+
+model Wedding {
+  id               String           @id @default(cuid())
+  groomName        String
+  brideName        String
+  location         String?
+  date             DateTime
+  eventType        String           @default("wedding") // wedding, anniversary
+  templateId       String           @default("classic")
+  themeSettings    String? // Stores: { primaryColor, musicUrl, mapLink, videoUrl, heroImage }
+  weddingCode      String?          @unique
+  status           String           @default("ACTIVE") // ACTIVE, ARCHIVED
+  packageType      String           @default("FREE") // FREE, PRO, PREMIUM
+  paymentStatus    String           @default("PENDING") // PENDING, PAID
+  expiresAt        DateTime?
+  userId           String
+  user             User             @relation(fields: [userId], references: [id])
+  guests           Guest[]
+  gifts            Gift[]
+  telegramLink     String?
+  paymentInfo      String?
+  galleryItems     GalleryItem[]
+  guestbookEntries GuestbookEntry[]
+  activities       Activity[]
+  staff            Staff[]
+  logs             Log[]
+  supportTickets   SupportTicket[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @default(now()) @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+model Activity {
+  id          String   @id @default(cuid())
+  title       String
+  time        String // e.g. "07:00 AM"
+  description String?
+  order       Int      @default(0) // For sorting
+  weddingId   String
+  wedding     Wedding  @relation(fields: [weddingId], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@index([weddingId])
+}
+
+model Guest {
+  id         String    @id @default(cuid())
+  name       String
+  phone      String?
+  group      String?
+  source     String? // e.g. Phnom Penh, Prey Veng
+  weddingId  String
+  wedding    Wedding   @relation(fields: [weddingId], references: [id])
+  gifts      Gift[]
+  hasArrived Boolean   @default(false)
+  arrivedAt  DateTime?
+  views      Int       @default(0)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @default(now()) @updatedAt
+
+  @@index([weddingId])
+  @@index([hasArrived])
+}
+
+model Gift {
+  id        String   @id @default(cuid())
+  amount    Float
+  currency  String // USD, KHR
+  method    String? // Cash, ABA, Wing
+  weddingId String
+  wedding   Wedding  @relation(fields: [weddingId], references: [id])
+  guestId   String?
+  guest     Guest?   @relation(fields: [guestId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([weddingId])
+  @@index([guestId])
+  @@index([method])
+  @@index([currency])
+}
+
+model GalleryItem {
+  id        String   @id @default(cuid())
+  url       String
+  type      String // IMAGE, VIDEO
+  caption   String?
+  weddingId String
+  wedding   Wedding  @relation(fields: [weddingId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([weddingId])
+}
+
+model GuestbookEntry {
+  id        String   @id @default(cuid())
+  guestName String
+  message   String
+  voiceUrl  String?
+  weddingId String
+  wedding   Wedding  @relation(fields: [weddingId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([weddingId])
+}
+
+model Staff {
+  id                String    @id @default(cuid())
+  name              String
+  email             String?   @unique
+  password          String?
+  pin               String?
+  role              String    @default("STAFF") // SCANNER, CASHIER
+  weddingId         String
+  wedding           Wedding   @relation(fields: [weddingId], references: [id])
+  accessToken       String?   @unique
+  failedAttempts    Int       @default(0)
+  lockedUntil       DateTime?
+  sessionsRevokedAt DateTime?
+  createdAt         DateTime  @default(now())
+
+  @@index([weddingId])
+}
+
+model Log {
+  id          String   @id @default(cuid())
+  action      String // CHECK_IN, GIFT, UPDATE
+  description String
+  actorName   String // Staff Name or User
+  ip          String?
+  userAgent   String?
+  weddingId   String
+  wedding     Wedding  @relation(fields: [weddingId], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@index([weddingId])
+}
+
+model BlacklistedIP {
+  id        String   @id @default(cuid())
+  ip        String   @unique
+  reason    String?
+  createdAt DateTime @default(now())
+}
+
+model SystemConfig {
+  id              String   @id @default("GLOBAL")
+  maintenanceMode Boolean  @default(false)
+  allowNewSignups Boolean  @default(true)
+  globalCheckIn   Boolean  @default(true) // Master kill switch for all check-ins
+  updatedAt       DateTime @updatedAt
+}
+
+model Broadcast {
+  id        String   @id @default(cuid())
+  title     String
+  message   String
+  type      String   @default("INFO") // INFO, WARNING, SUCCESS
+  active    Boolean  @default(true)
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+}
+
+model SupportTicket {
+  id          String   @id @default(cuid())
+  subject     String
+  message     String
+  status      String   @default("OPEN") // OPEN, CLOSED, PENDING
+  priority    String   @default("NORMAL")
+  weddingId   String
+  wedding     Wedding  @relation(fields: [weddingId], references: [id])
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([weddingId])
+  @@index([userId])
+}
