@@ -1,0 +1,207 @@
+import { ImageResponse } from 'next/og';
+import { NextRequest } from 'next/server';
+
+export const runtime = 'edge';
+
+export async function GET(req: NextRequest) {
+    try {
+        const { searchParams } = new URL(req.url);
+
+        // Parameters
+        const groom = searchParams.get('groom') || 'Groom';
+        const bride = searchParams.get('bride') || 'Bride';
+        const date = searchParams.get('date') || '';
+        const eventType = searchParams.get('type') || 'wedding';
+        const image = searchParams.get('image') || '';
+
+        // Clean up date format if provided
+        let formattedDate = date;
+        if (date) {
+            try {
+                formattedDate = new Date(date).toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric'
+                });
+            } catch (e) {
+                formattedDate = date;
+            }
+        }
+
+        const title = eventType === 'anniversary' ? 'ANNIVERSARY CELEBRATION' : 'WEDDING INVITATION';
+
+        return new ImageResponse(
+            (
+                <div
+                    style={{
+                        height: '100%',
+                        width: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: '#1a1a1a',
+                        position: 'relative',
+                        overflow: 'hidden',
+                    }}
+                >
+                    {/* Background Image / Overlay */}
+                    {image ? (
+                        <img
+                            src={image}
+                            style={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                                opacity: 0.4,
+                            }}
+                        />
+                    ) : (
+                        <div
+                            style={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: '100%',
+                                height: '100%',
+                                background: 'linear-gradient(135deg, #2c1a1a 0%, #1a1a2e 100%)',
+                                opacity: 0.8,
+                            }}
+                        />
+                    )}
+
+                    {/* Gradient Overlay */}
+                    <div
+                        style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            background: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.8) 100%)',
+                        }}
+                    />
+
+                    {/* Content Container */}
+                    <div
+                        style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            border: '1px solid rgba(212, 175, 55, 0.3)',
+                            padding: '40px 60px',
+                            backgroundColor: 'rgba(0,0,0,0.4)',
+                            backdropFilter: 'blur(10px)',
+                            borderRadius: '20px',
+                            textAlign: 'center',
+                        }}
+                    >
+                        <p
+                            style={{
+                                fontSize: '18px',
+                                letterSpacing: '8px',
+                                color: '#D4AF37',
+                                marginBottom: '20px',
+                                fontWeight: 'bold',
+                                textTransform: 'uppercase',
+                            }}
+                        >
+                            {title}
+                        </p>
+
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '20px',
+                                marginBottom: '20px',
+                            }}
+                        >
+                            <h1
+                                style={{
+                                    fontSize: '64px',
+                                    color: 'white',
+                                    margin: 0,
+                                    fontFamily: 'serif',
+                                }}
+                            >
+                                {groom}
+                            </h1>
+                            <span
+                                style={{
+                                    fontSize: '40px',
+                                    color: '#D4AF37',
+                                    fontFamily: 'serif',
+                                    fontStyle: 'italic',
+                                }}
+                            >
+                                &
+                            </span>
+                            <h1
+                                style={{
+                                    fontSize: '64px',
+                                    color: 'white',
+                                    margin: 0,
+                                    fontFamily: 'serif',
+                                }}
+                            >
+                                {bride}
+                            </h1>
+                        </div>
+
+                        {formattedDate && (
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    gap: '10px',
+                                }}
+                            >
+                                <div style={{ width: '60px', height: '2px', backgroundColor: 'white', opacity: 0.5 }} />
+                                <p
+                                    style={{
+                                        fontSize: '24px',
+                                        color: '#D4AF37',
+                                        margin: 0,
+                                        fontWeight: '300',
+                                        letterSpacing: '2px',
+                                    }}
+                                >
+                                    {formattedDate}
+                                </p>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Branding */}
+                    <div
+                        style={{
+                            position: 'absolute',
+                            bottom: '40px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                        }}
+                    >
+                        <span style={{ color: 'white', opacity: 0.5, fontSize: '14px' }}>Powered by</span>
+                        <span style={{ color: '#D4AF37', fontSize: '20px', fontWeight: 'bold', letterSpacing: '4px' }}>MONEA</span>
+                    </div>
+                </div>
+            ),
+            {
+                width: 1200,
+                height: 630,
+            }
+        );
+    } catch (e: any) {
+        console.error(e.message);
+        return new Response(`Failed to generate the image`, {
+            status: 500,
+        });
+    }
+}
