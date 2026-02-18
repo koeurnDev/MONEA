@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyToken } from "@/lib/auth";
@@ -5,7 +6,6 @@ import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 
-export const dynamic = 'force-dynamic';
 
 async function getUser() {
     const token = cookies().get("token")?.value;
