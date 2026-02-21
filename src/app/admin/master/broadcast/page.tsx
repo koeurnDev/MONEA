@@ -16,6 +16,7 @@ import {
     Info
 } from "lucide-react";
 import Link from "next/link";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 
 export default function MasterBroadcastPage() {
     const [broadcasts, setBroadcasts] = useState<any[]>([]);
@@ -24,6 +25,10 @@ export default function MasterBroadcastPage() {
     const [message, setMessage] = useState("");
     const [type, setType] = useState("INFO");
     const [saving, setSaving] = useState(false);
+    const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; id: string; label: string }>({
+        open: false, id: "", label: ""
+    });
+    const [deleteLoading, setDeleteLoading] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -54,14 +59,34 @@ export default function MasterBroadcastPage() {
         }
     };
 
-    const handleDelete = async (id: string) => {
-        if (!confirm("Are you sure?")) return;
-        await fetch(`/api/admin/master/broadcast?id=${id}`, { method: "DELETE" });
-        loadData();
+    const handleDelete = async (id: string, label: string) => {
+        setDeleteConfirm({ open: true, id, label });
+    };
+
+    const confirmDelete = async () => {
+        setDeleteLoading(true);
+        try {
+            await fetch(`/api/admin/master/broadcast?id=${deleteConfirm.id}`, { method: "DELETE" });
+            setDeleteConfirm({ open: false, id: "", label: "" });
+            loadData();
+        } finally {
+            setDeleteLoading(false);
+        }
     };
 
     return (
         <div className="min-h-screen bg-[#FDFCFB] p-8">
+            <ConfirmModal
+                open={deleteConfirm.open}
+                onClose={() => setDeleteConfirm({ open: false, id: "", label: "" })}
+                onConfirm={confirmDelete}
+                loading={deleteLoading}
+                title="លុប Announcement"
+                description="Broadcast នេះនឹងត្រូវដកចេញពី Platform ភ្លាមៗ។"
+                confirmLabel="លុបចោល"
+                detail={deleteConfirm.label}
+                variant="danger"
+            />
             <div className="max-w-5xl mx-auto space-y-8">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -176,7 +201,7 @@ export default function MasterBroadcastPage() {
                                                 variant="ghost"
                                                 size="icon"
                                                 className="text-slate-300 hover:text-red-500 rounded-full"
-                                                onClick={() => handleDelete(b.id)}
+                                                onClick={() => handleDelete(b.id, b.title)}
                                             >
                                                 <Trash2 size={18} />
                                             </Button>

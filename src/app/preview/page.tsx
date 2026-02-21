@@ -12,6 +12,7 @@ const EnchantedGarden = dynamic(() => import("@/components/templates/EnchantedGa
 const LuxuryGoldTemplate = dynamic(() => import("@/components/templates/LuxuryGoldTemplate"));
 const PastelFloralTemplate = dynamic(() => import("@/components/templates/PastelFloralTemplate"));
 const KhmerLegacy = dynamic(() => import("@/components/templates/KhmerLegacy"));
+const VisionaryModern = dynamic(() => import("@/components/templates/VisionaryModern"));
 
 export default function PreviewPage() {
     const [wedding, setWedding] = useState<WeddingData | null>(null);
@@ -98,6 +99,8 @@ export default function PreviewPage() {
             return <KhmerLegacy wedding={wedding} />;
         case "modern-full":
             return <ModernFullTemplate wedding={wedding} />;
+        case "visionary-modern":
+            return <VisionaryModern wedding={wedding} />;
         default:
             return <ModernFullTemplate wedding={wedding} />;
     }

@@ -11,17 +11,24 @@ import { motion } from "framer-motion";
 
 export default function AdminSettingsPage() {
     const [saving, setSaving] = useState(false);
+    const [saveToast, setSaveToast] = useState(false);
 
     const handleSave = () => {
         setSaving(true);
         setTimeout(() => {
             setSaving(false);
-            alert("រក្សាទុកការកំណត់ដោយជោគជ័យ!");
+            setSaveToast(true);
+            setTimeout(() => setSaveToast(false), 2500);
         }, 1500);
     };
 
     return (
         <div className="max-w-4xl mx-auto space-y-10">
+            {saveToast && (
+                <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[9999] bg-emerald-600 text-white px-6 py-4 rounded-2xl shadow-2xl text-sm font-bold flex items-center gap-2">
+                    ✅ រក្សាទុកការកំណត់ដោយជោគជ័យ!
+                </div>
+            )}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="space-y-1">
                     <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-red-600">

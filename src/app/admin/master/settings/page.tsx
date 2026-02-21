@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Info, ShieldAlert, ArrowLeft, Save, Loader2, Sparkles } from "lucide-react";
+import { Info, ShieldAlert, ArrowLeft, Save, Loader2, Sparkles, History as HistoryIcon } from "lucide-react";
 import Link from "next/link";
 
 export default function MasterSettingsPage() {
@@ -55,14 +55,22 @@ export default function MasterSettingsPage() {
                             <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">System-Wide Authority</p>
                         </div>
                     </div>
-                    <Button
-                        onClick={handleSave}
-                        disabled={saving}
-                        className="h-12 px-8 bg-slate-900 text-white rounded-xl font-bold uppercase tracking-widest text-xs flex items-center gap-2 shadow-xl shadow-slate-200"
-                    >
-                        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save size={16} />}
-                        Save System Configuration
-                    </Button>
+                    <div className="flex items-center gap-4">
+                        <Link href="/admin/governance">
+                            <Button variant="outline" className="h-12 px-6 rounded-xl font-bold uppercase tracking-widest text-xs flex items-center gap-2 border-slate-200">
+                                <HistoryIcon size={16} />
+                                Governance & Versions
+                            </Button>
+                        </Link>
+                        <Button
+                            onClick={handleSave}
+                            disabled={saving}
+                            className="h-12 px-8 bg-slate-900 text-white rounded-xl font-bold uppercase tracking-widest text-xs flex items-center gap-2 shadow-xl shadow-slate-200"
+                        >
+                            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save size={16} />}
+                            Save System Configuration
+                        </Button>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-6">

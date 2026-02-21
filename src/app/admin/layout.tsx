@@ -7,12 +7,15 @@ import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const router = useRouter();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const [logoutConfirm, setLogoutConfirm] = useState(false);
+    const [logoutLoading, setLogoutLoading] = useState(false);
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -20,10 +23,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    async function handleLogout() {
-        await fetch("/api/auth/logout", { method: "POST" });
-        router.push("/login");
-        router.refresh();
+    async function confirmLogout() {
+        setLogoutLoading(true);
+        try {
+            await fetch("/api/auth/logout", { method: "POST" });
+            window.location.href = "/login";
+        } catch (e) {
+            console.error(e);
+            setLogoutLoading(false);
+        }
     }
 
     const navItems = [
@@ -80,20 +88,28 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {/* System Info Highlight */}
             <div className="mx-6 my-8 p-6 rounded-3xl bg-slate-50 border border-slate-100">
                 <div className="flex items-center gap-2 mb-3">
-                    <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
-                    <span className="text-xs font-bold text-slate-700 uppercase tracking-widest">System Stable</span>
+                    <div className="relative flex items-center justify-center">
+                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+                        <div className="absolute w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping opacity-40" />
+                    </div>
+                    <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest">System Operational</span>
                 </div>
                 <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                    <div className="bg-red-600 h-full w-[100%]" />
+                    <motion.div
+                        initial={{ width: "0%" }}
+                        animate={{ width: "100%" }}
+                        transition={{ duration: 1.5, ease: "easeOut" }}
+                        className="bg-emerald-500 h-full"
+                    />
                 </div>
-                <p className="text-xs text-slate-500 mt-3 font-bold uppercase tracking-widest text-center">Version 1.4.3</p>
+                <p className="text-[10px] text-slate-400 mt-3 font-bold uppercase tracking-widest text-center">Engine v0.1.0-stable</p>
             </div>
 
             {/* Logout Action */}
             <div className="p-6 border-t border-slate-50">
                 <button
                     className="flex items-center gap-3 w-full px-4 py-4 rounded-2xl transition-all duration-300 text-sm font-bold text-slate-500 hover:text-red-600 hover:bg-red-50 group"
-                    onClick={handleLogout}
+                    onClick={() => setLogoutConfirm(true)}
                 >
                     <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center group-hover:bg-red-100 transition-all border border-slate-100">
                         <LogOut className="h-4 w-4" />
@@ -106,6 +122,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     return (
         <div className="flex min-h-screen w-full bg-[#fcfcfd] text-slate-900 font-kantumruy">
+            <ConfirmModal
+                open={logoutConfirm}
+                onClose={() => setLogoutConfirm(false)}
+                onConfirm={confirmLogout}
+                loading={logoutLoading}
+                title="ចាកចេញពីប្រព័ន្ធ"
+                description="តើអ្នកប្រាកដថាចង់ចាកចេញពី SuperAdmin? អ្នកនឹងត្រូវវិលត្រឡប់ទៅកាន់ទំព័រចូល (Login) ។"
+                confirmLabel="ចាកចេញ"
+                cancelLabel="បន្ត"
+                variant="warning"
+            />
             {/* Desktop Sidebar */}
             <aside className="w-[280px] border-r border-slate-100 hidden md:flex flex-col fixed h-full z-40 bg-white">
                 <SidebarContent />
@@ -177,15 +204,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     </div>
                 </header>
 
-                {/* Content */}
                 <div className="p-6 md:p-10">
-                    <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, ease: "easeOut" }}
-                    >
-                        {children}
-                    </motion.div>
+                    {children}
                 </div>
             </main>
         </div>

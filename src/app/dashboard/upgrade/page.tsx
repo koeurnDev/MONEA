@@ -10,6 +10,7 @@ import { motion } from "framer-motion";
 export default function UpgradePage() {
     const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
     const [showPayment, setShowPayment] = useState(false);
+    const [payToast, setPayToast] = useState<{ type: "success" | "error"; msg: string } | null>(null);
 
     const plans = [
         {
@@ -61,17 +62,24 @@ export default function UpgradePage() {
         });
 
         if (res.ok) {
-            alert("បង់ប្រាក់ជោគជ័យ! កញ្ចប់ត្រូវបានដំឡើង។ 🎉");
             setShowPayment(false);
-            window.location.reload();
+            setPayToast({ type: "success", msg: "✅ បង់ប្រាក់ជោគជ័យ! កញ្ចប់ត្រូវបានដំឡើង។ 🎉" });
+            setTimeout(() => { setPayToast(null); window.location.reload(); }, 3000);
         } else {
             const data = await res.json();
-            alert(`ការបង់ប្រាក់បរាជ័យ៖ ${data.error || "សូមព្យាយាមម្តងទៀត"}`);
+            setPayToast({ type: "error", msg: `❌ ការបង់ប្រាក់បរាជ័យ៖ ${data.error || "សូមព្យាយាមម្តងទៀត"}` });
+            setTimeout(() => setPayToast(null), 4000);
         }
     };
 
     return (
         <div className="min-h-screen bg-[#fcfcfd] pb-20 relative overflow-hidden">
+            {payToast && (
+                <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-[9999] px-6 py-4 rounded-2xl shadow-2xl text-sm font-bold ${payToast.type === "success" ? "bg-emerald-600 text-white" : "bg-red-600 text-white"
+                    }`}>
+                    {payToast.msg}
+                </div>
+            )}
             {/* Background Decorations */}
             <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-red-50/50 to-transparent -z-10" />
             <div className="absolute top-40 left-10 w-72 h-72 bg-red-100/20 rounded-full blur-[120px] -z-10 animate-pulse" />

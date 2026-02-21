@@ -6,13 +6,15 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Loader2, Users, Heart } from "lucide-react";
 
+import { ROLES, ROLE_LABELS } from "@/lib/constants";
+
 export default function AdminUsersPage() {
     const [users, setUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         fetch("/api/admin/users").then(res => {
-            if (res.ok) res.json().then(setUsers);
+            if (res.ok) res.json().then(result => setUsers(result.data || []));
             setLoading(false);
         });
     }, []);
@@ -58,14 +60,14 @@ export default function AdminUsersPage() {
                                 <TableCell className="font-medium text-slate-900 px-8 font-mono text-xs">{user.email}</TableCell>
                                 <TableCell>
                                     <Badge className={cn(
-                                        "px-2 py-0.5 rounded-md text-[11px] font-black tracking-widest uppercase border",
-                                        user.role === "SUPERADMIN"
+                                        "px-2 py-0.5 rounded-md text-[11px] font-black tracking-widest uppercase border whitespace-nowrap",
+                                        user.role === ROLES.PLATFORM_OWNER
                                             ? "bg-slate-900 text-white border-slate-900"
-                                            : user.role === "ADMIN" || user.role === "OWNER"
+                                            : user.role === ROLES.EVENT_MANAGER
                                                 ? "bg-red-50 text-red-700 border-red-100"
                                                 : "bg-blue-50 text-blue-700 border-blue-100"
                                     )}>
-                                        {user.role}
+                                        {ROLE_LABELS[user.role as keyof typeof ROLE_LABELS] || user.role}
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="text-center text-slate-900 font-bold">{user.weddings.length}</TableCell>

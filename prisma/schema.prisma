@@ -12,7 +12,7 @@ model User {
   name              String?
   email             String    @unique
   password          String
-  role              String    @default("ADMIN") // SUPERADMIN, ADMIN (User Admin), STAFF
+  role              String    @default("ADMIN") // PLATFORM_OWNER (SUPERADMIN), EVENT_MANAGER (ADMIN), EVENT_STAFF (STAFF)
   failedAttempts    Int       @default(0)
   lockedUntil       DateTime?
   sessionsRevokedAt DateTime?
@@ -31,6 +31,7 @@ model Wedding {
   eventType        String           @default("wedding") // wedding, anniversary
   templateId       String           @default("classic")
   themeSettings    String? // Stores: { primaryColor, musicUrl, mapLink, videoUrl, heroImage }
+  notes            String? // Internal organizer notes
   weddingCode      String?          @unique
   status           String           @default("ACTIVE") // ACTIVE, ARCHIVED
   packageType      String           @default("FREE") // FREE, PRO, PREMIUM
@@ -48,6 +49,7 @@ model Wedding {
   staff            Staff[]
   logs             Log[]
   supportTickets   SupportTicket[]
+  templateVersions WeddingTemplateVersion[]
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @default(now()) @updatedAt
 
@@ -201,4 +203,41 @@ model SupportTicket {
 
   @@index([weddingId])
   @@index([userId])
+}
+
+model SystemVersion {
+  id          String   @id @default(cuid())
+  versionName String // e.g., "v1.0.4", "Stable Release"
+  configData  String // JSON snapshot of SystemConfig
+  description String?
+  isStable    Boolean  @default(false)
+  createdBy   String
+  createdAt   DateTime @default(now())
+}
+
+model GovernanceLog {
+  id          String   @id @default(cuid())
+  action      String // PUBLISH, ROLLBACK, CONFIG_UPDATE
+  details     String // JSON details
+  actorId     String
+  actorName   String
+  ip          String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  @@index([actorId])
+}
+
+model WeddingTemplateVersion {
+  id           String   @id @default(cuid())
+  weddingId    String
+  wedding      Wedding  @relation(fields: [weddingId], references: [id])
+  versionName  String   // e.g. "Before color change", "v1.2"
+  templateId   String   // snapshot of templateId
+  themeData    String   // JSON snapshot of themeSettings
+  description  String?
+  createdBy    String
+  createdAt    DateTime @default(now())
+
+  @@index([weddingId])
 }

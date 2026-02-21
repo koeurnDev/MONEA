@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ROLES, ROLE_LABELS } from "@/lib/constants";
 import { Input } from "@/components/ui/input";
 import {
     Users,
@@ -23,20 +24,35 @@ export default function MasterUsersPage() {
     const [users, setUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
+    const [page, setPage] = useState(1);
+    const [pagination, setPagination] = useState<any>(null);
     const [processing, setProcessing] = useState<string | null>(null);
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
-            loadData();
+            setPage(1); // Reset to page 1 on search
+            loadData(1);
         }, 500);
         return () => clearTimeout(delayDebounceFn);
     }, [search]);
 
-    const loadData = () => {
+    useEffect(() => {
+        loadData(page);
+    }, [page]);
+
+    const loadData = (currentPage: number) => {
         setLoading(true);
-        fetch(`/api/admin/master/users?search=${search}`)
+        fetch(`/api/admin/master/users?search=${search}&page=${currentPage}`)
             .then(res => res.json())
-            .then(setUsers)
+            .then(result => {
+                if (result.users) {
+                    setUsers(result.users);
+                    setPagination(result.pagination);
+                } else {
+                    setUsers([]);
+                    setPagination(null);
+                }
+            })
             .finally(() => setLoading(false));
     };
 
@@ -48,7 +64,7 @@ export default function MasterUsersPage() {
                 body: JSON.stringify({ userId, ...data }),
                 headers: { "Content-Type": "application/json" }
             });
-            loadData();
+            loadData(page);
         } finally {
             setProcessing(null);
         }
@@ -89,64 +105,92 @@ export default function MasterUsersPage() {
                             No users found
                         </div>
                     ) : (
-                        users.map((u) => (
-                            <Card key={u.id} className="border-none shadow-sm shadow-slate-200/50 rounded-[2rem] overflow-hidden bg-white group">
-                                <CardContent className="p-6">
-                                    <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                                        <div className="flex items-center gap-6 flex-1">
-                                            <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-slate-900 group-hover:text-white transition-colors duration-500">
-                                                {u.role === 'SUPERADMIN' ? <Shield size={24} /> : <UserCog size={24} />}
-                                            </div>
-                                            <div className="space-y-1">
-                                                <div className="flex items-center gap-2">
-                                                    <h3 className="text-lg font-black text-slate-900 tracking-tight">{u.name || "Unnamed User"}</h3>
-                                                    <span className={cn(
-                                                        "text-[9px] font-black uppercase px-2 py-0.5 rounded-md border",
-                                                        u.role === 'SUPERADMIN' ? 'bg-indigo-50 border-indigo-100 text-indigo-600' : 'bg-slate-50 border-slate-100 text-slate-600'
-                                                    )}>
-                                                        {u.role}
-                                                    </span>
+                        <>
+                            {users.map((u) => (
+                                <Card key={u.id} className="border-none shadow-sm shadow-slate-200/50 rounded-[2rem] overflow-hidden bg-white group">
+                                    <CardContent className="p-6">
+                                        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                                            <div className="flex items-center gap-6 flex-1">
+                                                <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-slate-900 group-hover:text-white transition-colors duration-500">
+                                                    {u.role === ROLES.PLATFORM_OWNER ? <Shield size={24} /> : <UserCog size={24} />}
                                                 </div>
-                                                <div className="flex items-center gap-4 text-xs font-bold text-slate-400 uppercase tracking-widest">
-                                                    <span className="flex items-center gap-1"><Mail size={12} /> {u.email}</span>
-                                                    <span className="flex items-center gap-1"><Heart size={12} className="text-red-500" /> {u._count.weddings} Weddings</span>
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <h3 className="text-lg font-black text-slate-900 tracking-tight">{u.name || "Unnamed User"}</h3>
+                                                        <span className={cn(
+                                                            "text-[9px] font-black uppercase px-2 py-0.5 rounded-md border",
+                                                            u.role === ROLES.PLATFORM_OWNER ? 'bg-indigo-50 border-indigo-100 text-indigo-600' : 'bg-slate-50 border-slate-100 text-slate-600'
+                                                        )}>
+                                                            {ROLE_LABELS[u.role as keyof typeof ROLE_LABELS] || u.role}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-4 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                                        <span className="flex items-center gap-1"><Mail size={12} /> {u.email}</span>
+                                                        <span className="flex items-center gap-1"><Heart size={12} className="text-red-500" /> {u._count.weddings} Weddings</span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        <div className="flex items-center gap-3">
-                                            <div className="text-right mr-4 hidden lg:block">
-                                                <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Joined</p>
-                                                <p className="text-[11px] font-bold text-slate-900">{new Date(u.createdAt).toLocaleDateString()}</p>
-                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <div className="text-right mr-4 hidden lg:block">
+                                                    <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Joined</p>
+                                                    <p className="text-[11px] font-bold text-slate-900">{new Date(u.createdAt).toLocaleDateString()}</p>
+                                                </div>
 
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => handleAction(u.id, { revokeSessions: true })}
-                                                disabled={processing === u.id}
-                                                className="border-slate-100 h-10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-amber-50 hover:text-amber-600 hover:border-amber-100"
-                                            >
-                                                Revoke Sessions
-                                            </Button>
-
-                                            {u.role !== 'SUPERADMIN' && (
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
-                                                    onClick={() => handleAction(u.id, { role: 'SUPERADMIN' })}
+                                                    onClick={() => handleAction(u.id, { revokeSessions: true })}
                                                     disabled={processing === u.id}
-                                                    className="border-slate-100 h-10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 hover:text-white"
+                                                    className="border-slate-100 h-10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-amber-50 hover:text-amber-600 hover:border-amber-100"
                                                 >
-                                                    Promote
+                                                    Revoke Sessions
                                                 </Button>
-                                            )}
+
+                                                {u.role !== ROLES.PLATFORM_OWNER && (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => handleAction(u.id, { role: ROLES.PLATFORM_OWNER })}
+                                                        disabled={processing === u.id}
+                                                        className="border-slate-100 h-10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 hover:text-white"
+                                                    >
+                                                        Promote
+                                                    </Button>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ))
-                    )}
+                                    </CardContent>
+                                </Card>
+                            ))}
+
+                            {/* Pagination Controls */}
+                            {pagination && pagination.pages > 1 && (
+                                <div className="flex items-center justify-center gap-4 pt-8 pb-12">
+                                    <Button
+                                        variant="outline"
+                                        disabled={page === 1}
+                                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                                        className="rounded-xl border-slate-100 h-10 px-6 text-xs font-bold uppercase tracking-widest"
+                                    >
+                                        Prev
+                                    </Button>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                                        Page {page} of {pagination.pages}
+                                    </span>
+                                    <Button
+                                        variant="outline"
+                                        disabled={page === pagination.pages}
+                                        onClick={() => setPage(p => Math.min(pagination.pages, p + 1))}
+                                        className="rounded-xl border-slate-100 h-10 px-6 text-xs font-bold uppercase tracking-widest"
+                                    >
+                                        Next
+                                    </Button>
+                                </div>
+                            )}
+                        </>
+                    )
+                    }
                 </div>
             </div>
         </div>

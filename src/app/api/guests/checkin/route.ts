@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyToken } from "@/lib/auth";
 import { cookies } from "next/headers";
+import { ROLES } from "@/lib/constants";
 import { logActivity } from "@/lib/logger";
 import { decrypt } from "@/lib/encryption";
 
@@ -11,13 +12,13 @@ async function getAuthContext() {
     const token = cookies().get("token")?.value;
     if (token) {
         const decoded = verifyToken(token) as any;
-        if (decoded && decoded.userId) return { type: "ADMIN", ...decoded };
+        if (decoded && decoded.userId) return { type: ROLES.EVENT_MANAGER, ...decoded };
     }
 
     const staffToken = cookies().get("staff_token")?.value;
     if (staffToken) {
         const decoded = verifyToken(staffToken) as any;
-        if (decoded && decoded.staffId) return { type: "STAFF", ...decoded };
+        if (decoded && decoded.staffId) return { type: ROLES.EVENT_STAFF, ...decoded };
     }
 
     return null;
@@ -42,11 +43,12 @@ export async function GET(req: Request) {
         if (!guest) return NextResponse.json({ error: "Guest not found" }, { status: 404 });
 
         // Authorization Check
-        if (context.type === "ADMIN") {
-            if (guest.wedding.userId !== context.userId) {
+        if (context.type === ROLES.EVENT_MANAGER || context.type === ROLES.PLATFORM_OWNER) {
+            // Platform Owner can access any guest, but for now we follow the existing pattern
+            if (guest.wedding.userId !== context.userId && context.role !== ROLES.PLATFORM_OWNER) {
                 return NextResponse.json({ error: "Access Denied" }, { status: 403 });
             }
-        } else if (context.type === "STAFF") {
+        } else if (context.type === ROLES.EVENT_STAFF) {
             if (guest.weddingId !== context.weddingId) {
                 return NextResponse.json({ error: "Access Denied" }, { status: 403 });
             }
@@ -81,12 +83,12 @@ export async function POST(req: Request) {
         if (!guest) return NextResponse.json({ error: "Guest not found" }, { status: 404 });
 
         // Authorization Check
-        if (context.type === "ADMIN") {
+        if (context.type === ROLES.EVENT_MANAGER || context.type === ROLES.PLATFORM_OWNER) {
             const wedding = await prisma.wedding.findUnique({ where: { id: guest.weddingId } });
-            if (wedding?.userId !== context.userId) {
+            if (wedding?.userId !== context.userId && context.role !== ROLES.PLATFORM_OWNER) {
                 return NextResponse.json({ error: "Access Denied" }, { status: 403 });
             }
-        } else if (context.type === "STAFF") {
+        } else if (context.type === ROLES.EVENT_STAFF) {
             if (guest.weddingId !== context.weddingId) {
                 return NextResponse.json({ error: "Access Denied" }, { status: 403 });
             }
@@ -101,7 +103,7 @@ export async function POST(req: Request) {
             }
         });
 
-        const actorName = context.type === "STAFF" ? `Staff: ${context.name}` : "Admin";
+        const actorName = context.type === ROLES.EVENT_STAFF ? `Staff: ${context.name}` : (context.role === ROLES.PLATFORM_OWNER ? "Platform Owner" : "Event Manager");
 
         // If Gift provided, record it
         if (giftAmount && giftAmount > 0) {

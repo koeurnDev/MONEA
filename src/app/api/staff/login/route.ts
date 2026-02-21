@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { signToken, generateFingerprint } from "@/lib/auth";
 import bcrypt from "bcryptjs";
+import { ROLES } from "@/lib/constants";
 
 const rateLimit = new Map<string, { count: number, lastAttempt: number }>();
 
@@ -147,7 +148,7 @@ export async function POST(req: Request) {
         const token = signToken({
             staffId: staffMember.id,
             weddingId: staffMember.weddingId,
-            role: "STAFF",
+            role: ROLES.EVENT_STAFF,
             name: staffMember.name
         }, { fingerprint });
 

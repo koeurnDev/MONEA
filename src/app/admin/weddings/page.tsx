@@ -26,6 +26,7 @@ export default function AdminWeddingsPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [selectedWedding, setSelectedWedding] = useState<Wedding | null>(null);
+    const [saveToast, setSaveToast] = useState<"success" | "error" | null>(null);
 
     // Edit Form State
     const [editForm, setEditForm] = useState({
@@ -43,8 +44,8 @@ export default function AdminWeddingsPage() {
         try {
             const res = await fetch("/api/admin/weddings");
             if (res.ok) {
-                const data = await res.json();
-                setWeddings(data);
+                const result = await res.json();
+                setWeddings(result.data || []);
             } else {
                 console.error("Failed to fetch weddings");
             }
@@ -119,6 +120,12 @@ export default function AdminWeddingsPage() {
 
     return (
         <div className="max-w-6xl mx-auto space-y-10">
+            {saveToast && (
+                <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-[9999] px-6 py-4 rounded-2xl shadow-2xl text-sm font-bold ${saveToast === "success" ? "bg-emerald-600 text-white" : "bg-red-600 text-white"
+                    }`}>
+                    {saveToast === "success" ? "✅ រក្សាទុកដោយជោគជ័យ!" : "❌ ការរក្សាទុកមានបញ្ហា សូមព្យាយាមម្ដងទៀត។"}
+                </div>
+            )}
             <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-red-600 mb-1">
                     <Heart size={14} />

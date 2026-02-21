@@ -8,11 +8,11 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Plus, Trash2, UserCog, Lock, Eye, EyeOff, Sparkles, Shield, Key, UserPlus, Users, Copy, Check, QrCode as QrIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import QRCode from "react-qr-code";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 // Force HMR rebuild due to stale state error
 
 export default function StaffManagementPage() {
     const [staffList, setStaffList] = useState<any[]>([]);
-
     const [loading, setLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [newStaffName, setNewStaffName] = useState("");
@@ -22,6 +22,11 @@ export default function StaffManagementPage() {
     const [visiblePins, setVisiblePins] = useState<Record<string, boolean>>({});
     const [copiedId, setCopiedId] = useState<string | null>(null);
     const [qrStaff, setQrStaff] = useState<any | null>(null);
+    const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; staffId: string; staffName: string }>({
+        open: false, staffId: "", staffName: ""
+    });
+    const [deleteLoading, setDeleteLoading] = useState(false);
+    const [createError, setCreateError] = useState("");
 
     function togglePinVisibility(id: string) {
         // Legacy: Toggle PIN visibility if it exists
@@ -77,7 +82,7 @@ export default function StaffManagementPage() {
                 setNewStaffPassword("");
             } else {
                 const data = await res.json();
-                alert(data.error || "ការបង្កើតគណនីបានបរាជ័យ");
+                setCreateError(data.error || "ការបង្កើតគណនីបានបរាជ័យ");
             }
         } catch (e) {
             console.error(e);
@@ -86,19 +91,37 @@ export default function StaffManagementPage() {
         }
     }
 
-    async function handleDeleteStaff(id: string) {
-        if (!confirm("តើអ្នកប្រាកដថាចង់លុបគណនីបុគ្គលិកនេះមែនទេ?")) return;
+    async function handleDeleteStaff(id: string, name: string) {
+        setDeleteConfirm({ open: true, staffId: id, staffName: name });
+    }
+
+    async function confirmDeleteStaff() {
+        setDeleteLoading(true);
         try {
-            await fetch("/api/staff?id=" + id, { method: "DELETE" });
+            await fetch("/api/staff?id=" + deleteConfirm.staffId, { method: "DELETE" });
+            setDeleteConfirm({ open: false, staffId: "", staffName: "" });
             fetchStaff();
         } catch (e) {
             console.error(e);
+        } finally {
+            setDeleteLoading(false);
         }
     }
 
 
     return (
         <div className="space-y-10 pb-10">
+            <ConfirmModal
+                open={deleteConfirm.open}
+                onClose={() => setDeleteConfirm({ open: false, staffId: "", staffName: "" })}
+                onConfirm={confirmDeleteStaff}
+                loading={deleteLoading}
+                title="លុបគណនីបុគ្គលិក"
+                description="តើអ្នកប្រាកដថាចង់លុបគណនីបុគ្គលិកនេះមែនទេ? សកម្មភាពនេះមិនអាចដកស្រាយបានឡើយ។"
+                confirmLabel="លុបគណនី"
+                detail={deleteConfirm.staffName}
+                variant="danger"
+            />
             {/* Header Area */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
                 <div className="space-y-1">
@@ -302,7 +325,7 @@ export default function StaffManagementPage() {
                                                     variant="ghost"
                                                     size="icon"
                                                     className="w-9 h-9 rounded-lg text-slate-300 hover:text-red-600 hover:bg-red-50 transition-all"
-                                                    onClick={() => handleDeleteStaff(staff.id)}
+                                                    onClick={() => handleDeleteStaff(staff.id, staff.name)}
                                                 >
                                                     <Trash2 size={16} />
                                                 </Button>

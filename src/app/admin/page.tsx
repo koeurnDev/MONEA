@@ -275,9 +275,11 @@ export default function AdminDashboardPage() {
                                     ))}
                                 </div>
 
-                                <Button className="w-full h-11 bg-slate-900 hover:bg-black text-white rounded-xl text-xs font-bold uppercase tracking-widest transition-all">
-                                    View Full Audit Log
-                                </Button>
+                                <Link href="/admin/governance">
+                                    <Button className="w-full h-11 bg-slate-900 hover:bg-black text-white rounded-xl text-xs font-bold uppercase tracking-widest transition-all">
+                                        View Full Audit Log
+                                    </Button>
+                                </Link>
                             </CardContent>
                         </Card>
 

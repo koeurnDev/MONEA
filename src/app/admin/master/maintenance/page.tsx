@@ -4,11 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Activity, ArrowLeft, Database, Trash2, ShieldCheck, Loader2, Globe } from "lucide-react";
 import Link from "next/link";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 
 export default function MasterMaintenancePage() {
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [cleaning, setCleaning] = useState(false);
+    const [cleanupConfirm, setCleanupConfirm] = useState(false);
+    const [cleanResult, setCleanResult] = useState<string | null>(null);
 
     useEffect(() => {
         loadData();
@@ -23,13 +26,18 @@ export default function MasterMaintenancePage() {
     };
 
     const handleCleanup = async () => {
-        if (!confirm("This will delete all logs older than 30 days. Proceed?")) return;
+        setCleanupConfirm(true);
+    };
+
+    const confirmCleanup = async () => {
         setCleaning(true);
         try {
             const res = await fetch("/api/admin/master/maintenance/tasks", { method: "DELETE" });
             const data = await res.json();
-            alert(`Cleanup successful! Removed ${data.deletedCount} old logs.`);
+            setCleanResult(`Cleanup successful! Removed ${data.deletedCount} old logs.`);
+            setCleanupConfirm(false);
             loadData();
+            setTimeout(() => setCleanResult(null), 5000);
         } finally {
             setCleaning(false);
         }
@@ -44,7 +52,7 @@ export default function MasterMaintenancePage() {
                 body: JSON.stringify({ action: "VACUUM" })
             });
             const data = await res.json();
-            if (data.success) alert("Database optimization complete!");
+            if (data.success) { setCleanResult("✅ Database optimization complete!"); setTimeout(() => setCleanResult(null), 3500); }
             loadData();
         } finally {
             setCleaning(false);
@@ -53,6 +61,22 @@ export default function MasterMaintenancePage() {
 
     return (
         <div className="min-h-screen bg-[#FDFCFB] p-8">
+            <ConfirmModal
+                open={cleanupConfirm}
+                onClose={() => setCleanupConfirm(false)}
+                onConfirm={confirmCleanup}
+                loading={cleaning}
+                title="សម្អាត Logs ចាស់"
+                description="សកម្មភាពនេះនឹងលុប Log ចាស់ទាំងអស់ (ចាស់ជាង 30 ថ្ងៃ) ពី Database ។ ការណ៍នេះមិនអាចដកស្រាយបានឡើយ។"
+                confirmLabel="ចាប់ផ្ដើម Cleanup"
+                detail="Delete all logs older than 30 days"
+                variant="warning"
+            />
+            {cleanResult && (
+                <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[1000] bg-emerald-600 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 text-sm font-bold">
+                    ✅ {cleanResult}
+                </div>
+            )}
             <div className="max-w-4xl mx-auto space-y-8">
                 <div className="flex items-center gap-4">
                     <Link href="/admin/master">

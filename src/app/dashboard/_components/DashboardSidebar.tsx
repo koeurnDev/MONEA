@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Users, Gift, LogOut, Palette, FileText, Clock, Crown, HelpCircle, Settings, Home, UserCog } from "lucide-react";
+import { LayoutDashboard, Users, Gift, LogOut, Palette, FileText, Clock, Crown, HelpCircle, Settings, Home, UserCog, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import { useState } from "react";
 
 interface DashboardSidebarProps {
     onCloseMobile?: () => void;
@@ -16,10 +18,18 @@ export function DashboardSidebar({ onCloseMobile, isStaff = false, isAdmin = fal
     const pathname = usePathname();
     const router = useRouter();
 
-    async function handleLogout() {
-        await fetch("/api/auth/logout", { method: "POST" });
-        router.push("/login");
-        router.refresh();
+    const [logoutConfirm, setLogoutConfirm] = useState(false);
+    const [logoutLoading, setLogoutLoading] = useState(false);
+
+    async function confirmLogout() {
+        setLogoutLoading(true);
+        try {
+            await fetch("/api/auth/logout", { method: "POST" });
+            window.location.href = "/login";
+        } catch (e) {
+            console.error(e);
+            setLogoutLoading(false);
+        }
     }
 
     const mainNav = [
@@ -33,6 +43,7 @@ export function DashboardSidebar({ onCloseMobile, isStaff = false, isAdmin = fal
     const weddingNav = [
         { href: "/dashboard/design", label: "រចនាធៀបការ", icon: Palette, hidden: isStaff },
         { href: "/dashboard/schedule", label: "កាលវិភាគកម្មវិធី", icon: Clock, hidden: isStaff },
+        { href: "/dashboard/notes", label: "កំណត់ត្រា", icon: BookOpen, hidden: isStaff },
         { href: "/dashboard/staff", label: "បុគ្គលិក", icon: UserCog, hidden: isStaff },
     ];
 
@@ -96,10 +107,21 @@ export function DashboardSidebar({ onCloseMobile, isStaff = false, isAdmin = fal
             </nav>
 
             <div className="p-6 border-t border-slate-50 relative">
+                <ConfirmModal
+                    open={logoutConfirm}
+                    onClose={() => setLogoutConfirm(false)}
+                    onConfirm={confirmLogout}
+                    loading={logoutLoading}
+                    title="ចាកចេញពីប្រព័ន្ធ"
+                    description="តើអ្នកប្រាកដថាចង់ចាកចេញ? អ្នកនឹងត្រូវវិលត្រឡប់ទៅកាន់ទំព័រចូល (Login) ។"
+                    confirmLabel="ចាកចេញ"
+                    cancelLabel="បន្ត"
+                    variant="warning"
+                />
                 <Button
                     variant="ghost"
                     className="w-full justify-start gap-3 text-slate-500 hover:text-slate-900 hover:bg-slate-50 h-11 rounded-xl transition-all"
-                    onClick={handleLogout}
+                    onClick={() => setLogoutConfirm(true)}
                 >
                     <LogOut className="h-4 w-4" />
                     <span className="text-sm font-medium">ចាកចេញ</span>
