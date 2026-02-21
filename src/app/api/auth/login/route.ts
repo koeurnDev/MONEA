@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { signToken, generateFingerprint } from "@/lib/auth";
+import { ROLES } from "@/lib/constants";
 
 export async function POST(req: Request) {
     try {
@@ -40,7 +41,7 @@ export async function POST(req: Request) {
                     data: { failedAttempts: 0, lockedUntil: null }
                 });
 
-                const role = user.role?.toUpperCase() || "ADMIN";
+                const role = user.role?.toUpperCase() || ROLES.EVENT_MANAGER;
                 const fingerprint = generateFingerprint({ headers: req.headers, ip });
                 const token = signToken({ userId: user.id, email: user.email, role }, { fingerprint });
 
@@ -93,13 +94,13 @@ export async function POST(req: Request) {
                 const token = signToken({
                     staffId: staff.id,
                     weddingId: staff.weddingId,
-                    role: "STAFF",
+                    role: ROLES.EVENT_STAFF,
                     name: staff.name
                 }, { fingerprint });
 
                 const response = NextResponse.json({
                     success: true,
-                    user: { id: staff.id, email: staff.email, role: "STAFF" }
+                    user: { id: staff.id, email: staff.email, role: ROLES.EVENT_STAFF }
                 });
 
                 response.cookies.set("staff_token", token, {

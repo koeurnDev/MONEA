@@ -75,7 +75,7 @@ export const LuxurySection = memo(({ children, id, className = "", innerClassNam
             <div className={`absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 ${borders[variant]} rounded-bl-xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000`} />
             <div className={`absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 ${borders[variant]} rounded-br-xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000`} />
 
-            <div className={`w-full backdrop-blur-xl rounded-3xl p-8 md:p-12 border transition-colors duration-700 relative z-10 ${backgrounds[variant]} ${hoverBorders[variant]} ${innerClassName}`}>
+            <div className={`w-full backdrop-blur-lg rounded-3xl p-8 md:p-12 border transition-colors duration-700 relative z-10 will-change-transform ${backgrounds[variant]} ${hoverBorders[variant]} ${innerClassName}`}>
                 {children}
             </div>
         </section>

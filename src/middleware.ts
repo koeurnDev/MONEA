@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
+import { ROLES } from "./lib/constants";
 
 const SECRET = process.env.JWT_SECRET || "super-secret-key-change-in-prod";
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
@@ -55,28 +56,19 @@ export async function middleware(request: NextRequest) {
     const staffToken = request.cookies.get("staff_token")?.value;
     const secret = new TextEncoder().encode(SECRET);
 
-    // 0. MAINTENANCE MODE CHECK (Global Kill Switch)
-    // We fetch from an internal API because Prisma doesn't run in Edge Middleware
-    try {
+    // 0. MAINTENANCE MODE CHECK (Cookie-based, no blocking fetch)
+    const maintenanceCookie = request.cookies.get("maintenance_mode")?.value;
+    if (maintenanceCookie === "true") {
         const path = request.nextUrl.pathname;
-        if (!path.startsWith('/api/system/maintenance') && !path.startsWith('/maintenance') && !path.startsWith('/login') && !path.startsWith('/_next')) {
-            const maintenanceRes = await fetch(new URL("/api/system/maintenance", request.url), {
-                next: { revalidate: 0 }
-            });
-            const { maintenanceMode } = await maintenanceRes.json();
-
-            if (maintenanceMode) {
-                // Allow ONLY superadmins/owners to enter the platform during maintenance
-                const isSuperAdmin = token && (await jwtVerify(token, secret).then(({ payload }) => payload.role === 'SUPERADMIN' || payload.role === 'OWNER').catch(() => false));
-
-                if (!isSuperAdmin) {
-                    return NextResponse.redirect(new URL("/maintenance", request.url));
-                }
+        if (!path.startsWith('/maintenance') && !path.startsWith('/login') && !path.startsWith('/_next') && !path.startsWith('/api')) {
+            // Allow only Platform Owners to bypass
+            const isSuperAdmin = token && (await jwtVerify(token, secret)
+                .then(({ payload }) => payload.role === ROLES.PLATFORM_OWNER)
+                .catch(() => false));
+            if (!isSuperAdmin) {
+                return NextResponse.redirect(new URL("/maintenance", request.url));
             }
         }
-    } catch (e) {
-        // Fallback: Continue if check fails
-        console.error("Maintenance check failed:", e);
     }
 
     // 1. Basic CSRF Protection for API routes (non-GET)
@@ -140,7 +132,7 @@ export async function middleware(request: NextRequest) {
             try {
                 const { payload } = await jwtVerify(token, secret);
                 const role = (payload.role as string)?.toUpperCase();
-                if (role === "SUPERADMIN") {
+                if (role === ROLES.PLATFORM_OWNER) {
                     response = NextResponse.redirect(new URL("/admin", request.url));
                 } else {
                     response = NextResponse.redirect(new URL("/dashboard", request.url));
@@ -172,6 +164,36 @@ export async function middleware(request: NextRequest) {
         }
     }
 
+    // Admin Routes Protection
+    else if (request.nextUrl.pathname.startsWith("/admin")) {
+        if (!token) {
+            response = NextResponse.redirect(new URL("/login", request.url));
+        } else {
+            try {
+                const { payload } = await jwtVerify(token, secret);
+                const role = payload.role as string;
+
+                // Platforms Owner level access only for /admin/governance and /admin/master
+                if (request.nextUrl.pathname.startsWith("/admin/governance") || request.nextUrl.pathname.startsWith("/admin/master")) {
+                    if (role !== ROLES.PLATFORM_OWNER) {
+                        return NextResponse.redirect(new URL("/dashboard", request.url));
+                    }
+                }
+
+                // FINGERPRINT VALIDATION
+                if (payload.fingerprint && payload.fingerprint !== currentFingerprint) {
+                    console.warn(`[Security] Fingerprint Mismatch for Admin! IP: ${ip}`);
+                    response = NextResponse.redirect(new URL("/login", request.url));
+                    response.cookies.delete("token");
+                    return response;
+                }
+            } catch (error) {
+                response = NextResponse.redirect(new URL("/login", request.url));
+                response.cookies.delete("token");
+            }
+        }
+    }
+
     // 2. Apply Security Headers
     const securityHeaders = {
         "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://res.cloudinary.com https://upload-widget.cloudinary.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://res.cloudinary.com https://*.googleusercontent.com; connect-src 'self' https://res.cloudinary.com; frame-src 'self' https://upload-widget.cloudinary.com;",
@@ -191,5 +213,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ["/dashboard/:path*", "/login", "/register", "/staff/dashboard/:path*", "/api/:path*"],
+    matcher: ["/dashboard/:path*", "/login", "/register", "/staff/dashboard/:path*", "/admin/:path*", "/api/:path*"],
 };

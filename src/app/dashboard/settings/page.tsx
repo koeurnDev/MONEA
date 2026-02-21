@@ -13,6 +13,7 @@ import { motion } from "framer-motion";
 export default function SettingsPage() {
     const [loading, setLoading] = useState(false);
     const [generalData, setGeneralData] = useState<any>({});
+    const [saveStatus, setSaveStatus] = useState<{ type: "success" | "error"; msg: string } | null>(null);
 
     useEffect(() => {
         fetchWeddingData();
@@ -56,6 +57,7 @@ export default function SettingsPage() {
 
     const saveGeneralSettings = async () => {
         setLoading(true);
+        setSaveStatus(null);
         try {
             const res = await fetch("/api/wedding", {
                 method: "PUT",
@@ -63,19 +65,29 @@ export default function SettingsPage() {
                 body: JSON.stringify(generalData)
             });
             if (res.ok) {
-                alert("រក្សាទុកដោយជោគជ័យ!");
+                setSaveStatus({ type: "success", msg: "✅ រក្សាទុកដោយជោគជ័យ!" });
             } else {
-                alert("បរាជ័យក្នុងការរក្សាទុក");
+                setSaveStatus({ type: "error", msg: "❌ បរាជ័យក្នុងការរក្សាទុក" });
             }
         } catch (e) {
             console.error(e);
-            alert("មានបញ្ហាបច្ចេកទេស");
+            setSaveStatus({ type: "error", msg: "❌ មានបញ្ហាបច្ចេកទេស" });
         }
         setLoading(false);
+        setTimeout(() => setSaveStatus(null), 3500);
     };
 
     return (
         <div className="min-h-screen pb-20 relative">
+            {/* Toast Notification */}
+            {saveStatus && (
+                <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-[9999] px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 text-sm font-bold transition-all ${saveStatus.type === "success"
+                        ? "bg-emerald-600 text-white"
+                        : "bg-red-600 text-white"
+                    }`}>
+                    {saveStatus.msg}
+                </div>
+            )}
             {/* Artistic Background elements */}
             <div className="absolute top-0 right-0 w-96 h-96 bg-red-100 rounded-full blur-3xl opacity-20 -z-10" />
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-100 rounded-full blur-3xl opacity-20 -z-10" />

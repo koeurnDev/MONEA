@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 import { prisma } from "./prisma";
+import { ROLES, Role } from "./constants";
 
 const SECRET = process.env.JWT_SECRET || "super-secret-key-change-in-prod";
 
@@ -33,8 +34,9 @@ export function generateFingerprint(req: { headers: any, ip?: string }) {
 
 export type AuthUser = {
     userId: string;
-    role: "ADMIN" | "STAFF" | "OWNER" | "SUPERADMIN";
+    role: Role;
     email?: string;
+    name?: string;
     weddingId?: string; // Present for Staff
     type: "admin" | "staff";
 };
@@ -55,7 +57,7 @@ export async function getServerUser(): Promise<AuthUser | null> {
             // SECURITY: Check Session Revocation
             const user = await prisma.user.findUnique({
                 where: { id: userId },
-                select: { sessionsRevokedAt: true, role: true, email: true }
+                select: { sessionsRevokedAt: true, role: true, email: true, name: true }
             });
 
             if (!user) return null;
@@ -64,11 +66,12 @@ export async function getServerUser(): Promise<AuthUser | null> {
                 return null;
             }
 
-            const role = (user.role?.toUpperCase() || decoded.role?.toUpperCase() || "ADMIN") as AuthUser["role"];
+            const role = (user.role?.toUpperCase() || decoded.role?.toUpperCase() || ROLES.EVENT_MANAGER) as AuthUser["role"];
             return {
                 userId,
                 role,
                 email: user.email,
+                name: user.name || "Admin",
                 type: "admin"
             };
         }
@@ -79,6 +82,8 @@ export async function getServerUser(): Promise<AuthUser | null> {
         if (decoded && typeof decoded === "object" && (decoded.staffId || decoded.weddingId)) {
             const staffId = decoded.staffId;
             const weddingId = decoded.weddingId;
+
+            let staffName = "Staff";
 
             // SECURITY: Check Session Revocation for Staff
             if (staffId) {
@@ -92,12 +97,14 @@ export async function getServerUser(): Promise<AuthUser | null> {
                     console.warn(`[Security] Staff session revoked for staff: ${staffId}`);
                     return null;
                 }
+                staffName = staff.name || "Staff";
             }
 
             return {
                 userId: staffId || weddingId,
                 weddingId: weddingId,
-                role: "STAFF",
+                role: ROLES.EVENT_STAFF,
+                name: staffName,
                 type: "staff"
             };
         }

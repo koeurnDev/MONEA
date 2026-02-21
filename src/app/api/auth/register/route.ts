@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { ROLES } from "@/lib/constants";
 
 export async function POST(req: Request) {
     try {
@@ -22,7 +23,7 @@ export async function POST(req: Request) {
             data: {
                 email,
                 password: hashedPassword,
-                role: "ADMIN", // First user is Admin
+                role: ROLES.EVENT_MANAGER, // First user is Admin (Event Manager)
             },
         });
 

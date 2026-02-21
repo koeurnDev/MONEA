@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DebouncedInput } from "@/components/ui/debounced-input";
-import { Music, MapPin, Video, LayoutDashboard, Palette, Image as ImageIcon, Smartphone, LayoutTemplate, Settings2, X, ChevronDown, Check, Type, Plus, Clock, Trash2, Loader2, Heart, ArrowRight, ArrowLeft, CreditCard, Facebook, Send, Wallet, Sparkles } from "lucide-react";
+import { Music, MapPin, Video, LayoutDashboard, Palette, Image as ImageIcon, Smartphone, LayoutTemplate, Settings2, X, ChevronDown, Check, Type, Plus, Clock, Trash2, Loader2, Heart, ArrowRight, ArrowLeft, CreditCard, Facebook, Send, Wallet, Sparkles, RotateCcw, StickyNote, Save } from "lucide-react";
 import ImageUpload from "@/components/ui/image-upload-widget";
 import AudioUploadWidget from "@/components/ui/audio-upload-widget";
 import Image from "next/image";
@@ -18,6 +18,10 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useCloudinary } from "@/hooks/use-cloudinary";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import useSWR from "swr";
+
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 const PRESET_COLORS = ["#8E5A5A", "#1E40AF", "#047857", "#B91C1C", "#D97706", "#4B5563", "#000000", "#D4AF37"];
 
@@ -34,7 +38,8 @@ const TEMPLATE_LAYOUTS: Record<string, { slots: number, labels: string[] }> = {
     // Anniversary Variants
     "anniversary-golden": { slots: 7, labels: ["រូបភាពអនុស្សាវរីយ៍ (1)", "រូបភាពអនុស្សាវរីយ៍ (2)", "រូបភាពអនុស្សាវរីយ៍ (3)", "រូបភាពអនុស្សាវរីយ៍ (4)", "ជោគវាសនា (1)", "ជោគវាសនា (2)", "ជោគវាសនា (3)"] },
     "anniversary-classic": { slots: 1, labels: ["រូបថតគូស្នេហ៍"] },
-    "anniversary-floral": { slots: 3, labels: ["រូបភាពអនុស្សាវរីយ៍ (1)", "រូបភាពអនុស្សាវរីយ៍ (2)", "រូបភាពអនុស្សាវរីយ៍ (3)"] }
+    "anniversary-floral": { slots: 3, labels: ["រូបភាពអនុស្សាវរីយ៍ (1)", "រូបភាពអនុស្សាវរីយ៍ (2)", "រូបភាពអនុស្សាវរីយ៍ (3)"] },
+    "visionary-modern": { slots: 1, labels: ["រូបថតបេះដូង"] }
 };
 
 import type { WeddingData } from "@/components/templates/types";
@@ -195,10 +200,11 @@ const StepWizard = ({ children, currentStep, onNext, onPrev, isLast, onSave, loa
             <AnimatePresence mode="wait">
                 <motion.div
                     key={currentStep}
-                    initial={{ opacity: 0, x: 20 }}
+                    initial={{ opacity: 0, x: 10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.3 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    transition={{ duration: 0.25, ease: "easeOut" }}
+                    className="will-change-transform"
                 >
                     {children}
                 </motion.div>
@@ -253,6 +259,18 @@ export default function DesignPage() {
     const [previewMode, setPreviewMode] = useState<'mobile' | 'desktop'>('mobile');
     const [isDraggingGallery, setIsDraggingGallery] = useState(false);
     const [activeAccordion, setActiveAccordion] = useState<string | null>('theme');
+    const [templateVersions, setTemplateVersions] = useState<any[]>([]);
+    const [fetchingVersions, setFetchingVersions] = useState(false);
+    const [newVersionTitle, setNewVersionTitle] = useState("");
+    const [isSavingVersion, setIsSavingVersion] = useState(false);
+    const [isNotesOpen, setIsNotesOpen] = useState(false);
+    const [quickNotes, setQuickNotes] = useState("");
+    const [savingNotes, setSavingNotes] = useState(false);
+    const [rollbackConfirm, setRollbackConfirm] = useState<{ open: boolean; versionId: string }>({ open: false, versionId: "" });
+    const [rollbackLoading, setRollbackLoading] = useState(false);
+    const [deleteVersionConfirm, setDeleteVersionConfirm] = useState<{ open: boolean; versionId: string }>({ open: false, versionId: "" });
+    const [saveToast, setSaveToast] = useState<"success" | "error" | null>(null);
+    const [versionToast, setVersionToast] = useState(false);
     const iframeRef = React.useRef<HTMLIFrameElement>(null);
 
     // Custom Hook for Cloudinary Uploads
@@ -269,21 +287,22 @@ export default function DesignPage() {
             floral: { title: "ផ្កាក្រអូបនៃក្តីស្រឡាញ់ (Velvet Blossom)", desc: "ផ្កាស្រស់ស្អាត, ទន់ភ្លន់, រ៉ូមែនទិក។" },
             luxury: { title: "ប្រណិត (Luxury)", desc: "ពណ៌មាស, ខ្មៅ, គុណភាពខ្ពស់។" },
             pastel: { title: "Pastel Floral", desc: "ទន់ភ្លន់, ផ្កាស្រស់, ពណ៌ឡាវែនឌ័រ។" },
-            legacy: { title: "កេរ្តិ៍តំណែលខ្មែរ (Khmer Legacy)", desc: "រចនាប័ទ្មបញ្ឈរ, ស្អាត, បែបអភិជន។" }
+            legacy: { title: "កេរ្តិ៍តំណែលខ្មែរ (Khmer Legacy)", desc: "រចនាប័ទ្មបញ្ឈរ, ស្អាត, បែបអភិជន។" },
+            visionary: { title: "ទស្សនវិជ្ជាទំនើប (Visionary Modern)", desc: "រចនាប័ទ្មអនាគត, ពណ៌ខៀវចាស់, ចលនាអស្ចារ្យ។" },
+            celestial: { title: "សម្រស់ចក្រវាល (Celestial Elegance)", desc: "រចនាប័ទ្មអវកាស, ពណ៌ខ្មៅប្រណិត, ចលនាផ្កាយ។" }
         },
     };
 
+    // --- DATA FETCHING (Optimized with SWR) ---
+    const { data: swrWedding, error: swrError, mutate } = useSWR("/api/wedding", fetcher, {
+        revalidateOnFocus: false,
+        dedupingInterval: 10000,
+    });
+
     useEffect(() => {
-        setLoading(true);
-        fetch("/api/wedding").then(async res => {
-            if (res.status === 401) {
-                // Clear cookie to prevent infinite redirect loop from middleware
-                document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-                window.location.href = "/login";
-                return;
-            }
-            if (res.ok) {
-                const data = await res.json();
+        if (swrWedding) {
+            if (swrWedding.id) {
+                let data = { ...swrWedding };
                 // Double-guard: Ensure themeSettings is an object
                 if (typeof data.themeSettings === 'string' && data.themeSettings !== "") {
                     try {
@@ -293,7 +312,7 @@ export default function DesignPage() {
                     }
                 }
 
-                // Sanitize heroImage if it's the preview URL (common bug)
+                // Sanitize heroImage if it's the preview URL
                 if (data.themeSettings?.heroImage?.includes("/preview")) {
                     data.themeSettings.heroImage = "";
                 }
@@ -307,17 +326,17 @@ export default function DesignPage() {
                 }
                 setWedding({ ...DEFAULT_WEDDING, ...data });
             } else {
-                // If 404 or other error, fallback to default for now (or could redirect to create)
-                console.error("Failed to fetch wedding:", res.statusText);
                 setWedding(DEFAULT_WEDDING);
             }
-        }).catch(err => {
-            console.error("Error fetching wedding:", err);
-            setWedding(DEFAULT_WEDDING);
-        }).finally(() => {
             setLoading(false);
-        });
-    }, []);
+        } else if (swrError) {
+            console.error("SWR Fetch Error:", swrError);
+            setWedding(DEFAULT_WEDDING);
+            setLoading(false);
+        } else {
+            setLoading(true);
+        }
+    }, [swrWedding, swrError]);
 
 
     const updateWedding = useCallback(<K extends keyof WeddingData>(key: K, value: WeddingData[K]) => {
@@ -484,7 +503,10 @@ export default function DesignPage() {
                 eventType: wedding.eventType
             })
         });
-        if (res.ok) alert("បានរក្សាទុកជោគជ័យ!");
+        if (res.ok) {
+            setSaveToast("success");
+            setTimeout(() => setSaveToast(null), 3000);
+        }
         setLoading(false);
     };
 
@@ -505,6 +527,125 @@ export default function DesignPage() {
             };
         });
     };
+
+    const fetchVersions = useCallback(async () => {
+        if (!wedding?.id) return;
+        setFetchingVersions(true);
+        try {
+            const res = await fetch(`/api/templates/versions?weddingId=${wedding.id}`);
+            if (res.ok) {
+                const data = await res.json();
+                setTemplateVersions(data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch versions:", error);
+        } finally {
+            setFetchingVersions(false);
+        }
+    }, [wedding?.id]);
+
+    const handleSaveVersion = async () => {
+        if (!wedding?.id || !newVersionTitle) return;
+        setIsSavingVersion(true);
+        try {
+            const res = await fetch("/api/templates/versions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    weddingId: wedding.id,
+                    versionName: newVersionTitle,
+                    description: "Saved from editor"
+                })
+            });
+            if (res.ok) {
+                const newVer = await res.json();
+                setTemplateVersions(prev => [newVer, ...prev]);
+                setNewVersionTitle("");
+                setVersionToast(true);
+                setTimeout(() => setVersionToast(false), 3000);
+            }
+        } catch (error) {
+            console.error("Failed to save version:", error);
+        } finally {
+            setIsSavingVersion(false);
+        }
+    };
+
+    const handleRollback = async (versionId: string) => {
+        setRollbackConfirm({ open: true, versionId });
+    };
+
+    const confirmRollback = async () => {
+        setRollbackLoading(true);
+        try {
+            const res = await fetch("/api/templates/versions", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: rollbackConfirm.versionId })
+            });
+            if (res.ok) {
+                const result = await res.json();
+                setWedding(prev => {
+                    if (!prev) return null;
+                    let themeSettings = result.themeSettings;
+                    if (typeof themeSettings === 'string') {
+                        try { themeSettings = JSON.parse(themeSettings); } catch (e) { themeSettings = {}; }
+                    }
+                    return { ...prev, templateId: result.templateId, themeSettings };
+                });
+                setRollbackConfirm({ open: false, versionId: "" });
+            }
+        } catch (error) {
+            console.error("Rollback failed:", error);
+        } finally {
+            setRollbackLoading(false);
+        }
+    };
+
+    const handleDeleteVersion = async (versionId: string) => {
+        setDeleteVersionConfirm({ open: true, versionId });
+    };
+
+    const confirmDeleteVersion = async () => {
+        try {
+            const res = await fetch(`/api/templates/versions?id=${deleteVersionConfirm.versionId}`, {
+                method: "DELETE"
+            });
+            if (res.ok) {
+                setTemplateVersions((prev: any[]) => prev.filter((v: any) => v.id !== deleteVersionConfirm.versionId));
+                setDeleteVersionConfirm({ open: false, versionId: "" });
+            }
+        } catch (error) {
+            console.error("Delete failed:", error);
+        }
+    };
+
+
+    const fetchNotes = useCallback(async () => {
+        try {
+            const res = await fetch("/api/wedding/notes");
+            if (res.ok) {
+                const data = await res.json();
+                setQuickNotes(data.notes || "");
+            }
+        } catch (err) { }
+    }, []);
+
+    const saveNotes = async (val: string) => {
+        setSavingNotes(true);
+        try {
+            await fetch("/api/wedding/notes", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ notes: val }),
+            });
+        } catch (err) { }
+        setSavingNotes(false);
+    };
+
+    useEffect(() => {
+        if (mounted) fetchNotes();
+    }, [mounted, fetchNotes]);
 
     const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, STEPS.length));
     const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
@@ -551,6 +692,8 @@ export default function DesignPage() {
                                 { id: "enchanted-garden", title: "Garden", categories: ['wedding'], bgClass: "bg-emerald-50", textClass: "text-emerald-600", image: "/images/bg_enchanted.jpg" },
                                 { id: "canva-style", title: "Scroll", categories: ['wedding'], bgClass: "bg-orange-50/50", textClass: "text-orange-600", image: "/images/couple.jpg" },
                                 { id: "khmer-legacy", title: "Legacy", categories: ['wedding', 'anniversary'], bgClass: "bg-stone-50", textClass: "text-stone-600", image: "/images/bg_staircase.jpg" },
+                                { id: "visionary-modern", title: "Visionary", categories: ['wedding'], bgClass: "bg-teal-50", textClass: "text-teal-600", image: "/images/bg_staircase.jpg" },
+                                { id: "celestial-elegance", title: "Celestial", categories: ['wedding', 'anniversary'], bgClass: "bg-indigo-950", textClass: "text-emerald-400", image: "/images/bg_tunnel.jpg" },
                             ]
                                 .filter(t => t.categories.includes(wedding.eventType || 'wedding'))
                                 .map((tmpl, idx) => (
@@ -1191,6 +1334,91 @@ export default function DesignPage() {
                                     <p className="text-[10px] text-gray-400">ណែនាំ: កែប្រែអត្ថបទទាំងនេះដើម្បីឱ្យសមស្របតាមចំណូលចិត្តរបស់អ្នក។</p>
                                 </div>
                             </AccordionItem>
+
+                            {/* SECTION 5: VERSION HISTORY */}
+                            <AccordionItem
+                                icon={Clock}
+                                title="ប្រវត្តិនៃការកែប្រែ (Version History)"
+                                subtitle="រក្សាទុក ឬទាញយកម៉ូដចាស់ៗ"
+                                isOpen={activeAccordion === 'history'}
+                                onClick={() => {
+                                    const isOpen = activeAccordion === 'history';
+                                    setActiveAccordion(isOpen ? null : 'history');
+                                    if (!isOpen) fetchVersions();
+                                }}
+                            >
+                                <div className="space-y-4 pt-4">
+                                    {/* Create New Version */}
+                                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3">
+                                        <Label className="text-[10px] text-gray-400 font-bold uppercase block">រក្សាទុក Version ថ្មី (Create Snapshot)</Label>
+                                        <div className="flex gap-2">
+                                            <Input
+                                                placeholder="ឈ្មោះ Version (ឧ. មុនដូរពណ៌...)"
+                                                value={newVersionTitle}
+                                                onChange={(e) => setNewVersionTitle(e.target.value)}
+                                                className="h-10 text-xs rounded-lg"
+                                            />
+                                            <Button
+                                                onClick={handleSaveVersion}
+                                                disabled={isSavingVersion || !newVersionTitle}
+                                                className="h-10 bg-slate-900 hover:bg-black text-white px-4 rounded-lg text-xs"
+                                            >
+                                                {isSavingVersion ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                                            </Button>
+                                        </div>
+                                    </div>
+
+                                    {/* Version List */}
+                                    <div className="space-y-2">
+                                        <Label className="text-[10px] text-gray-400 font-bold uppercase block px-1">បញ្ជី Version ដែលបានរក្សាទុក</Label>
+                                        {fetchingVersions ? (
+                                            <div className="flex flex-col items-center py-8 gap-2">
+                                                <Loader2 className="w-6 h-6 animate-spin text-slate-300" />
+                                                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Loading Versions...</span>
+                                            </div>
+                                        ) : templateVersions.length === 0 ? (
+                                            <div className="text-center py-8 border-2 border-dashed border-slate-50 rounded-xl">
+                                                <p className="text-[10px] text-slate-300 font-bold uppercase">មិនទាន់មាន Version នៅឡើយទេ</p>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 scrollbar-hide">
+                                                {templateVersions.map((ver) => (
+                                                    <div key={ver.id} className="bg-white p-3 rounded-xl border border-slate-100 flex items-center justify-between group hover:border-slate-300 transition-all shadow-sm">
+                                                        <div className="min-w-0">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-xs font-black text-slate-900 font-kantumruy truncate">{ver.versionName}</span>
+                                                                {/* Stability Badge (Optional) */}
+                                                                <span className="text-[8px] bg-slate-50 text-slate-400 px-1.5 py-0.5 rounded-full font-bold">SAVED</span>
+                                                            </div>
+                                                            <p className="text-[9px] text-slate-400 mt-0.5">{new Date(ver.createdAt).toLocaleString('km-KH')}</p>
+                                                        </div>
+                                                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                onClick={() => handleRollback(ver.id)}
+                                                                className="h-8 w-8 text-emerald-600 hover:bg-emerald-50 rounded-lg"
+                                                                title="Restore this version"
+                                                            >
+                                                                <RotateCcw size={14} />
+                                                            </Button>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                onClick={() => handleDeleteVersion(ver.id)}
+                                                                className="h-8 w-8 text-red-400 hover:bg-red-50 rounded-lg"
+                                                                title="Delete"
+                                                            >
+                                                                <Trash2 size={14} />
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </AccordionItem>
                         </div>
                     </div>
                 );
@@ -1375,10 +1603,117 @@ export default function DesignPage() {
     ) : null;
 
     return (
-        <>
+        <div className="relative">
             {desktopLayout}
             {mobileLayout}
-        </>
+
+            {/* Quick Notes Overlay Trigger */}
+            <motion.div
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="fixed bottom-6 right-6 md:right-10 z-[100] group"
+            >
+                <button
+                    onClick={() => setIsNotesOpen(true)}
+                    className="w-14 h-14 bg-slate-900 text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all group-hover:bg-black"
+                >
+                    <StickyNote className="w-6 h-6" />
+                </button>
+                <div className="absolute right-full mr-4 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl">
+                    កំណត់ត្រា (Quick Notes)
+                </div>
+            </motion.div>
+
+            {/* Quick Notes Panel */}
+            <AnimatePresence>
+                {isNotesOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[1000] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-6"
+                        onClick={() => setIsNotesOpen(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.9, y: 20 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-full max-w-xl bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-slate-100"
+                        >
+                            <div className="p-8 border-b border-slate-50 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-white">
+                                        <StickyNote className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-black text-slate-900 font-kantumruy">កំណត់ត្រារហ័ស</h3>
+                                        <p className="text-[10px] text-slate-400 uppercase tracking-widest font-black">Quick Memo Space</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setIsNotesOpen(false)}
+                                    className="p-3 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-xl transition-all"
+                                >
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <div className="p-8 space-y-4">
+                                <textarea
+                                    value={quickNotes}
+                                    onChange={(e) => setQuickNotes(e.target.value)}
+                                    placeholder="សរសេរអ្វីមួយនៅទីនេះ..."
+                                    className="w-full h-[300px] bg-slate-50 border border-slate-100 rounded-2xl p-6 text-slate-700 focus:outline-none focus:ring-4 focus:ring-slate-900/5 focus:bg-white transition-all font-kantumruy leading-relaxed text-sm resize-none"
+                                />
+                                <div className="flex justify-between items-center text-[10px] text-slate-300 font-black uppercase tracking-widest px-2">
+                                    <span>Internal Only</span>
+                                    <div className="flex items-center gap-4">
+                                        {savingNotes && <span className="text-emerald-500 animate-pulse">Saving...</span>}
+                                        <span>Auto-sync enabled</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="p-8 pt-0">
+                                <Button
+                                    onClick={async () => {
+                                        await saveNotes(quickNotes);
+                                        setIsNotesOpen(false);
+                                    }}
+                                    className="w-full h-14 bg-slate-900 hover:bg-black text-white rounded-xl font-black uppercase tracking-widest shadow-xl shadow-slate-200 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                                >
+                                    {savingNotes ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                                    រក្សាទុក និងបិទ (Save & Close)
+                                </Button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* === DESIGN PAGE CONFIRM MODALS === */}
+            <ConfirmModal
+                open={rollbackConfirm.open}
+                onClose={() => setRollbackConfirm({ open: false, versionId: "" })}
+                onConfirm={confirmRollback}
+                loading={rollbackLoading}
+                title="ទាញយក Version មកប្រើ"
+                description="ការកែប្រែបច្ចុប្បន្នទាំងអស់នឹងត្រូវប្ដូរជំនួស។ Template Design នឹងត្រូវបណ្ដុះបណ្ដាលឡើងវិញ។"
+                confirmLabel="យល់ព្រម Restore"
+                variant="info"
+            />
+            <ConfirmModal
+                open={deleteVersionConfirm.open}
+                onClose={() => setDeleteVersionConfirm({ open: false, versionId: "" })}
+                onConfirm={confirmDeleteVersion}
+                loading={false}
+                title="លុប Version នេះ"
+                description="Version នេះនឹងត្រូវបានលុបចោលជាអចិន្ត្រៃ។ សកម្មភាពនេះមិនអាចដកស្រាយបានឡើយ។"
+                confirmLabel="លុបចោល"
+                variant="danger"
+            />
+        </div>
     );
 }
 
@@ -1410,8 +1745,12 @@ function PreviewSync({ wedding, iframeRef, currentStep, enableScrollSync = true 
         }
     }, [debouncedWedding, iframeRef]);
 
-    // 1.5. Real-time sync for specific fields (bypass debounce for better UX)
+    // 1.5. Throttled sync for specific fields (bypass debounce but throttle to 60ms)
+    const lastEmit = useRef(0);
     useEffect(() => {
+        const now = Date.now();
+        if (now - lastEmit.current < 60) return; // Limit to ~16fps for slider movement
+
         if (iframeRef.current && iframeRef.current.contentWindow && wedding) {
             const settings = wedding.themeSettings as any;
             if (settings) {
@@ -1431,6 +1770,7 @@ function PreviewSync({ wedding, iframeRef, currentStep, enableScrollSync = true 
                         brideImageScale: settings.brideImageScale
                     }
                 }, "*");
+                lastEmit.current = now;
             }
         }
     }, [

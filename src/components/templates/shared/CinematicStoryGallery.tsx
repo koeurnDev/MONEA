@@ -20,8 +20,8 @@ const KenBurnsImage = memo(({ src }: { src: string }) => (
         <motion.div
             initial={{ scale: 1, x: "-2%", y: "-2%" }}
             animate={{ scale: 1.15, x: "2%", y: "2%" }}
-            transition={{ duration: 20, repeat: Infinity, repeatType: "mirror", ease: "linear" }}
-            className="w-[110%] h-[110%] relative"
+            transition={{ duration: 25, repeat: Infinity, repeatType: "mirror", ease: "linear" }}
+            className="w-[110%] h-[110%] relative will-change-transform"
         >
             {src.startsWith('/') ? (
                 <img src={src} className="w-full h-full object-cover" alt="" loading="lazy" />
@@ -64,8 +64,8 @@ const CinematicStoryGallery = memo(({ items, labels, theme = 'light' }: Cinemati
         offset: ["start end", "end start"]
     });
 
-    const xMove = useTransform(horizontalScrollProgress, [0.3, 0.7], ["0%", "-50%"]);
-    const springXMove = useSpring(xMove, { stiffness: 100, damping: 30 });
+    const xMove = useTransform(horizontalScrollProgress, [0.1, 0.9], ["0%", "-100%"]);
+    const springXMove = useSpring(xMove, { stiffness: 50, damping: 20 });
 
     // Filter for images and ensure we have enough items
     const safeItems = useMemo(() => {
@@ -178,7 +178,7 @@ const CinematicStoryGallery = memo(({ items, labels, theme = 'light' }: Cinemati
             {/* Page 4: Cinematic Scroll (Horizontal Move) */}
             <section ref={horizontalRef} className="h-[200vh] relative">
                 <div className="sticky top-0 h-screen w-full flex items-center overflow-hidden">
-                    <motion.div style={{ x: springXMove }} className="flex gap-4 md:gap-8 px-4 md:px-20 min-w-[200vw]">
+                    <motion.div style={{ x: springXMove }} className="flex gap-4 md:gap-8 px-4 md:px-20 min-w-[200vw] will-change-transform">
                         {[safeItems[10], safeItems[11], safeItems[12], safeItems[13]].map((item, i) => (
                             <div key={i} className="flex-shrink-0 w-[80vw] h-[50vh] sm:w-[60vw] sm:h-[60vh] md:w-[45vw] md:h-[70vh] rounded-3xl overflow-hidden shadow-2xl relative">
                                 {item.url.startsWith('/') ? (

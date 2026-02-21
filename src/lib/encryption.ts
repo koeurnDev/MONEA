@@ -5,11 +5,18 @@ const IV_LENGTH = 12; // Standard for GCM
 const AUTH_TAG_LENGTH = 16;
 const KEY = process.env.ENCRYPTION_KEY || 'default-hex-key-32-chars-long-placeholder'; // 32 bytes for aes-256
 
+let cachedKey: Buffer | null = null;
+function getHashedKey() {
+    if (!cachedKey) {
+        cachedKey = crypto.createHash('sha256').update(KEY).digest();
+    }
+    return cachedKey;
+}
+
 export function encrypt(text: string): string {
     if (!text) return text;
 
-    // Ensure key is 32 bytes
-    const key = crypto.createHash('sha256').update(KEY).digest();
+    const key = getHashedKey();
     const iv = crypto.randomBytes(IV_LENGTH);
     const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
 
@@ -29,7 +36,7 @@ export function decrypt(encryptedData: string): string {
         const [ivHex, authTagHex, encryptedText] = encryptedData.split(':');
         if (!ivHex || !authTagHex || !encryptedText) return encryptedData;
 
-        const key = crypto.createHash('sha256').update(KEY).digest();
+        const key = getHashedKey();
         const iv = Buffer.from(ivHex, 'hex');
         const authTag = Buffer.from(authTagHex, 'hex');
         const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);

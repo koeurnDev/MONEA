@@ -21,6 +21,7 @@ import { Heart, Lock, Mail, ArrowRight, UserCog, Loader2, Key, Users } from "luc
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
+import { ROLES } from "@/lib/constants";
 
 const loginSchema = z.object({
     email: z.string().email({ message: "សូមបញ្ចូលអ៊ីមែលឱ្យបានត្រឹមត្រូវ" }),
@@ -52,9 +53,9 @@ export default function LoginPage() {
             if (res.ok) {
                 // Redirect based on Role
                 const role = data.user?.role;
-                if (role === "STAFF") {
+                if (role === ROLES.EVENT_STAFF) {
                     router.push("/dashboard/gifts");
-                } else if (role === "SUPERADMIN") {
+                } else if (role === ROLES.PLATFORM_OWNER) {
                     router.push("/admin");
                 } else {
                     router.push("/dashboard");
