@@ -18,6 +18,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Heart, Lock, Mail, ArrowRight, UserPlus } from "lucide-react";
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
+import { Turnstile } from "@marsidev/react-turnstile";
 
 const formSchema = z.object({
     email: z.string().email({ message: "សូមបញ្ចូលអ៊ីមែលដែលត្រឹមត្រូវ (Invalid email)" }),
@@ -32,6 +33,7 @@ export default function RegisterPage() {
     const router = useRouter();
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [turnstileToken, setTurnstileToken] = useState<string>("");
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -44,12 +46,23 @@ export default function RegisterPage() {
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setError("");
+
+        // Require CAPTCHA validation
+        if (!turnstileToken) {
+            setError("សូមផ្ទៀងផ្ទាត់ CAPTCHA (CAPTCHA required)");
+            return;
+        }
+
         setIsLoading(true);
         try {
             const res = await fetch("/api/auth/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: values.email, password: values.password }),
+                body: JSON.stringify({
+                    email: values.email,
+                    password: values.password,
+                    turnstileToken
+                }),
             });
 
             const data = await res.json();
@@ -146,7 +159,17 @@ export default function RegisterPage() {
                                 </div>
                             )}
 
-                            <Button type="submit" disabled={isLoading} className="w-full bg-gradient-to-r from-pink-500 to-rose-600 rounded-xl font-bold uppercase tracking-wide h-11 border border-white/10 hover:shadow-lg hover:shadow-pink-500/20 transition-all mt-6 text-white">
+                            <div className="flex justify-center mt-4">
+                                <Turnstile
+                                    siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ""}
+                                    onSuccess={(token) => setTurnstileToken(token)}
+                                    options={{
+                                        theme: 'dark',
+                                    }}
+                                />
+                            </div>
+
+                            <Button type="submit" disabled={isLoading || !turnstileToken} className="w-full bg-gradient-to-r from-pink-500 to-rose-600 rounded-xl font-bold uppercase tracking-wide h-11 border border-white/10 hover:shadow-lg hover:shadow-pink-500/20 transition-all mt-6 text-white">
                                 {isLoading ? "កំពុងបង្កើតគណនី..." : "ចុះឈ្មោះ"}
                             </Button>
                         </form>
