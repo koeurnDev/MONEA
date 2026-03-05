@@ -70,10 +70,14 @@ export default function RegisterPage() {
                 // Redirect to login or potentially a welcome/onboarding page
                 router.push("/login?registered=true");
             } else {
-                setError(data.error || "Registration failed");
+                let errorMsg = data.error || "ការចុះឈ្មោះបរាជ័យ (Registration failed)";
+                if (data.details) {
+                    errorMsg += `\n[MONEA DEBUG] ${data.details}`;
+                }
+                setError(errorMsg);
             }
-        } catch (e) {
-            setError("Something went wrong. Please try again.");
+        } catch (e: any) {
+            setError(e?.message || "Something went wrong. Please try again.");
         } finally {
             setIsLoading(false);
         }
