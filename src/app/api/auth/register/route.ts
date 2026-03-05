@@ -8,6 +8,14 @@ export async function GET(req: Request) {
     return NextResponse.redirect(new URL('/register', req.url));
 }
 
+export async function OPTIONS(req: Request) {
+    const response = new NextResponse(null, { status: 200 });
+    response.headers.set('Access-Control-Allow-Origin', '*');
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    return response;
+}
+
 export async function POST(req: Request) {
     try {
         let body;
@@ -60,7 +68,7 @@ export async function POST(req: Request) {
             // Log the attempt internally but return generic error to mitigate enumeration
             console.warn(`[Security] Registration attempt for existing email: ${email}`);
             return NextResponse.json({
-                error: "ការចុះឈ្មោះមិនទាន់អាចជោគជ័យបានទេ។ សូមពិនិត្យទិន្នន័យរបស់អ្នកម្ដងទៀត។ (Registration could not be completed. Please check your details.)"
+                error: "ការចុះឈ្មោះមិនទាន់អាចជោគជ័យបានទេ។ សូមពិនិត្យទិន្នន័យរបស់អ្នកម្ដងទៀត។ "
             }, { status: 400 });
         }
 

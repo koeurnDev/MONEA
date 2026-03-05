@@ -13,6 +13,14 @@ export async function GET(req: Request) {
     return NextResponse.redirect(new URL('/login', req.url));
 }
 
+export async function OPTIONS(req: Request) {
+    const response = new NextResponse(null, { status: 200 });
+    response.headers.set('Access-Control-Allow-Origin', '*');
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    return response;
+}
+
 export async function POST(req: Request) {
     try {
         let body;
@@ -279,8 +287,12 @@ export async function POST(req: Request) {
         // Generic Failure - No Account Found
         return await handleFailure(null, "User");
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Login Error:", error);
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+        return NextResponse.json({
+            error: "Internal Server Error",
+            details: error?.message || String(error),
+            stack: error?.stack
+        }, { status: 500 });
     }
 }
