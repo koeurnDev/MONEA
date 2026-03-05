@@ -8,9 +8,20 @@ const { authenticator } = require("otplib");
 import { sendTelegramAlert } from "@/lib/telegram";
 import { CryptoUtils } from "@/lib/crypto";
 
+export async function GET(req: Request) {
+    // Graceful redirect if user accidentally navigates to the API URL in their browser
+    return NextResponse.redirect(new URL('/login', req.url));
+}
+
 export async function POST(req: Request) {
     try {
-        const body = await req.json();
+        let body;
+        try {
+            body = await req.json();
+        } catch (e) {
+            return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+        }
+
         const { email, password, turnstileToken, twoFactorToken } = body;
 
         // Vercel / Cloudflare specific IP Headers
