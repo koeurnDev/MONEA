@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { prisma } from "@/lib/prisma";
 import { Link, Plus, Play } from "lucide-react";
 import Image from "next/image";
