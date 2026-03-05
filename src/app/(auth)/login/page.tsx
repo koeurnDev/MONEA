@@ -18,10 +18,11 @@ import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Heart, Lock, Mail, ArrowRight, UserCog, Loader2, Key, Users } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from 'framer-motion';
 import Image from "next/image";
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
 import { ROLES } from "@/lib/constants";
+import { Turnstile } from '@marsidev/react-turnstile';
 
 const loginSchema = z.object({
     email: z.string().email({ message: "សូមបញ្ចូលអ៊ីមែលឱ្យបានត្រឹមត្រូវ" }),
@@ -32,6 +33,8 @@ export default function LoginPage() {
     const router = useRouter();
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [requireCaptcha, setRequireCaptcha] = useState(false);
+    const [captchaToken, setCaptchaToken] = useState("");
 
     // Form
     const form = useForm<z.infer<typeof loginSchema>>({
@@ -41,12 +44,18 @@ export default function LoginPage() {
 
     // Handler
     async function onSubmit(values: z.infer<typeof loginSchema>) {
+        if (requireCaptcha && !captchaToken) {
+            setError("សូមផ្ទៀងផ្ទាត់ CAPTCHA។ (Please verify CAPTCHA)");
+            return;
+        }
+
         setError("");
         setIsLoading(true);
         try {
+            const body = { ...values, turnstileToken: captchaToken || undefined };
             const res = await fetch("/api/auth/login", {
                 method: "POST",
-                body: JSON.stringify(values),
+                body: JSON.stringify(body),
             });
             const data = await res.json();
 
@@ -62,6 +71,12 @@ export default function LoginPage() {
                 }
                 router.refresh();
             } else {
+                if (res.status === 428 && data.requireCaptcha) {
+                    setRequireCaptcha(true);
+                } else if (res.status === 400 && data.error?.includes("CAPTCHA")) {
+                    // Reset captcha if it failed serverside
+                    setCaptchaToken("");
+                }
                 setError(data.error || "អ៊ីមែល ឬ ពាក្យសម្ងាត់មិនត្រឹមត្រូវ");
             }
         } catch (e) {
@@ -86,7 +101,7 @@ export default function LoginPage() {
             </div>
 
             {/* Content Container */}
-            <motion.div
+            <m.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
@@ -96,7 +111,7 @@ export default function LoginPage() {
                     {/* Header */}
                     <div className="text-center mb-8">
                         <Link href="/" className="inline-flex justify-center">
-                            <MoneaLogo showText size="md" />
+                            <MoneaLogo showText size="md" variant="dark" />
                         </Link>
 
                         <h1 className="text-2xl font-bold text-white mb-2 font-kantumruy">ចូលប្រើប្រាស់</h1>
@@ -140,6 +155,24 @@ export default function LoginPage() {
                                     </FormItem>
                                 )}
                             />
+
+                            {requireCaptcha && (
+                                <m.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    className="flex justify-center my-4 overflow-hidden"
+                                >
+                                    <Turnstile
+                                        siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA"}
+                                        onSuccess={(token) => {
+                                            setCaptchaToken(token);
+                                            setError(""); // Clear error when verified
+                                        }}
+                                        options={{ theme: 'dark' }}
+                                    />
+                                </m.div>
+                            )}
+
                             <Button type="submit" disabled={isLoading} className="w-full bg-gradient-to-r from-pink-500 to-rose-600 rounded-xl font-bold uppercase tracking-wide h-11 border border-white/10 hover:shadow-lg hover:shadow-pink-500/20 transition-all mt-2">
                                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "ចូលគណនី"}
                             </Button>
@@ -149,23 +182,23 @@ export default function LoginPage() {
                     {/* Error Message */}
                     <AnimatePresence>
                         {error && (
-                            <motion.div
+                            <m.div
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: 10 }}
                                 className="mt-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-200 text-xs text-center font-kantumruy"
                             >
                                 {error}
-                            </motion.div>
+                            </m.div>
                         )}
                     </AnimatePresence>
 
                     {/* Bottom Branding */}
                     <div className="text-center mt-6 opacity-30">
-                        <MoneaLogo size="sm" className="justify-center grayscale" />
+                        <MoneaLogo size="sm" variant="dark" className="justify-center grayscale" />
                     </div>
                 </div>
-            </motion.div>
+            </m.div>
         </div>
     );
 }

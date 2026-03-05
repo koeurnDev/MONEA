@@ -3,7 +3,7 @@
 import { useState } from "react";
 import * as XLSX from "xlsx";
 import { Button } from "@/components/ui/button";
-import { Upload, FileSpreadsheet } from "lucide-react";
+import { Upload, FileSpreadsheet, Download } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -34,9 +34,8 @@ export function GuestImport({ onSuccess }: { onSuccess: () => void }) {
             // Map keys to expected format (Name, Phone, Group)
             // Assumes generic column matching or first row headers
             const formattedGuests = data.map((row: any) => ({
-                name: row.Name || row.name || row["ឈ្មោះ"] || "Unknown",
-                phone: row.Phone || row.phone || row["ទូរស័ព្ទ"]?.toString() || "",
-                group: row.Group || row.group || row["ក្រុម"] || "Friend",
+                name: row["នាម និង គោតមនាម"] || row.Name || row.name || row["ឈ្មោះ"] || "Unknown",
+                group: row["អញ្ជើញមកពី"] || row.Group || row.group || row["ក្រុម"] || "Friend",
             }));
 
             if (formattedGuests.length > 0) {
@@ -63,34 +62,67 @@ export function GuestImport({ onSuccess }: { onSuccess: () => void }) {
         reader.readAsBinaryString(file);
     };
 
+    const downloadTemplate = () => {
+        const headers = ["នាម និង គោតមនាម", "អញ្ជើញមកពី"];
+        const sampleData = [
+            ["សុក តារា", "មិត្តភក្តិខាងកូនកំលោះ"],
+            ["កែវ មុន្នី", "ក្រុមគ្រួសារខាងកូនស្រី"]
+        ];
+
+        const worksheet = XLSX.utils.aoa_to_sheet([headers, ...sampleData]);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Guest Template");
+
+        XLSX.writeFile(workbook, "Monea_Guest_Template.xlsx");
+    };
+
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline">
-                    <FileSpreadsheet className="mr-2 h-4 w-4" /> នាំចូល Excel (Import)
+                <Button
+                    variant="outline"
+                    className="h-11 px-6 border-border text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl font-kantumruy font-bold transition-all"
+                >
+                    <FileSpreadsheet className="mr-2 h-4 w-4 text-emerald-600" /> នាំចូល Excel (Import)
                 </Button>
             </DialogTrigger>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>នាំចូលបញ្ជីភ្ញៀវ (Import Guests)</DialogTitle>
-                    <DialogDescription>
-                        ម៉ូដែល Excel (.xlsx) ដែលមានជួរឈរ៖ <strong>Name, Phone, Group</strong>។
+            <DialogContent className="sm:max-w-[500px] rounded-[2rem] border-none shadow-2xl bg-card">
+                <DialogHeader className="pt-4 px-2 mb-2">
+                    <DialogTitle className="text-3xl font-black font-kantumruy tracking-tight text-foreground">
+                        នាំចូលបញ្ជីភ្ញៀវ
+                    </DialogTitle>
+                    <DialogDescription className="font-kantumruy font-medium text-muted-foreground text-base mt-2">
+                        សូមជ្រើររើសឯកសារ Excel (.xlsx) ដែលមានជួរឈរ៖ <strong className="text-foreground font-bold bg-muted px-2 py-0.5 rounded">នាម និង គោតមនាម, អញ្ជើញមកពី</strong> ឬ <strong className="text-foreground font-bold bg-muted px-2 py-0.5 rounded">Name, Group</strong> ។
+                        <span className="block mt-4">
+                            <Button
+                                variant="link"
+                                onClick={downloadTemplate}
+                                className="p-0 h-auto text-blue-600 hover:text-blue-700 font-bold flex items-center gap-1"
+                            >
+                                <Download className="w-4 h-4" /> ទាញយកឯកសារគំរូ (Download Sample Template)
+                            </Button>
+                        </span>
                     </DialogDescription>
                 </DialogHeader>
-                <div className="flex items-center justify-center w-full p-4 border-2 border-dashed rounded-lg">
-                    <label className="cursor-pointer flex flex-col items-center">
-                        <Upload className="h-8 w-8 text-gray-500 mb-2" />
-                        <span className="text-sm text-gray-600">
-                            {loading ? "កំពុងនាំចូល..." : "ចុចទីនេះដើម្បីជ្រើសរើសឯកសារ Excel"}
-                        </span>
-                        <input
-                            type="file"
-                            accept=".xlsx, .xls"
-                            className="hidden"
-                            onChange={handleFileUpload}
-                            disabled={loading}
-                        />
-                    </label>
+                <div className="p-2">
+                    <div className="flex items-center justify-center w-full">
+                        <label className="cursor-pointer flex flex-col items-center justify-center w-full h-56 bg-muted/50 hover:bg-muted border-2 border-dashed border-border hover:border-red-600/50 rounded-3xl transition-all group">
+                            <div className="w-16 h-16 mb-4 rounded-2xl bg-background shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <Upload className="h-8 w-8 text-red-600" />
+                            </div>
+                            <span className="text-lg font-bold text-foreground font-kantumruy">
+                                {loading ? "កំពុងទាញបញ្ចូលទិន្នន័យ..." : "ចុចទីនេះដើម្បីជ្រើសរើសឯកសារ Excel"}
+                            </span>
+                            <span className="text-sm text-muted-foreground font-kantumruy mt-2">អនុញ្ញាតត្រឹមឯកសារ: .xlsx, .xls</span>
+                            <input
+                                type="file"
+                                accept=".xlsx, .xls"
+                                className="hidden"
+                                onChange={handleFileUpload}
+                                disabled={loading}
+                            />
+                        </label>
+                    </div>
                 </div>
             </DialogContent>
         </Dialog>

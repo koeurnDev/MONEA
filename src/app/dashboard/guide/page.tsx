@@ -65,26 +65,26 @@ export default function GuidePage() {
                 <h1 className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-600 via-yellow-700 to-yellow-800 drop-shadow-sm">
                     {t.title}
                 </h1>
-                <p className="text-gray-500 font-medium text-lg">{t.subtitle}</p>
+                <p className="text-muted-foreground font-medium text-lg">{t.subtitle}</p>
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">
                 {t.sections.map((section, idx) => (
-                    <div key={idx} className="bg-white/60 backdrop-blur-xl border border-white/60 rounded-3xl p-6 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
+                    <div key={idx} className="bg-card/60 backdrop-blur-xl border border-border/60 rounded-3xl p-6 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/20 to-white/0 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
 
                         <div className="flex items-center gap-4 mb-4 relative z-10">
                             <div className={`p-3 rounded-2xl ${section.color.replace('text-', 'bg-')}/10 ${section.color}`}>
                                 <section.icon className="w-6 h-6" />
                             </div>
-                            <h3 className="text-xl font-bold text-gray-900 leading-snug">
+                            <h3 className="text-xl font-bold text-foreground leading-snug">
                                 {section.title}
                             </h3>
                         </div>
 
                         <ul className="space-y-3 relative z-10">
                             {section.items.map((item: string, i: number) => (
-                                <li key={i} className="flex gap-3 text-gray-700 items-start">
+                                <li key={i} className="flex gap-3 text-foreground/80 items-start">
                                     <span className="w-1.5 h-1.5 rounded-full bg-red-300 mt-2 shrink-0" />
                                     <span className="leading-relaxed">{item.replace(/<[^>]+>/g, '')}</span>
                                 </li>
@@ -94,17 +94,17 @@ export default function GuidePage() {
                 ))}
             </div>
 
-            <div className="bg-white/60 backdrop-blur-xl border border-white/60 rounded-3xl p-6 md:p-8 shadow-sm">
-                <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+            <div className="bg-card/60 backdrop-blur-xl border border-border/60 rounded-3xl p-6 md:p-8 shadow-sm">
+                <h3 className="text-2xl font-bold text-foreground mb-6 flex items-center gap-3">
                     <span className="text-2xl">🤔</span> សំនួរដែលសួរញឹកញាប់
                 </h3>
                 <Accordion type="single" collapsible className="w-full space-y-4">
                     {t.faq.map((f, i) => (
-                        <AccordionItem key={i} value={`item-${i}`} className="border border-white/50 bg-white/50 rounded-xl px-4 shadow-sm data-[state=open]:ring-2 data-[state=open]:ring-red-100 transition-all">
-                            <AccordionTrigger className="font-bold text-gray-800 hover:text-red-900 hover:no-underline py-4 text-left">
+                        <AccordionItem key={i} value={`item-${i}`} className="border border-border bg-card/50 rounded-xl px-4 shadow-sm data-[state=open]:ring-2 data-[state=open]:ring-primary/10 transition-all">
+                            <AccordionTrigger className="font-bold text-foreground hover:text-primary hover:no-underline py-4 text-left">
                                 {f.q}
                             </AccordionTrigger>
-                            <AccordionContent className="text-gray-600 leading-relaxed pb-4">
+                            <AccordionContent className="text-muted-foreground leading-relaxed pb-4">
                                 {f.a}
                             </AccordionContent>
                         </AccordionItem>

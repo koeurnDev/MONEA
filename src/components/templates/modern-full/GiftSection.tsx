@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 import { Copy, Gift, CreditCard, ScanLine } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { WeddingData, BankAccount } from "../types";
 import { cn } from './shared';
 
@@ -43,14 +43,14 @@ const BankCard = ({ account }: { account: BankAccount }) => {
     };
 
     return (
-        <motion.div
+        <m.div
             whileHover={{ y: -5, scale: 1.01 }}
             className="relative w-full max-w-sm mx-auto group"
         >
             {/* Glass Card Effect */}
             <div className={cn(
                 "rounded-2xl p-6 text-white shadow-2xl relative overflow-hidden border border-white/10 h-full flex flex-col justify-between",
-                "bg-gradient-to-br backdrop-blur-3xl",
+                "bg-gradient-to-br backdrop-blur-md will-change-transform",
                 style.gradient
             )}>
 
@@ -113,7 +113,7 @@ const BankCard = ({ account }: { account: BankAccount }) => {
                 )}
 
             </div>
-        </motion.div>
+        </m.div>
     );
 }
 
@@ -167,7 +167,7 @@ export default function GiftSection({ wedding }: { wedding?: WeddingData }) {
 
             {/* Section Header */}
             <div className="text-center space-y-4">
-                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-[#D4AF37]/20 to-[#ffd700]/10 text-[#D4AF37] backdrop-blur-xl mb-4 border border-[#D4AF37]/30 shadow-[0_0_30px_rgba(212,175,55,0.2)] animate-pulse-slow">
+                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-[#D4AF37]/20 to-[#ffd700]/10 text-[#D4AF37] backdrop-blur-md mb-4 border border-[#D4AF37]/30 shadow-[0_0_30px_rgba(212,175,55,0.2)] animate-pulse-slow will-change-transform">
                     <Gift size={32} />
                 </div>
                 <h2 className="text-3xl md:text-5xl font-kantumruy text-[#D4AF37] drop-shadow-md font-bold">

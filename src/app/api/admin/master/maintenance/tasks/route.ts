@@ -13,7 +13,7 @@ cloudinary.config({
 export async function GET() {
     try {
         const user = await getServerUser();
-        if (!user || (user.role !== "SUPERADMIN" && user.role !== "OWNER")) {
+        if (!user || (user.role !== "SUPERADMIN")) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
@@ -58,7 +58,7 @@ export async function GET() {
 export async function POST(request: Request) {
     try {
         const user = await getServerUser();
-        if (!user || (user.role !== "SUPERADMIN" && user.role !== "OWNER")) {
+        if (!user || (user.role !== "SUPERADMIN")) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
 export async function DELETE() {
     try {
         const user = await getServerUser();
-        if (!user || (user.role !== "SUPERADMIN" && user.role !== "OWNER")) {
+        if (!user || (user.role !== "SUPERADMIN")) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 

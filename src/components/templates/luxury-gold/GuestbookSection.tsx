@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 
 interface GuestbookSectionProps {
     weddingId: string;
@@ -13,6 +13,9 @@ export default function GuestbookSection({ weddingId }: GuestbookSectionProps) {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        console.time("guestbook_submit");
+        // Guestbook submit logic
         setIsSubmitting(true);
         setSubmitStatus('idle');
         try {
@@ -33,6 +36,7 @@ export default function GuestbookSection({ weddingId }: GuestbookSectionProps) {
             setSubmitStatus('error');
         } finally {
             setIsSubmitting(false);
+            console.timeEnd("guestbook_submit");
         }
     };
 
@@ -44,7 +48,7 @@ export default function GuestbookSection({ weddingId }: GuestbookSectionProps) {
     };
 
     return (
-        <motion.section id="rsvp-section" className="py-24 px-6 bg-[#0a0a0a] relative" {...fadeInUp}>
+        <m.section id="rsvp-section" className="py-24 px-6 bg-[#0a0a0a] relative" {...fadeInUp}>
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#D4AF37]/50 to-transparent"></div>
 
             <h3 className="text-center text-3xl mb-12 font-header text-[#D4AF37]">សៀវភៅជូនពរ</h3>
@@ -82,6 +86,6 @@ export default function GuestbookSection({ weddingId }: GuestbookSectionProps) {
                 {submitStatus === 'success' && <p className="text-center text-[#D4AF37] text-xs mt-4 font-khmer">✨ អរគុណសម្រាប់ការជូនពរ! ✨</p>}
                 {submitStatus === 'error' && <p className="text-center text-red-500 text-xs mt-4 font-khmer">មានបញ្ហាបន្តិចបន្តួច សូមព្យាយាមម្តងទៀត។</p>}
             </form>
-        </motion.section>
+        </m.section>
     );
 }

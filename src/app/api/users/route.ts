@@ -1,19 +1,11 @@
-export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { verifyToken } from "@/lib/auth";
-import { cookies } from "next/headers";
-
-async function getUser() {
-    const token = cookies().get("token")?.value;
-    if (!token) return null;
-    const decoded = verifyToken(token);
-    return decoded as { userId: string, role: string } | null;
-}
+import { getServerUser } from "@/lib/auth";
+import { ROLES } from "@/lib/constants";
 
 export async function GET() {
-    const user = await getUser();
-    if (!user || user.role !== "ADMIN") {
+    const user = await getServerUser();
+    if (!user || user.role !== ROLES.PLATFORM_OWNER) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
@@ -25,8 +17,8 @@ export async function GET() {
 }
 
 export async function PUT(req: Request) {
-    const user = await getUser();
-    if (!user || user.role !== "ADMIN") {
+    const user = await getServerUser();
+    if (!user || user.role !== ROLES.PLATFORM_OWNER) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 

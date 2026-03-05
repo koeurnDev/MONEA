@@ -231,8 +231,12 @@ export default function MasterAdminPage() {
                                 <Link href="/admin/master/broadcast" className="block text-center">
                                     <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] hover:text-slate-900 transition-colors">Broadcast Center</span>
                                 </Link>
-                                <Link href="/admin/master/support" className="block text-center mt-3">
-                                    <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] hover:text-slate-900 transition-colors">Support Desk</span>
+                                <Link href="/admin/master/support" className="block">
+                                    <Button variant="outline" className="w-full h-12 border-slate-100 bg-primary/5 hover:bg-primary/10 text-primary rounded-2xl text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 group transition-all">
+                                        <LifeBuoy size={16} className="group-hover:rotate-12 transition-transform" />
+                                        Support Desk
+                                        <span className="bg-primary text-white text-[8px] px-1.5 py-0.5 rounded-md animate-pulse ml-1">LIVE</span>
+                                    </Button>
                                 </Link>
                                 <Link href="/admin/master/audit" className="block text-center mt-3">
                                     <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] hover:text-slate-900 transition-colors">Audit Explorer</span>

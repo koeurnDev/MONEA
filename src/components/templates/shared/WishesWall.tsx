@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, memo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 
 interface WishElement {
     id: number;
@@ -41,7 +41,7 @@ const WishesWall = memo(({ trigger }: { trigger: any }) => {
         <div className="fixed inset-0 pointer-events-none z-[100] overflow-hidden">
             <AnimatePresence>
                 {elements.map((el) => (
-                    <motion.div
+                    <m.div
                         key={el.id}
                         initial={{ y: '110vh', opacity: 0, x: `${el.x}vw`, scale: 0.5, rotate: 0 }}
                         animate={{
@@ -75,7 +75,7 @@ const WishesWall = memo(({ trigger }: { trigger: any }) => {
                                 </svg>
                             </div>
                         )}
-                    </motion.div>
+                    </m.div>
                 ))}
             </AnimatePresence>
         </div>

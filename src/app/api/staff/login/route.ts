@@ -4,13 +4,15 @@ import { prisma } from "@/lib/prisma";
 import { signToken, generateFingerprint } from "@/lib/auth";
 import bcrypt from "bcryptjs";
 import { ROLES } from "@/lib/constants";
+import { CryptoUtils } from "@/lib/crypto";
+const { authenticator } = require("otplib");
 
 const rateLimit = new Map<string, { count: number, lastAttempt: number }>();
 
 export async function POST(req: Request) {
     try {
-        // Rate Limiting (Simple In-Memory)
         const ip = req.headers.get("x-forwarded-for") || "unknown";
+        const userAgent = req.headers.get("user-agent") || "unknown";
 
         // Check Blacklist
         const isBlacklisted = await prisma.blacklistedIP.findUnique({ where: { ip } });
@@ -21,28 +23,22 @@ export async function POST(req: Request) {
 
         const now = Date.now();
         const limit = rateLimit.get(ip);
-
         if (limit) {
-            if (now - limit.lastAttempt < 60 * 1000) { // 1 Minute window
-                if (limit.count >= 5) {
-                    return NextResponse.json({ error: "Too many attempts. Please try again in a minute." }, { status: 429 });
-                }
+            if (now - limit.lastAttempt < 60 * 1000) {
+                if (limit.count >= 5) return NextResponse.json({ error: "Too many attempts." }, { status: 429 });
             } else {
-                // Reset after 1 minute
                 rateLimit.set(ip, { count: 0, lastAttempt: now });
             }
         }
 
         const body = await req.json();
-        const { email, password, pin, weddingCode } = body;
+        const { email, password, pin, weddingCode, twoFactorToken } = body;
 
-        // Artificial Delay
         await new Promise(resolve => setTimeout(resolve, 500));
 
         let staffMember = null;
-        let isLocked = false;
 
-        // PRE-CHECK: BRUTE FORCE PROTECTION & ACCESS WINDOW
+        // 1. Identify Staff Member
         const checkStaff = await prisma.staff.findFirst({
             where: {
                 OR: [
@@ -53,113 +49,83 @@ export async function POST(req: Request) {
             include: { wedding: true }
         });
 
-        if (checkStaff && checkStaff.wedding) {
-            const weddingDate = new Date(checkStaff.wedding.date);
-            const accessExpiry = new Date(weddingDate.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days after
-            const accessStart = new Date(weddingDate.getTime() - 14 * 24 * 60 * 60 * 1000); // 14 days before
-
-            if (new Date() > accessExpiry) {
-                return NextResponse.json({ error: "ការចូលប្រើប្រាស់របស់អ្នកបានផុតកំណត់ហើយ (Wedding phase ended)" }, { status: 403 });
+        if (checkStaff) {
+            if (checkStaff.lockedUntil && checkStaff.lockedUntil > new Date()) {
+                return NextResponse.json({ error: "Account locked temporarily." }, { status: 423 });
             }
-            if (new Date() < accessStart) {
-                return NextResponse.json({ error: "ការចូលប្រើប្រាស់មិនទាន់ត្រូវបានអនុញ្ញាតទេ (Wedding phase hasn't started)" }, { status: 403 });
-            }
-        }
 
-        if (checkStaff && checkStaff.lockedUntil && checkStaff.lockedUntil > new Date()) {
-            return NextResponse.json({
-                error: `គណនីរបស់អ្នកត្រូវបានចាក់សោរបណ្តោះអាសន្ន។ សូមព្យាយាមម្តងទៀតនៅពេលក្រោយ។ (Locked until ${checkStaff.lockedUntil.toLocaleTimeString()})`
-            }, { status: 423 });
-        }
-
-        // NEW: EMAIL + PASSWORD LOGIN
-        if (email && password) {
-            const staff = await prisma.staff.findUnique({
-                where: { email },
-                include: { wedding: true }
-            });
-
-            if (staff && staff.password) {
-                const isValid = await bcrypt.compare(password, staff.password);
-                if (isValid) {
-                    staffMember = staff;
-                }
-            }
-        }
-        // LEGACY OR FALLBACK: PIN + WEDDING CODE
-        else if (weddingCode && pin) {
-            const cleanedCode = weddingCode.replace("#", "").toUpperCase();
-            const wedding = await (prisma.wedding as any).findUnique({
-                where: { weddingCode: cleanedCode },
-                include: { staff: true }
-            });
-
-            if (wedding) {
-                for (const s of (wedding as any).staff) {
-                    try {
-                        if (s.pin && await bcrypt.compare(pin, s.pin)) {
-                            staffMember = s;
-                            break;
-                        }
-                    } catch (e) {
-                        console.error("PIN compare error", e);
+            // Auth Logic
+            if (email && password && checkStaff.password) {
+                let isValid = await CryptoUtils.compare(password, checkStaff.password);
+                if (!isValid) {
+                    isValid = await bcrypt.compare(password, checkStaff.password);
+                    if (isValid) {
+                        const peppered = await CryptoUtils.hash(password);
+                        await prisma.staff.update({ where: { id: checkStaff.id }, data: { password: peppered } });
                     }
                 }
+                if (isValid) staffMember = checkStaff;
+            } else if (weddingCode && pin && checkStaff.pin) {
+                let isValid = await CryptoUtils.compare(pin, checkStaff.pin);
+                if (!isValid) {
+                    isValid = await bcrypt.compare(pin, checkStaff.pin);
+                    if (isValid) {
+                        const peppered = await CryptoUtils.hash(pin);
+                        await prisma.staff.update({ where: { id: checkStaff.id }, data: { pin: peppered } });
+                    }
+                }
+                if (isValid) staffMember = checkStaff;
             }
         }
 
         if (!staffMember) {
-            // Increment Failed Attempt (Persistent)
             if (checkStaff) {
-                const newAttempts = checkStaff.failedAttempts + 1;
-                const lockTime = newAttempts >= 5 ? new Date(Date.now() + 15 * 60 * 1000) : null; // 15 mins lock
-
-                await prisma.staff.update({
-                    where: { id: checkStaff.id },
-                    data: {
-                        failedAttempts: newAttempts,
-                        lockedUntil: lockTime
-                    }
-                });
-
-                if (lockTime) {
-                    return NextResponse.json({ error: "គណនីរបស់អ្នកត្រូវបានចាក់សោររយៈពេល ១៥ នាទី ដោយសារការបញ្ជាក់មិនត្រឹមត្រូវច្រើនដង។" }, { status: 423 });
-                }
+                const attempts = checkStaff.failedAttempts + 1;
+                const lockTime = attempts >= 5 ? new Date(Date.now() + 15 * 60 * 1000) : null;
+                await prisma.staff.update({ where: { id: checkStaff.id }, data: { failedAttempts: attempts, lockedUntil: lockTime } });
             }
-
-            // In-Memory Rate Limit for unknown users
             const current = rateLimit.get(ip) || { count: 0, lastAttempt: now };
             rateLimit.set(ip, { count: current.count + 1, lastAttempt: now });
-
-            return NextResponse.json({ error: "អ៊ីមែល ឬ ពាក្យសម្ងាត់មិនត្រឹមត្រូវ" }, { status: 401 });
+            return NextResponse.json({ error: "ព័ត៌មានមិនត្រឹមត្រូវ (Invalid information)" }, { status: 401 });
         }
 
-        // Reset Rate Limit and Failed Attempts on Success
+        // 2. 2FA Check
+        if (staffMember.twoFactorEnabled && staffMember.twoFactorSecret) {
+            if (!twoFactorToken) return NextResponse.json({ require2FA: true }, { status: 428 });
+            let is2faValid = authenticator.verify({ token: twoFactorToken, secret: staffMember.twoFactorSecret });
+
+            if (!is2faValid && staffMember.twoFactorRecoveryCodes) {
+                const codes = JSON.parse(staffMember.twoFactorRecoveryCodes) as string[];
+                const matchedIdx = (await Promise.all(codes.map(c => CryptoUtils.compare(twoFactorToken, c)))).findIndex(r => r === true);
+                if (matchedIdx !== -1) {
+                    is2faValid = true;
+                    const updated = codes.filter((_, i) => i !== matchedIdx);
+                    await prisma.staff.update({ where: { id: staffMember.id }, data: { twoFactorRecoveryCodes: JSON.stringify(updated) } });
+                }
+            }
+            if (!is2faValid) return NextResponse.json({ error: "Invalid 2FA token" }, { status: 401 });
+        }
+
+        // 3. Success
         rateLimit.delete(ip);
-        await prisma.staff.update({
-            where: { id: staffMember.id },
-            data: { failedAttempts: 0, lockedUntil: null }
-        });
+        await prisma.staff.update({ where: { id: staffMember.id }, data: { failedAttempts: 0, lockedUntil: null } });
 
-        // Fingerprinting
         const fingerprint = generateFingerprint({ headers: req.headers, ip });
-
-        // Create a special session token for staff
         const token = signToken({
             staffId: staffMember.id,
             weddingId: staffMember.weddingId,
             role: ROLES.EVENT_STAFF,
             name: staffMember.name
-        }, { fingerprint });
+        }, { fingerprint, expiresIn: "12h" });
 
         const response = NextResponse.json({ success: true });
         response.cookies.set("staff_token", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
-            maxAge: 60 * 60 * 12, // 12 hours shift
+            maxAge: 60 * 60 * 12,
             path: "/",
+            sameSite: "lax"
         });
-
         return response;
 
     } catch (error) {

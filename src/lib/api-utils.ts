@@ -5,10 +5,15 @@ import { ZodError, ZodSchema } from "zod";
  * Standard API error response helper
  */
 export function errorResponse(message: string, status: number = 500, errors?: any) {
+    // Filter out potentially sensitive internal error details in production
+    const sanitizedDetails = process.env.NODE_ENV === "production" && errors
+        ? "Internal validation error"
+        : errors;
+
     return NextResponse.json(
         {
             error: message,
-            ...(errors && { details: errors }),
+            ...(sanitizedDetails && { details: sanitizedDetails }),
             timestamp: new Date().toISOString()
         },
         { status }

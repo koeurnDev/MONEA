@@ -67,136 +67,111 @@ export default function RegisterPage() {
     }
 
     return (
-        <div className="min-h-screen w-full flex bg-white">
-            {/* Left Side - Hero Image */}
-            <div className="hidden lg:flex w-1/2 bg-red-50 items-center justify-center p-12 relative overflow-hidden">
-                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1511285560982-1356c11d4606?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-90" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                <div className="relative z-10 text-white max-w-lg">
-                    <div className="flex justify-start mb-8">
-                        <MoneaLogo showText size="lg" />
-                    </div>
-                    <h1 className="text-4xl font-bold mb-4 font-kantumruy leading-tight italic">
-                        ចាប់ផ្តើមរៀបចំមង្គលការ <br /> ក្នុងក្តីស្រមៃរបស់អ្នក
-                    </h1>
-                    <div className="flex items-center gap-2 text-white/70">
-                        <div className="w-8 h-[1px] bg-red-500" />
-                        <p className="text-lg font-kantumruy font-medium tracking-wide">
-                            Join thousands of couples using MONEA to plan their perfect day.
-                        </p>
-                    </div>
-                </div>
+        <div className="min-h-screen w-full relative flex items-center justify-center overflow-hidden bg-black">
+            {/* Background Image with Overlay */}
+            <div className="absolute inset-0 z-0">
+                <div
+                    className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1511285560982-1356c11d4606?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-40"
+                    style={{ backgroundPosition: 'center 40%' }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/60 backdrop-blur-[2px]"></div>
             </div>
 
-            {/* Right Side - Register Form */}
-            <div className="flex-1 flex items-center justify-center p-8 bg-white">
-                <div className="w-full max-w-md space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div className="text-center lg:text-left">
-                        <h2 className="text-3xl font-bold tracking-tight text-gray-900 font-kantumruy">បង្កើតគណនីថ្មី</h2>
-                        <p className="mt-2 text-sm text-gray-500">
-                            ឥតគិតថ្លៃសម្រាប់ការចាប់ផ្តើម។ មិនត្រូវការកាត Credit ទេ។
-                        </p>
+            {/* Content Container */}
+            <div className="relative z-10 w-full max-w-md p-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+                    {/* Header */}
+                    <div className="text-center mb-8">
+                        <Link href="/" className="inline-flex justify-center">
+                            <MoneaLogo showText size="md" variant="dark" />
+                        </Link>
+                        <h1 className="text-2xl font-bold text-white mb-2 font-kantumruy mt-4">បង្កើតគណនីថ្មី</h1>
+                        <p className="text-white/40 text-xs font-kantumruy">ឥតគិតថ្លៃសម្រាប់ការចាប់ផ្តើម។ មិនត្រូវការកាត Credit ទេ។</p>
                     </div>
 
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                             <FormField
                                 control={form.control}
                                 name="email"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-gray-700">អ៊ីមែល (Email)</FormLabel>
-                                        <FormControl>
-                                            <div className="relative">
-                                                <Mail className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                                                <Input
-                                                    placeholder="name@example.com"
-                                                    className="pl-10 h-11 bg-gray-50 border-gray-200 focus:bg-white transition-all"
-                                                    {...field}
-                                                />
+                                        <FormLabel className="text-white/80 text-xs uppercase tracking-wider font-bold ml-1">អ៊ីមែល</FormLabel>
+                                        <div className="relative group">
+                                            <div className="absolute left-3 top-3 text-white/40 group-focus-within:text-pink-400 transition-colors">
+                                                <Mail className="w-5 h-5" />
                                             </div>
-                                        </FormControl>
-                                        <FormMessage />
+                                            <Input placeholder="name@example.com" className="pl-10 bg-white/5 border-white/10 text-white rounded-xl focus:border-pink-500/50 h-11" {...field} />
+                                        </div>
+                                        <FormMessage className="text-red-400 text-xs" />
                                     </FormItem>
                                 )}
                             />
-                            <div className="grid gap-5 md:grid-cols-2">
-                                <FormField
-                                    control={form.control}
-                                    name="password"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="text-gray-700">ពាក្យសម្ងាត់</FormLabel>
-                                            <FormControl>
-                                                <div className="relative">
-                                                    <Lock className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                                                    <Input
-                                                        type="password"
-                                                        placeholder="••••••"
-                                                        className="pl-10 h-11 bg-gray-50 border-gray-200 focus:bg-white transition-all"
-                                                        {...field}
-                                                    />
-                                                </div>
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="confirmPassword"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="text-gray-700">បញ្ជាក់ពាក្យសម្ងាត់</FormLabel>
-                                            <FormControl>
-                                                <div className="relative">
-                                                    <Lock className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                                                    <Input
-                                                        type="password"
-                                                        placeholder="••••••"
-                                                        className="pl-10 h-11 bg-gray-50 border-gray-200 focus:bg-white transition-all"
-                                                        {...field}
-                                                    />
-                                                </div>
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
+                            <FormField
+                                control={form.control}
+                                name="password"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-white/80 text-xs uppercase tracking-wider font-bold ml-1">ពាក្យសម្ងាត់</FormLabel>
+                                        <div className="relative group">
+                                            <div className="absolute left-3 top-3 text-white/40 group-focus-within:text-pink-400 transition-colors">
+                                                <Lock className="w-5 h-5" />
+                                            </div>
+                                            <Input type="password" placeholder="••••••••" className="pl-10 bg-white/5 border-white/10 text-white rounded-xl focus:border-pink-500/50 h-11" {...field} />
+                                        </div>
+                                        <FormMessage className="text-red-400 text-xs" />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="confirmPassword"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-white/80 text-xs uppercase tracking-wider font-bold ml-1">បញ្ជាក់ពាក្យសម្ងាត់</FormLabel>
+                                        <div className="relative group">
+                                            <div className="absolute left-3 top-3 text-white/40 group-focus-within:text-pink-400 transition-colors">
+                                                <Lock className="w-5 h-5" />
+                                            </div>
+                                            <Input type="password" placeholder="••••••••" className="pl-10 bg-white/5 border-white/10 text-white rounded-xl focus:border-pink-500/50 h-11" {...field} />
+                                        </div>
+                                        <FormMessage className="text-red-400 text-xs" />
+                                    </FormItem>
+                                )}
+                            />
 
                             {error && (
-                                <div className="p-3 rounded-md bg-red-50 border border-red-100 text-red-600 text-sm flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-red-600" />
+                                <div className="mt-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-200 text-xs text-center font-kantumruy">
                                     {error}
                                 </div>
                             )}
 
-                            <Button
-                                type="submit"
-                                className="w-full h-11 text-base bg-red-600 hover:bg-red-700 active:scale-[0.98] transition-all"
-                                disabled={isLoading}
-                            >
-                                {isLoading ? "កំពុងបង្កើតគណនី..." : "ចុះឈ្មោះ (Register)"}
+                            <Button type="submit" disabled={isLoading} className="w-full bg-gradient-to-r from-pink-500 to-rose-600 rounded-xl font-bold uppercase tracking-wide h-11 border border-white/10 hover:shadow-lg hover:shadow-pink-500/20 transition-all mt-6 text-white">
+                                {isLoading ? "កំពុងបង្កើតគណនី..." : "ចុះឈ្មោះ"}
                             </Button>
                         </form>
                     </Form>
 
-                    <div className="relative">
+                    <div className="relative mt-6 mb-6">
                         <div className="absolute inset-0 flex items-center">
-                            <span className="w-full border-t border-gray-100" />
+                            <span className="w-full border-t border-white/10" />
                         </div>
                         <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-white px-2 text-gray-400">
+                            <span className="bg-[#1c1c1c] px-2 text-white/40 rounded-full">
                                 មានគណនីរួចហើយ?
                             </span>
                         </div>
                     </div>
 
                     <div className="text-center">
-                        <Link href="/login" className="font-semibold text-gray-900 hover:text-red-600 transition-colors flex items-center justify-center gap-2">
+                        <Link href="/login" className="font-semibold text-white hover:text-pink-400 transition-colors flex items-center justify-center gap-2 text-sm font-kantumruy">
                             ចូលប្រើប្រាស់គណនី <ArrowRight className="w-4 h-4" />
                         </Link>
+                    </div>
+
+                    {/* Bottom Branding */}
+                    <div className="text-center mt-6 opacity-30">
+                        <MoneaLogo size="sm" variant="dark" className="justify-center grayscale" />
                     </div>
                 </div>
             </div>

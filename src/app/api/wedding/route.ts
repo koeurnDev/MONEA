@@ -1,59 +1,34 @@
-export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { verifyToken } from "@/lib/auth";
+import { getServerUser, verifyToken } from "@/lib/auth";
 import { cookies } from "next/headers";
 import { encrypt, decrypt } from "@/lib/encryption";
+import { ROLES } from "@/lib/constants";
+import { errorResponse } from "@/lib/api-utils";
+import { sanitizeObject } from "@/lib/sanitize";
 
+export async function GET(req: Request) {
+    const user = await getServerUser();
+    if (!user) return errorResponse("Unauthorized", 401);
 
-async function getUser() {
-    const token = cookies().get("token")?.value;
-    const staffToken = cookies().get("staff_token")?.value;
-
-    if (token) {
-        try {
-            const decoded = verifyToken(token) as any;
-            if (decoded && typeof decoded === "object") {
-                const role = decoded.role?.toUpperCase() || "ADMIN";
-                const userId = decoded.userId || decoded.sub || decoded.id;
-                return { ...decoded, role, userId } as any;
-            }
-        } catch (e) { }
-    }
-
-    if (staffToken) {
-        try {
-            const decoded = verifyToken(staffToken) as any;
-            if (decoded && typeof decoded === "object" && (decoded.weddingId || decoded.userId)) {
-                return { ...decoded, role: "STAFF", userId: decoded.weddingId || decoded.userId } as any;
-            }
-        } catch (e) { }
-    }
-
-    return null;
-}
-
-export async function GET() {
-    const user = await getUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const { searchParams } = new URL(req.url);
+    const full = searchParams.get("full") === "true";
 
     let wedding;
+    const include = full ? {
+        galleryItems: true,
+        activities: true
+    } : undefined;
 
-    if (user.role?.toUpperCase() === "STAFF") {
+    if (user.role === "STAFF") {
         wedding = await prisma.wedding.findUnique({
-            where: { id: user.userId },
-            include: {
-                galleryItems: true,
-                activities: true
-            }
+            where: { id: (user as any).weddingId },
+            include
         });
     } else {
         wedding = await prisma.wedding.findFirst({
             where: { userId: user.userId },
-            include: {
-                galleryItems: true,
-                activities: true
-            }
+            include
         });
     }
 
@@ -78,15 +53,19 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-    const user = await getUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const user = await getServerUser();
+    if (!user) return errorResponse("Unauthorized", 401);
 
     const body = await req.json();
-    const { groomName, brideName, date, location, eventType, paymentInfo } = body;
+    const sanitizedBody = sanitizeObject<any>(body);
+    const { groomName, brideName, date, location, eventType, paymentInfo } = sanitizedBody;
+
+    // Staff cannot create weddings
+    if (user.role === "STAFF") return errorResponse("Staff cannot create weddings", 403);
 
     const existingWedding = await prisma.wedding.findFirst({ where: { userId: user.userId } });
     if (existingWedding) {
-        return NextResponse.json({ error: "Wedding already exists" }, { status: 400 });
+        return errorResponse("Wedding already exists", 400);
     }
 
     const wedding = await prisma.wedding.create({
@@ -111,16 +90,22 @@ export async function POST(req: Request) {
 }
 
 export async function PUT(req: Request) {
-    const user = await getUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const user = await getServerUser();
+    if (!user) return errorResponse("Unauthorized", 401);
 
     const body = await req.json();
-    const { status, templateId, groomName, brideName, location, date, eventType, paymentInfo } = body;
+    const sanitizedBody = sanitizeObject<any>(body);
+    const { status, templateId, groomName, brideName, location, date, eventType, paymentInfo } = sanitizedBody;
 
-    let wedding = await prisma.wedding.findFirst({ where: { userId: user.userId } });
+    let wedding;
+    if (user.role === "STAFF") {
+        wedding = await prisma.wedding.findUnique({ where: { id: (user as any).weddingId } });
+    } else {
+        wedding = await prisma.wedding.findFirst({ where: { userId: user.userId } });
+    }
 
     if (!wedding) {
-        return NextResponse.json({ error: "Wedding not found" }, { status: 404 });
+        return errorResponse("Wedding not found", 404);
     }
 
     const updateData: any = {
@@ -132,13 +117,17 @@ export async function PUT(req: Request) {
         ...(date && { date: new Date(date) }),
         ...(eventType && { eventType }),
         ...(paymentInfo && { paymentInfo: encrypt(paymentInfo) }),
-        ...(body.themeSettings && { themeSettings: typeof body.themeSettings === 'string' ? body.themeSettings : JSON.stringify(body.themeSettings) }),
+        ...(sanitizedBody.themeSettings && {
+            themeSettings: typeof sanitizedBody.themeSettings === 'string'
+                ? sanitizedBody.themeSettings
+                : JSON.stringify(sanitizedBody.themeSettings)
+        }),
     };
 
-    if (body.galleryItems) {
+    if (sanitizedBody.galleryItems) {
         updateData.galleryItems = {
             deleteMany: {},
-            create: body.galleryItems.map((item: any) => ({
+            create: sanitizedBody.galleryItems.map((item: any) => ({
                 url: item.url,
                 type: item.type || 'IMAGE',
                 caption: item.caption
@@ -146,10 +135,10 @@ export async function PUT(req: Request) {
         };
     }
 
-    if (body.activities) {
+    if (sanitizedBody.activities) {
         updateData.activities = {
             deleteMany: {},
-            create: body.activities.map((item: any) => ({
+            create: sanitizedBody.activities.map((item: any) => ({
                 title: item.title || "Activity",
                 time: item.time,
                 description: item.description,

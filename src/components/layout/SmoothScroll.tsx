@@ -1,17 +1,23 @@
 "use client";
 import { useEffect } from "react";
 import Lenis from "lenis";
+import { usePathname } from "next/navigation";
 
 export default function SmoothScroll({ children }: { children: React.ReactNode }) {
+    const pathname = usePathname();
+    const isDashboard = pathname?.startsWith("/dashboard") || pathname?.startsWith("/admin");
+
     useEffect(() => {
+        if (isDashboard) return;
+
         const lenis = new Lenis({
-            duration: 0.7,
+            duration: 0.5,
             easing: (t) => 1 - Math.pow(1 - t, 4),
             orientation: "vertical",
             gestureOrientation: "vertical",
             smoothWheel: true,
-            wheelMultiplier: 1.2,
-            touchMultiplier: 2.0,
+            wheelMultiplier: 1.1,
+            touchMultiplier: 1.5,
         });
 
         function raf(time: number) {
@@ -21,13 +27,10 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
 
         requestAnimationFrame(raf);
 
-        // Initial scroll fix to prevent jumpy entrance
-        window.scrollTo(0, 0);
-
         return () => {
             lenis.destroy();
         };
-    }, []);
+    }, [isDashboard]);
 
     return <>{children}</>;
 }

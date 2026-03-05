@@ -1,6 +1,7 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { CldImage } from 'next-cloudinary';
+import Image from 'next/image';
 import { cn } from './shared';
 
 interface GallerySectionProps {
@@ -13,19 +14,21 @@ export default function GallerySection({ galleryImages, setSelectedImg }: Galler
         <section className="p-0 md:p-4">
             <div className="flex md:grid md:grid-cols-3 gap-4 overflow-x-auto md:overflow-visible snap-x snap-mandatory no-scrollbar px-4 md:px-0">
                 {galleryImages.map((src, idx) => (
-                    <motion.div
+                    <m.div
                         key={idx}
                         whileHover={{ scale: 0.98 }}
                         onClick={() => setSelectedImg(idx)}
                         className={cn(
-                            "shrink-0 w-[85vw] md:w-auto snap-center rounded-lg overflow-hidden shadow-md cursor-pointer aspect-[3/4] relative group md:hover:scale-[1.02] transition-all"
+                            "shrink-0 w-[85vw] md:w-auto snap-center rounded-lg overflow-hidden shadow-md cursor-pointer aspect-[3/4] relative group transition-transform duration-500"
                         )}
                     >
                         {src.startsWith('http') || src.startsWith('/') ? (
-                            <img
+                            <Image
                                 src={src}
                                 alt="Gallery"
-                                className="object-cover transition-transform duration-500 group-hover:scale-110 w-full h-full"
+                                fill
+                                sizes="(max-width: 768px) 85vw, 33vw"
+                                className="object-cover transition-transform duration-500 group-hover:scale-110"
                             />
                         ) : (
                             <CldImage
@@ -38,7 +41,7 @@ export default function GallerySection({ galleryImages, setSelectedImg }: Galler
                             />
                         )}
                         <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </motion.div>
+                    </m.div>
                 ))}
             </div>
         </section>

@@ -23,7 +23,14 @@ export async function GET() {
         // For admin/owner users, fetch full profile
         const dbUser = await prisma.user.findUnique({
             where: { id: user.userId },
-            select: { id: true, name: true, email: true, role: true, createdAt: true }
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                createdAt: true,
+                twoFactorEnabled: true
+            }
         });
 
         if (!dbUser) {

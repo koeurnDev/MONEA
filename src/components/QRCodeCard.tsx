@@ -27,7 +27,7 @@ export function QRCodeCard({ weddingId }: { weddingId: string }) {
                 <CardTitle className="text-sm font-medium">Digital Invitation</CardTitle>
                 <button
                     onClick={handleCopy}
-                    className={`text-[10px] px-2 py-1 rounded transition-colors ${copied ? 'bg-green-100 text-green-700' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'}`}
+                    className={`text-[10px] px-2 py-1 rounded transition-colors ${copied ? 'bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-400' : 'bg-muted hover:bg-muted/80 text-muted-foreground'}`}
                 >
                     {copied ? 'Copied!' : 'Copy Link'}
                 </button>

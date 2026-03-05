@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { CldImage } from 'next-cloudinary';
 
@@ -13,7 +13,7 @@ export default function FullscreenOverlay({ selectedImg, setSelectedImg, gallery
     return (
         <AnimatePresence>
             {selectedImg !== null && (
-                <motion.div
+                <m.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
@@ -39,7 +39,7 @@ export default function FullscreenOverlay({ selectedImg, setSelectedImg, gallery
                             />
                         )}
                     </div>
-                </motion.div>
+                </m.div>
             )}
         </AnimatePresence>
     );

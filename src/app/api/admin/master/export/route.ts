@@ -2,11 +2,21 @@ export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
+import { ROLES } from "@/lib/constants";
+
+function escapeCSV(val: any) {
+    if (val === null || val === undefined) return "";
+    const sanitized = String(val).replace(/,/g, " ");
+    if (sanitized.startsWith('=') || sanitized.startsWith('+') || sanitized.startsWith('-') || sanitized.startsWith('@')) {
+        return `'${sanitized}`;
+    }
+    return sanitized;
+}
 
 export async function GET() {
     try {
         const user = await getServerUser();
-        if (!user || (user.role !== "SUPERADMIN" && user.role !== "OWNER")) {
+        if (!user || user.role !== ROLES.PLATFORM_OWNER) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
@@ -20,13 +30,13 @@ export async function GET() {
         // Generate CSV rows
         const headers = ["ID", "Groom", "Bride", "Date", "Status", "Package", "Owner", "GuestsCount", "GiftsCount"];
         const rows = weddings.map(w => [
-            w.id,
-            w.groomName,
-            w.brideName,
+            escapeCSV(w.id),
+            escapeCSV(w.groomName),
+            escapeCSV(w.brideName),
             w.date.toISOString(),
-            w.status,
-            w.packageType,
-            w.user.email,
+            escapeCSV(w.status),
+            escapeCSV(w.packageType),
+            escapeCSV(w.user.email),
             w._count.guests,
             w._count.gifts
         ].join(","));

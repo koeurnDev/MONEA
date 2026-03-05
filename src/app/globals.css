@@ -149,3 +149,14 @@ html {
   scrollbar-width: none;
   /* Firefox */
 }
+
+/* 5. Mobile Speed Beast Mode: Disable Heavy Animations */
+@media (max-width: 768px) {
+  .heavy-animation,
+  .will-change-transform,
+  .animate-spin-slow {
+    animation: none !important;
+    transition: none !important;
+    will-change: auto !important;
+  }
+}

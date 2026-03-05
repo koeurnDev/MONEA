@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 import { ROLES } from "./lib/constants";
+import { sendTelegramAlert } from "./lib/telegram";
 
 const SECRET = process.env.JWT_SECRET || "super-secret-key-change-in-prod";
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
@@ -18,32 +19,63 @@ if (process.env.NODE_ENV === "production") {
 
 // Simple In-Memory Rate Limiter Map
 const rateLimitMap = new Map<string, { count: number, resetTime: number }>();
-const RATE_LIMIT_REQUESTS = 60; // Max requests
+const RATE_LIMIT_REQUESTS = 60; // Max requests per minute
+const STRICT_RATE_LIMIT = 5; // Stricter limit for sensitive write ops
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute window in ms
+const BLOCKED_BOTS = ["python-requests", "curl", "wget", "headlesschrome", "puppeteer", "playwright", "phantomjs", "scrapy", "urllib"];
+
+const SENSITIVE_WRITE_PATHS = [
+    "/api/guestbook",
+    "/api/auth/login",
+    "/api/auth/register",
+    "/api/support/ticket",
+    "/api/staff/login",
+    "/api/guests/view"
+];
 
 /**
  * Generates a simple non-cryptographic hash for fingerprinting
  */
-function generateFingerprint(userAgent: string, ip: string) {
-    return Buffer.from(`${userAgent}|${ip}`).toString('base64').substring(0, 32);
+async function generateFingerprint(userAgent: string, ip: string) {
+    const data = new TextEncoder().encode(`${userAgent}|${ip}`);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 32);
 }
 
 export async function middleware(request: NextRequest) {
     const userAgent = request.headers.get("user-agent") || "unknown";
     const ip = request.ip || request.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
-    const currentFingerprint = generateFingerprint(userAgent, ip);
+    const currentFingerprint = await generateFingerprint(userAgent, ip);
+
+    // ANTI-SCRAPING: Block common bots and scrapers
+    const userAgentLower = userAgent.toLowerCase();
+    if (BLOCKED_BOTS.some(bot => userAgentLower.includes(bot))) {
+        console.warn(`[Security] Blocked bot User-Agent: ${userAgent} from IP: ${ip}`);
+        sendTelegramAlert(`🛑 *Scraper Blocked*\nIP: \`${ip}\`\nUser-Agent: \`${userAgent}\`\nPath: \`${request.nextUrl.pathname}\``);
+        return NextResponse.json({ error: "Automated access is not allowed." }, { status: 403 });
+    }
+
+    // Protect Rate Limiter Map from unbounded growth
+    if (rateLimitMap.size > 5000) {
+        rateLimitMap.clear();
+    }
 
     // 0. Rate Limiting for API routes
     if (request.nextUrl.pathname.startsWith("/api")) {
         const now = Date.now();
-        const limitInfo = rateLimitMap.get(ip);
-        // ... keep existing rate limiting logic ...
+        const limitKey = `${ip}:${request.nextUrl.pathname}`; // Path-specific for sensitive routes
+        const isSensitive = request.method !== "GET" && SENSITIVE_WRITE_PATHS.some(path => request.nextUrl.pathname.startsWith(path));
+
+        const limitInfo = rateLimitMap.get(isSensitive ? limitKey : ip);
+        const maxRequests = isSensitive ? STRICT_RATE_LIMIT : RATE_LIMIT_REQUESTS;
+
         if (!limitInfo || now > limitInfo.resetTime) {
-            rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+            rateLimitMap.set(isSensitive ? limitKey : ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
         } else {
             limitInfo.count++;
-            if (limitInfo.count > RATE_LIMIT_REQUESTS) {
-                console.warn(`[Security] Rate Limit exceeded for IP: ${ip}`);
+            if (limitInfo.count > maxRequests) {
+                console.warn(`[Security] Rate Limit exceeded for IP: ${ip} on path: ${request.nextUrl.pathname}`);
                 return NextResponse.json(
                     { error: "Too many requests. Please try again later.", retryAfter: Math.ceil((limitInfo.resetTime - now) / 1000) },
                     { status: 429 }
@@ -196,13 +228,14 @@ export async function middleware(request: NextRequest) {
 
     // 2. Apply Security Headers
     const securityHeaders = {
-        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://res.cloudinary.com https://upload-widget.cloudinary.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://res.cloudinary.com https://*.googleusercontent.com; connect-src 'self' https://res.cloudinary.com; frame-src 'self' https://upload-widget.cloudinary.com;",
-        "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://res.cloudinary.com https://upload-widget.cloudinary.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://res.cloudinary.com https://*.googleusercontent.com; connect-src 'self' https://res.cloudinary.com https://challenges.cloudflare.com; frame-src 'self' https://upload-widget.cloudinary.com https://challenges.cloudflare.com; object-src 'none'; base-uri 'self';",
+        "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
         "X-Content-Type-Options": "nosniff",
         "X-Frame-Options": "DENY",
         "X-XSS-Protection": "1; mode=block",
         "Referrer-Policy": "strict-origin-when-cross-origin",
-        "Permissions-Policy": "camera=(), microphone=(), geolocation=()"
+        "Permissions-Policy": "camera=(), microphone=(), geolocation=(self), interest-cohort=()",
+        "X-DNS-Prefetch-Control": "on",
     };
 
     Object.entries(securityHeaders).forEach(([key, value]) => {

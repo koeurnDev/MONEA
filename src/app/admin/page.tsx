@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Users, PartyPopper, CalendarCheck, TrendingUp, AlertCircle, Sparkles, Activity, ShieldCheck, Database, Clock, ArrowUpRight, CheckCircle2, ArrowRight } from "lucide-react";
-import { motion } from "framer-motion";
+import { m } from 'framer-motion';
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
@@ -160,7 +160,7 @@ export default function AdminDashboardPage() {
                 {/* Stats Grid */}
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                     {cards.map((card, idx) => (
-                        <motion.div
+                        <m.div
                             key={idx}
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -183,7 +183,7 @@ export default function AdminDashboardPage() {
                                     <p className="text-xs text-slate-600 font-medium mt-3">{card.desc}</p>
                                 </CardContent>
                             </Card>
-                        </motion.div>
+                        </m.div>
                     ))}
                 </div>
 
@@ -275,11 +275,13 @@ export default function AdminDashboardPage() {
                                     ))}
                                 </div>
 
-                                <Link href="/admin/governance">
-                                    <Button className="w-full h-11 bg-slate-900 hover:bg-black text-white rounded-xl text-xs font-bold uppercase tracking-widest transition-all">
-                                        View Full Audit Log
-                                    </Button>
-                                </Link>
+                                {userRole === "SUPERADMIN" && (
+                                    <Link href="/admin/governance">
+                                        <Button className="w-full h-11 bg-slate-900 hover:bg-black text-white rounded-xl text-xs font-bold uppercase tracking-widest transition-all">
+                                            View Full Audit Log
+                                        </Button>
+                                    </Link>
+                                )}
                             </CardContent>
                         </Card>
 

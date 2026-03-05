@@ -2,14 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { Metadata } from 'next';
 import { notFound } from "next/navigation";
 import { WeddingData } from "@/components/templates/types";
-import ModernFullTemplate from "@/components/templates/ModernFullTemplate";
-import ClassicKhmer from "@/components/templates/ClassicKhmer";
-import ModernMinimal from "@/components/templates/ModernMinimal";
-import FloralElegant from "@/components/templates/FloralElegant";
-import CanvaInvitation from "@/components/templates/CanvaInvitation";
-import EnchantedGarden from "@/components/templates/EnchantedGarden";
-import LuxuryGoldTemplate from "@/components/templates/LuxuryGoldTemplate";
-import PastelFloralTemplate from "@/components/templates/PastelFloralTemplate";
+import VIPPremiumKhmer from "@/components/templates/VIPPremiumKhmer";
+import KhmerLegacy from "@/components/templates/KhmerLegacy";
 
 
 // Force dynamic rendering since we depend on params and DB
@@ -106,7 +100,7 @@ export default async function InvitationPage({ params, searchParams }: { params:
 
     // Select the template component logic
     const renderTemplate = () => {
-        const id = wedding.templateId || "modern-full";
+        const id = wedding.templateId || "vip-premium-khmer";
         const weddingData = (wedding as unknown) as WeddingData;
 
         return (
@@ -114,28 +108,11 @@ export default async function InvitationPage({ params, searchParams }: { params:
                 <GuestViewTracker weddingId={wedding.id} guestId={guestId} guestName={guestName} />
                 {(() => {
                     switch (id) {
-                        case "classic-khmer":
-                        case "anniversary-classic":
-                            return <ClassicKhmer wedding={weddingData} guestName={guestName} />;
-                        case "modern-minimal":
-                            return <ModernMinimal wedding={weddingData} guestName={guestName} />;
-                        case "floral-elegant":
-                        case "elegant-pink":
-                            return <FloralElegant wedding={weddingData} guestName={guestName} />;
-                        case "canva-style":
-                            return <CanvaInvitation wedding={weddingData} guestName={guestName} />;
-                        case "enchanted-garden":
-                            return <EnchantedGarden wedding={weddingData} guestName={guestName} />;
-                        case "anniversary-golden":
-                        case "luxury-gold":
-                            return <LuxuryGoldTemplate wedding={weddingData} guestName={guestName} />;
-                        case "anniversary-floral":
-                        case "pastel-floral":
-                            return <PastelFloralTemplate wedding={weddingData} guestName={guestName} />;
-                        case "modern-full":
-                            return <ModernFullTemplate wedding={weddingData} guestName={guestName} />;
+                        case "khmer-legacy":
+                            return <KhmerLegacy wedding={weddingData} guestName={guestName} />;
+                        case "vip-premium-khmer":
                         default:
-                            return <ModernFullTemplate wedding={weddingData} guestName={guestName} />;
+                            return <VIPPremiumKhmer wedding={weddingData} guestName={guestName} />;
                     }
                 })()}
             </>

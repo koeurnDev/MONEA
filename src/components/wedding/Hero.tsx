@@ -1,5 +1,5 @@
 "use client";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 
 interface HeroProps {
     groomName: string;
@@ -12,13 +12,13 @@ export default function Hero({ groomName, brideName, weddingDate }: HeroProps) {
         <section className="relative h-screen flex flex-col items-center justify-center text-white overflow-hidden">
             {/* Background Image Placeholder - In real app, this should come from DB or default */}
             <div
-                className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
+                className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat will-change-transform"
                 style={{ backgroundImage: "url('/wedding-bg-dark.jpg')" }} // Ensure this image exists or fallback
             >
-                <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
             </div>
 
-            <motion.div
+            <m.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 1.2, ease: "easeOut" }}
@@ -43,17 +43,17 @@ export default function Hero({ groomName, brideName, weddingDate }: HeroProps) {
                         {new Date(weddingDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                     </p>
                 </div>
-            </motion.div>
+            </m.div>
 
             {/* Scroll Indicator */}
-            <motion.div
+            <m.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1, duration: 1 }}
                 className="absolute bottom-10 z-20 animate-bounce"
             >
                 <div className="w-[1px] h-12 bg-gradient-to-b from-transparent via-pink-500 to-transparent mx-auto"></div>
-            </motion.div>
+            </m.div>
         </section>
     );
 }

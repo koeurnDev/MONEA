@@ -86,10 +86,10 @@ export default function CreateWeddingPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#FFFDF5] flex items-center justify-center p-4">
-            <Card className="w-full max-w-lg border-none shadow-xl">
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
+            <Card className="w-full max-w-lg border border-border shadow-xl">
                 <CardHeader className="text-center space-y-2">
-                    <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-2">
+                    <div className="mx-auto w-12 h-12 bg-red-500/10 rounded-full flex items-center justify-center mb-2">
                         <Heart className="w-6 h-6 text-red-600 fill-red-600" />
                     </div>
                     <CardTitle className="text-2xl font-bold font-kantumruy">
@@ -109,9 +109,9 @@ export default function CreateWeddingPage() {
                                 <div className="space-y-2">
                                     <Label>ឈ្មោះកូនកំលោះ (Groom)</Label>
                                     <div className="relative">
-                                        <User className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                                        <User className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
                                         <Input
-                                            className="pl-10 h-12 text-lg"
+                                            className="pl-10 h-12 text-lg bg-background border-border"
                                             placeholder="ឈ្មោះកូនកំលោះ"
                                             value={formData.groomName}
                                             onChange={(e) => setValue("groomName", e.target.value)}
@@ -122,9 +122,9 @@ export default function CreateWeddingPage() {
                                 <div className="space-y-2">
                                     <Label>ឈ្មោះកូនក្រមុំ (Bride)</Label>
                                     <div className="relative">
-                                        <User className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                                        <User className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
                                         <Input
-                                            className="pl-10 h-12 text-lg"
+                                            className="pl-10 h-12 text-lg bg-background border-border"
                                             placeholder="ឈ្មោះកូនក្រមុំ"
                                             value={formData.brideName}
                                             onChange={(e) => setValue("brideName", e.target.value)}
@@ -143,7 +143,7 @@ export default function CreateWeddingPage() {
                                     mode="single"
                                     selected={formData.date}
                                     onSelect={(date) => date && setValue("date", date)}
-                                    className="rounded-md border shadow p-4 w-full flex justify-center bg-white"
+                                    className="rounded-md border border-border shadow p-4 w-full flex justify-center bg-card"
                                     classNames={{
                                         day_selected: "bg-red-600 text-white hover:bg-red-600 focus:bg-red-600"
                                     }}
@@ -158,26 +158,26 @@ export default function CreateWeddingPage() {
                                 <div className="space-y-2">
                                     <Label>ទីតាំង (តំណរភ្ជាប់ Google Maps)</Label>
                                     <div className="relative">
-                                        <MapPin className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                                        <MapPin className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
                                         <Input
-                                            className="pl-10 h-12"
+                                            className="pl-10 h-12 bg-background border-border"
                                             placeholder="https://maps.app.goo.gl/..."
                                             value={formData.location}
                                             onChange={(e) => setValue("location", e.target.value)}
                                         />
                                     </div>
-                                    <p className="text-xs text-gray-400">អ្នកអាចដាក់ទីតាំងនៅពេលក្រោយបាន</p>
+                                    <p className="text-xs text-muted-foreground/60">អ្នកអាចដាក់ទីតាំងនៅពេលក្រោយបាន</p>
                                 </div>
 
-                                <div className="rounded-lg bg-gray-50 p-4 space-y-3 border border-gray-100">
-                                    <h4 className="font-semibold text-gray-900">សូមពិនិត្យព័ត៌មាន៖</h4>
-                                    <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
+                                <div className="rounded-lg bg-muted/50 p-4 space-y-3 border border-border">
+                                    <h4 className="font-semibold text-foreground">សូមពិនិត្យព័ត៌មាន៖</h4>
+                                    <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
                                         <span>កូនកំលោះ:</span>
-                                        <span className="font-medium text-gray-900">{formData.groomName}</span>
+                                        <span className="font-medium text-foreground">{formData.groomName}</span>
                                         <span>កូនក្រមុំ:</span>
-                                        <span className="font-medium text-gray-900">{formData.brideName}</span>
+                                        <span className="font-medium text-foreground">{formData.brideName}</span>
                                         <span>កាលបរិច្ឆេទ:</span>
-                                        <span className="font-medium text-gray-900">{formData.date ? format(formData.date, 'dd MMM yyyy') : '-'}</span>
+                                        <span className="font-medium text-foreground">{formData.date ? format(formData.date, 'dd MMM yyyy') : '-'}</span>
                                     </div>
                                 </div>
                             </div>

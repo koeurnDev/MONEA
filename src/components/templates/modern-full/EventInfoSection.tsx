@@ -39,12 +39,12 @@ export default function EventInfoSection({ wedding, labels, primaryColor }: Even
 
     const TimeBox = ({ val, label }: { val: number, label: string }) => (
         <div className="flex flex-col items-center">
-            <div className="w-14 h-16 md:w-20 md:h-24 bg-black/40 backdrop-blur-sm border border-white/10 rounded-xl flex items-center justify-center shadow-lg transition-all duration-300">
-                <span className="text-2xl md:text-4xl font-bold text-white font-mono drop-shadow-md">
+            <div className="w-10 h-12 md:w-20 md:h-24 bg-black/40 backdrop-blur-sm border border-white/10 rounded-lg md:rounded-xl flex items-center justify-center shadow-lg transition-all duration-300">
+                <span className="text-lg md:text-4xl font-bold text-white font-mono drop-shadow-md">
                     {String(val).padStart(2, '0')}
                 </span>
             </div>
-            <span className="text-[10px] md:text-sm text-pink-200 mt-2 font-khmer drop-shadow-sm opacity-80">{label}</span>
+            <span className="text-[8px] md:text-sm text-pink-200 mt-1 md:mt-2 font-khmer drop-shadow-sm opacity-80">{label}</span>
         </div>
     );
 
@@ -52,23 +52,23 @@ export default function EventInfoSection({ wedding, labels, primaryColor }: Even
         <section className="px-4 py-8 mx-auto max-w-lg relative z-10 -mt-16 space-y-12 transition-all duration-500">
 
             {/* Top Row: Date & Time Cards */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="flex gap-3 px-2">
                 {/* Date Card */}
-                <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-2xl p-4 md:p-6 flex flex-col items-center justify-center h-28 md:h-32 shadow-xl hover:bg-black/40 transition-colors">
-                    <h3 className="text-3xl md:text-4xl font-bold text-white font-cinzel drop-shadow-lg leading-none mb-1">
+                <div className="flex-1 bg-black/30 backdrop-blur-sm border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center h-24 md:h-32 shadow-xl hover:bg-black/40 transition-colors will-change-transform">
+                    <h3 className="text-2xl md:text-4xl font-bold text-white font-cinzel drop-shadow-lg leading-none mb-1">
                         {displayDate.getDate()}
                     </h3>
-                    <p className="text-[10px] md:text-sm uppercase tracking-[0.2em] text-pink-200 font-cinzel opacity-90 text-center font-khmer">
+                    <p className="text-[8px] md:text-sm uppercase tracking-[0.1em] md:tracking-[0.2em] text-pink-200 font-cinzel opacity-90 text-center font-khmer truncate w-full">
                         {displayDate.toLocaleDateString('km-KH', { month: 'long' })}
                     </p>
                 </div>
 
                 {/* Time Card */}
-                <div className="bg-black/30 backdrop-blur-md border border-white/10 rounded-2xl p-4 md:p-6 flex flex-col items-center justify-center h-28 md:h-32 shadow-xl hover:bg-black/40 transition-colors">
-                    <h3 className="text-xl md:text-2xl font-bold text-white font-cinzel drop-shadow-lg leading-none mb-2">
+                <div className="flex-1 bg-black/30 backdrop-blur-sm border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center h-24 md:h-32 shadow-xl hover:bg-black/40 transition-colors will-change-transform">
+                    <h3 className="text-lg md:text-2xl font-bold text-white font-cinzel drop-shadow-lg leading-none mb-1 md:mb-2">
                         {displayDate.toLocaleTimeString('km-KH', { hour: '2-digit', minute: '2-digit' })}
                     </h3>
-                    <p className="text-[10px] md:text-sm uppercase tracking-widest text-pink-200 font-khmer opacity-90">
+                    <p className="text-[8px] md:text-sm uppercase tracking-widest text-pink-200 font-khmer opacity-90">
                         {labels.time_label || "វេលា"}
                     </p>
                 </div>

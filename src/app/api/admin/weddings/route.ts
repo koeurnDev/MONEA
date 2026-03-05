@@ -1,22 +1,16 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { verifyToken } from "@/lib/auth";
-import { cookies } from "next/headers";
+import { getServerUser } from "@/lib/auth";
 import { decrypt } from "@/lib/encryption";
 
 import { ROLES } from "@/lib/constants";
 
-// Helper to check Admin
-async function isAdmin() {
-    const token = cookies().get("token")?.value;
-    if (!token) return false;
-    const user = verifyToken(token) as { userId: string, role: string } | null;
-    return user && (user.role === ROLES.PLATFORM_OWNER || user.role === ROLES.EVENT_MANAGER);
-}
+// Authorization handled via getServerUser
 
 export async function GET(req: Request) {
-    if (!await isAdmin()) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const user = await getServerUser();
+    if (!user || user.role !== ROLES.PLATFORM_OWNER) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { searchParams } = new URL(req.url);
     const limit = parseInt(searchParams.get("limit") || "50");
@@ -37,13 +31,8 @@ export async function GET(req: Request) {
         prisma.wedding.count()
     ]);
 
-    const decryptedWeddings = weddings.map(wedding => ({
-        ...wedding,
-        paymentInfo: wedding.paymentInfo ? decrypt(wedding.paymentInfo) : wedding.paymentInfo
-    }));
-
     return NextResponse.json({
-        data: decryptedWeddings,
+        data: weddings, // paymentInfo is encrypted in DB, we don't decrypt it here for the list
         pagination: {
             total,
             page,
@@ -54,7 +43,8 @@ export async function GET(req: Request) {
 }
 
 export async function PUT(req: Request) {
-    if (!await isAdmin()) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const user = await getServerUser();
+    if (!user || user.role !== ROLES.PLATFORM_OWNER) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     try {
         const { id, packageType, status, expiresAt } = await req.json();

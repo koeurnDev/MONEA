@@ -15,10 +15,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState, useEffect, useRef } from "react";
-import { Check, ChevronsUpDown, Search, Plus } from "lucide-react";
+import { Check, ChevronsUpDown, Search, Plus, Activity, Users, User, CreditCard } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
+import Image from "next/image";
 
 const formSchema = z.object({
     amount: z.string().min(1, "សូមបញ្ចូលចំនួនទឹកប្រាក់"),
@@ -291,6 +293,9 @@ export function GiftForm({ onSuccess, onDone, defaultCreate = false }: { onSucce
             setIsCreatingNew(false);
             setSearchQuery("");
 
+            if (!keepOpen) {
+                onDone();
+            }
         } catch (err) {
             console.error("Submission failed:", err);
             const currentQueue = JSON.parse(localStorage.getItem(QUEUE_KEY) || "[]");
@@ -332,23 +337,23 @@ export function GiftForm({ onSuccess, onDone, defaultCreate = false }: { onSucce
         <Form {...form}>
             {/* Receipt Modal */}
             <Dialog open={showReceipt} onOpenChange={(open) => !open && closeReceipt()}>
-                <DialogContent className="sm:max-w-md bg-white text-center p-8 flex flex-col items-center justify-center space-y-4">
+                <DialogContent className="sm:max-w-md bg-card text-center p-8 flex flex-col items-center justify-center space-y-4">
                     <DialogTitle className="sr-only">Submission Successful</DialogTitle>
                     <DialogDescription className="sr-only">
                         Details of the successfully recorded gift.
                     </DialogDescription>
-                    <div className="rounded-full bg-green-100 p-3">
-                        <Check className="w-8 h-8 text-green-600" />
+                    <div className="rounded-full bg-emerald-500/10 p-3">
+                        <Check className="w-8 h-8 text-emerald-600" />
                     </div>
                     <div className="space-y-1">
-                        <h2 className="text-xl font-bold text-gray-900">បានទទួលជោគជ័យ</h2>
-                        <p className="text-gray-500">កាដូត្រូវបានកត់ត្រាចូលក្នុងប្រព័ន្ធ</p>
+                        <h2 className="text-xl font-bold text-foreground">បានទទួលជោគជ័យ</h2>
+                        <p className="text-muted-foreground">កាដូត្រូវបានកត់ត្រាចូលក្នុងប្រព័ន្ធ</p>
                     </div>
 
                     {receiptData && (
-                        <div className="w-full bg-gray-50 rounded-xl p-6 border border-gray-100 my-4">
-                            <p className="text-sm text-gray-500 mb-1">ទទួលបានពី</p>
-                            <h3 className="text-2xl font-bold text-gray-900 mb-4 font-kantumruy">{receiptData.name}</h3>
+                        <div className="w-full bg-muted/30 rounded-xl p-6 border border-border my-4">
+                            <p className="text-sm text-muted-foreground mb-1">ទទួលបានពី</p>
+                            <h3 className="text-2xl font-bold text-foreground mb-4 font-kantumruy">{receiptData.name}</h3>
 
                             <div className="flex items-baseline justify-center gap-1">
                                 <span className="text-4xl font-extrabold text-blue-600">
@@ -397,17 +402,13 @@ export function GiftForm({ onSuccess, onDone, defaultCreate = false }: { onSucce
                 )}
                 {/* Existing Form Content... */}
                 {/* ... (rest of the form remains the same, wrapped in fragments if needed but <Form> handles it) ... */}
-                {/* Wait, I cannot easily replace the ENTIRE return block safely in one go without context of lines. 
-               The instruction was "Add Receipt Dialog logic and UI". 
-               I will wrap the existing form in the Fragment and put Dialog above it.
-            */}
 
                 {error && (
-                    <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm flex flex-col gap-2">
-                        <div className="flex items-center gap-2 font-semibold">
+                    <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm flex flex-col gap-2">
+                        <div className="flex items-center gap-2 font-semibold font-kantumruy">
                             ⚠️ {error}
                         </div>
-                        <p className="text-xs text-red-500">
+                        <p className="text-xs text-red-500 font-kantumruy">
                             ទិន្នន័យមានសុវត្ថិភាពក្នុងទូរស័ព្ទរបស់អ្នក។ សូមពិនិត្យអ៊ីនធឺណិត រួចព្យាយាមម្ដងទៀត។
                         </p>
                         {offlineMode && (
@@ -415,7 +416,7 @@ export function GiftForm({ onSuccess, onDone, defaultCreate = false }: { onSucce
                                 type="button"
                                 variant="outline"
                                 size="sm"
-                                className="self-end border-red-200 hover:bg-red-100 text-red-700"
+                                className="self-end border-red-200 hover:bg-red-100 text-red-700 rounded-lg font-bold font-kantumruy"
                                 onClick={form.handleSubmit((v) => onSubmit(v, false))}
                             >
                                 ↺ ព្យាយាមម្ដងទៀត
@@ -424,322 +425,295 @@ export function GiftForm({ onSuccess, onDone, defaultCreate = false }: { onSucce
                     </div>
                 )}
 
+                {/* Section 1: ព័ត៌មានភ្ញៀវ (Guest Information) */}
                 <div className="space-y-4">
-                    {!defaultCreate && (
+                    {/* Section Header */}
+                    <div className="flex items-center gap-3 px-1 mb-1">
+                        <div className="w-8 h-8 rounded-full bg-blue-600/10 flex items-center justify-center text-blue-600">
+                            <Users size={16} />
+                        </div>
+                        <div>
+                            <h3 className="text-base font-bold text-foreground font-kantumruy leading-none">ព័ត៌មានភ្ញៀវ</h3>
+                            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mt-0.5">Guest Identity</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-muted/20 border border-border/50 rounded-[1.5rem] p-4 md:p-5">
                         <FormField
                             control={form.control}
-                            name="guestId"
+                            name="guestName"
                             render={({ field }) => (
-                                <FormItem className="flex flex-col">
-                                    <FormLabel>ឈ្មោះអ្នកផ្តល់ (Guest)</FormLabel>
-                                    <Popover open={open} onOpenChange={setOpen}>
-                                        <PopoverTrigger asChild>
-                                            <FormControl>
-                                                <Button
-                                                    ref={guestTriggerRef}
-                                                    variant="outline"
-                                                    role="combobox"
-                                                    aria-expanded={open}
-                                                    className={cn(
-                                                        "w-full justify-between bg-white h-14 text-lg font-medium",
-                                                        !field.value && "text-muted-foreground"
-                                                    )}
-                                                >
-                                                    {isCreatingNew ? (
-                                                        <span>កំពុងបង្កើត: <span className="font-bold text-blue-600">{form.watch("guestName")}</span></span>
-                                                    ) : selectedGuest ? (
-                                                        selectedGuest.name
-                                                    ) : (
-                                                        "ស្វែងរក ឬ បង្កើតភ្ញៀវថ្មី"
-                                                    )}
-                                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                                </Button>
-                                            </FormControl>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-[300px] p-0" align="start">
-                                            <div className="p-2 border-b">
-                                                <Input
-                                                    placeholder="បញ្ចូលឈ្មោះដើម្បីស្វែងរក..."
-                                                    value={searchQuery}
-                                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                                    className="h-12 text-lg shadow-none border-0 focus-visible:ring-0"
-                                                />
-                                            </div>
-                                            <div className="max-h-[200px] overflow-y-auto p-1">
-                                                <div
-                                                    className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground text-gray-500"
-                                                    onClick={() => handleSelectGuest("")}
-                                                >
-                                                    <Check className={cn("mr-2 h-4 w-4 opacity-0")} />
-                                                    សម្អាត
+                                <FormItem className="relative flex-1">
+                                    <FormLabel className="text-xs font-bold text-muted-foreground font-kantumruy ml-1">ឈ្មោះភ្ញៀវ *</FormLabel>
+                                    <FormControl>
+                                        <div className="relative group">
+                                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 w-4 h-4 group-focus-within:text-blue-600 transition-colors" />
+                                            <Input
+                                                placeholder=" Eg: លោក សុវណ្ណ..."
+                                                {...field}
+                                                onChange={(e) => {
+                                                    field.onChange(e);
+                                                    handleNameChange(e);
+                                                }}
+                                                ref={(e) => {
+                                                    field.ref(e);
+                                                    nameInputRef.current = e;
+                                                }}
+                                                className="h-11 md:h-12 pl-10 text-base rounded-xl font-kantumruy border-border/60 bg-background/50 backdrop-blur-sm shadow-sm focus-visible:ring-blue-500/20 transition-all font-medium"
+                                                autoFocus={true}
+                                                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                                                autoComplete="off"
+                                            />
+
+                                            {/* Auto-suggest dropdown (Overlay) */}
+                                            {showSuggestions && suggestions.length > 0 && (
+                                                <div className="absolute z-50 w-full bg-popover/95 backdrop-blur-md border border-border rounded-xl shadow-2xl mt-2 max-h-60 overflow-y-auto overflow-x-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                                                    <div className="p-2 text-[10px] font-black text-muted-foreground uppercase tracking-widest bg-muted/50 backdrop-blur-sm sticky top-0 z-10 border-b border-border/50">
+                                                        សមាជិកមានស្រាប់
+                                                    </div>
+                                                    {suggestions.map((g) => (
+                                                        <div
+                                                            key={g.id}
+                                                            className="px-4 py-2.5 border-b border-border/30 hover:bg-blue-600/5 cursor-pointer flex justify-between items-center group transition-colors"
+                                                            onMouseDown={(e) => {
+                                                                e.preventDefault();
+                                                                handleSelectGuest(g.id);
+                                                            }}
+                                                        >
+                                                            <div>
+                                                                <p className="font-bold text-foreground text-sm group-hover:text-blue-600 font-kantumruy">{g.name}</p>
+                                                                {g.source && <p className="text-[10px] font-medium text-muted-foreground flex items-center gap-1 font-kantumruy">
+                                                                    📍 {g.source}
+                                                                </p>}
+                                                            </div>
+                                                            <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center group-hover:bg-blue-600/10 group-hover:scale-110 transition-all text-muted-foreground group-hover:text-blue-600">
+                                                                <Check className="w-3 h-3" />
+                                                            </div>
+                                                        </div>
+                                                    ))}
                                                 </div>
-
-                                                {filteredGuests.map((guest) => (
-                                                    <div
-                                                        key={guest.id}
-                                                        className={cn(
-                                                            "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground",
-                                                            guest.id === field.value && "bg-accent/50"
-                                                        )}
-                                                        onClick={() => handleSelectGuest(guest.id)}
-                                                    >
-                                                        <Check
-                                                            className={cn(
-                                                                "mr-2 h-4 w-4",
-                                                                guest.id === field.value ? "opacity-100" : "opacity-0"
-                                                            )}
-                                                        />
-                                                        {guest.name}
-                                                    </div>
-                                                ))}
-
-                                                {searchQuery && (
-                                                    <div
-                                                        className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none bg-blue-50 text-blue-700 hover:bg-blue-100 font-medium border-t border-blue-100 mt-1"
-                                                        onClick={() => handleSelectGuest("new")}
-                                                    >
-                                                        <Plus className="mr-2 h-4 w-4" />
-                                                        បង្កើតថ្មី: &quot;{searchQuery}&quot;
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </PopoverContent>
-                                    </Popover>
-                                    <FormMessage />
+                                            )}
+                                        </div>
+                                    </FormControl>
+                                    <FormMessage className="font-kantumruy text-[10px]" />
                                 </FormItem>
                             )}
                         />
-                    )}
 
-                    {(isCreatingNew || defaultCreate) && (
-                        <div className={cn("grid grid-cols-1 gap-2", !defaultCreate && "p-3 bg-slate-50 rounded-lg border border-slate-200 animate-in slide-in-from-top-2")}>
-                            <FormField
-                                control={form.control}
-                                name="guestName"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className={cn("text-xs", defaultCreate && "text-base font-semibold text-gray-700")}>ឈ្មោះភ្ញៀវ</FormLabel>
-                                        <FormControl>
-                                            <div className="relative">
-                                                <Input
-                                                    placeholder="ឈ្មោះ"
-                                                    {...field}
-                                                    onChange={(e) => {
-                                                        field.onChange(e);
-                                                        handleNameChange(e);
-                                                    }}
-                                                    ref={(e) => {
-                                                        field.ref(e);
-                                                        nameInputRef.current = e;
-                                                    }}
-                                                    className={cn("h-13 text-lg")}
-                                                    autoFocus={defaultCreate}
-                                                    onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                                                    autoComplete="off"
-                                                />
-                                                {showSuggestions && suggestions.length > 0 && (
-                                                    <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-48 overflow-auto animate-in fade-in zoom-in-95 duration-100">
-                                                        {suggestions.map((g) => (
-                                                            <div
-                                                                key={g.id}
-                                                                className="px-4 py-3 hover:bg-blue-50 cursor-pointer flex justify-between items-center group border-b border-gray-50 last:border-0"
-                                                                onMouseDown={(e) => {
-                                                                    e.preventDefault(); // Prevent blur
-                                                                    handleSelectGuest(g.id);
-                                                                }}
-                                                            >
-                                                                <div>
-                                                                    <p className="font-medium text-gray-900 group-hover:text-blue-700">{g.name}</p>
-                                                                    {g.source && <p className="text-xs text-gray-500">{g.source}</p>}
-                                                                </div>
-                                                                <div className="text-xs bg-gray-100 px-2 py-1 rounded text-gray-500 group-hover:bg-blue-100 group-hover:text-blue-600">
-                                                                    មានស្រាប់
-                                                                </div>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                        <FormField
+                            control={form.control}
+                            name="source"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="text-xs font-bold text-muted-foreground font-kantumruy ml-1">មកពីណា? (ឧទាហរណ៍៖ កំពត...)</FormLabel>
+                                    <FormControl>
+                                        <Input {...field} className="h-11 md:h-12 text-sm rounded-xl border-border/60 bg-background/50 backdrop-blur-sm font-kantumruy shadow-sm focus-visible:ring-blue-500/20" />
+                                    </FormControl>
+                                    <FormMessage className="font-kantumruy text-[10px]" />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
+                </div>
+
+                <div className="space-y-4">
+                    {/* Section Header */}
+                    <div className="flex items-center gap-3 px-1 mb-1 mt-2">
+                        <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-600">
+                            <Activity size={16} />
                         </div>
-                    )}
+                        <div>
+                            <h3 className="text-base font-bold text-foreground font-kantumruy leading-none">ព័ត៌មានចំណងដៃ</h3>
+                            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mt-0.5">Gift Details</p>
+                        </div>
+                    </div>
 
-                    <FormField
-                        control={form.control}
-                        name="source"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel className="text-xs text-gray-600">មកពីណា?</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Ex: កំពត, កែប..." {...field} className="h-12 text-lg" />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                    <div className="bg-muted/20 border border-border/50 rounded-[1.5rem] p-4 md:p-5 space-y-4">
+                        <div className="grid grid-cols-5 gap-4">
+                            <div className="col-span-3">
+                                <FormField
+                                    control={form.control}
+                                    name="amount"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-xs font-bold text-muted-foreground font-kantumruy ml-1">ចំនួនទឹកប្រាក់ *</FormLabel>
+                                            <FormControl>
+                                                <div className="relative group">
+                                                    <Input
+                                                        type="number"
+                                                        step="0.01"
+                                                        placeholder="0.00"
+                                                        {...field}
+                                                        className="h-12 md:h-14 text-xl md:text-2xl font-black rounded-xl border-border/60 bg-background/50 backdrop-blur-sm shadow-sm pl-4 pr-12 text-foreground focus-visible:ring-emerald-500/20 group-focus-within:border-emerald-500/50"
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === "Enter") {
+                                                                e.preventDefault();
+                                                                handleSubmit(e, true);
+                                                            }
+                                                        }}
+                                                    />
+                                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/60 font-black pointer-events-none text-lg">
+                                                        {form.watch("currency") === "USD" ? "$" : "៛"}
+                                                    </div>
+                                                </div>
+                                            </FormControl>
+                                            <FormMessage className="font-kantumruy text-[10px]" />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+
+                            <div className="col-span-2">
+                                <FormField
+                                    control={form.control}
+                                    name="currency"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-xs font-bold text-muted-foreground font-kantumruy ml-1">រូបិយប័ណ្ណ</FormLabel>
+                                            <FormControl>
+                                                <div className="flex gap-1.5 bg-background/50 p-1 rounded-xl border border-border/60 backdrop-blur-sm h-12 md:h-14">
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        className={cn(
+                                                            "flex-1 h-full rounded-lg font-black text-sm transition-all",
+                                                            field.value === "USD"
+                                                                ? "bg-emerald-600 text-white shadow-sm"
+                                                                : "text-muted-foreground hover:bg-muted"
+                                                        )}
+                                                        onClick={() => field.onChange("USD")}
+                                                    >
+                                                        USD
+                                                    </Button>
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        className={cn(
+                                                            "flex-1 h-full rounded-lg font-black text-xs md:text-sm transition-all font-kantumruy",
+                                                            field.value === "KHR"
+                                                                ? "bg-blue-600 text-white shadow-sm"
+                                                                : "text-muted-foreground hover:bg-muted"
+                                                        )}
+                                                        onClick={() => field.onChange("KHR")}
+                                                    >
+                                                        ៛ KHR
+                                                    </Button>
+                                                </div>
+                                            </FormControl>
+                                            <FormMessage className="font-kantumruy text-[10px]" />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        <FormField
+                            control={form.control}
+                            name="method"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="text-xs font-bold text-muted-foreground font-kantumruy ml-1">បានទទួលតាមរយៈ</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger className="h-11 md:h-12 rounded-xl text-sm font-bold bg-background/50 backdrop-blur-sm border-border/60 shadow-sm text-foreground font-kantumruy focus:ring-blue-500/20 transition-all">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent className="rounded-xl border-border bg-card/95 backdrop-blur-md shadow-2xl font-kantumruy font-bold border-none ring-1 ring-border">
+                                            <SelectItem value="Cash">សាច់ប្រាក់ផ្ទាល់ (Cash)</SelectItem>
+                                            <SelectItem value="ABA">ABA Bank</SelectItem>
+                                            <SelectItem value="Wing">Wing Bank</SelectItem>
+                                            <SelectItem value="ACLEDA">ACLEDA Bank</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage className="font-kantumruy text-[10px]" />
+                                </FormItem>
+                            )}
+                        />
+                    </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                        control={form.control}
-                        name="amount"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>ចំនួនទឹកប្រាក់</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        type="number"
-                                        step="0.01"
-                                        placeholder="0.00"
-                                        {...field}
-                                        className="h-14 text-xl font-bold"
-                                        onKeyDown={(e) => {
-                                            if (e.key === "Enter") {
-                                                e.preventDefault();
-                                                handleSubmit(e, true); // Submit and Keep Open (Add Another)
-                                            }
-                                        }}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="currency"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>រូបិយប័ណ្ណ</FormLabel>
-                                <FormControl>
-                                    <div className="flex gap-2">
-                                        <Button
-                                            type="button"
-                                            variant={field.value === "USD" ? "default" : "outline"}
-                                            className={cn("flex-1", field.value === "USD" && "bg-green-600 hover:bg-green-700")}
-                                            onClick={() => field.onChange("USD")}
-                                        >
-                                            $ USD
-                                        </Button>
-                                        <Button
-                                            type="button"
-                                            variant={field.value === "KHR" ? "default" : "outline"}
-                                            className={cn("flex-1", field.value === "KHR" && "bg-blue-600 hover:bg-blue-700")}
-                                            onClick={() => field.onChange("KHR")}
-                                        >
-                                            ៛ KHR
-                                        </Button>
-                                    </div>
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
-
-                <FormField
-                    control={form.control}
-                    name="method"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>វិធីសាស្ត្រ</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    <SelectItem value="Cash">សាច់ប្រាក់</SelectItem>
-                                    <SelectItem value="ABA">ABA</SelectItem>
-                                    <SelectItem value="Wing">Wing</SelectItem>
-                                    <SelectItem value="ACLEDA">ACLEDA</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <div className="flex gap-3 pt-4">
+                <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-border">
                     <Button
                         type="button"
                         disabled={loading}
                         onClick={(e) => handleSubmit(e, true)}
-                        className={`flex-1 bg-red-900 hover:bg-red-800 ${offlineMode ? 'bg-orange-500 hover:bg-orange-600' : ''}`}
+                        className={`flex-1 h-12 md:h-14 rounded-2xl font-black font-kantumruy text-base md:text-lg transition-all border-none active:scale-[0.98] ${offlineMode
+                            ? 'bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 shadow-[0_10px_30px_-10px_rgba(249,115,22,0.5)]'
+                            : 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 shadow-[0_10px_30px_-10px_rgba(220,38,38,0.5)]'
+                            } text-white`}
                     >
-                        {loading ? "..." : "រក្សាទុក & ថែមទៀត"}
+                        {loading ? (
+                            <div className="flex items-center gap-2">
+                                <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                                <span>រក្សាទុក...</span>
+                            </div>
+                        ) : (
+                            <span className="flex items-center justify-center gap-2">
+                                រក្សាទុក & ថែមទៀត <Plus className="w-5 h-5 opacity-50" />
+                            </span>
+                        )}
                     </Button>
                     <Button
                         type="button"
                         disabled={loading}
                         variant="outline"
                         onClick={(e) => handleSubmit(e, false)}
-                        className="flex-1"
+                        className="flex-1 sm:flex-none h-12 md:h-14 px-8 rounded-2xl font-black font-kantumruy border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all text-sm md:text-base border-2"
                     >
-                        {loading ? "..." : "រក្សាទុក & បិទ"}
+                        {loading ? "..." : "រក្សាទុក & បិទផ្ទាំង"}
                     </Button>
                 </div>
             </form>
 
             {/* Persistent QR Code Section (Always visible if URL exists) */}
-            {paymentQrUrl && (
-                <div className="mt-6 border-t pt-6">
-                    <div className="bg-white border rounded-xl p-4 flex flex-col items-center shadow-sm">
-                        <p className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                            <span>ឰ QR សម្រាប់ស្កេន</span>
-                        </p>
+            {
+                paymentQrUrl && (
+                    <div className="mt-6 border-t border-border pt-6">
+                        <div className="bg-muted/30 border border-border rounded-xl p-4 flex flex-col items-center shadow-sm">
+                            <p className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2 font-kantumruy">
+                                <span>ឰ QR សម្រាប់ស្កេន</span>
+                            </p>
 
-                        {/* Click to Expand/Zoom */}
-                        <Dialog>
-                            <DialogTrigger asChild>
-                                <div className="relative w-48 h-48 bg-white rounded-lg overflow-hidden border cursor-zoom-in hover:opacity-90 transition-opacity">
-                                    <img
-                                        src={paymentQrUrl}
-                                        alt="Payment QR"
-                                        className="w-full h-full object-contain p-2"
-                                    />
-                                </div>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-md flex flex-col items-center justify-center p-8 bg-white">
-                                <DialogTitle className="sr-only">Payment QR Full</DialogTitle>
-                                <DialogDescription className="sr-only">
-                                    Enlarged view of the payment QR code.
-                                </DialogDescription>
-                                <img
-                                    src={paymentQrUrl}
-                                    alt="Payment QR Full"
-                                    className="w-full max-w-[300px] h-auto object-contain"
-                                />
-                                <p className="mt-4 text-center font-bold text-lg">ស្កេនដើម្បីទូទាត់</p>
-                            </DialogContent>
-                        </Dialog>
+                            {/* Click to Expand/Zoom */}
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <div className="relative w-48 h-48 bg-white rounded-lg overflow-hidden border border-border cursor-zoom-in hover:opacity-90 transition-opacity">
+                                        <Image
+                                            src={paymentQrUrl}
+                                            alt="Payment QR"
+                                            fill
+                                            className="object-contain p-2"
+                                        />
+                                    </div>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-md flex flex-col items-center justify-center p-8 bg-card">
+                                    <VisuallyHidden.Root>
+                                        <DialogTitle>ស្កេន QR កូដ (Scan Payment QR)</DialogTitle>
+                                        <DialogDescription>
+                                            ពង្រីក QR កូដសម្រាប់ការទូទាត់ (Enlarged QR code for payment)
+                                        </DialogDescription>
+                                    </VisuallyHidden.Root>
+                                    <div className="relative w-full max-w-[300px] aspect-square bg-white rounded-xl p-4">
+                                        <Image
+                                            src={paymentQrUrl}
+                                            alt="Payment QR Full"
+                                            fill
+                                            className="object-contain"
+                                        />
+                                    </div>
+                                    <p className="mt-4 text-center font-bold text-lg font-kantumruy text-foreground">ស្កេនដើម្បីទូទាត់</p>
+                                </DialogContent>
+                            </Dialog>
 
-                        <p className="text-xs text-gray-500 mt-2 text-center max-w-[200px]">
-                            បង្ហាញ QR នេះជូនភ្ញៀវប្រសិនបើពួកគាត់ចង់វេរលុយ
-                        </p>
+                            <p className="text-xs text-muted-foreground mt-2 text-center max-w-[200px] font-kantumruy">
+                                បង្ហាញ QR នេះជូនភ្ញៀវប្រសិនបើពួកគាត់ចង់វេរលុយ
+                            </p>
+                        </div>
                     </div>
-                </div>
-            )}
-        </Form>
+                )
+            }
+        </Form >
     );
 }
-
-// Ensure Dialog imports are added at the top
-// Currently GiftForm imports: Button, Form..., Input, etc.
-// Need to add Dialog imports if not present.
-// Note: checking existing imports... Dialog is NOT imported in original file.
-// We must add imports or this will fail.
-// Since I can't edit imports easily with this chunk, I should do a separate edit for imports first or use a bigger chunk.
-// I'll stick to replacing the render for now, but I MUST add imports.
-// Wait, I can use a multi-step approach.
-// Step 1: Add Dialog imports.
-// Step 2: Add Logic hook.
-// Step 3: Add JSX.
-// This chunk is for JSX. I will assume I will add imports in next step or use `multi_replace`.
-// Actually, I should use `multi_replace` to do it all at once to be safe.
 

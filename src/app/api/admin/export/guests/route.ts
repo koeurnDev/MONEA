@@ -3,13 +3,22 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
 import { decrypt } from "@/lib/encryption";
+import { ROLES } from "@/lib/constants";
+
+function escapeCSV(val: any) {
+    if (typeof val !== 'string') return val;
+    const sanitized = val.replace(/,/g, " ");
+    // Protect against CSV Injection (Excel Formula Injection)
+    if (sanitized.startsWith('=') || sanitized.startsWith('+') || sanitized.startsWith('-') || sanitized.startsWith('@')) {
+        return `'${sanitized}`;
+    }
+    return sanitized;
+}
 
 export async function GET(req: Request) {
     try {
         const user = await getServerUser();
-        if (!user || (user.role !== "ADMIN" && user.role !== "SUPERADMIN" && user.role !== "OWNER")) {
-            return new NextResponse("Unauthorized", { status: 401 });
-        }
+        if (!user) return new NextResponse("Unauthorized", { status: 401 });
 
         const { searchParams } = new URL(req.url);
         const weddingId = searchParams.get("weddingId");
@@ -19,7 +28,7 @@ export async function GET(req: Request) {
         }
 
         // Verify ownership/access
-        if (user.role !== "SUPERADMIN") {
+        if (user.role !== ROLES.PLATFORM_OWNER) {
             const wedding = await prisma.wedding.findFirst({
                 where: { id: weddingId, userId: user.userId }
             });
@@ -37,10 +46,10 @@ export async function GET(req: Request) {
         csvContent += "ឈ្មោះភ្ញៀវ (Name),លេខទូរស័ព្ទ (Phone),ក្រុម (Group),មកពី (Source),ស្ថានភាពគ្រួសារ (Arrived),កាលបរិច្ឆេទ (Created At)\n";
 
         guests.forEach(guest => {
-            const name = guest.name.replace(/,/g, " ");
-            const phone = guest.phone ? decrypt(guest.phone).replace(/,/g, " ") : "";
-            const group = (guest.group || "").replace(/,/g, " ");
-            const source = (guest.source || "").replace(/,/g, " ");
+            const name = escapeCSV(guest.name);
+            const phone = guest.phone ? escapeCSV(decrypt(guest.phone)) : "";
+            const group = escapeCSV(guest.group || "");
+            const source = escapeCSV(guest.source || "");
             const arrived = guest.hasArrived ? "Yes" : "No";
             const createdAt = guest.createdAt.toISOString();
 

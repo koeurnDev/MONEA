@@ -2,13 +2,21 @@ export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
+import { ROLES } from "@/lib/constants";
+
+function escapeCSV(val: any) {
+    if (typeof val !== 'string') return val;
+    const sanitized = val.replace(/,/g, " ");
+    if (sanitized.startsWith('=') || sanitized.startsWith('+') || sanitized.startsWith('-') || sanitized.startsWith('@')) {
+        return `'${sanitized}`;
+    }
+    return sanitized;
+}
 
 export async function GET(req: Request) {
     try {
         const user = await getServerUser();
-        if (!user || (user.role !== "ADMIN" && user.role !== "SUPERADMIN" && user.role !== "OWNER")) {
-            return new NextResponse("Unauthorized", { status: 401 });
-        }
+        if (!user) return new NextResponse("Unauthorized", { status: 401 });
 
         const { searchParams } = new URL(req.url);
         const weddingId = searchParams.get("weddingId");
@@ -18,7 +26,7 @@ export async function GET(req: Request) {
         }
 
         // Verify ownership/access
-        if (user.role !== "SUPERADMIN") {
+        if (user.role !== ROLES.PLATFORM_OWNER) {
             const wedding = await prisma.wedding.findFirst({
                 where: { id: weddingId, userId: user.userId }
             });
@@ -37,10 +45,10 @@ export async function GET(req: Request) {
         csvContent += "ឈ្មោះភ្ញៀវ (Guest),ចំនួនទឹកប្រាក់ (Amount),រូបិយប័ណ្ណ (Currency),មធ្យោបាយ (Method),កាលបរិច្ឆេទ (Date)\n";
 
         gifts.forEach(gift => {
-            const guestName = (gift.guest?.name || "Unknown").replace(/,/g, " ");
+            const guestName = escapeCSV(gift.guest?.name || "Unknown");
             const amount = gift.amount;
             const currency = gift.currency;
-            const method = (gift.method || "Cash").replace(/,/g, " ");
+            const method = escapeCSV(gift.method || "Cash");
             const date = gift.createdAt.toISOString();
 
             csvContent += `${guestName},${amount},${currency},${method},${date}\n`;

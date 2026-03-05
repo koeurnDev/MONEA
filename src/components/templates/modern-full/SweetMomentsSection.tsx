@@ -1,7 +1,8 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { WeddingData } from "../types";
 import { CldImage } from 'next-cloudinary';
+import Image from 'next/image';
 import { Heart } from 'lucide-react';
 
 interface SweetMomentsSectionProps {
@@ -33,43 +34,45 @@ export default function SweetMomentsSection({ wedding, imageOffset = 0, reverse 
 
                 {/* 1. Header with Circle Image & Hearts */}
                 <div className="flex justify-center items-center gap-4 md:gap-12 mb-12">
-                    <motion.div
+                    <m.div
                         initial={{ opacity: 0, scale: 0.8 }}
                         whileInView={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.8 }}
                         className="hidden md:block"
                     >
                         <HeartSwirlLeft />
-                    </motion.div>
+                    </m.div>
 
-                    <motion.div
+                    <m.div
                         initial={{ scale: 0, opacity: 0 }}
                         whileInView={{ scale: 1, opacity: 1 }}
                         transition={{ duration: 0.8, type: "spring" }}
                         className="relative w-48 h-48 md:w-64 md:h-64 rounded-full overflow-hidden border-4 border-[#D4AF37] shadow-[0_0_30px_rgba(212,175,55,0.3)] z-10"
                     >
                         {heroImage.startsWith('/') ? (
-                            <img src={heroImage} alt="Sweet Moment" className="w-full h-full object-cover" />
+                            <Image src={heroImage} alt="Sweet Moment" fill className="object-cover" sizes="(max-width: 768px) 192px, 256px" />
                         ) : (
                             <CldImage src={heroImage} width={400} height={400} alt="Sweet Moment" className="w-full h-full object-cover" />
                         )}
-                    </motion.div>
+                    </m.div>
 
-                    <motion.div
+                    <m.div
                         initial={{ opacity: 0, scale: 0.8 }}
                         whileInView={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.8 }}
                         className="hidden md:block"
                     >
                         <HeartSwirlRight />
-                    </motion.div>
+                    </m.div>
                 </div>
 
                 {/* 2. Floral Divider (Lavender Style) */}
                 <div className="w-full h-12 mb-16 relative overflow-hidden opacity-80">
                     <div className="absolute inset-0 flex items-center justify-center space-x-4">
                         {Array.from({ length: 12 }).map((_, i) => (
-                            <img key={i} src="/images/lavender_sprig.png" className="h-full w-auto opacity-60" style={{ transform: `rotate(${i % 2 === 0 ? 10 : -10}deg)` }} onError={(e) => e.currentTarget.style.display = 'none'} />
+                            <div key={i} className="relative h-full w-4" style={{ transform: `rotate(${i % 2 === 0 ? 10 : -10}deg)` }}>
+                                <Image src="/images/lavender_sprig.png" alt="Lavender" fill className="object-contain opacity-60" />
+                            </div>
                         ))}
                         {/* Fallback divider if image fails */}
                         <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent absolute top-1/2"></div>
@@ -87,7 +90,7 @@ export default function SweetMomentsSection({ wedding, imageOffset = 0, reverse 
                     </div>
 
                     {/* Center Heart */}
-                    <motion.div
+                    <m.div
                         initial={{ opacity: 0, scale: 0.5 }}
                         whileInView={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 1 }}
@@ -98,7 +101,7 @@ export default function SweetMomentsSection({ wedding, imageOffset = 0, reverse 
                             {/* Sketchy Heart Effect */}
                             <path d="M52 32 C 25 5, 5 35, 50 88 C 95 35, 75 5, 52 32" fill="none" stroke="#ec4899" strokeWidth="1" strokeLinecap="round" strokeDasharray="5,5" className="opacity-70" />
                         </svg>
-                    </motion.div>
+                    </m.div>
 
                     {/* Right Column */}
                     <div className="space-y-6 flex flex-col items-center">
@@ -116,14 +119,14 @@ export default function SweetMomentsSection({ wedding, imageOffset = 0, reverse 
 
 // Sub-components
 const PhotoFrame = ({ src, rotate }: { src: string, rotate: number }) => (
-    <motion.div
+    <m.div
         whileHover={{ scale: 1.05, rotate: 0 }}
-        className="relative bg-white/5 backdrop-blur-sm p-2 pb-8 border border-white/20 shadow-lg w-48 md:w-56"
+        className="relative bg-white/5 backdrop-blur-sm p-2 pb-8 border border-white/20 shadow-lg w-48 md:w-56 will-change-transform"
         style={{ transform: `rotate(${rotate}deg)` }}
     >
-        <div className="aspect-[3/4] overflow-hidden">
+        <div className="aspect-[3/4] overflow-hidden relative">
             {src.startsWith('/') ? (
-                <img src={src} className="w-full h-full object-cover" />
+                <Image src={src} alt="Sweet Moment" fill className="object-cover" sizes="224px" />
             ) : (
                 <CldImage src={src} width={300} height={400} alt="Sweet Moment" className="w-full h-full object-cover" />
             )}
@@ -135,7 +138,7 @@ const PhotoFrame = ({ src, rotate }: { src: string, rotate: number }) => (
         <div className="absolute -bottom-3 -right-3 text-pink-300 drop-shadow-md rotate-[15deg]">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C10 2 8 4 8 6C8 8 10 10 12 10C14 10 16 8 16 6C16 4 14 2 12 2ZM6 8C4 8 2 10 2 12C2 14 4 16 6 16C8 16 10 14 10 12C10 10 8 8 6 8ZM18 8C16 8 14 10 14 12C14 14 16 16 18 16C20 16 22 14 22 12C22 10 20 8 18 8ZM12 12C10 12 8 14 8 16C8 18 10 20 12 20C14 20 16 18 16 16C16 14 14 12 12 12Z" /></svg>
         </div>
-    </motion.div>
+    </m.div>
 );
 
 const HeartSwirlLeft = () => (

@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { CldImage } from 'next-cloudinary';
 
 interface GallerySectionProps {
@@ -17,10 +17,10 @@ export default function GallerySection({ labels, galleryImages, setSelectedImg }
 
             <div className="flex md:grid md:grid-cols-2 lg:grid-cols-3 overflow-x-auto md:overflow-visible snap-x snap-mandatory gap-6 px-8 md:px-0 no-scrollbar pb-8 md:pb-0">
                 {galleryImages.map((src, idx) => (
-                    <motion.div
+                    <m.div
                         key={idx}
                         whileHover={{ scale: 1.02 }}
-                        className="snap-center shrink-0 w-[85vw] md:w-auto relative aspect-[3/4] border border-[#D4AF37]/20 p-1 bg-[#1a1a1a]"
+                        className="snap-center shrink-0 w-[85vw] md:w-auto relative aspect-[3/4] border border-[#D4AF37]/20 p-1 bg-[#1a1a1a] will-change-transform"
                         onClick={() => setSelectedImg(idx)}
                     >
                         <div className="w-full h-full relative overflow-hidden grayscale hover:grayscale-0 transition-all duration-700 cursor-pointer">
@@ -31,10 +31,11 @@ export default function GallerySection({ labels, galleryImages, setSelectedImg }
                                 className="object-cover"
                                 sizes="(max-width: 768px) 100vw, 33vw"
                                 config={{ url: { analytics: false } }}
+                                loading="lazy"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60"></div>
                         </div>
-                    </motion.div>
+                    </m.div>
                 ))}
             </div>
         </section>

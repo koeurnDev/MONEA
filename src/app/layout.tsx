@@ -2,11 +2,10 @@ import type { Metadata } from "next";
 import { Kantumruy_Pro, Moul, Great_Vibes, Playfair_Display, Dancing_Script, Suwannaphum } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import NextTopLoader from 'nextjs-toploader';
 import PageTransition from "@/components/layout/PageTransition";
 import SmoothScroll from "@/components/layout/SmoothScroll";
 
-const kantumruy = Kantumruy_Pro({ weight: ["100", "200", "300", "400", "500", "600", "700"], subsets: ["khmer", "latin"], variable: "--font-kantumruy" });
+const kantumruy = Kantumruy_Pro({ weight: ["400", "700"], subsets: ["khmer", "latin"], variable: "--font-kantumruy" });
 const moul = Moul({ weight: "400", subsets: ["khmer"], variable: "--font-moul" });
 const greatVibes = Great_Vibes({ weight: "400", subsets: ["latin"], variable: "--font-great-vibes" });
 const playfair = Playfair_Display({ weight: ["400", "700"], subsets: ["latin"], variable: "--font-playfair" });
@@ -16,7 +15,15 @@ const suwannaphum = Suwannaphum({ weight: ["400", "700"], subsets: ["khmer"], va
 export const metadata: Metadata = {
   title: "MONEA - មនោសញ្ចេតនានៃក្តីស្រឡាញ់",
   description: "MONEA Wedding Digital - បង្កើតធៀបអញ្ជើញឌីជីថលដ៏ប្រណីត និងគ្រប់គ្រងមង្គលការរបស់អ្នក។",
+  icons: {
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
+  }
 };
+
+import { AnimationProvider } from "@/components/providers/AnimationProvider";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
 export default function RootLayout({
   children,
@@ -37,22 +44,16 @@ export default function RootLayout({
           suwannaphum.variable
         )}
       >
-        <NextTopLoader
-          color="#D4AF37"
-          initialPosition={0.08}
-          crawlSpeed={200}
-          height={3}
-          crawl={true}
-          showSpinner={false}
-          easing="ease-in-out"
-          speed={200}
-          shadow="0 0 10px #D4AF37,0 0 5px #D4AF37"
-        />
-        <SmoothScroll>
-          <PageTransition>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AnimationProvider>
             {children}
-          </PageTransition>
-        </SmoothScroll>
+          </AnimationProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -1,33 +1,18 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { verifyToken } from "@/lib/auth";
-import { cookies } from "next/headers";
+import { getServerUser } from "@/lib/auth";
 import { ROLES } from "@/lib/constants";
 import { logActivity } from "@/lib/logger";
 import { decrypt } from "@/lib/encryption";
 
 // Helper to get context from either Admin Token or Staff Token
-async function getAuthContext() {
-    const token = cookies().get("token")?.value;
-    if (token) {
-        const decoded = verifyToken(token) as any;
-        if (decoded && decoded.userId) return { type: ROLES.EVENT_MANAGER, ...decoded };
-    }
-
-    const staffToken = cookies().get("staff_token")?.value;
-    if (staffToken) {
-        const decoded = verifyToken(staffToken) as any;
-        if (decoded && decoded.staffId) return { type: ROLES.EVENT_STAFF, ...decoded };
-    }
-
-    return null;
-}
+// No longer using legacy getAuthContext
 
 // GET: Lookup guest by ID (Code)
 export async function GET(req: Request) {
-    const context = await getAuthContext();
-    if (!context) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const user = await getServerUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { searchParams } = new URL(req.url);
     const code = searchParams.get("code");
@@ -43,13 +28,14 @@ export async function GET(req: Request) {
         if (!guest) return NextResponse.json({ error: "Guest not found" }, { status: 404 });
 
         // Authorization Check
-        if (context.type === ROLES.EVENT_MANAGER || context.type === ROLES.PLATFORM_OWNER) {
-            // Platform Owner can access any guest, but for now we follow the existing pattern
-            if (guest.wedding.userId !== context.userId && context.role !== ROLES.PLATFORM_OWNER) {
+        if (user.type === "admin") {
+            if (user.role === ROLES.PLATFORM_OWNER) {
+                // Allowed for all
+            } else if (guest.wedding.userId !== user.userId) {
                 return NextResponse.json({ error: "Access Denied" }, { status: 403 });
             }
-        } else if (context.type === ROLES.EVENT_STAFF) {
-            if (guest.weddingId !== context.weddingId) {
+        } else if (user.type === "staff") {
+            if (guest.weddingId !== user.weddingId) {
                 return NextResponse.json({ error: "Access Denied" }, { status: 403 });
             }
         }
@@ -67,8 +53,8 @@ export async function GET(req: Request) {
 
 // POST: Check-in + optional Gift
 export async function POST(req: Request) {
-    const context = await getAuthContext();
-    if (!context) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const user = await getServerUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     try {
         const body = await req.json();
@@ -83,13 +69,17 @@ export async function POST(req: Request) {
         if (!guest) return NextResponse.json({ error: "Guest not found" }, { status: 404 });
 
         // Authorization Check
-        if (context.type === ROLES.EVENT_MANAGER || context.type === ROLES.PLATFORM_OWNER) {
-            const wedding = await prisma.wedding.findUnique({ where: { id: guest.weddingId } });
-            if (wedding?.userId !== context.userId && context.role !== ROLES.PLATFORM_OWNER) {
-                return NextResponse.json({ error: "Access Denied" }, { status: 403 });
+        if (user.type === "admin") {
+            if (user.role === ROLES.PLATFORM_OWNER) {
+                // Allowed
+            } else {
+                const wedding = await prisma.wedding.findUnique({ where: { id: guest.weddingId } });
+                if (wedding?.userId !== user.userId) {
+                    return NextResponse.json({ error: "Access Denied" }, { status: 403 });
+                }
             }
-        } else if (context.type === ROLES.EVENT_STAFF) {
-            if (guest.weddingId !== context.weddingId) {
+        } else if (user.type === "staff") {
+            if (guest.weddingId !== user.weddingId) {
                 return NextResponse.json({ error: "Access Denied" }, { status: 403 });
             }
         }
@@ -103,7 +93,7 @@ export async function POST(req: Request) {
             }
         });
 
-        const actorName = context.type === ROLES.EVENT_STAFF ? `Staff: ${context.name}` : (context.role === ROLES.PLATFORM_OWNER ? "Platform Owner" : "Event Manager");
+        const actorName = user.type === "staff" ? `Staff: ${user.name}` : (user.role === ROLES.PLATFORM_OWNER ? "Platform Owner" : "Event Manager");
 
         // If Gift provided, record it
         if (giftAmount && giftAmount > 0) {

@@ -22,23 +22,30 @@ const formSchema = z.object({
     description: z.string().optional(),
 });
 
-export function ActivityForm({ onSuccess }: { onSuccess: () => void }) {
+export function ActivityForm({ onSuccess, initialData }: { onSuccess: () => void, initialData?: any }) {
     const [loading, setLoading] = useState(false);
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            title: "",
-            time: "",
-            description: "",
+            title: initialData?.title || "",
+            time: initialData?.time || "",
+            description: initialData?.description || "",
         },
     });
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         setLoading(true);
-        await fetch("/api/activities", {
-            method: "POST",
-            body: JSON.stringify(values),
-        });
+        if (initialData) {
+            await fetch(`/api/activities/${initialData.id}`, {
+                method: "PUT",
+                body: JSON.stringify(values),
+            });
+        } else {
+            await fetch("/api/activities", {
+                method: "POST",
+                body: JSON.stringify(values),
+            });
+        }
         setLoading(false);
         onSuccess();
         form.reset();
@@ -90,7 +97,7 @@ export function ActivityForm({ onSuccess }: { onSuccess: () => void }) {
                     )}
                 />
                 <Button type="submit" disabled={loading} className="w-full h-12 text-lg">
-                    {loading ? "កំពុងរក្សាទុក..." : "បន្ថែមសកម្មភាព"}
+                    {loading ? "កំពុងរក្សាទុក..." : initialData ? "កែប្រែសកម្មភាព" : "បន្ថែមសកម្មភាព"}
                 </Button>
             </form>
         </Form>

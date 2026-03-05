@@ -13,6 +13,9 @@ model User {
   email             String    @unique
   password          String
   role              String    @default("ADMIN") // PLATFORM_OWNER (SUPERADMIN), EVENT_MANAGER (ADMIN), EVENT_STAFF (STAFF)
+  twoFactorSecret   String?
+  twoFactorEnabled  Boolean   @default(false)
+  twoFactorRecoveryCodes String?
   failedAttempts    Int       @default(0)
   lockedUntil       DateTime?
   sessionsRevokedAt DateTime?
@@ -141,6 +144,9 @@ model Staff {
   weddingId         String
   wedding           Wedding   @relation(fields: [weddingId], references: [id])
   accessToken       String?   @unique
+  twoFactorSecret   String?
+  twoFactorEnabled  Boolean   @default(false)
+  twoFactorRecoveryCodes String?
   failedAttempts    Int       @default(0)
   lockedUntil       DateTime?
   sessionsRevokedAt DateTime?
@@ -168,6 +174,30 @@ model BlacklistedIP {
   ip        String   @unique
   reason    String?
   createdAt DateTime @default(now())
+}
+
+model IpSecurity {
+  id           String    @id @default(cuid())
+  ip           String    @unique
+  failures     Int       @default(0)
+  blockedUntil DateTime?
+  lastAttempt  DateTime  @updatedAt
+}
+
+model SecurityLog {
+  id        String   @id @default(cuid())
+  event     String   // e.g., "LOGIN_FAILED", "LOGIN_SUCCESS", "RATE_LIMIT_EXCEEDED"
+  ip        String
+  geoIp     String?  // e.g., "KH", "US"
+  userAgent String?
+  email     String?
+  details   String?
+  createdAt DateTime @default(now())
+
+  @@index([event])
+  @@index([createdAt])
+  @@index([ip])
+  @@index([email])
 }
 
 model SystemConfig {
@@ -240,4 +270,14 @@ model WeddingTemplateVersion {
   createdAt    DateTime @default(now())
 
   @@index([weddingId])
+}
+
+model DailySecuritySummary {
+  id             String   @id @default(cuid())
+  date           DateTime @unique
+  totalLogins    Int
+  failedAttempts Int
+  blockedIps     Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }

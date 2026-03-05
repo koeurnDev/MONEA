@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { WeddingData } from "../types";
 import { SectionDivider, THEME, FloatingPetals, GlassCard } from './shared';
 
@@ -33,25 +33,25 @@ export default function InvitationSection({ wedding, labels, guestName }: Invita
             <div className="absolute top-0 left-0 w-48 h-48 bg-[url('/wedding_assets/floral-corner-tl.png')] bg-contain bg-no-repeat opacity-30 pointer-events-none z-10"></div>
             <div className="absolute bottom-0 right-0 w-48 h-48 bg-[url('/wedding_assets/floral-corner-br.png')] bg-contain bg-no-repeat opacity-30 pointer-events-none z-10"></div>
 
-            <motion.div
+            <m.div
                 variants={containerVariants}
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true }}
                 className="max-w-2xl mx-auto z-20 relative"
             >
-                <motion.div variants={itemVariants}>
+                <m.div variants={itemVariants}>
                     <h3 className="text-5xl md:text-6xl font-script text-[#D4AF37] mb-6 drop-shadow-sm">Save The Date</h3>
                     <p className="font-serif italic text-xl text-gray-600 mb-8 max-w-md mx-auto leading-relaxed">
                         &quot;Every love story is beautiful, but ours is my favorite.&quot;
                     </p>
-                </motion.div>
+                </m.div>
 
-                <motion.div variants={itemVariants}>
+                <m.div variants={itemVariants}>
                     <SectionDivider />
-                </motion.div>
+                </m.div>
 
-                <motion.div variants={itemVariants} className="my-10">
+                <m.div variants={itemVariants} className="my-10">
                     <GlassCard className="relative overflow-hidden group">
                         {/* Decorative internal corners */}
                         <div className="absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 border-[#D4AF37]/40 group-hover:border-[#D4AF37] transition-colors duration-500"></div>
@@ -90,27 +90,27 @@ export default function InvitationSection({ wedding, labels, guestName }: Invita
                         </div>
 
                         {guestName && (
-                            <motion.div
+                            <m.div
                                 initial={{ scale: 0.9, opacity: 0 }}
                                 whileInView={{ scale: 1, opacity: 1 }}
                                 className="mt-10 pt-8 border-t border-[#D4AF37]/20"
                             >
                                 <p className="text-xs text-gray-400 mb-2 uppercase tracking-widest">សូមគោរពអញ្ជើញ</p>
                                 <p className="text-3xl font-bold text-[#D4AF37] font-header tracking-tight">{guestName}</p>
-                            </motion.div>
+                            </m.div>
                         )}
                     </GlassCard>
-                </motion.div>
+                </m.div>
 
-                <motion.div variants={itemVariants} className="mt-12 space-y-6">
+                <m.div variants={itemVariants} className="mt-12 space-y-6">
                     <button className="px-12 py-4 bg-[#D4AF37] text-white hover:bg-[#C5A028] transition-all duration-300 rounded-full shadow-[0_10px_20px_-5px_rgba(212,175,55,0.4)] hover:shadow-[0_15px_25px_-5px_rgba(212,175,55,0.5)] font-serif tracking-widest text-xs uppercase font-bold active:scale-95">
                         Download Invitation
                     </button>
                     <p className="text-[10px] text-gray-400 italic">
                         By clicking, you can save the image to your gallery.
                     </p>
-                </motion.div>
-            </motion.div>
+                </m.div>
+            </m.div>
         </section>
     );
 }

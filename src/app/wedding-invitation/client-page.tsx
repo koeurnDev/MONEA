@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { Heart, MapPin, Calendar, Send, Music, Music2, CalendarPlus, ChevronDown } from 'lucide-react';
 import { generateGoogleCalendarUrl, downloadIcsFile } from '@/lib/calendar';
 import { Button } from '@/components/ui/button';
@@ -119,7 +119,7 @@ export default function WeddingTemplateFullClient({ wedding }: ClientPageProps) 
 
 
                 {/* ផ្កាតុបតែងផ្នែកខាងលើ (Top Floral) */}
-                <motion.div
+                <m.div
                     initial={{ y: -50, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     className="absolute top-0 left-0 w-full h-48 bg-[url('/floral-top.png')] bg-contain bg-no-repeat z-10"
@@ -127,7 +127,7 @@ export default function WeddingTemplateFullClient({ wedding }: ClientPageProps) 
 
                 {/* Hero Section */}
                 <section className="relative pt-28 md:pt-40 pb-10 text-center z-20">
-                    <motion.div
+                    <m.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 1 }}
@@ -139,7 +139,7 @@ export default function WeddingTemplateFullClient({ wedding }: ClientPageProps) 
 
                             {/* មេអំបៅតូចៗហោះកាត់ឈ្មោះ (Animated Butterflies) */}
                             {butterflies.map((b) => (
-                                <motion.span
+                                <m.span
                                     key={b.id}
                                     initial={{ x: b.x, y: b.y, opacity: 0 }}
                                     animate={{
@@ -151,7 +151,7 @@ export default function WeddingTemplateFullClient({ wedding }: ClientPageProps) 
                                     className="absolute text-xl"
                                 >
                                     🦋
-                                </motion.span>
+                                </m.span>
                             ))}
                         </div>
 
@@ -161,11 +161,11 @@ export default function WeddingTemplateFullClient({ wedding }: ClientPageProps) 
                         </div>
 
                         <CountdownTimer targetDate={weddingEvent.startTime} />
-                    </motion.div>
+                    </m.div>
                 </section>
 
                 {/* កាលបរិច្ឆេទ និង កម្មវិធីបុណ្យ (Details) */}
-                <motion.section
+                <m.section
                     initial={{ opacity: 0, y: 50 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8 }}
@@ -220,10 +220,10 @@ export default function WeddingTemplateFullClient({ wedding }: ClientPageProps) 
                             </>
                         )}
                     </div>
-                </motion.section>
+                </m.section>
 
                 {/* Gallery Section */}
-                <motion.section
+                <m.section
                     initial={{ opacity: 0, y: 50 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8 }}
@@ -240,10 +240,10 @@ export default function WeddingTemplateFullClient({ wedding }: ClientPageProps) 
                                 "/couple-3.jpg"
                             ]
                     } />
-                </motion.section>
+                </m.section>
 
                 {/* ទីតាំង (Location) */}
-                <motion.section
+                <m.section
                     initial={{ opacity: 0, y: 50 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8 }}
@@ -255,10 +255,10 @@ export default function WeddingTemplateFullClient({ wedding }: ClientPageProps) 
                         <p className="text-sm text-gray-600 mb-4">រៀបចំនៅ៖ {wedding.location || "ទីកន្លែងពិធី"}</p>
                     </div>
                     <InteractiveMap locationName={wedding.location || "Phnom Penh, Cambodia"} />
-                </motion.section>
+                </m.section>
 
                 {/* ទម្រង់ផ្ញើសារជូនពរ (Wishes Form) */}
-                <motion.section
+                <m.section
                     initial={{ opacity: 0, y: 50 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8 }}
@@ -292,7 +292,7 @@ export default function WeddingTemplateFullClient({ wedding }: ClientPageProps) 
                         {submitStatus === 'success' && <p className="text-center text-green-600">សារជូនពរត្រូវបានផ្ញើដោយជោគជ័យ!</p>}
                         {submitStatus === 'error' && <p className="text-center text-red-500">មានបញ្ហាក្នុងការផ្ញើសារ សូមព្យាយាមម្តងទៀត។</p>}
                     </form>
-                </motion.section>
+                </m.section>
 
                 {/* Wishes Wall */}
                 <WishesWall weddingId={WEDDING_ID} />

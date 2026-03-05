@@ -1,10 +1,17 @@
-export default function Loading() {
+import { CardSkeleton, TableSkeleton } from "./_components/SkeletonComponents";
+
+export default function DashboardLoading() {
     return (
-        <div className="flex h-full w-full items-center justify-center p-8">
-            <div className="flex flex-col items-center gap-4">
-                <div className="h-12 w-12 animate-spin rounded-full border-4 border-red-100 border-t-red-900" />
-                <p className="text-red-900 font-medium animate-pulse">កំពុងផ្ទុក...</p>
+        <div className="space-y-8 animate-in fade-in duration-300">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <CardSkeleton />
+                <CardSkeleton />
+                <CardSkeleton />
+                <CardSkeleton />
+            </div>
+            <div className="bg-white p-8 rounded-[2.5rem] border border-slate-50">
+                <TableSkeleton />
             </div>
         </div>
-    )
+    );
 }

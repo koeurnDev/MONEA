@@ -1,4 +1,5 @@
-import React from 'react';
+"use client";
+import React, { useState, useEffect } from 'react';
 import { twMerge } from 'tailwind-merge';
 import clsx from 'clsx';
 import { WeddingData } from "../types";
@@ -36,36 +37,51 @@ export const SectionDivider = () => (
     </div>
 );
 
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 
-export const FloatingPetals = () => (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-        {[...Array(12)].map((_, i) => (
-            <motion.div
-                key={i}
-                className="absolute text-pink-200/40"
-                style={{
-                    left: `${Math.random() * 100}%`,
-                    top: `-10%`,
-                    fontSize: `${10 + Math.random() * 20}px`
-                }}
-                animate={{
-                    top: '110%',
-                    left: [`${Math.random() * 100}%`, `${Math.random() * 100}%`],
-                    rotate: [0, 360],
-                }}
-                transition={{
-                    duration: 15 + Math.random() * 20,
-                    repeat: Infinity,
-                    ease: "linear",
-                    delay: Math.random() * 20
-                }}
-            >
-                🌸
-            </motion.div>
-        ))}
-    </div>
-);
+export const FloatingPetals = () => {
+    const [petals, setPetals] = useState<any[]>([]);
+
+    useEffect(() => {
+        setPetals([...Array(12)].map((_, i) => ({
+            id: i,
+            left: `${Math.random() * 100}%`,
+            fontSize: `${10 + Math.random() * 20}px`,
+            animLeft: [`${Math.random() * 100}%`, `${Math.random() * 100}%`],
+            duration: 15 + Math.random() * 20,
+            delay: Math.random() * 20
+        })));
+    }, []);
+
+    return (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+            {petals.map((p) => (
+                <m.div
+                    key={p.id}
+                    className="absolute text-pink-200/40"
+                    style={{
+                        left: p.left,
+                        top: `-10%`,
+                        fontSize: p.fontSize
+                    }}
+                    animate={{
+                        top: '110%',
+                        left: p.animLeft,
+                        rotate: [0, 360],
+                    }}
+                    transition={{
+                        duration: p.duration,
+                        repeat: Infinity,
+                        ease: "linear",
+                        delay: p.delay
+                    }}
+                >
+                    🌸
+                </m.div>
+            ))}
+        </div>
+    );
+};
 
 export const GlassCard = ({ children, className }: { children: React.ReactNode; className?: string }) => (
     <div className={cn(
