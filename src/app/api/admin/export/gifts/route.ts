@@ -44,7 +44,7 @@ export async function GET(req: Request) {
         let csvContent = "\uFEFF";
         csvContent += "ឈ្មោះភ្ញៀវ (Guest),ចំនួនទឹកប្រាក់ (Amount),រូបិយប័ណ្ណ (Currency),មធ្យោបាយ (Method),កាលបរិច្ឆេទ (Date)\n";
 
-        gifts.forEach(gift => {
+        gifts.forEach((gift: any) => {
             const guestName = escapeCSV(gift.guest?.name || "Unknown");
             const amount = gift.amount;
             const currency = gift.currency;
