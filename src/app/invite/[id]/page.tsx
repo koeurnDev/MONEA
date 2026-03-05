@@ -6,8 +6,7 @@ import VIPPremiumKhmer from "@/components/templates/VIPPremiumKhmer";
 import KhmerLegacy from "@/components/templates/KhmerLegacy";
 
 
-// Force dynamic rendering since we depend on params and DB
-export const dynamic = 'force-dynamic';
+// Removed conflicting force-dynamic, letting Next.js auto-detect dynamic from searchParams
 
 async function getWedding(id: string) {
     const wedding = await prisma.wedding.findUnique({
