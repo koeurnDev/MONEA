@@ -77,10 +77,14 @@ export default function LoginPage() {
                     // Reset captcha if it failed serverside
                     setCaptchaToken("");
                 }
-                setError(data.error || "អ៊ីមែល ឬ ពាក្យសម្ងាត់មិនត្រឹមត្រូវ");
+                let errorMsg = data.error || "អ៊ីមែល ឬ ពាក្យសម្ងាត់មិនត្រឹមត្រូវ";
+                if (data.details) {
+                    errorMsg += `\n[MONEA DEBUG] ${data.details}`;
+                }
+                setError(errorMsg);
             }
-        } catch (e) {
-            setError("មានបញ្ហាបច្ចេកទេស។");
+        } catch (e: any) {
+            setError(e?.message || "មានបញ្ហាបច្ចេកទេស។");
         } finally {
             setIsLoading(false);
         }
