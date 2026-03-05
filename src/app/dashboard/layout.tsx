@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { cookies } from "next/headers";
 import { DashboardShell } from "./_components/DashboardShell";
 

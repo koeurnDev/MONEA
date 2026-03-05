@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { prisma } from "@/lib/prisma";
 import { Suspense } from "react";
 import { WeddingDataView } from "./_components/WeddingDataView";
