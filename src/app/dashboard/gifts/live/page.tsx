@@ -385,7 +385,7 @@ export default function LiveDisplayPage() {
                             className="flex-1 overflow-y-auto space-y-4 pr-4 custom-scrollbar mask-gradient-v"
                         >
                             <AnimatePresence initial={false}>
-                                {recentGifts.map((gift, idx) => (
+                                {recentGifts.map((gift: any, idx) => (
                                     <m.div
                                         key={gift.id}
                                         layout
