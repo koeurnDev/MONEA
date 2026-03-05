@@ -1,7 +1,8 @@
 "use client";
 import React from 'react';
 import { Phone, Map, ArrowRight } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
+import Image from 'next/image';
 
 export default function ContactSection({ wedding }: { wedding: any }) {
     // Default Phone Numbers if not in wedding data (using reference image numbers as placeholders if needed, but better to genericize)
@@ -10,11 +11,11 @@ export default function ContactSection({ wedding }: { wedding: any }) {
 
     return (
         <section className="py-10 px-4 text-center">
-            <motion.div
+            <m.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8 md:p-12 relative overflow-hidden"
+                className="max-w-4xl mx-auto bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl p-8 md:p-12 relative overflow-hidden will-change-transform"
             >
                 {/* Title */}
                 <h3 className="text-xl md:text-2xl font-kantumruy text-pink-300 mb-8 drop-shadow-md font-bold">ទំនាក់ទំនងម្ចាស់កម្មវិធី</h3>
@@ -38,10 +39,11 @@ export default function ContactSection({ wedding }: { wedding: any }) {
                     <div className="flex-1 flex flex-col items-center">
                         <div className="relative w-48 h-32 bg-gray-300 rounded-lg overflow-hidden shadow-lg border-2 border-white/20 mb-4 group cursor-pointer">
                             {/* Dynamic Map Image */}
-                            <img
+                            <Image
                                 src={wedding.themeSettings?.mapImage || "/images/map.jpg"}
                                 alt="Map Preview"
-                                className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                                fill
+                                className="object-cover opacity-80 group-hover:opacity-100 transition-opacity"
                             />
                             <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-transparent transition-all">
                                 <Map className="text-white opacity-80" size={32} />
@@ -60,12 +62,13 @@ export default function ContactSection({ wedding }: { wedding: any }) {
 
                     {/* 3. QR Code */}
                     <div className="flex-1 flex flex-col items-center">
-                        <div className="bg-white p-2 rounded-xl shadow-lg transform rotate-2 hover:rotate-0 transition-transform">
+                        <div className="bg-white p-2 rounded-xl shadow-lg transform rotate-2 hover:rotate-0 transition-transform relative w-32 h-32">
                             {/* Dynamic Location QR */}
-                            <img
+                            <Image
                                 src={wedding.themeSettings?.locationQr || "/images/qr.jpg"}
                                 alt="Map QR"
-                                className="w-32 h-32 object-contain"
+                                fill
+                                className="object-contain p-2"
                             />
                         </div>
                         <p className="mt-3 text-xs text-white/70 font-khmer">ស្កេនទីនេះដើម្បី<br />រកទីតាំងផ្ទះការ</p>
@@ -80,7 +83,7 @@ export default function ContactSection({ wedding }: { wedding: any }) {
                     <span className="text-3xl text-pink-300/80">♥</span>
                 </div>
 
-            </motion.div>
+            </m.div>
         </section>
     );
 }

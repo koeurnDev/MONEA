@@ -1,11 +1,11 @@
-export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
+import { ROLES } from "@/lib/constants";
 
 export async function GET() {
     const user = await getServerUser();
-    if (!user || (user.role !== "OWNER" && user.role !== "ADMIN" && user.role !== "SUPERADMIN")) {
+    if (!user || user.role !== ROLES.PLATFORM_OWNER) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

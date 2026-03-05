@@ -6,7 +6,7 @@ import { getServerUser } from "@/lib/auth";
 export async function POST(req: Request) {
     try {
         const user = await getServerUser();
-        if (!user || (user.role !== "OWNER" && user.role !== "SUPERADMIN" && user.role !== "ADMIN")) {
+        if (!user || (user.role !== "SUPERADMIN" && user.role !== "ADMIN")) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
@@ -29,6 +29,19 @@ export async function POST(req: Request) {
                 data: { sessionsRevokedAt: now }
             });
             console.log(`[Security] Revoked sessions for User: ${targetId} by Admin: ${user.userId}`);
+        } else if (targetType === "SELF") {
+            if (user.type === "admin") {
+                await prisma.user.update({
+                    where: { id: user.userId },
+                    data: { sessionsRevokedAt: now }
+                });
+            } else {
+                await prisma.staff.update({
+                    where: { id: user.userId },
+                    data: { sessionsRevokedAt: now }
+                });
+            }
+            console.log(`[Security] User ${user.userId} revoked their own sessions.`);
         } else if (targetType === "GLOBAL_STAFF") {
             // Optional: Revoke all staff globally if needed
             await prisma.staff.updateMany({

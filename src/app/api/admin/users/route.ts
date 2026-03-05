@@ -1,21 +1,12 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { verifyToken } from "@/lib/auth";
-import { cookies } from "next/headers";
+import { getServerUser } from "@/lib/auth";
 import { ROLES } from "@/lib/constants";
 
-async function getAdminUser() {
-    const token = cookies().get("token")?.value;
-    if (!token) return null;
-    const decoded = verifyToken(token) as { userId: string, role: string } | null;
-    if (!decoded || (decoded.role !== ROLES.PLATFORM_OWNER && decoded.role !== ROLES.EVENT_MANAGER)) return null;
-    return decoded;
-}
-
 export async function GET(req: Request) {
-    const user = await getAdminUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const user = await getServerUser();
+    if (!user || user.role !== ROLES.PLATFORM_OWNER) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { searchParams } = new URL(req.url);
     const limit = parseInt(searchParams.get("limit") || "50");

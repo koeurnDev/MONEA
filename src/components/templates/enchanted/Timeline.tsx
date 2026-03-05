@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { WeddingData } from "../types";
 import { Utensils, Music, Camera, Heart, Clock } from 'lucide-react';
 
@@ -23,7 +23,7 @@ export default function Timeline({ wedding }: { wedding: WeddingData }) {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     {timeline.map((item, idx) => (
-                        <motion.div
+                        <m.div
                             key={idx}
                             initial={{ opacity: 0, y: 30 }}
                             whileInView={{ opacity: 1, y: 0 }}
@@ -35,7 +35,7 @@ export default function Timeline({ wedding }: { wedding: WeddingData }) {
                             </div>
                             <h4 className="font-cinzel text-2xl text-[#D4AF37] mb-2">{item.time}</h4>
                             <p className="font-cormorant text-xl text-white font-khmer">{item.description}</p>
-                        </motion.div>
+                        </m.div>
                     ))}
                 </div>
             </div>

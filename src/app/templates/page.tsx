@@ -2,27 +2,15 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { X, Smartphone, Monitor, Check, ExternalLink, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 // Template Data (Mirrored from Dashboard)
 const TEMPLATES = [
-    // WEDDING TEMPLATES
-    { id: "modern-full", title: "Eternal Cinematic", category: 'wedding', bgClass: "bg-slate-50", textClass: "text-slate-600", image: "/images/bg_tunnel.jpg", description: "Full-screen cinematic experience with video backgrounds and immersive audio." },
-    { id: "classic-khmer", title: "Royal Editorial", category: 'wedding', bgClass: "bg-orange-50", textClass: "text-orange-600", image: "/images/couple.jpg", description: "Traditional Khmer elegance meeting modern editorial design standards." },
-    { id: "floral-elegant", title: "Velvet Blossom", category: 'wedding', bgClass: "bg-pink-50", textClass: "text-pink-600", image: "/images/bg_enchanted.jpg", description: "Soft, romantic florals perfect for a garden or spring wedding." },
-    { id: "modern-minimal", title: "Glass Sophistication", category: 'wedding', bgClass: "bg-gray-50", textClass: "text-gray-600", image: "/images/couple.jpg", description: "Clean, ultra-modern typography focus with glassmorphism elements." },
-    { id: "luxury-gold", title: "Golden Jubilee", category: 'wedding', bgClass: "bg-yellow-50", textClass: "text-yellow-700", image: "/images/bg_tunnel.jpg", description: "Opulent gold and black themes for a truly luxurious celebration." },
-    { id: "pastel-floral", title: "Sweet Memory", category: 'wedding', bgClass: "bg-pink-50/50", textClass: "text-pink-600", image: "/images/bg_enchanted.jpg", description: "Gentle pastel tones evoking sweet, nostalgic memories." },
-    { id: "enchanted-garden", title: "Enchanted Garden", category: 'wedding', bgClass: "bg-emerald-50", textClass: "text-emerald-600", image: "/images/bg_enchanted.jpg", description: "Magical forest vibes with fireflies and rich greenery." },
-    { id: "canva-style", title: "Heritage Scroll", category: 'wedding', bgClass: "bg-orange-50/50", textClass: "text-orange-600", image: "/images/couple.jpg", description: "A digital scroll format honoring ancient traditions." },
-
-    // ANNIVERSARY VARIANTS
-    { id: "anniversary-golden", title: "Golden Jubilee (Anniversary)", category: 'anniversary', bgClass: "bg-yellow-50", textClass: "text-yellow-700", image: "/images/bg_tunnel.jpg", description: "Celebrating years of love with golden elegance." },
-    { id: "anniversary-floral", title: "Sweet Memory (Anniversary)", category: 'anniversary', bgClass: "bg-pink-50", textClass: "text-pink-600", image: "/images/bg_enchanted.jpg", description: "Reliving beautiful moments with a soft floral touch." },
-    { id: "anniversary-classic", title: "Classic Anniversary", category: 'anniversary', bgClass: "bg-orange-50", textClass: "text-orange-600", image: "/images/couple.jpg", description: "Timeless design for a timeless love." },
+    { id: "vip-premium-khmer", title: "Eternal", category: 'wedding', bgClass: "bg-black", textClass: "text-[#D4AF37]", image: "/images/bg_staircase.jpg", description: "Ultra-premium cinematic masterpiece with glassmorphism and real gold accents." },
+    { id: "khmer-legacy", title: "Legacy", category: 'wedding', bgClass: "bg-stone-50", textClass: "text-stone-600", image: "/images/bg_staircase.jpg", description: "Traditional Khmer elegance meeting modern editorial design standards." },
 ];
 
 export default function TemplateGalleryPage() {
@@ -75,7 +63,7 @@ export default function TemplateGalleryPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                     <AnimatePresence mode='popLayout'>
                         {filteredTemplates.map((template) => (
-                            <motion.div
+                            <m.div
                                 layout
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 animate={{ opacity: 1, scale: 1 }}
@@ -105,7 +93,7 @@ export default function TemplateGalleryPage() {
                                         </div>
                                     </div>
                                 </div>
-                            </motion.div>
+                            </m.div>
                         ))}
                     </AnimatePresence>
                 </div>
@@ -114,7 +102,7 @@ export default function TemplateGalleryPage() {
             {/* Preview Modal */}
             <AnimatePresence>
                 {selectedTemplate && (
-                    <motion.div
+                    <m.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -189,7 +177,7 @@ export default function TemplateGalleryPage() {
                                 )}
                             </div>
                         </div>
-                    </motion.div>
+                    </m.div>
                 )}
             </AnimatePresence>
         </div>

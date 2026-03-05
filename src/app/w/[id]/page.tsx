@@ -1,42 +1,20 @@
-import { WeddingData } from "@/components/templates/types";
 import { prisma } from "@/lib/prisma";
-import { notFound } from "next/navigation";
-import Hero from "@/components/wedding/Hero";
-import Countdown from "@/components/wedding/Countdown";
-import Timeline from "@/components/wedding/Timeline";
-import Gallery from "@/components/wedding/Gallery";
-import Location from "@/components/wedding/Location";
-import ModernFullTemplate from "@/components/templates/ModernFullTemplate";
-import ClassicKhmer from "@/components/templates/ClassicKhmer";
-import ModernMinimal from "@/components/templates/ModernMinimal";
-import FloralElegant from "@/components/templates/FloralElegant";
-import CanvaInvitation from "@/components/templates/CanvaInvitation";
-import EnchantedGarden from "@/components/templates/EnchantedGarden";
-import LuxuryGoldTemplate from "@/components/templates/LuxuryGoldTemplate";
-import PastelFloralTemplate from "@/components/templates/PastelFloralTemplate";
+import { Suspense } from "react";
+import { WeddingDataView } from "./_components/WeddingDataView";
+import { WeddingSkeleton } from "./_components/WeddingSkeleton";
 
+// Enable ISR with 60 seconds revalidation for optimal edge caching and TTFB
+export const revalidate = 60;
 
-// Force dynamic rendering since we depend on params and DB
-export const dynamic = 'force-dynamic';
-
-async function getWedding(id: string) {
-    const wedding = await prisma.wedding.findUnique({
+async function getWeddingMetadataOnly(id: string) {
+    return await prisma.wedding.findUnique({
         where: { id },
-        include: {
-            activities: {
-                orderBy: { order: 'asc' }
-            },
-            galleryItems: {
-                orderBy: { createdAt: 'desc' },
-                take: 8 // Fetch more for full template
-            }
-        }
+        select: { groomName: true, brideName: true, date: true, eventType: true, themeSettings: true }
     });
-    return wedding;
 }
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
-    const wedding = await getWedding(params.id);
+    const wedding = await getWeddingMetadataOnly(params.id);
 
     if (!wedding) {
         return {
@@ -78,50 +56,18 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
     };
 }
 
-export default async function SmartQRPage({
+export default function SmartQRPage({
     params,
     searchParams
 }: {
     params: { id: string },
     searchParams: { template?: string }
 }) {
-    const wedding = await getWedding(params.id);
-
-    if (!wedding) {
-        return notFound();
-    }
-
-    // Select the template component logic
-    const renderTemplate = () => {
-        // Priority: URL Param > DB Value > Default
-        const id = searchParams.template || wedding.templateId || "modern-full";
-
-        // Dynamically imported or standard imported components
-        switch (id) {
-            case "classic-khmer":
-            case "anniversary-classic":
-                return <ClassicKhmer wedding={wedding as any} />;
-            case "modern-minimal":
-                return <ModernMinimal wedding={wedding as any} />;
-            case "floral-elegant":
-            case "elegant-pink":
-                return <FloralElegant wedding={wedding as any} />;
-            case "canva-style":
-                return <CanvaInvitation wedding={wedding as any} />;
-            case "enchanted-garden":
-                return <EnchantedGarden wedding={wedding as any} />;
-            case "anniversary-golden":
-            case "luxury-gold":
-                return <LuxuryGoldTemplate wedding={wedding as any} />;
-            case "anniversary-floral":
-            case "pastel-floral":
-                return <PastelFloralTemplate wedding={wedding as any} />;
-            case "modern-full":
-                return <ModernFullTemplate wedding={wedding as any} />;
-            default:
-                return <ModernFullTemplate wedding={wedding as any} />;
-        }
-    };
-
-    return renderTemplate();
+    // Render the skeleton immediately while the server fetches the wedding data
+    // NextJS Streaming SSR will replace this entirely once the DB query resolves
+    return (
+        <Suspense fallback={<WeddingSkeleton />}>
+            <WeddingDataView id={params.id} template={searchParams.template} />
+        </Suspense>
+    );
 }

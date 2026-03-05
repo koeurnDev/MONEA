@@ -4,37 +4,29 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Download, Search, Copy, Edit, Trash2, CheckCircle2, Users, Eye, EyeOff } from "lucide-react";
+import { Plus, Download, Search, Copy, Edit, Trash2, CheckCircle2, Users, Printer } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { GuestForm } from "./guest-form";
 import { GuestImport } from "./guest-import";
+import { MoneaLogo } from "@/components/ui/MoneaLogo";
+import { TableSkeleton } from "../_components/SkeletonComponents";
 
 export default function GuestPage() {
+    // 1. Core Data State
     const [guests, setGuests] = useState<any[]>([]);
     const [filteredGuests, setFilteredGuests] = useState<any[]>([]);
+    const [wedding, setWedding] = useState<any>(null);
+
+    // 2. UI Control State
     const [search, setSearch] = useState("");
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(true);
+
+    // 3. Selection / Action State
     const [copiedId, setCopiedId] = useState<string | null>(null);
     const [editingGuest, setEditingGuest] = useState<any>(null);
     const [deleteId, setDeleteId] = useState<string | null>(null);
-    const [unmaskedIds, setUnmaskedIds] = useState<Set<string>>(new Set());
-
-    const toggleMask = (id: string) => {
-        const newSet = new Set(unmaskedIds);
-        if (newSet.has(id)) newSet.delete(id);
-        else newSet.add(id);
-        setUnmaskedIds(newSet);
-    };
-
-    const maskPhone = (phone: string, id: string) => {
-        if (!phone) return "-";
-        if (unmaskedIds.has(id)) return phone;
-        // Basic mask: keep first 3 and last 2 digits
-        return phone.replace(/(\d{3})\d+(\d{2})/, "$1***$2");
-    };
-
-    const [wedding, setWedding] = useState<any>(null);
 
     async function loadData() {
         setLoading(true);
@@ -60,10 +52,12 @@ export default function GuestPage() {
         }
     }
 
+    // Load initial data
     useEffect(() => {
         loadData();
     }, []);
 
+    // Handle searching
     useEffect(() => {
         if (!search) {
             setFilteredGuests(guests);
@@ -77,22 +71,15 @@ export default function GuestPage() {
         }
     }, [search, guests]);
 
-    const exportCSV = () => {
-        const headers = ["ឈ្មោះ", "ទីតាំង"];
-        const rows = guests.map(g => [g.name, g.source || g.group || ""]);
-        const BOM = "\uFEFF";
-        const csvContent = [headers, ...rows].map(e => e.map(i => `"${i}"`).join(",")).join("\n");
-
-        const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", "guest_list.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+    const exportCSV = async () => {
+        const XLSX = await import("xlsx");
+        const headers = ["នាម និង គោតមនាម", "អញ្ជើញមកពី"];
+        const rows = guests.map(g => [g.name, g.source || g.group || "មិនបានបញ្ជាក់"]);
+        const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+        worksheet["!cols"] = [{ wpx: 250 }, { wpx: 200 }];
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "បញ្ជីឈ្មោះភ្ញៀវ");
+        XLSX.writeFile(workbook, "guest_list_formatted.xlsx");
     };
 
     const copyLink = (name: string, guestId: string) => {
@@ -105,14 +92,19 @@ export default function GuestPage() {
 
     const isArchived = wedding?.status === 'ARCHIVED';
 
+    const handlePrint = () => {
+        const originalTitle = document.title;
+        document.title = ""; // Clear title to hide from browser print header
+        window.print();
+        document.title = originalTitle;
+    };
+
     const handleDelete = (id: string) => {
         setDeleteId(id);
     };
 
     const confirmDelete = async () => {
         if (!deleteId) return;
-
-        // Optimistic Update
         const previousGuests = [...guests];
         const newGuests = guests.filter(g => g.id !== deleteId);
         setGuests(newGuests);
@@ -122,76 +114,113 @@ export default function GuestPage() {
         try {
             const res = await fetch(`/api/guests?id=${deleteId}`, { method: "DELETE" });
             if (!res.ok) throw new Error("Delete failed");
-            // Success - maybe show a small toast if available
         } catch (e) {
             console.error(e);
-            // Rollback
             setGuests(previousGuests);
             setFilteredGuests(previousGuests);
-            alert("ការលុបមិនបានជោគជ័យ! សូមព្យាយាមម្ដងទៀត។"); // Delete failed
+            alert("ការលុបមិនបានជោគជ័យ! សូមព្យាយាមម្ដងទៀត។");
         }
     };
 
     return (
-        <div className="space-y-8 pb-10">
-            {/* Header Area */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+        <div className="space-y-8 pb-10 print:p-0 print:m-0 print:bg-white print:text-black">
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                @media print {
+                    @page { margin: 0; }
+                    body { 
+                        padding: 0 1.5cm 1.5cm 1.5cm;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                        font-family: 'Inter', 'Kantumruy Pro', sans-serif;
+                    }
+                }
+            ` }} />
+
+            {/* --- PRINT ONLY HEADER --- */}
+            <div className="hidden print:block mb-8 text-center pt-[2cm]">
+                <div className="flex justify-center mb-8">
+                    <MoneaLogo showText size="xl" />
+                </div>
+                <div className="space-y-2">
+                    <h1 className="text-3xl font-black font-kantumruy tracking-tight">សេចក្តីសង្ខេប និងបញ្ជីរាយនាមភ្ញៀវ</h1>
+                    {wedding?.groomName && wedding?.brideName && (
+                        <p className="text-lg font-bold font-kantumruy text-gray-600">
+                            អាពាហ៍ពិពាហ៍ {wedding.groomName} និង {wedding.brideName}
+                        </p>
+                    )}
+                </div>
+                <div className="w-32 h-1 bg-red-600 mx-auto mt-6 rounded-full opacity-20" />
+            </div>
+
+            {/* Header Area (Hidden in Print) */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 print:hidden">
                 <div className="space-y-1">
                     <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-red-600 mb-1">
                         <Users size={12} />
                         Guest Management
                     </div>
-                    <h2 className="text-3xl font-black tracking-tight text-slate-900 font-kantumruy">
+                    <h2 className="text-3xl font-black tracking-tight text-foreground font-kantumruy">
                         បញ្ជីឈ្មោះភ្ញៀវ {isArchived && <span className="ml-2 text-red-600 text-sm">(ឯកសារ)</span>}
                     </h2>
-                    <p className="text-slate-500 font-medium font-kantumruy text-sm">
+                    <p className="text-muted-foreground font-medium font-kantumruy text-sm">
                         គ្រប់គ្រងបញ្ជីឈ្មោះភ្ញៀវ និងការផ្ញើតំណរភ្ជាប់អញ្ជើញ។
                     </p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                    {!isArchived && <GuestImport onSuccess={loadData} />}
-                    <Button
-                        variant="outline"
-                        onClick={exportCSV}
-                        className="h-11 px-6 border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-xl font-kantumruy font-bold"
-                    >
-                        <Download className="mr-2 h-4 w-4" /> ទាញយកឯកសារ
-                    </Button>
-                    {!isArchived && (
-                        <Dialog open={open} onOpenChange={(v) => {
-                            setOpen(v);
-                            if (!v) setEditingGuest(null);
-                        }}>
-                            <DialogTrigger asChild>
-                                <Button
-                                    onClick={() => setEditingGuest(null)}
-                                    className="h-11 px-6 bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-lg shadow-red-100 transition-all font-kantumruy font-bold"
-                                >
-                                    <Plus className="mr-2 h-4 w-4" /> បន្ថែមភ្ញៀវ
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-[600px] rounded-[2rem] border-none shadow-2xl">
-                                <DialogHeader className="pt-4 px-2">
-                                    <DialogTitle className="text-2xl font-black font-kantumruy tracking-tight">
-                                        {editingGuest ? "កែប្រែព័ត៌មានភ្ញៀវ" : "បន្ថែមភ្ញៀវថ្មី"}
-                                    </DialogTitle>
-                                    <DialogDescription className="font-kantumruy text-slate-500">
-                                        {editingGuest ? "កែប្រែព័ត៌មានភ្ញៀវខាងក្រោម។" : "បំពេញព័ត៌មានភ្ញៀវខាងក្រោមដើម្បីបន្ថែមសមាជិកថ្មីចូលក្នុងបញ្ជី។"}
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <div className="p-2">
-                                    <GuestForm
-                                        initialData={editingGuest}
-                                        onSuccess={() => { setOpen(false); setEditingGuest(null); loadData(); }}
-                                    />
-                                </div>
-                            </DialogContent>
-                        </Dialog>
-                    )}
+                <div className="grid grid-cols-2 sm:flex sm:items-center gap-3 w-full md:w-auto">
+                    <div className="grid grid-cols-2 gap-3 sm:flex w-full sm:w-auto">
+                        {!isArchived && <div className="col-span-2 sm:col-span-1"><GuestImport onSuccess={loadData} /></div>}
+                        <Button
+                            variant="outline"
+                            onClick={exportCSV}
+                            className="h-11 px-4 border-border text-muted-foreground hover:text-foreground hover:bg-muted hover:border-border rounded-xl font-kantumruy font-bold transition-all flex-1 sm:flex-none"
+                        >
+                            <Download className="mr-2 h-4 w-4 text-blue-600" /> Excel
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={handlePrint}
+                            className="h-11 px-4 border-border text-muted-foreground hover:text-foreground hover:bg-muted hover:border-border rounded-xl font-kantumruy font-bold transition-all flex-1 sm:flex-none"
+                        >
+                            <Printer className="mr-2 h-4 w-4 text-muted-foreground" /> PDF
+                        </Button>
+                    </div>
+                    <div className="hidden sm:block">
+                        {!isArchived && (
+                            <Dialog open={open} onOpenChange={(v) => {
+                                setOpen(v);
+                                if (!v) setEditingGuest(null);
+                            }}>
+                                <DialogTrigger asChild>
+                                    <Button
+                                        onClick={() => setEditingGuest(null)}
+                                        className="h-11 px-6 bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-lg shadow-red-100 dark:shadow-none transition-all font-kantumruy font-bold"
+                                    >
+                                        <Plus className="mr-2 h-4 w-4" /> បន្ថែមភ្ញៀវ
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-[480px] rounded-[2rem] border-none shadow-2xl bg-card p-6 pt-12 md:p-8 md:pt-14">
+                                    <VisuallyHidden.Root>
+                                        <DialogTitle>បន្ថែម/កែប្រែភ្ញៀវ (Add/Edit Guest)</DialogTitle>
+                                        <DialogDescription>
+                                            បំពេញព័ត៌មានភ្ញៀវ (Fill in guest details)
+                                        </DialogDescription>
+                                    </VisuallyHidden.Root>
+                                    <div className="">
+                                        <GuestForm
+                                            initialData={editingGuest}
+                                            onSuccess={loadData}
+                                            onDone={() => { setOpen(false); setEditingGuest(null); }}
+                                        />
+                                    </div>
+                                </DialogContent>
+                            </Dialog>
+                        )}
+                    </div>
 
                     <Dialog open={!!deleteId} onOpenChange={(v) => !v && setDeleteId(null)}>
-                        <DialogContent className="rounded-[2rem] border-none shadow-2xl max-w-sm">
+                        <DialogContent className="rounded-[2rem] border-none shadow-2xl max-w-sm bg-card">
                             <DialogHeader>
                                 <DialogTitle className="text-xl font-black font-kantumruy">បញ្ជាក់ការលុប</DialogTitle>
                                 <DialogDescription className="font-kantumruy">
@@ -199,18 +228,10 @@ export default function GuestPage() {
                                 </DialogDescription>
                             </DialogHeader>
                             <div className="flex justify-end gap-3 mt-6">
-                                <Button
-                                    variant="ghost"
-                                    onClick={() => setDeleteId(null)}
-                                    className="rounded-xl font-kantumruy font-bold h-11 flex-1"
-                                >
+                                <Button variant="ghost" onClick={() => setDeleteId(null)} className="rounded-xl font-kantumruy font-bold h-11 flex-1">
                                     បោះបង់
                                 </Button>
-                                <Button
-                                    variant="destructive"
-                                    onClick={confirmDelete}
-                                    className="rounded-xl font-kantumruy font-bold h-11 flex-1 bg-red-600 hover:bg-red-700"
-                                >
+                                <Button variant="destructive" onClick={confirmDelete} className="rounded-xl font-kantumruy font-bold h-11 flex-1 bg-red-600 hover:bg-red-700">
                                     លុប
                                 </Button>
                             </div>
@@ -219,31 +240,30 @@ export default function GuestPage() {
                 </div>
             </div>
 
-            {/* Filter & Table Area */}
-            <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm shadow-slate-200/50 overflow-hidden">
-                <div className="p-6 border-b border-slate-50 flex items-center gap-4">
-                    <div className="relative flex-1 max-w-sm">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <div className="bg-card rounded-[2rem] border border-border shadow-sm overflow-hidden print:border-none print:shadow-none print:rounded-none">
+                <div className="p-4 md:p-6 border-b border-border flex flex-col sm:flex-row items-center gap-4 print:hidden">
+                    <div className="relative w-full sm:max-w-sm">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
                         <Input
                             placeholder="ស្វែងរកតាមឈ្មោះ ឬទីតាំង..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="pl-10 h-11 bg-slate-50 border-transparent focus-visible:ring-red-600/20 rounded-xl font-kantumruy"
+                            className="pl-10 h-10 bg-muted border-transparent focus-visible:ring-red-600/20 rounded-xl font-kantumruy text-sm"
                         />
                     </div>
                     {filteredGuests.length > 0 && (
-                        <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-auto hidden sm:block">
+                        <div className="text-[10px] font-black text-muted-foreground uppercase tracking-widest sm:ml-auto">
                             សរុប: {filteredGuests.length} នាក់
                         </div>
                     )}
                 </div>
 
-                {/* Mobile Card View */}
-                <div className="md:hidden divide-y divide-slate-50">
+                {/* Mobile View */}
+                <div className="md:hidden divide-y divide-border print:hidden">
                     {loading ? (
                         <div className="h-64 flex flex-col items-center justify-center gap-4">
                             <div className="w-8 h-8 border-4 border-red-600/20 border-t-red-600 rounded-full animate-spin" />
-                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">កំពុងផ្ទុក...</span>
+                            <span className="text-[10px] font-black text-muted-foreground/30 uppercase tracking-widest">កំពុងផ្ទុក...</span>
                         </div>
                     ) : filteredGuests.length === 0 ? (
                         <div className="h-64 flex flex-col items-center justify-center gap-2 opacity-30">
@@ -252,42 +272,31 @@ export default function GuestPage() {
                         </div>
                     ) : (
                         filteredGuests.map((g: any) => (
-                            <div key={g.id} className="p-4 flex flex-col gap-4">
-                                <div className="flex justify-between items-start">
-                                    <div className="flex flex-col">
-                                        <span className="font-bold text-slate-900 font-kantumruy text-lg">{g.name}</span>
+                            <div key={g.id} className="p-4 hover:bg-muted/30 transition-colors">
+                                <div className="flex justify-between items-center mb-3">
+                                    <div className="flex flex-col min-w-0 flex-1 mr-4">
+                                        <span className="font-bold text-foreground font-kantumruy text-base truncate">{g.name}</span>
                                         <div className="flex items-center gap-2 mt-1">
-                                            <span className="text-xs text-slate-400 font-mono">{maskPhone(g.phone, g.id)}</span>
-                                            {g.phone && (
-                                                <button onClick={() => toggleMask(g.id)} className="text-slate-300 hover:text-slate-500 transition-colors">
-                                                    {unmaskedIds.has(g.id) ? <EyeOff size={12} /> : <Eye size={12} />}
-                                                </button>
-                                            )}
-                                        </div>
-                                        <div className="mt-2 text-left">
-                                            <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold font-kantumruy">
+                                            <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-[9px] font-bold font-kantumruy border border-border">
                                                 {g.source || g.group || "ទូទៅ"}
                                             </span>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-1">
+                                    <div className="flex items-center gap-1 shrink-0">
                                         {!isArchived && (
                                             <>
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="h-9 w-9 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl"
-                                                    onClick={() => {
-                                                        setEditingGuest(g);
-                                                        setOpen(true);
-                                                    }}
+                                                    className="h-8 w-8 text-muted-foreground hover:text-blue-600 hover:bg-muted rounded-lg"
+                                                    onClick={() => { setEditingGuest(g); setOpen(true); }}
                                                 >
                                                     <Edit className="h-4 w-4" />
                                                 </Button>
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="h-9 w-9 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl"
+                                                    className="h-8 w-8 text-muted-foreground hover:text-red-600 hover:bg-muted rounded-lg"
                                                     onClick={() => handleDelete(g.id)}
                                                 >
                                                     <Trash2 className="h-4 w-4" />
@@ -301,12 +310,12 @@ export default function GuestPage() {
                                     size="sm"
                                     onClick={() => copyLink(g.name, g.id)}
                                     className={cn(
-                                        "w-full h-11 rounded-xl font-kantumruy font-bold text-xs transition-all",
+                                        "w-full h-10 rounded-xl font-kantumruy font-bold text-[11px] transition-all",
                                         copiedId === g.id
                                             ? "bg-green-600 hover:bg-green-700 text-white border-transparent"
-                                            : "border-slate-200 text-slate-600 hover:text-red-600 hover:border-red-100 hover:bg-red-50"
-                                    )}
-                                >
+                                            : "border-border text-muted-foreground hover:text-red-600 dark:hover:text-red-400 hover:border-red-100 dark:hover:border-red-900/50 hover:bg-muted/50"
+                                    )
+                                    }>
                                     {copiedId === g.id ? (
                                         <span className="flex items-center gap-1.5"><CheckCircle2 size={14} /> ចម្លងរួច</span>
                                     ) : (
@@ -318,57 +327,72 @@ export default function GuestPage() {
                     )}
                 </div>
 
-                {/* Desktop Table View */}
-                <div className="hidden md:block overflow-x-auto">
-                    <Table>
-                        <TableHeader>
-                            <TableRow className="border-slate-50 hover:bg-transparent">
-                                <TableHead className="h-14 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">ឈ្មោះ</TableHead>
-                                <TableHead className="h-14 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">មកពីណា?</TableHead>
-                                <TableHead className="h-14 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">សកម្មភាព</TableHead>
+                {/* Desktop View */}
+                <div className="hidden md:block overflow-x-auto print:block">
+                    <Table className="print:text-black border-collapse print:border print:border-gray-200">
+                        <TableHeader className="bg-muted/50 print:bg-gray-50 border-b border-border print:border-gray-200">
+                            {/* Repeating spacer for subsequent pages */}
+                            <TableRow className="hidden print:table-row border-none hover:bg-transparent">
+                                <TableHead colSpan={3} className="h-[2cm] p-0 border-none" />
                             </TableRow>
                         </TableHeader>
-                        <TableBody>
+                        <TableBody className="divide-y divide-border">
+                            {/* Column Titles - First Page Only */}
+                            <TableRow className="border-none hover:bg-transparent hidden print:table-row">
+                                <TableHead className="h-14 px-4 text-[10px] print:text-black print:font-bold font-black text-muted-foreground uppercase tracking-widest text-center w-16 border-r print:border-gray-200">ល.រ.</TableHead>
+                                <TableHead className="h-14 px-8 text-[10px] print:text-black print:font-bold font-black text-muted-foreground uppercase tracking-widest border-r print:border-gray-200">
+                                    នាម និង គោតមនាម
+                                </TableHead>
+                                <TableHead className="h-14 px-8 text-[10px] print:text-black print:font-bold font-black text-muted-foreground uppercase tracking-widest text-center border-r print:border-gray-200">
+                                    អញ្ជើញមកពី
+                                </TableHead>
+                            </TableRow>
+
+                            {/* Web Header Row (Hidden in Print) */}
+                            <TableRow className="border-none hover:bg-transparent print:hidden">
+                                <TableHead className="h-14 px-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center w-16 opacity-50 hidden print:table-cell">#</TableHead>
+                                <TableHead className="h-14 px-8 text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-50">
+                                    ឈ្មោះភ្ញៀវ
+                                </TableHead>
+                                <TableHead className="h-14 px-8 text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center opacity-50">
+                                    មកពីណា / ទីតាំង
+                                </TableHead>
+                                <TableHead className="h-14 px-8 text-[10px] font-black text-muted-foreground uppercase tracking-widest text-right opacity-50">សកម្មភាព</TableHead>
+                            </TableRow>
                             {loading ? (
                                 <TableRow>
-                                    <TableCell colSpan={3} className="h-64 text-center">
-                                        <div className="flex flex-col items-center gap-4">
-                                            <div className="w-8 h-8 boundary-spin border-4 border-red-600/20 border-t-red-600 rounded-full animate-spin" />
-                                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">កំពុងផ្ទុក...</span>
-                                        </div>
+                                    <TableCell colSpan={4} className="p-8">
+                                        <TableSkeleton />
                                     </TableCell>
                                 </TableRow>
                             ) : filteredGuests.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={3} className="h-64 text-center">
-                                        <div className="flex flex-col items-center gap-2 opacity-30">
-                                            <Users size={40} className="mb-2" />
-                                            <p className="font-kantumruy font-bold">មិនមានទិន្នន័យភ្ញៀវឡើយ</p>
-                                        </div>
-                                    </TableCell>
+                                    <TableCell colSpan={3} className="h-64 text-center text-sm font-kantumruy font-bold text-muted-foreground/30">មិនមានទិន្នន័យភ្ញៀវឡើយ</TableCell>
                                 </TableRow>
                             ) : (
-                                filteredGuests.map((g: any) => (
-                                    <TableRow key={g.id} className="border-slate-50 hover:bg-slate-50/50 transition-colors group">
-                                        <TableCell className="px-8 py-5">
-                                            <div className="flex flex-col">
-                                                <span className="font-bold text-slate-900 font-kantumruy">{g.name}</span>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-[10px] text-slate-400 font-mono">{maskPhone(g.phone, g.id)}</span>
-                                                    {g.phone && (
-                                                        <button onClick={() => toggleMask(g.id)} className="text-slate-300 hover:text-slate-500 transition-colors opacity-0 group-hover:opacity-100">
-                                                            {unmaskedIds.has(g.id) ? <EyeOff size={10} /> : <Eye size={10} />}
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </div>
+                                filteredGuests.map((g: any, index: number) => (
+                                    <TableRow
+                                        key={g.id}
+                                        className={cn(
+                                            "border-none transition-colors group",
+                                            index % 2 === 0 ? "bg-card" : "bg-muted/30",
+                                            "print:bg-transparent print:border-b print:border-gray-100 print:even:bg-gray-50/30"
+                                        )}
+                                    >
+                                        <TableCell className="hidden print:table-cell px-4 py-4 text-center border-r print:border-gray-200">
+                                            <span className="font-bold text-foreground font-mono print:text-sm">
+                                                {String(index + 1).padStart(2, '0')}
+                                            </span>
                                         </TableCell>
-                                        <TableCell className="px-8 py-5 text-center">
-                                            <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold font-kantumruy">
+                                        <TableCell className="px-8 py-4 print:border-r print:border-gray-200">
+                                            <span className="font-bold text-foreground font-kantumruy text-sm">{g.name}</span>
+                                        </TableCell>
+                                        <TableCell className="px-8 py-4 text-center print:border-r print:border-gray-200">
+                                            <span className="px-3 py-1 rounded-lg font-bold font-kantumruy text-[10px] bg-muted/60 dark:bg-white/5 text-muted-foreground print:bg-transparent print:text-sm print:text-black">
                                                 {g.source || g.group || "ទូទៅ"}
                                             </span>
                                         </TableCell>
-                                        <TableCell className="px-8 py-5 text-right">
+                                        <TableCell className="px-8 py-4 text-right print:hidden">
                                             <div className="flex items-center justify-end gap-2">
                                                 <Button
                                                     variant={copiedId === g.id ? "default" : "outline"}
@@ -376,39 +400,16 @@ export default function GuestPage() {
                                                     onClick={() => copyLink(g.name, g.id)}
                                                     className={cn(
                                                         "h-9 px-4 rounded-xl font-kantumruy font-bold text-[11px] transition-all",
-                                                        copiedId === g.id
-                                                            ? "bg-green-600 hover:bg-green-700 text-white border-transparent"
-                                                            : "border-slate-200 text-slate-600 hover:text-red-600 hover:border-red-100 hover:bg-red-50"
+                                                        copiedId === g.id ? "bg-green-600 text-white" : "text-muted-foreground"
                                                     )}
                                                 >
-                                                    {copiedId === g.id ? (
-                                                        <span className="flex items-center gap-1.5"><CheckCircle2 size={14} /> ចម្លងរួច</span>
-                                                    ) : (
-                                                        <span className="flex items-center gap-1.5"><Copy size={14} /> ចម្លងតំណរ</span>
-                                                    )}
+                                                    {copiedId === g.id ? "ចម្លងរួច" : "ចម្លងតំណរ"}
                                                 </Button>
                                                 {!isArchived && (
-                                                    <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-9 w-9 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl"
-                                                            onClick={() => {
-                                                                setEditingGuest(g);
-                                                                setOpen(true);
-                                                            }}
-                                                        >
-                                                            <Edit className="h-4 w-4" />
-                                                        </Button>
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-9 w-9 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl"
-                                                            onClick={() => handleDelete(g.id)}
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    </div>
+                                                    <>
+                                                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl" onClick={() => { setEditingGuest(g); setOpen(true); }}><Edit className="h-4 w-4" /></Button>
+                                                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl" onClick={() => handleDelete(g.id)}><Trash2 className="h-4 w-4" /></Button>
+                                                    </>
                                                 )}
                                             </div>
                                         </TableCell>
@@ -419,6 +420,61 @@ export default function GuestPage() {
                     </Table>
                 </div>
             </div>
+
+            {/* Footer */}
+            <div className="hidden print:flex flex-col mb-10 pt-6 px-10 mt-12 font-kantumruy font-bold text-sm border-t border-gray-100">
+                <div className="flex justify-between items-start italic opacity-60">
+                    <div className="space-y-1">
+                        <p suppressHydrationWarning className="text-gray-400 uppercase tracking-tight text-[10px]">Date of issue</p>
+                        <p suppressHydrationWarning>{new Date().toLocaleDateString('km-KH')}</p>
+                    </div>
+                    <div className="space-y-1">
+                        <p className="text-gray-400 uppercase tracking-tight text-[10px]">Total Guests</p>
+                        <p>សរុបអ្នកចូលរួម: {filteredGuests.length} នាក់</p>
+                    </div>
+                    <div className="text-right space-y-1">
+                        <p className="text-gray-400 uppercase tracking-tight text-[10px]">Digitally Signed & Verified</p>
+                        <p className="text-base text-gray-900">Monea Platform Official Report</p>
+                    </div>
+                </div>
+                <div className="mt-20 text-center text-[10px] text-gray-300 uppercase tracking-[0.4em] font-normal">
+                    End of Official Guest Record
+                </div>
+            </div>
+
+            {/* Mobile Floating Action Button (FAB) */}
+            {!isArchived && (
+                <div className="md:hidden fixed bottom-28 right-6 z-40 print:hidden">
+                    <Dialog open={open} onOpenChange={(v) => {
+                        setOpen(v);
+                        if (!v) setEditingGuest(null);
+                    }}>
+                        <DialogTrigger asChild>
+                            <Button
+                                className="w-14 h-14 rounded-2xl bg-red-600 hover:bg-red-700 text-white shadow-[0_12px_40px_-8px_rgba(220,38,38,0.4)] flex items-center justify-center p-0 transition-all border-none"
+                            >
+                                <Plus size={28} strokeWidth={3} />
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="w-[94vw] max-w-[480px] rounded-[2.5rem] border-none shadow-2xl p-6 pt-12 bg-card">
+                            <VisuallyHidden.Root>
+                                <DialogTitle>បន្ថែម/កែប្រែភ្ញៀវ (Add/Edit Guest - Mobile)</DialogTitle>
+                                <DialogDescription>
+                                    បំពេញព័ត៌មានភ្ញៀវ (Fill in guest details)
+                                </DialogDescription>
+                            </VisuallyHidden.Root>
+                            <GuestForm
+                                initialData={editingGuest}
+                                onSuccess={loadData}
+                                onDone={() => {
+                                    setOpen(false);
+                                    setEditingGuest(null);
+                                }}
+                            />
+                        </DialogContent>
+                    </Dialog>
+                </div>
+            )}
         </div>
-    )
+    );
 }

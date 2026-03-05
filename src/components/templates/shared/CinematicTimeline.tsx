@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
+import { m } from 'framer-motion';
 import { Clock, Heart, GlassWater, Music, Utensils, PartyPopper, Camera } from "lucide-react";
 
 interface TimelineItem {
@@ -30,7 +30,7 @@ export const CinematicTimeline = ({ items }: { items: TimelineItem[] }) => {
                     const isEven = index % 2 === 0;
 
                     return (
-                        <motion.div
+                        <m.div
                             key={index}
                             initial={{ opacity: 0, y: 30 }}
                             whileInView={{ opacity: 1, y: 0 }}
@@ -62,7 +62,7 @@ export const CinematicTimeline = ({ items }: { items: TimelineItem[] }) => {
 
                             {/* Spacer for empty side */}
                             <div className="hidden md:block md:w-1/2" />
-                        </motion.div>
+                        </m.div>
                     );
                 })}
             </div>

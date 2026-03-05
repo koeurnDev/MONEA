@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut } from "lucide-react";
 import Image from "next/image";
 import { CldImage } from 'next-cloudinary';
@@ -61,7 +61,7 @@ export default function Lightbox({ images, initialIndex, isOpen, onClose }: Ligh
     return (
         <AnimatePresence>
             {isOpen && (
-                <motion.div
+                <m.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
@@ -91,7 +91,7 @@ export default function Lightbox({ images, initialIndex, isOpen, onClose }: Ligh
                     )}
 
                     {/* Image Container */}
-                    <motion.div
+                    <m.div
                         key={index}
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -120,7 +120,7 @@ export default function Lightbox({ images, initialIndex, isOpen, onClose }: Ligh
                                 />
                             )}
                         </div>
-                    </motion.div>
+                    </m.div>
 
                     {/* Right Arrow */}
                     {images.length > 1 && (
@@ -141,7 +141,7 @@ export default function Lightbox({ images, initialIndex, isOpen, onClose }: Ligh
                     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/50 text-sm font-mono tracking-widest bg-black/50 px-3 py-1 rounded-full border border-white/10">
                         {index + 1} / {images.length}
                     </div>
-                </motion.div>
+                </m.div>
             )}
         </AnimatePresence>
     );

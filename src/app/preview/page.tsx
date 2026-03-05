@@ -3,16 +3,8 @@ import React, { useEffect, useState } from "react";
 import dynamic from 'next/dynamic';
 import { WeddingData } from "@/components/templates/types";
 
-const ClassicKhmer = dynamic(() => import("@/components/templates/ClassicKhmer"));
-const ModernMinimal = dynamic(() => import("@/components/templates/ModernMinimal"));
-const ModernFullTemplate = dynamic(() => import("@/components/templates/ModernFullTemplate"));
-const FloralElegant = dynamic(() => import("@/components/templates/FloralElegant"));
-const CanvaInvitation = dynamic(() => import("@/components/templates/CanvaInvitation"));
-const EnchantedGarden = dynamic(() => import("@/components/templates/EnchantedGarden"));
-const LuxuryGoldTemplate = dynamic(() => import("@/components/templates/LuxuryGoldTemplate"));
-const PastelFloralTemplate = dynamic(() => import("@/components/templates/PastelFloralTemplate"));
-const KhmerLegacy = dynamic(() => import("@/components/templates/KhmerLegacy"));
-const VisionaryModern = dynamic(() => import("@/components/templates/VisionaryModern"));
+const KhmerLegacy = dynamic(() => import('@/components/templates/KhmerLegacy'), { ssr: false });
+const VIPPremiumKhmer = dynamic(() => import('@/components/templates/VIPPremiumKhmer'), { ssr: false });
 
 export default function PreviewPage() {
     const [wedding, setWedding] = useState<WeddingData | null>(null);
@@ -78,30 +70,13 @@ export default function PreviewPage() {
         );
     }
 
-    const id = wedding.templateId || "modern-full";
-    switch (id) {
-        case "classic-khmer":
-            return <ClassicKhmer wedding={wedding} />;
-        case "modern-minimal":
-            return <ModernMinimal wedding={wedding} />;
-        case "floral-elegant":
-        case "elegant-pink":
-            return <FloralElegant wedding={wedding} />;
-        case "canva-style":
-            return <CanvaInvitation wedding={wedding} />;
-        case "enchanted-garden":
-            return <EnchantedGarden wedding={wedding} />;
-        case "luxury-gold":
-            return <LuxuryGoldTemplate wedding={wedding} />;
-        case "pastel-floral":
-            return <PastelFloralTemplate wedding={wedding} />;
-        case "khmer-legacy":
+    // 4. Render Selected Template with real-time data
+    switch (wedding.templateId) {
+        case 'khmer-legacy':
             return <KhmerLegacy wedding={wedding} />;
-        case "modern-full":
-            return <ModernFullTemplate wedding={wedding} />;
-        case "visionary-modern":
-            return <VisionaryModern wedding={wedding} />;
+        case 'vip-premium-khmer':
+            return <VIPPremiumKhmer wedding={wedding} />;
         default:
-            return <ModernFullTemplate wedding={wedding} />;
+            return <VIPPremiumKhmer wedding={wedding} />;
     }
 }

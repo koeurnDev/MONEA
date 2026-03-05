@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Send, Heart, User, MessageSquare, Sparkles } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { WeddingData } from "../types";
 
 interface GuestbookSectionProps {
@@ -32,6 +32,8 @@ export default function GuestbookSection({ wedding, guestName, primaryColor, onN
         e.preventDefault();
         if (!name.trim() || !message.trim() || !wedding?.id) return;
 
+        console.time("guestbook_submit");
+        // Guestbook submit logic
         setIsSubmitting(true);
         try {
             const res = await fetch('/api/guestbook', {
@@ -57,6 +59,7 @@ export default function GuestbookSection({ wedding, guestName, primaryColor, onN
             alert("Sorry, failed to send wish. Please try again.");
         } finally {
             setIsSubmitting(false);
+            console.timeEnd("guestbook_submit");
         }
     };
 
@@ -66,7 +69,7 @@ export default function GuestbookSection({ wedding, guestName, primaryColor, onN
 
                 {/* Header */}
                 <div className="text-center mb-16 space-y-4">
-                    <motion.div
+                    <m.div
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
@@ -80,16 +83,16 @@ export default function GuestbookSection({ wedding, guestName, primaryColor, onN
                         <p className="text-white/70 text-sm md:text-base max-w-lg mx-auto mt-4 font-kantumruy leading-relaxed">
                             សូមសរសេរពាក្យជូនពររបស់អ្នកនៅទីនេះ ដើម្បីជាការចងចាំដ៏ល្អសម្រាប់យើងខ្ញុំ។
                         </p>
-                    </motion.div>
+                    </m.div>
                 </div>
 
                 {/* Input Form */}
-                <motion.form
+                <m.form
                     onSubmit={handleSubmit}
                     initial={{ opacity: 0, scale: 0.95 }}
                     whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: true }}
-                    className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 md:p-10 shadow-[0_8px_32px_rgba(0,0,0,0.3)] mb-16 max-w-2xl mx-auto relative overflow-hidden"
+                    className="bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl p-6 md:p-10 shadow-[0_8px_32px_rgba(0,0,0,0.3)] mb-16 max-w-2xl mx-auto relative overflow-hidden will-change-transform"
                 >
                     <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/20 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
                     <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-500/20 rounded-full blur-3xl -ml-16 -mb-16 pointer-events-none"></div>
@@ -133,18 +136,18 @@ export default function GuestbookSection({ wedding, guestName, primaryColor, onN
                             </span>
                         </button>
                     </div>
-                </motion.form>
+                </m.form>
 
                 {/* Wishes Grid */}
                 <div className="columns-1 md:columns-2 gap-6 space-y-6">
                     {wishes.map((wish: any, idx: number) => (
-                        <motion.div
+                        <m.div
                             key={wish.id || idx}
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             transition={{ delay: idx * 0.1 }}
                             viewport={{ once: true }}
-                            className="break-inside-avoid bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-colors group shadow-lg relative"
+                            className="break-inside-avoid bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-colors group shadow-lg relative will-change-transform"
                         >
                             <div className="absolute -right-2 -top-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Heart size={20} className="text-pink-500 fill-pink-500 animate-pulse" />
@@ -169,7 +172,7 @@ export default function GuestbookSection({ wedding, guestName, primaryColor, onN
                                     {wish.message}
                                 </p>
                             </div>
-                        </motion.div>
+                        </m.div>
                     ))}
                     {wishes.length === 0 && (
                         <div className="col-span-full text-center text-white/50 py-10 font-kantumruy">

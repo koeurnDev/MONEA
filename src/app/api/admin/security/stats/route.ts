@@ -6,7 +6,7 @@ import { getServerUser } from "@/lib/auth";
 export async function GET() {
     try {
         const user = await getServerUser();
-        if (!user || (user.role !== "OWNER" && user.role !== "SUPERADMIN" && user.role !== "ADMIN")) {
+        if (!user || (user.role !== "SUPERADMIN" && user.role !== "ADMIN")) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 

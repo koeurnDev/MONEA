@@ -1,8 +1,9 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { WeddingData } from "../types";
 import { CldImage } from 'next-cloudinary';
 import { ZoomIn } from 'lucide-react';
+import Image from 'next/image';
 import { cn } from "@/lib/utils";
 
 interface GalleryProps {
@@ -21,24 +22,29 @@ export default function Gallery({ wedding, onImageClick }: GalleryProps) {
         <section className="py-24 relative overflow-hidden" id="gallery">
             {/* Background */}
             <div className="absolute inset-0 bg-[#050A08] opacity-95 z-0"></div>
-            <img src="/images/bg_enchanted.jpg" className="absolute inset-0 w-full h-full object-cover opacity-10 z-0 blur-sm" />
+            <Image
+                src="/images/bg_enchanted.jpg"
+                alt="Enchanted Background"
+                fill
+                className="object-cover opacity-10 z-0 blur-sm"
+            />
 
             <div className="relative z-10 container mx-auto px-4">
                 <div className="text-center mb-16 space-y-4">
-                    <motion.div
+                    <m.div
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                     >
                         <p className="font-vibes text-[#D4AF37] text-3xl md:text-4xl">Shared Moments</p>
                         <h3 className="font-cinzel text-4xl md:text-5xl text-white mt-2 drop-shadow-md">Our Gallery</h3>
-                    </motion.div>
+                    </m.div>
                 </div>
 
                 {/* Masonry Grid */}
                 <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
                     {galleryItems.map((src, idx) => (
-                        <motion.div
+                        <m.div
                             key={idx}
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
@@ -52,7 +58,13 @@ export default function Gallery({ wedding, onImageClick }: GalleryProps) {
                             </div>
 
                             {src.startsWith('/') ? (
-                                <img src={src} alt={`Gallery ${idx}`} className="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700" loading="lazy" />
+                                <Image
+                                    src={src}
+                                    alt={`Gallery ${idx}`}
+                                    width={600}
+                                    height={800}
+                                    className="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700"
+                                />
                             ) : (
                                 <CldImage
                                     src={src}
@@ -62,7 +74,7 @@ export default function Gallery({ wedding, onImageClick }: GalleryProps) {
                                     className="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700"
                                 />
                             )}
-                        </motion.div>
+                        </m.div>
                     ))}
                 </div>
             </div>

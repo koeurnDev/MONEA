@@ -1,6 +1,6 @@
 "use client";
 import React, { memo } from 'react';
-import { motion } from "framer-motion";
+import { m } from 'framer-motion';
 
 /**
  * Premium Heading with Gold Gradient
@@ -14,7 +14,7 @@ export const PremiumHeading = memo(({ children, className = "", variant = "gold"
     };
 
     return (
-        <motion.h2
+        <m.h2
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -22,7 +22,7 @@ export const PremiumHeading = memo(({ children, className = "", variant = "gold"
             className={`font-moul text-3xl md:text-5xl text-center bg-clip-text text-transparent ${gradients[variant]} drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] mb-12 tracking-wide ${className}`}
         >
             {children}
-        </motion.h2>
+        </m.h2>
     );
 });
 PremiumHeading.displayName = 'PremiumHeading';
@@ -32,7 +32,7 @@ PremiumHeading.displayName = 'PremiumHeading';
  * Benchmarked against Eternal Cinematic (ModernFullTemplate)
  */
 export const RevealSection = memo(({ children, delay = 0, className = "" }: { children: React.ReactNode, delay?: number, className?: string }) => (
-    <motion.div
+    <m.div
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-100px" }}
@@ -40,7 +40,7 @@ export const RevealSection = memo(({ children, delay = 0, className = "" }: { ch
         className={`w-full ${className}`}
     >
         {children}
-    </motion.div>
+    </m.div>
 ));
 RevealSection.displayName = 'RevealSection';
 
@@ -75,7 +75,7 @@ export const LuxurySection = memo(({ children, id, className = "", innerClassNam
             <div className={`absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 ${borders[variant]} rounded-bl-xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000`} />
             <div className={`absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 ${borders[variant]} rounded-br-xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000`} />
 
-            <div className={`w-full backdrop-blur-lg rounded-3xl p-8 md:p-12 border transition-colors duration-700 relative z-10 will-change-transform ${backgrounds[variant]} ${hoverBorders[variant]} ${innerClassName}`}>
+            <div className={`w-full backdrop-blur-md rounded-3xl p-8 md:p-12 border transition-colors duration-700 relative z-10 will-change-transform ${backgrounds[variant]} ${hoverBorders[variant]} ${innerClassName}`}>
                 {children}
             </div>
         </section>

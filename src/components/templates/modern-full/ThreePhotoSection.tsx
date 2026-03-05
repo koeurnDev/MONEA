@@ -1,7 +1,8 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { WeddingData } from "../types";
 import { CldImage } from 'next-cloudinary';
+import Image from 'next/image';
 import { cn } from './shared';
 
 interface ThreePhotoSectionProps {
@@ -34,7 +35,7 @@ export default function ThreePhotoSection({ wedding, imageOffset = 0, className 
             <div className="container mx-auto px-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
                     {selectedImages.map((src, idx) => (
-                        <motion.div
+                        <m.div
                             key={idx}
                             initial={{ opacity: 0, y: 30 }}
                             whileInView={{ opacity: 1, y: 0 }}
@@ -46,10 +47,12 @@ export default function ThreePhotoSection({ wedding, imageOffset = 0, className 
                             <div className="absolute inset-0 border-[8px] border-white/20 z-10 pointer-events-none transition-colors group-hover:border-white/40"></div>
 
                             {src.startsWith('/') ? (
-                                <img
+                                <Image
                                     src={src}
                                     alt={`Gallery ${idx}`}
-                                    className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
+                                    fill
+                                    sizes="(max-width: 768px) 100vw, 33vw"
+                                    className="object-cover transform group-hover:scale-110 transition-transform duration-700"
                                 />
                             ) : (
                                 <CldImage
@@ -63,7 +66,7 @@ export default function ThreePhotoSection({ wedding, imageOffset = 0, className 
 
                             {/* Subtle Overlay */}
                             <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors"></div>
-                        </motion.div>
+                        </m.div>
                     ))}
                 </div>
             </div>

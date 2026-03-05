@@ -1,0 +1,93 @@
+export const dynamic = 'force-dynamic';
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getServerUser } from "@/lib/auth";
+import { ROLES } from "@/lib/constants";
+
+// Legacy getAdminUser removed
+
+export async function GET(req: Request, { params }: { params: { id: string } }) {
+    const user = await getServerUser();
+    if (!user || (user.role !== ROLES.PLATFORM_OWNER && user.role !== ROLES.EVENT_MANAGER)) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const targetUserId = params.id;
+
+    try {
+        const targetUser = await prisma.user.findUnique({
+            where: { id: targetUserId },
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                role: true,
+                createdAt: true,
+                twoFactorEnabled: true,
+                weddings: true
+            }
+        });
+
+        if (!targetUser) {
+            return NextResponse.json({ error: "User not found" }, { status: 404 });
+        }
+
+        return NextResponse.json({ data: targetUser });
+    } catch (error) {
+        console.error("Error fetching user:", error);
+        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    }
+}
+
+export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+    const user = await getServerUser();
+    if (!user || (user.role !== ROLES.PLATFORM_OWNER && user.role !== ROLES.EVENT_MANAGER)) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Only PLATFORM_OWNER can modify users
+    if (user.role !== ROLES.PLATFORM_OWNER) {
+        return NextResponse.json({ error: "Forbidden: Only platform owners can manage users" }, { status: 403 });
+    }
+
+    const targetUserId = params.id;
+
+    // Check if trying to edit themselves or another SUPERADMIN
+    if (targetUserId === user.userId) {
+        return NextResponse.json({ error: "Cannot modify your own active session from here" }, { status: 400 });
+    }
+
+    try {
+        const body = await req.json();
+
+        // Prevent editing superadmin role if it's the main seed user (optional extra protection)
+        const currentTargetUser = await prisma.user.findUnique({ where: { id: targetUserId } });
+        if (currentTargetUser?.role === ROLES.PLATFORM_OWNER && body.role !== undefined) {
+            return NextResponse.json({ error: "Cannot change role of Platform Owners" }, { status: 400 });
+        }
+
+        const updateData: any = {};
+        if (body.role && Object.values(ROLES).includes(body.role)) {
+            updateData.role = body.role;
+        }
+
+        if (Object.keys(updateData).length === 0) {
+            return NextResponse.json({ error: "No valid fields provided for update" }, { status: 400 });
+        }
+
+        const updatedUser = await prisma.user.update({
+            where: { id: targetUserId },
+            data: updateData,
+            select: {
+                id: true,
+                email: true,
+                role: true,
+            }
+        });
+
+        return NextResponse.json({ data: updatedUser, message: "User updated successfully" });
+    } catch (error) {
+        console.error("Error updating user:", error);
+        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    }
+}

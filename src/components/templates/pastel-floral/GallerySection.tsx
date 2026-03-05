@@ -1,6 +1,7 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { CldImage } from 'next-cloudinary';
+import Image from 'next/image';
 import { THEME, GlassCard, FloatingPetals } from './shared';
 
 interface GallerySectionProps {
@@ -30,23 +31,23 @@ export default function GallerySection({ galleryImages, setSelectedImg, labels }
             <div className="absolute top-0 right-0 w-64 h-64 bg-[url('/wedding_assets/floral-corner-tl.png')] bg-contain bg-no-repeat opacity-5 rotate-180 pointer-events-none"></div>
 
             <div className="text-center mb-16 relative z-10">
-                <motion.p
+                <m.p
                     initial={{ opacity: 0, letterSpacing: '0.1em' }}
                     whileInView={{ opacity: 1, letterSpacing: '0.3em' }}
                     className="uppercase text-gray-400 text-xs mb-3 font-header"
                 >
                     Our Memories
-                </motion.p>
-                <motion.h3
+                </m.p>
+                <m.h3
                     initial={{ opacity: 0, y: 10 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     className="text-5xl font-script text-[#D4AF37] drop-shadow-sm"
                 >
                     {labels.gallery_title}
-                </motion.h3>
+                </m.h3>
             </div>
 
-            <motion.div
+            <m.div
                 variants={containerVariants}
                 initial="hidden"
                 whileInView="visible"
@@ -54,7 +55,7 @@ export default function GallerySection({ galleryImages, setSelectedImg, labels }
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative z-10 max-w-6xl mx-auto"
             >
                 {galleryImages.map((src, idx) => (
-                    <motion.div
+                    <m.div
                         key={idx}
                         variants={itemVariants}
                         whileHover={{ y: -10, rotate: idx % 2 === 0 ? 1 : -1 }}
@@ -64,10 +65,11 @@ export default function GallerySection({ galleryImages, setSelectedImg, labels }
                         <GlassCard className="p-3 bg-white/60 hover:bg-white/80 transition-all duration-500 shadow-lg hover:shadow-2xl">
                             <div className="aspect-[3/4] overflow-hidden rounded-lg relative">
                                 {src.startsWith('http') ? (
-                                    <img
+                                    <Image
                                         src={src}
                                         alt="Gallery"
-                                        className="w-full h-full object-cover grayscale-[0.3] group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110"
+                                        fill
+                                        className="object-cover grayscale-[0.3] group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110"
                                     />
                                 ) : (
                                     <CldImage
@@ -86,9 +88,9 @@ export default function GallerySection({ galleryImages, setSelectedImg, labels }
                         </GlassCard>
                         {/* Polaroid-style shadow base */}
                         <div className="absolute -bottom-2 -right-2 -z-10 w-full h-full bg-gray-200/50 rounded-lg blur-sm group-hover:bg-[#D4AF37]/10 transition-colors"></div>
-                    </motion.div>
+                    </m.div>
                 ))}
-            </motion.div>
+            </m.div>
         </section>
     );
 }

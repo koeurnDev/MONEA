@@ -1,6 +1,6 @@
 import React from 'react';
 import { WeddingData } from "../types";
-import { motion } from "framer-motion";
+import { m } from 'framer-motion';
 
 export default function Timeline({ wedding }: { wedding: WeddingData }) {
     // Default events from user request, used if no dynamic activities are present
@@ -41,15 +41,15 @@ export default function Timeline({ wedding }: { wedding: WeddingData }) {
 
     return (
         <div className="py-12 bg-purple-50">
-            <motion.h2
+            <m.h2
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 className="font-khmer text-2xl md:text-3xl text-center text-red-900 font-bold mb-8 md:mb-10 px-4"
             >
                 កម្មវិធីសិរីមង្គលអាពាហ៍ពិពាហ៍
-            </motion.h2>
-            <motion.div
+            </m.h2>
+            <m.div
                 variants={container}
                 initial="hidden"
                 whileInView="show"
@@ -57,7 +57,7 @@ export default function Timeline({ wedding }: { wedding: WeddingData }) {
                 className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 px-4 font-khmer"
             >
                 {events.map((event, index) => (
-                    <motion.div
+                    <m.div
                         variants={item}
                         key={index}
                         whileHover={{ scale: 1.02, x: 5 }}
@@ -68,9 +68,9 @@ export default function Timeline({ wedding }: { wedding: WeddingData }) {
                             <p className="text-wedding-gold font-bold">{event.time}</p>
                             <p className="text-gray-700">{event.title}</p>
                         </div>
-                    </motion.div>
+                    </m.div>
                 ))}
-            </motion.div>
+            </m.div>
         </div>
     );
 }

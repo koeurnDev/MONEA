@@ -2,35 +2,37 @@
 
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
+import Link from 'next/link';
+import { m, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { DebouncedInput } from "@/components/ui/debounced-input";
-import { Music, MapPin, Video, LayoutDashboard, Palette, Image as ImageIcon, Smartphone, LayoutTemplate, Settings2, X, ChevronDown, Check, Type, Plus, Clock, Trash2, Loader2, Heart, ArrowRight, ArrowLeft, CreditCard, Facebook, Send, Wallet, Sparkles, RotateCcw, StickyNote, Save } from "lucide-react";
+import { Palette, Smartphone, LayoutTemplate, Settings2, X, Loader2, ArrowRight, ArrowLeft, StickyNote, Save } from "lucide-react";
+
 import ImageUpload from "@/components/ui/image-upload-widget";
 import AudioUploadWidget from "@/components/ui/audio-upload-widget";
 import Image from "next/image";
 import { CldUploadWidget } from 'next-cloudinary';
 import clsx from "clsx";
-import dynamic from 'next/dynamic';
-import { isEditingLocked } from "@/lib/permissions";
-import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
-import { useDebounce } from "@/hooks/use-debounce";
-import { useCloudinary } from "@/hooks/use-cloudinary";
-import { ConfirmModal } from "@/components/ui/ConfirmModal";
+
+import Step1Template from "./components/Step1Template";
+import Step2Info from "./components/Step2Info";
+import Step3Time from "./components/Step3Time";
+import Step4Media from "./components/Step4Media";
+import Step5Extra from "./components/Step5Extra";
 import useSWR from "swr";
+import { useCloudinary } from "@/hooks/use-cloudinary";
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 const PRESET_COLORS = ["#8E5A5A", "#1E40AF", "#047857", "#B91C1C", "#D97706", "#4B5563", "#000000", "#D4AF37"];
 
 const TEMPLATE_LAYOUTS: Record<string, { slots: number, labels: string[] }> = {
-    "modern-full": {
+    "vip-premium-khmer": {
         slots: 7,
         labels: ["ទឹកដមបេះដូង (1)", "ទឹកដមបេះដូង (2)", "ទឹកដមបេះដូង (3)", "ទឹកដមបេះដូង (4)", "ជោគវាសនា (1)", "ជោគវាសនា (2)", "ជោគវាសនា (3)"]
     },
-    "classic-khmer": { slots: 1, labels: ["រូបថតគូស្នេហ៍"] },
+    "modern-black-white": { slots: 1, labels: ["រូបថតគូស្នេហ៍"] },
     "elegant-pink": { slots: 3, labels: ["រូបថតទី១", "រូបថតទី២", "រូបថតទី៣"] },
     "modern-minimal": { slots: 1, labels: ["រូបថត Cover"] },
     "khmer-legacy": { slots: 2, labels: ["Groom Profile", "Bride Profile"] },
@@ -64,7 +66,7 @@ const DEFAULT_WEDDING: WeddingData = {
     brideName: "Nit",
     date: "2025-12-07T17:00:00.000Z", // Dec 7, 2025
     location: "Sokha Hotel, Phnom Penh",
-    templateId: "modern-full",
+    templateId: "vip-premium-khmer",
     themeSettings: {
         primaryColor: "#4A5D4A",
         musicUrl: "",
@@ -118,61 +120,25 @@ const STEPS = [
     { id: 5, title: "បន្ថែម (Extra)" }
 ];
 
-const AccordionItem = ({ icon: Icon, title, subtitle, children, isOpen, onClick }: any) => (
-    <div className="border border-slate-100 rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-all">
-        <button
-            onClick={onClick}
-            className="w-full flex items-center justify-between p-4 text-left hover:bg-slate-50 transition-colors"
-        >
-            <div className="flex items-center gap-3">
-                <div className={clsx(
-                    "p-2 rounded-xl transition-colors",
-                    isOpen ? "bg-red-600 text-white" : "bg-slate-50 text-slate-400"
-                )}>
-                    <Icon className="w-4 h-4" />
-                </div>
-                <div>
-                    <h3 className="text-xs font-black text-slate-900 font-kantumruy">{title}</h3>
-                    <p className="text-[10px] text-slate-400 font-medium font-kantumruy truncate max-w-[180px]">{subtitle}</p>
-                </div>
-            </div>
-            <ChevronDown className={clsx("w-4 h-4 text-slate-400 transition-transform", isOpen && "rotate-180")} />
-        </button>
-        <AnimatePresence>
-            {isOpen && (
-                <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="overflow-hidden"
-                >
-                    <div className="p-4 pt-0 border-t border-slate-50">
-                        {children}
-                    </div>
-                </motion.div>
-            )}
-        </AnimatePresence>
-    </div>
-);
 
-const StepWizard = ({ children, currentStep, onNext, onPrev, isLast, onSave, loading }: any) => (
-    <div className="flex flex-col h-full bg-white rounded-[2rem] border border-slate-100 shadow-2xl shadow-slate-200/50 overflow-hidden">
+const StepWizard = ({ children, currentStep, onNext, onPrev, isLast, onSave, loading, setStep }: any) => (
+    <div className="flex flex-col h-full bg-card overflow-hidden z-20 border-r border-border shadow-2xl dark:shadow-none">
         {/* Header */}
-        <div className="p-8 pb-6 border-b border-slate-50">
+        <div className="p-8 pb-6 border-b border-border shadow-sm z-10">
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-lg shadow-slate-200">
+                    <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground shadow-lg dark:shadow-none">
                         <Palette className="w-6 h-6" />
                     </div>
                     <div>
-                        <h2 className="text-2xl font-black text-slate-900 tracking-tight leading-none font-kantumruy">រចនាធៀប</h2>
-                        <p className="text-[10px] text-slate-400 mt-1.5 uppercase tracking-widest font-black">Design Wizard</p>
+                        <h2 className="text-2xl font-black text-foreground tracking-tight leading-none font-kantumruy">រចនាធៀប</h2>
+                        <p className="text-[10px] text-muted-foreground mt-1.5 uppercase tracking-widest font-black">Design Wizard</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <div className="bg-slate-50 p-2 px-4 rounded-full border border-slate-100 flex items-center gap-2">
+                    <div className="bg-muted p-2 px-4 rounded-full border border-border flex items-center gap-2">
                         <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Live Editor</span>
+                        <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Live Editor</span>
                     </div>
                 </div>
             </div>
@@ -180,45 +146,39 @@ const StepWizard = ({ children, currentStep, onNext, onPrev, isLast, onSave, loa
             {/* Progress Pills */}
             <div className="flex gap-2">
                 {STEPS.map((step) => (
-                    <div
+                    <button
                         key={step.id}
+                        onClick={() => setStep && setStep(step.id)}
+                        disabled={loading}
                         className={clsx(
-                            "grow h-1.5 rounded-full transition-all duration-700",
-                            currentStep >= step.id ? "bg-red-600" : "bg-slate-100"
+                            "grow h-1.5 rounded-full transition-all duration-700 hover:opacity-80 active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed",
+                            currentStep >= step.id ? "bg-red-600" : "bg-muted"
                         )}
+                        title={step.title}
                     />
                 ))}
             </div>
             <div className="flex justify-between mt-3 px-1 font-khmer">
                 <span className="text-[10px] font-black text-red-600 uppercase tracking-widest">ជំហានទី {currentStep} នៃ {STEPS.length}</span>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{STEPS[currentStep - 1].title}</span>
+                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{STEPS[currentStep - 1].title}</span>
             </div>
         </div>
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6 scrollbar-hide">
-            <AnimatePresence mode="wait">
-                <motion.div
-                    key={currentStep}
-                    initial={{ opacity: 0, x: 10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -10 }}
-                    transition={{ duration: 0.25, ease: "easeOut" }}
-                    className="will-change-transform"
-                >
-                    {children}
-                </motion.div>
-            </AnimatePresence>
+            <div className="h-full w-full">
+                {children}
+            </div>
         </div>
 
         {/* Footer */}
-        <div className="p-8 bg-slate-50/50 border-t border-slate-100 backdrop-blur-sm">
+        <div className="p-8 bg-muted/50 border-t border-border backdrop-blur-sm">
             <div className="flex gap-4 font-khmer">
                 {currentStep > 1 && (
                     <Button
                         variant="ghost"
                         onClick={onPrev}
-                        className="h-12 px-8 rounded-xl font-bold text-slate-500 hover:bg-white hover:text-slate-900 transition-all flex items-center gap-2 border border-slate-200"
+                        className="h-12 px-8 rounded-xl font-bold text-muted-foreground hover:bg-background hover:text-foreground transition-all flex items-center gap-2 border border-border"
                     >
                         <ArrowLeft className="w-4 h-4" /> ថយក្រោយ
                     </Button>
@@ -228,7 +188,7 @@ const StepWizard = ({ children, currentStep, onNext, onPrev, isLast, onSave, loa
                     disabled={loading}
                     className={clsx(
                         "h-12 flex-1 rounded-xl font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95",
-                        isLast ? "bg-slate-900 hover:bg-black text-white shadow-slate-200" : "bg-red-600 hover:bg-red-700 text-white shadow-red-100"
+                        isLast ? "bg-slate-900 dark:bg-slate-800 hover:bg-black dark:hover:bg-slate-700 text-white shadow-none" : "bg-red-600 hover:bg-red-700 text-white shadow-red-100 dark:shadow-none"
                     )}
                 >
                     {loading ? (
@@ -263,9 +223,6 @@ export default function DesignPage() {
     const [fetchingVersions, setFetchingVersions] = useState(false);
     const [newVersionTitle, setNewVersionTitle] = useState("");
     const [isSavingVersion, setIsSavingVersion] = useState(false);
-    const [isNotesOpen, setIsNotesOpen] = useState(false);
-    const [quickNotes, setQuickNotes] = useState("");
-    const [savingNotes, setSavingNotes] = useState(false);
     const [rollbackConfirm, setRollbackConfirm] = useState<{ open: boolean; versionId: string }>({ open: false, versionId: "" });
     const [rollbackLoading, setRollbackLoading] = useState(false);
     const [deleteVersionConfirm, setDeleteVersionConfirm] = useState<{ open: boolean; versionId: string }>({ open: false, versionId: "" });
@@ -294,7 +251,7 @@ export default function DesignPage() {
     };
 
     // --- DATA FETCHING (Optimized with SWR) ---
-    const { data: swrWedding, error: swrError, mutate } = useSWR("/api/wedding", fetcher, {
+    const { data: swrWedding, error: swrError, mutate } = useSWR("/api/wedding?full=true", fetcher, {
         revalidateOnFocus: false,
         dedupingInterval: 10000,
     });
@@ -349,7 +306,7 @@ export default function DesignPage() {
         });
     }, []);
 
-    const updateTheme = useCallback(<K extends keyof NonNullable<WeddingData['themeSettings']>>(key: K, value: NonNullable<WeddingData['themeSettings']>[K]) => {
+    const updateTheme = useCallback((key: string, value: any) => {
         setWedding((prev) => {
             if (!prev) return null;
             return {
@@ -492,7 +449,7 @@ export default function DesignPage() {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                templateId: wedding.templateId || "modern-full",
+                templateId: wedding.templateId || "vip-premium-khmer",
                 groomName: wedding.groomName,
                 brideName: wedding.brideName,
                 date: wedding.date,
@@ -510,7 +467,7 @@ export default function DesignPage() {
         setLoading(false);
     };
 
-    const updateEventType = (type: 'wedding' | 'anniversary') => {
+    const updateEventType = useCallback((type: 'wedding' | 'anniversary') => {
         setWedding((prev) => {
             if (!prev) return null;
             // Auto-switch template if needed
@@ -518,7 +475,7 @@ export default function DesignPage() {
             if (type === 'anniversary' && !prev.templateId?.startsWith('anniversary')) {
                 newTemplateId = 'anniversary-golden';
             } else if (type === 'wedding' && prev.templateId?.startsWith('anniversary')) {
-                newTemplateId = 'modern-full';
+                newTemplateId = 'vip-premium-khmer';
             }
             return {
                 ...prev,
@@ -526,7 +483,7 @@ export default function DesignPage() {
                 templateId: newTemplateId
             };
         });
-    };
+    }, []);
 
     const fetchVersions = useCallback(async () => {
         if (!wedding?.id) return;
@@ -544,7 +501,7 @@ export default function DesignPage() {
         }
     }, [wedding?.id]);
 
-    const handleSaveVersion = async () => {
+    const handleSaveVersion = useCallback(async () => {
         if (!wedding?.id || !newVersionTitle) return;
         setIsSavingVersion(true);
         try {
@@ -569,11 +526,11 @@ export default function DesignPage() {
         } finally {
             setIsSavingVersion(false);
         }
-    };
+    }, [wedding?.id, newVersionTitle]);
 
-    const handleRollback = async (versionId: string) => {
+    const handleRollback = useCallback(async (versionId: string) => {
         setRollbackConfirm({ open: true, versionId });
-    };
+    }, []);
 
     const confirmRollback = async () => {
         setRollbackLoading(true);
@@ -602,9 +559,9 @@ export default function DesignPage() {
         }
     };
 
-    const handleDeleteVersion = async (versionId: string) => {
+    const handleDeleteVersion = useCallback(async (versionId: string) => {
         setDeleteVersionConfirm({ open: true, versionId });
-    };
+    }, []);
 
     const confirmDeleteVersion = async () => {
         try {
@@ -621,806 +578,63 @@ export default function DesignPage() {
     };
 
 
-    const fetchNotes = useCallback(async () => {
-        try {
-            const res = await fetch("/api/wedding/notes");
-            if (res.ok) {
-                const data = await res.json();
-                setQuickNotes(data.notes || "");
-            }
-        } catch (err) { }
-    }, []);
-
-    const saveNotes = async (val: string) => {
-        setSavingNotes(true);
-        try {
-            await fetch("/api/wedding/notes", {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ notes: val }),
-            });
-        } catch (err) { }
-        setSavingNotes(false);
-    };
-
-    useEffect(() => {
-        if (mounted) fetchNotes();
-    }, [mounted, fetchNotes]);
+    // Note: Quick Notes feature removed.
 
     const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, STEPS.length));
     const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
+    if (!wedding) return (
+        <div className="flex h-screen w-full flex-col items-center justify-center gap-4 bg-background">
+            <Loader2 className="w-12 h-12 text-primary animate-spin" />
+            <p className="text-sm font-black text-muted-foreground uppercase tracking-widest font-kantumruy">កំពុងទាញយកទិន្នន័យចំណងដៃ...</p>
+        </div>
+    );
 
-    if (!wedding) return <div className="flex h-[calc(100vh-4rem)] items-center justify-center">Loading...</div>;
-
-    const isLocked = isEditingLocked(wedding);
+    const isLocked = false; // Temporary bypass
 
     const renderStepContent = () => {
         if (!wedding) return null;
         switch (currentStep) {
-            case 1: // Template
+            case 1:
+                return <Step1Template wedding={wedding} updateEventType={updateEventType} updateTemplate={updateTemplate} />;
+            case 2:
+                return <Step2Info wedding={wedding} updateWedding={updateWedding} updateTheme={updateTheme} />;
+            case 3:
+                return <Step3Time wedding={wedding} updateWedding={updateWedding} updateTheme={updateTheme} setWedding={setWedding} />;
+            case 4:
                 return (
-                    <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-2 text-[10px] font-bold">
-                            <button
-                                onClick={() => updateEventType('wedding')}
-                                className={clsx(
-                                    "px-4 py-2 rounded-lg transition-all",
-                                    wedding.eventType === 'wedding' ? "bg-white text-pink-600 shadow-sm border border-pink-100" : "text-gray-400 hover:text-gray-600"
-                                )}
-                            >
-                                ពិធីមង្គលការ (Wedding)
-                            </button>
-                            <button
-                                onClick={() => updateEventType('anniversary')}
-                                className={clsx(
-                                    "px-4 py-2 rounded-lg transition-all",
-                                    wedding.eventType === 'anniversary' ? "bg-white text-pink-600 shadow-sm border border-pink-100" : "text-gray-400 hover:text-gray-600"
-                                )}
-                            >
-                                ពិធីខួប (Anniversary)
-                            </button>
-                        </div>
-
-                        <div className="grid grid-cols-3 gap-2">
-                            {[
-                                { id: "modern-full", title: "Eternal", categories: ['wedding'], bgClass: "bg-slate-50", textClass: "text-slate-600", image: "/images/bg_tunnel.jpg" },
-                                { id: "classic-khmer", title: "Royal", categories: ['wedding', 'anniversary'], bgClass: "bg-orange-50", textClass: "text-orange-600", image: "/images/couple.jpg" },
-                                { id: "floral-elegant", title: "Velvet", categories: ['wedding'], bgClass: "bg-pink-50", textClass: "text-pink-600", image: "/images/bg_enchanted.jpg" },
-                                { id: "modern-minimal", title: "Glass", categories: ['wedding'], bgClass: "bg-gray-50", textClass: "text-gray-600", image: "/images/couple.jpg" },
-                                { id: "luxury-gold", title: "Golden", categories: ['wedding', 'anniversary'], bgClass: "bg-yellow-50", textClass: "text-yellow-700", image: "/images/bg_tunnel.jpg" },
-                                { id: "pastel-floral", title: "Sweet", categories: ['wedding', 'anniversary'], bgClass: "bg-pink-50/50", textClass: "text-pink-600", image: "/images/bg_enchanted.jpg" },
-                                { id: "enchanted-garden", title: "Garden", categories: ['wedding'], bgClass: "bg-emerald-50", textClass: "text-emerald-600", image: "/images/bg_enchanted.jpg" },
-                                { id: "canva-style", title: "Scroll", categories: ['wedding'], bgClass: "bg-orange-50/50", textClass: "text-orange-600", image: "/images/couple.jpg" },
-                                { id: "khmer-legacy", title: "Legacy", categories: ['wedding', 'anniversary'], bgClass: "bg-stone-50", textClass: "text-stone-600", image: "/images/bg_staircase.jpg" },
-                                { id: "visionary-modern", title: "Visionary", categories: ['wedding'], bgClass: "bg-teal-50", textClass: "text-teal-600", image: "/images/bg_staircase.jpg" },
-                                { id: "celestial-elegance", title: "Celestial", categories: ['wedding', 'anniversary'], bgClass: "bg-indigo-950", textClass: "text-emerald-400", image: "/images/bg_tunnel.jpg" },
-                            ]
-                                .filter(t => t.categories.includes(wedding.eventType || 'wedding'))
-                                .map((tmpl, idx) => (
-                                    <motion.div
-                                        key={tmpl.id}
-                                        initial={{ opacity: 0, scale: 0.9 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        transition={{ delay: idx * 0.05 }}
-                                        onClick={() => updateTemplate(tmpl.id)}
-                                        className={clsx(
-                                            "cursor-pointer rounded-xl p-1.5 transition-all duration-300 relative overflow-hidden group border shadow-sm hover:shadow-md",
-                                            (wedding.templateId === tmpl.id || (!wedding.templateId && tmpl.id === 'modern-full'))
-                                                ? "border-pink-500 bg-pink-50/30 ring-2 ring-pink-500/10"
-                                                : "border-transparent bg-gray-50 hover:bg-white hover:border-pink-200"
-                                        )}
-                                    >
-                                        <div className={`aspect-[2/3] ${tmpl.bgClass} rounded-lg mb-2 overflow-hidden shadow-inner flex flex-col items-center justify-center transition-transform duration-500 group-hover:scale-105 relative`}>
-                                            {/* Image Preview */}
-                                            <div className="absolute inset-0">
-                                                <Image
-                                                    src={tmpl.image}
-                                                    alt={tmpl.title}
-                                                    fill
-                                                    className="object-cover opacity-80 group-hover:opacity-100 transition-opacity"
-                                                    sizes="(max-width: 768px) 33vw, 15vw"
-                                                    priority
-                                                />
-                                            </div>
-                                            {/* Overlay Gradient */}
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-
-                                            {/* Text centered or at bottom */}
-                                            <div className={`relative z-10 text-center p-1 mt-auto w-full`}>
-                                                <p className="text-white font-bold text-[9px] drop-shadow-md truncate w-full px-1">{tmpl.title}</p>
-                                            </div>
-                                        </div>
-                                        {(wedding.templateId === tmpl.id || (!wedding.templateId && tmpl.id === 'modern-full')) && (
-                                            <div className="absolute top-2 right-2 bg-pink-500 text-white rounded-full p-0.5 shadow-sm">
-                                                <Check size={8} strokeWidth={3} />
-                                            </div>
-                                        )}
-                                    </motion.div>
-                                ))}
-                        </div>
-                    </div>
+                    <Step4Media
+                        wedding={wedding}
+                        updateTheme={updateTheme}
+                        addGalleryItem={addGalleryItem}
+                        removeGalleryItem={removeGalleryItem}
+                        handleGalleryDirectUpload={handleGalleryDirectUpload}
+                        galleryUploading={galleryUploading}
+                        galleryProgress={galleryProgress}
+                        isDraggingGallery={isDraggingGallery}
+                        setIsDraggingGallery={setIsDraggingGallery}
+                        TEMPLATE_LAYOUTS={TEMPLATE_LAYOUTS}
+                    />
                 );
-            case 2: // Info
+            case 5:
                 return (
-                    <div className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <Label className="mb-2 block text-xs">កូនប្រុស (Groom)</Label>
-                                <Input
-                                    value={wedding.groomName}
-                                    onChange={(e) => updateWedding("groomName", e.target.value)}
-                                    className="mb-3"
-                                />
-                            </div>
-                            <div>
-                                <Label className="mb-2 block text-xs">កូនស្រី (Bride)</Label>
-                                <Input
-                                    value={wedding.brideName}
-                                    onChange={(e) => updateWedding("brideName", e.target.value)}
-                                    className="mb-3"
-                                />
-                            </div>
-                        </div>
-                        <div>
-                            <Label className="flex items-center gap-2 mb-3"><ImageIcon className="w-4 h-4" /> រូបថតធំ (Hero Photo)</Label>
-                            <ImageUpload
-                                value={wedding.themeSettings?.heroImage || ""}
-                                onChange={(url) => updateTheme('heroImage', url)}
-                                onRemove={() => updateTheme('heroImage', '')}
-                            />
-                            <p className="text-xs text-gray-500 mt-2">ណែនាំ: រូបភាពការ៉េ ឬបញ្ឈរ។</p>
-                        </div>
-                        <div className="border-t pt-6 space-y-4">
-                            <Label className="flex items-center gap-2 mb-1"><Heart size={16} className="text-pink-500" /> ពាក្យសន្យា (Vows)</Label>
-                            <div>
-                                <Label className="text-[10px] text-gray-500 mb-1 block">សុភាសិតស្នេហា (Main Quote)</Label>
-                                <textarea
-                                    className="w-full p-3 text-sm border rounded-lg bg-gray-50/50 min-h-[60px] focus:ring-1 focus:ring-pink-500 outline-none"
-                                    value={wedding.themeSettings?.mainQuote || ""}
-                                    onChange={(e) => updateTheme('mainQuote', e.target.value)}
-                                    placeholder="បញ្ចូលសុភាសិតស្នេហា..."
-                                />
-                            </div>
-                            <div>
-                                <Label className="text-[10px] text-gray-500 mb-1 block">ពាក្យសន្យាកូនប្រុស (Groom&apos;s Vow)</Label>
-                                <textarea
-                                    className="w-full p-3 text-sm border rounded-lg bg-gray-50/50 min-h-[80px] focus:ring-1 focus:ring-pink-500 outline-none"
-                                    value={wedding.themeSettings?.groomVow || ""}
-                                    onChange={(e) => updateTheme('groomVow', e.target.value)}
-                                />
-                            </div>
-                            <div>
-                                <Label className="text-[10px] text-gray-500 mb-1 block">ពាក្យសន្យាកូនស្រី (Bride&apos;s Vow)</Label>
-                                <textarea
-                                    className="w-full p-3 text-sm border rounded-lg bg-gray-50/50 min-h-[80px] focus:ring-1 focus:ring-pink-500 outline-none"
-                                    value={wedding.themeSettings?.brideVow || ""}
-                                    onChange={(e) => updateTheme('brideVow', e.target.value)}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                );
-            case 3: // Date & Location
-                return (
-                    <div className="space-y-6">
-                        <div>
-                            <Label className="mb-2 block text-xs">កាលបរិច្ឆេទ (Date)</Label>
-                            <Input
-                                type="datetime-local"
-                                value={toLocalISO(wedding.date)}
-                                onChange={(e) => updateWedding("date", new Date(e.target.value).toISOString())}
-                            />
-                        </div>
-                        <div>
-                            <Label className="mb-2 block text-xs">ទីកន្លែង (Location)</Label>
-                            <Input
-                                value={wedding.location || ""}
-                                onChange={(e) => updateWedding("location", e.target.value)}
-                            />
-                        </div>
-                        <div>
-                            <Label className="flex items-center gap-2 mb-3"><MapPin className="w-4 h-4" /> ទីតាំងលើផែនទី (Google Maps Link)</Label>
-                            <DebouncedInput
-                                placeholder="បញ្ចូលតំណភ្ជាប់ Google Maps..."
-                                value={wedding.themeSettings?.mapLink || ""}
-                                onDebouncedChange={(val) => updateTheme('mapLink', val as string)}
-                            />
-                        </div>
-                        <div className="border-t pt-6">
-                            <Label className="flex items-center gap-2 mb-3"><Clock className="w-4 h-4" /> កម្មវិធី (Timeline)</Label>
-                            <div className="space-y-3">
-                                {wedding.activities?.map((activity: any, idx: number) => (
-                                    <div key={idx} className="flex gap-2 items-start">
-                                        <Input
-                                            className="w-24"
-                                            value={activity.time}
-                                            onChange={(e) => {
-                                                const newActs = [...(wedding.activities || [])];
-                                                newActs[idx] = { ...newActs[idx], time: e.target.value };
-                                                updateWedding("activities", newActs);
-                                            }}
-                                            placeholder="Time"
-                                        />
-                                        <Input
-                                            className="flex-1"
-                                            value={activity.description}
-                                            onChange={(e) => {
-                                                const newActs = [...(wedding.activities || [])];
-                                                newActs[idx] = { ...newActs[idx], description: e.target.value };
-                                                updateWedding("activities", newActs);
-                                            }}
-                                            placeholder="Description"
-                                        />
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                                            onClick={() => {
-                                                const newActs = wedding.activities.filter((_: any, i: number) => i !== idx);
-                                                updateWedding("activities", newActs);
-                                            }}
-                                        >
-                                            <Trash2 size={16} />
-                                        </Button>
-                                    </div>
-                                ))}
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => {
-                                        setWedding((prev: any) => ({
-                                            ...prev,
-                                            activities: [...(prev.activities || []), { time: "00:00", description: "កម្មវិធីថ្មី", title: "Event" }]
-                                        }));
-                                    }}
-                                    className="w-full text-xs dashed border-gray-300 text-gray-500 hover:text-pink-600 hover:border-pink-300"
-                                >
-                                    <Plus size={14} className="mr-1" /> Add Event
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                );
-            case 4: // Media
-                return (
-                    <div className="space-y-6">
-                        {/* 1. SPECIAL SLOTS (If template has them) */}
-                        {TEMPLATE_LAYOUTS[wedding.templateId || "modern-full"] && (
-                            <div className="space-y-3">
-                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50 p-1 px-2 rounded inline-block">រូបភាពតាមពុម្ព (Template Required)</p>
-                                <div className="grid grid-cols-2 lg:grid-cols-2 gap-3">
-                                    {TEMPLATE_LAYOUTS[wedding.templateId || "modern-full"].labels.map((label, idx) => {
-                                        const item = wedding.galleryItems?.[idx];
-                                        const hasUrl = item && item.url;
-
-                                        return (
-                                            <div key={idx} className="space-y-1">
-                                                <p className="text-[10px] font-bold text-gray-500 truncate">{label}</p>
-                                                <div className="relative aspect-[3/4] rounded-lg border-2 border-dashed border-gray-200 overflow-hidden bg-white flex flex-col items-center justify-center group">
-                                                    {hasUrl ? (
-                                                        <>
-                                                            <Image src={item.url} alt={label} className="object-cover" fill sizes="(max-width: 768px) 50vw, 33vw" />
-                                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                                <button
-                                                                    onClick={() => removeGalleryItem(idx)}
-                                                                    className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors"
-                                                                >
-                                                                    <Trash2 size={16} />
-                                                                </button>
-                                                            </div>
-                                                        </>
-                                                    ) : (
-                                                        <CldUploadWidget
-                                                            onSuccess={(result: any) => addGalleryItem(result.info.secure_url, idx)}
-                                                            signatureEndpoint="/api/cloudinary/sign"
-                                                            uploadPreset="wedding_upload"
-                                                            options={{
-                                                                maxFiles: 1,
-                                                                sources: ['local'],
-                                                                cropping: true,
-                                                                croppingAspectRatio: idx < 2 ? 4 / 5 : undefined,
-                                                                croppingShowBackButton: true
-                                                            }}
-                                                        >
-                                                            {({ open }) => (
-                                                                <button onClick={() => open()} className="w-full h-full flex flex-col items-center justify-center gap-2 group-hover:bg-pink-50 transition-colors">
-                                                                    <Plus size={16} className="text-gray-400 group-hover:text-pink-500" />
-                                                                    <span className="text-[9px] text-gray-400 font-bold group-hover:text-pink-600">បន្ថែម</span>
-                                                                </button>
-                                                            )}
-                                                        </CldUploadWidget>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* 2. GENERAL GALLERY (Flexible) */}
-                        <div className="space-y-3 pt-4 border-t border-dashed">
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50 p-1 px-2 rounded inline-block">រូបភាពរួម (Gallery)</p>
-                            <div className="grid grid-cols-3 gap-2">
-                                {wedding.galleryItems?.map((item: any, idx: number) => {
-                                    // Skip special slots if they exist
-                                    const isSpecial = TEMPLATE_LAYOUTS[wedding.templateId || "modern-full"] && idx < TEMPLATE_LAYOUTS[wedding.templateId || "modern-full"].slots;
-                                    if (isSpecial || !item.url) return null;
-
-                                    return (
-                                        <div key={idx} className="relative aspect-square rounded-md overflow-hidden group border">
-                                            <Image src={item.url} alt="Extra Gallery" className="object-cover" fill sizes="(max-width: 768px) 33vw, 20vw" />
-                                            <button
-                                                onClick={() => removeGalleryItem(idx)}
-                                                className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                            >
-                                                <X size={12} />
-                                            </button>
-                                        </div>
-                                    );
-                                })}
-
-                                {/* ADD BUTTON ALWAYS AVAILABLE */}
-                                <div
-                                    onDragOver={(e) => { e.preventDefault(); setIsDraggingGallery(true); }}
-                                    onDragLeave={() => setIsDraggingGallery(false)}
-                                    onDrop={(e) => { e.preventDefault(); setIsDraggingGallery(false); handleGalleryDirectUpload(e.dataTransfer.files); }}
-                                    className={clsx(
-                                        "aspect-square rounded-md border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all group relative",
-                                        isDraggingGallery ? "border-pink-500 bg-pink-50 scale-105" : "border-gray-200 bg-gray-50 hover:bg-white hover:border-pink-300"
-                                    )}
-                                >
-                                    {galleryUploading ? (
-                                        <div className="flex flex-col items-center gap-2 p-2">
-                                            <Loader2 className="w-4 h-4 animate-spin text-pink-600" />
-                                            <span className="text-[8px] font-bold text-pink-600">{galleryProgress}%</span>
-                                        </div>
-                                    ) : (
-                                        <CldUploadWidget
-                                            onSuccess={(result: any) => addGalleryItem(result.info.secure_url)}
-                                            signatureEndpoint="/api/cloudinary/sign"
-                                            uploadPreset="wedding_upload"
-                                            options={{
-                                                multiple: true,
-                                                maxFiles: 50,
-                                                sources: ['local'],
-                                                cropping: true
-                                            }}
-                                        >
-                                            {({ open }) => (
-                                                <button onClick={() => open()} className="w-full h-full flex flex-col items-center justify-center gap-2">
-                                                    <Plus size={20} className="text-gray-400 group-hover:text-pink-500" />
-                                                    <span className="text-[9px] text-gray-500 font-bold">បញ្ចូល (Add)</span>
-                                                </button>
-                                            )}
-                                        </CldUploadWidget>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Gallery Style Selector */}
-                            <div className="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                                <Label className="text-[10px] text-gray-400 font-bold uppercase mb-3 block">រចនាបថរូបភាព (Gallery Style)</Label>
-                                <div className="grid grid-cols-3 gap-2">
-                                    {['masonry', 'slider', 'polaroid'].map((style) => (
-                                        <button
-                                            key={style}
-                                            onClick={() => updateTheme('galleryStyle', style as any)}
-                                            className={clsx(
-                                                "py-2 rounded-lg text-[10px] font-bold uppercase transition-all border",
-                                                (wedding.themeSettings as any)?.galleryStyle === style || (style === 'masonry' && !(wedding.themeSettings as any)?.galleryStyle)
-                                                    ? "bg-slate-900 text-white border-slate-900"
-                                                    : "bg-white text-slate-500 border-slate-200 hover:border-slate-400"
-                                            )}
-                                        >
-                                            {style === 'masonry' ? 'ក្រឡា (Grid)' : style === 'slider' ? 'រំកិល (Slide)' : 'ប៉ុឡារ៉ូអ៊ីត (Polaroid)'}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <div className="flex items-center justify-between mb-3">
-                                <div className="flex items-center gap-2">
-                                    <Music className="w-4 h-4" />
-                                    <Label className="block text-xs">តន្ត្រី (Background Music)</Label>
-                                </div>
-                            </div>
-                            <AudioUploadWidget
-                                value={wedding.themeSettings?.musicUrl || ""}
-                                onChange={(url) => updateTheme('musicUrl', url)}
-                                onRemove={() => updateTheme('musicUrl', "")}
-                            />
-                        </div>
-
-                        {/* DETAILED HERO ADJUSTMENTS */}
-                        <div className="space-y-4 pt-4 border-t border-dashed">
-                            <div className="flex items-center gap-2 mb-1">
-                                <Sparkles className="w-4 h-4 text-emerald-500" />
-                                <Label className="text-xs font-bold font-kantumruy">រៀបចំប្លង់រូបភាព Hero (Hero Adjustments)</Label>
-                            </div>
-
-                            <div className="space-y-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                                {/* Vertical / Horizontal Pan */}
-                                <div className="space-y-3">
-                                    <div className="flex justify-between items-center px-1">
-                                        <Label className="text-[10px] text-gray-400 font-bold uppercase">Vertical Pos</Label>
-                                        <span className="text-[10px] font-bold text-gray-400">{(wedding.themeSettings as any)?.heroImagePosition || '50%'}</span>
-                                    </div>
-                                    <input
-                                        type="range" min="0" max="100" step="1"
-                                        value={parseInt((wedding.themeSettings as any)?.heroImagePosition?.replace('%', '') || '50')}
-                                        onChange={(e) => updateTheme('heroImagePosition', `${e.target.value}%`)}
-                                        className="w-full accent-pink-500 h-1 bg-gray-200 rounded-full appearance-none cursor-pointer"
-                                    />
-
-                                    <div className="flex justify-between items-center px-1 mt-2">
-                                        <Label className="text-[10px] text-gray-400 font-bold uppercase">Horizontal Pos</Label>
-                                        <span className="text-[10px] font-bold text-gray-400">{(wedding.themeSettings as any)?.heroImageX || '50%'}</span>
-                                    </div>
-                                    <input
-                                        type="range" min="0" max="100" step="1"
-                                        value={parseInt((wedding.themeSettings as any)?.heroImageX?.replace('%', '') || '50')}
-                                        onChange={(e) => updateTheme('heroImageX', `${e.target.value}%`)}
-                                        className="w-full accent-pink-500 h-1 bg-gray-200 rounded-full appearance-none cursor-pointer"
-                                    />
-                                </div>
-
-                                {/* Scale (Zoom) */}
-                                <div className="space-y-2 pt-2 border-t border-slate-200">
-                                    <div className="flex justify-between items-center px-1">
-                                        <Label className="text-[10px] text-gray-400 font-bold uppercase">Zoom / Scale</Label>
-                                        <span className="text-[10px] font-bold text-gray-400">{((wedding.themeSettings as any)?.heroImageScale || 1).toFixed(1)}x</span>
-                                    </div>
-                                    <input
-                                        type="range" min="1" max="3" step="0.1"
-                                        value={(wedding.themeSettings as any)?.heroImageScale || 1}
-                                        onChange={(e) => updateTheme('heroImageScale', parseFloat(e.target.value))}
-                                        className="w-full accent-emerald-500 h-1 bg-gray-200 rounded-full appearance-none cursor-pointer"
-                                    />
-                                </div>
-
-                                {/* Filters (Brightness / Contrast) */}
-                                <div className="grid grid-cols-2 gap-4 pt-2 border-t border-slate-200">
-                                    <div className="space-y-2">
-                                        <Label className="text-[10px] text-gray-400 font-bold uppercase block">Brightness</Label>
-                                        <input
-                                            type="range" min="50" max="150" step="1"
-                                            value={(wedding.themeSettings as any)?.heroImageBrightness || 100}
-                                            onChange={(e) => updateTheme('heroImageBrightness', parseInt(e.target.value))}
-                                            className="w-full accent-amber-500 h-1 bg-gray-200 rounded-full appearance-none cursor-pointer"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label className="text-[10px] text-gray-400 font-bold uppercase block">Contrast</Label>
-                                        <input
-                                            type="range" min="50" max="150" step="1"
-                                            value={(wedding.themeSettings as any)?.heroImageContrast || 100}
-                                            onChange={(e) => updateTheme('heroImageContrast', parseInt(e.target.value))}
-                                            className="w-full accent-indigo-500 h-1 bg-gray-200 rounded-full appearance-none cursor-pointer"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                            <p className="text-[9px] text-gray-400 italic">សារ៉េទីតាំង និងពណ៌រូបភាព Hero ឱ្យស្អាតបំផុតតាមប្លង់ធៀបការងារ។</p>
-                        </div>
-
-                        <div className="mt-6">
-                            <Label className="flex items-center gap-2 mb-3"><Video className="w-4 h-4" /> វីដេអូ (YouTube Video)</Label>
-                            <DebouncedInput
-                                placeholder="បញ្ចូលតំណភ្ជាប់ YouTube..."
-                                value={wedding.themeSettings?.videoUrl || ""}
-                                onDebouncedChange={(val) => updateTheme('videoUrl', val as string)}
-                                className="mb-2"
-                            />
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-4">
-                                    <Label className="flex items-center gap-2 mb-3"><Facebook className="w-4 h-4 text-blue-600" /> Facebook</Label>
-                                    <DebouncedInput
-                                        placeholder="បញ្ចូលតំណភ្ជាប់ Facebook..."
-                                        value={wedding.themeSettings?.facebookUrl || ""}
-                                        onDebouncedChange={(val) => updateTheme('facebookUrl', val as string)}
-                                    />
-                                    <p className="text-[10px] text-gray-400">ឧទាហរណ៍: facebook.com/your-profile</p>
-                                </div>
-                                <div className="space-y-4">
-                                    <Label className="flex items-center gap-2 mb-3"><Send className="w-4 h-4 text-sky-500" /> Telegram</Label>
-                                    <DebouncedInput
-                                        placeholder="បញ្ចូលតំណភ្ជាប់ Telegram..."
-                                        value={wedding.themeSettings?.telegramUrl || ""}
-                                        onDebouncedChange={(val) => updateTheme('telegramUrl', val as string)}
-                                    />
-                                    <p className="text-[10px] text-gray-400">ឧទាហរណ៍: t.me/username</p>
-                                </div>
-                            </div>
-                            <div className="border-t pt-4">
-                                <Label className="flex items-center gap-2 mb-3"><Wallet className="w-4 h-4 text-emerald-600" /> គណនីធនាគារ (Payment / QR URL)</Label>
-                                <ImageUpload
-                                    value={wedding.themeSettings?.paymentQrUrl || ""}
-                                    onChange={(url) => updateTheme('paymentQrUrl', url)}
-                                    onRemove={() => updateTheme('paymentQrUrl', "")}
-                                />
-                                <p className="text-[10px] text-gray-400 mt-2">ណែនាំ: រូបភាព QR Code នឹងត្រូវបានទាញយកដោយស្វ័យប្រវត្តិ។</p>
-                            </div>
-                        </div>
-                    </div>
-                );
-            case 5: // Theme & Extra
-                return (
-                    <div className="space-y-4 pb-10 font-khmer">
-                        <p className="text-xs text-gray-500 mb-4 bg-pink-50/50 p-3 rounded-xl border border-pink-100 flex items-center gap-2">
-                            <Sparkles className="w-3.5 h-3.5 text-pink-500" />
-                            បំពេញព័ត៌មានបន្ថែមដើម្បីឱ្យធៀបរបស់អ្នកកាន់តែប្លែក និងទាក់ទាញ។
-                        </p>
-
-                        <div className="space-y-3">
-                            {/* SECTION 1: THEME & MUSIC */}
-                            <AccordionItem
-                                icon={Palette}
-                                title="រចនា & តន្ត្រី"
-                                subtitle="ជ្រើសរើសពណ៌ និងតន្ត្រី"
-                                isOpen={activeAccordion === 'theme'}
-                                onClick={() => setActiveAccordion(activeAccordion === 'theme' ? null : 'theme')}
-                            >
-                                <div className="space-y-6 pt-2">
-                                    <div>
-                                        <Label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-3 block">ពណ៌ចម្បង (Primary Color)</Label>
-                                        <div className="grid grid-cols-5 gap-3">
-                                            {PRESET_COLORS.map(color => (
-                                                <button
-                                                    key={color}
-                                                    onClick={() => updateTheme('primaryColor', color)}
-                                                    className={clsx(
-                                                        "w-10 h-10 rounded-full border-4 shadow-sm transition-transform hover:scale-110",
-                                                        wedding.themeSettings?.primaryColor === color ? "border-gray-900 scale-110" : "border-transparent"
-                                                    )}
-                                                    style={{ backgroundColor: color }}
-                                                />
-                                            ))}
-                                            <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-gray-200">
-                                                <DebouncedInput
-                                                    type="color"
-                                                    className="absolute -top-2 -left-2 w-16 h-16 cursor-pointer"
-                                                    value={wedding.themeSettings?.primaryColor || "#8E5A5A"}
-                                                    onDebouncedChange={(val) => updateTheme('primaryColor', val as string)}
-                                                />
-                                            </div>
-                                        </div>
-                                        <p className="text-[10px] text-gray-400 mt-2">ណែនាំ: ពណ៌នេះនឹងប្រើសម្រាប់អក្សរ និងប៊ូតុងសំខាន់ៗ។</p>
-                                    </div>
-
-                                    <div>
-                                        <Label className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2 block">តន្ត្រី (Background Music URL)</Label>
-                                        <DebouncedInput
-                                            placeholder="បញ្ចូលតំណភ្ជាប់ MP3..."
-                                            value={wedding.themeSettings?.musicUrl || ""}
-                                            className="h-11 rounded-xl bg-gray-50 border-gray-100 font-sans"
-                                            onDebouncedChange={(val) => updateTheme('musicUrl', val as string)}
-                                        />
-                                        <p className="text-[10px] text-gray-400 mt-2">បញ្ចូលតំណភ្ជាប់ MP3 ដែលអាចលេងបានផ្ទាល់។</p>
-                                    </div>
-                                </div>
-                            </AccordionItem>
-
-                            {/* SECTION 2: FAMILY INFO */}
-                            <AccordionItem
-                                icon={Heart}
-                                title="ព័ត៌មានគ្រួសារ"
-                                subtitle="ឈ្មោះមាតាបិតាទាំងសងខាង"
-                                isOpen={activeAccordion === 'family'}
-                                onClick={() => setActiveAccordion(activeAccordion === 'family' ? null : 'family')}
-                            >
-                                <div className="grid grid-cols-1 gap-6 pt-2">
-                                    <div className="space-y-4">
-                                        <div className="flex items-center gap-2">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-pink-500"></span>
-                                            <h4 className="text-[11px] font-bold text-gray-800 uppercase">ខាងកូនប្រុស</h4>
-                                        </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                            <Input placeholder="ឈ្មោះឪពុក" className="h-11 rounded-xl bg-gray-50 border-gray-100" value={wedding.themeSettings?.parents?.groomFather || ""} onChange={(e) => updateParent('groomFather', e.target.value)} />
-                                            <Input placeholder="ឈ្មោះម្តាយ" className="h-11 rounded-xl bg-gray-50 border-gray-100" value={wedding.themeSettings?.parents?.groomMother || ""} onChange={(e) => updateParent('groomMother', e.target.value)} />
-                                        </div>
-                                        <Input placeholder="លេខទូរស័ព្ទ (សម្រាប់ភ្ញៀវទាក់ទង)" className="h-11 rounded-xl bg-gray-50 border-gray-100" value={wedding.themeSettings?.parents?.groomPhone || ""} onChange={(e) => updateParent('groomPhone', e.target.value)} />
-                                    </div>
-                                    <div className="space-y-4 pt-2 border-t border-gray-50">
-                                        <div className="flex items-center gap-2">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-teal-500"></span>
-                                            <h4 className="text-[11px] font-bold text-gray-800 uppercase">ខាងកូនស្រី</h4>
-                                        </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                            <Input placeholder="ឈ្មោះឪពុក" className="h-11 rounded-xl bg-gray-50 border-gray-100" value={wedding.themeSettings?.parents?.brideFather || ""} onChange={(e) => updateParent('brideFather', e.target.value)} />
-                                            <Input placeholder="ឈ្មោះម្តាយ" className="h-11 rounded-xl bg-gray-50 border-gray-100" value={wedding.themeSettings?.parents?.brideMother || ""} onChange={(e) => updateParent('brideMother', e.target.value)} />
-                                        </div>
-                                        <Input placeholder="លេខទូរស័ព្ទ (សម្រាប់ភ្ញៀវទាក់ទង)" className="h-11 rounded-xl bg-gray-50 border-gray-100" value={wedding.themeSettings?.parents?.bridePhone || ""} onChange={(e) => updateParent('bridePhone', e.target.value)} />
-                                    </div>
-                                </div>
-                            </AccordionItem>
-
-                            {/* SECTION 3: PAYMENTS */}
-                            <AccordionItem
-                                icon={CreditCard}
-                                title="គណនីធនាគារ"
-                                subtitle="សម្រាប់ភ្ញៀវផ្ញើចំណងដៃ"
-                                isOpen={activeAccordion === 'payment'}
-                                onClick={() => setActiveAccordion(activeAccordion === 'payment' ? null : 'payment')}
-                            >
-                                <div className="space-y-4 pt-2">
-                                    {wedding.themeSettings?.bankAccounts?.map((acc: any, idx: number) => (
-                                        <div key={idx} className="bg-gray-50/50 p-4 rounded-xl border border-gray-100 relative group">
-                                            <button
-                                                onClick={() => {
-                                                    const newAccs = wedding.themeSettings?.bankAccounts?.filter((_, i) => i !== idx);
-                                                    updateTheme('bankAccounts', newAccs);
-                                                }}
-                                                className="absolute top-3 right-3 text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                                            >
-                                                <X size={14} />
-                                            </button>
-                                            <div className="grid grid-cols-2 gap-3 mb-3">
-                                                <select
-                                                    className="w-full h-10 border border-gray-200 rounded-lg px-2 bg-white text-xs"
-                                                    value={acc.bankName}
-                                                    onChange={(e) => {
-                                                        const newAccs = [...(wedding.themeSettings?.bankAccounts || [])];
-                                                        newAccs[idx] = { ...newAccs[idx], bankName: e.target.value };
-                                                        updateTheme('bankAccounts', newAccs);
-                                                    }}
-                                                >
-                                                    <option value="ABA Bank">ABA Bank</option>
-                                                    <option value="ACLEDA Bank">ACLEDA Bank</option>
-                                                    <option value="Wing Bank">Wing Bank</option>
-                                                    <option value="Other">Other</option>
-                                                </select>
-                                                <Input
-                                                    placeholder="ឈ្មោះគណនី"
-                                                    className="h-10 text-xs rounded-lg"
-                                                    value={acc.accountName}
-                                                    onChange={(e) => {
-                                                        const newAccs = [...(wedding.themeSettings?.bankAccounts || [])];
-                                                        newAccs[idx] = { ...newAccs[idx], accountName: e.target.value };
-                                                        updateTheme('bankAccounts', newAccs);
-                                                    }}
-                                                />
-                                            </div>
-                                            <Input
-                                                placeholder="លេខគណនី"
-                                                className="h-10 text-xs rounded-lg"
-                                                value={acc.accountNumber}
-                                                onChange={(e) => {
-                                                    const newAccs = [...(wedding.themeSettings?.bankAccounts || [])];
-                                                    newAccs[idx] = { ...newAccs[idx], accountNumber: e.target.value };
-                                                    updateTheme('bankAccounts', newAccs);
-                                                }}
-                                            />
-                                        </div>
-                                    ))}
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="w-full text-[10px] border-dashed"
-                                        onClick={() => {
-                                            const newAccs = [...(wedding.themeSettings?.bankAccounts || []), { bankName: "ABA Bank", accountName: "", accountNumber: "", qrUrl: "" }];
-                                            updateTheme('bankAccounts', newAccs);
-                                        }}
-                                    >
-                                        <Plus size={14} className="mr-1" /> បន្ថែមគណនី
-                                    </Button>
-                                    <p className="text-[10px] text-gray-400">ណែនាំ: អ្នកអាចបញ្ចូលបានច្រើនគណនីតាមតម្រូវការ។</p>
-                                </div>
-                            </AccordionItem>
-
-                            {/* SECTION 4: LABELS */}
-                            <AccordionItem
-                                icon={Type}
-                                title="ចំណងជើងកម្មវិធី"
-                                subtitle="កែប្រែអក្សរលើធៀប"
-                                isOpen={activeAccordion === 'labels'}
-                                onClick={() => setActiveAccordion(activeAccordion === 'labels' ? null : 'labels')}
-                            >
-                                <div className="space-y-4 pt-2">
-                                    <div className="grid grid-cols-1 gap-4">
-                                        <div className="space-y-1.5">
-                                            <Label className="text-[10px] text-gray-400 font-bold uppercase ml-1">ចំណងជើងធំ (Main Title)</Label>
-                                            <Input className="h-11 rounded-xl bg-gray-50 border-gray-100" value={wedding.themeSettings?.customLabels?.invite_title || ""} onChange={(e) => updateLabel('invite_title', e.target.value)} />
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <Label className="text-[10px] text-gray-400 font-bold uppercase ml-1">ចំណងជើងវិចិត្រសាល (Gallery)</Label>
-                                            <Input className="h-11 rounded-xl bg-gray-50 border-gray-100" value={wedding.themeSettings?.customLabels?.gallery_title || ""} onChange={(e) => updateLabel('gallery_title', e.target.value)} />
-                                        </div>
-                                    </div>
-                                    <p className="text-[10px] text-gray-400">ណែនាំ: កែប្រែអត្ថបទទាំងនេះដើម្បីឱ្យសមស្របតាមចំណូលចិត្តរបស់អ្នក។</p>
-                                </div>
-                            </AccordionItem>
-
-                            {/* SECTION 5: VERSION HISTORY */}
-                            <AccordionItem
-                                icon={Clock}
-                                title="ប្រវត្តិនៃការកែប្រែ (Version History)"
-                                subtitle="រក្សាទុក ឬទាញយកម៉ូដចាស់ៗ"
-                                isOpen={activeAccordion === 'history'}
-                                onClick={() => {
-                                    const isOpen = activeAccordion === 'history';
-                                    setActiveAccordion(isOpen ? null : 'history');
-                                    if (!isOpen) fetchVersions();
-                                }}
-                            >
-                                <div className="space-y-4 pt-4">
-                                    {/* Create New Version */}
-                                    <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3">
-                                        <Label className="text-[10px] text-gray-400 font-bold uppercase block">រក្សាទុក Version ថ្មី (Create Snapshot)</Label>
-                                        <div className="flex gap-2">
-                                            <Input
-                                                placeholder="ឈ្មោះ Version (ឧ. មុនដូរពណ៌...)"
-                                                value={newVersionTitle}
-                                                onChange={(e) => setNewVersionTitle(e.target.value)}
-                                                className="h-10 text-xs rounded-lg"
-                                            />
-                                            <Button
-                                                onClick={handleSaveVersion}
-                                                disabled={isSavingVersion || !newVersionTitle}
-                                                className="h-10 bg-slate-900 hover:bg-black text-white px-4 rounded-lg text-xs"
-                                            >
-                                                {isSavingVersion ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-                                            </Button>
-                                        </div>
-                                    </div>
-
-                                    {/* Version List */}
-                                    <div className="space-y-2">
-                                        <Label className="text-[10px] text-gray-400 font-bold uppercase block px-1">បញ្ជី Version ដែលបានរក្សាទុក</Label>
-                                        {fetchingVersions ? (
-                                            <div className="flex flex-col items-center py-8 gap-2">
-                                                <Loader2 className="w-6 h-6 animate-spin text-slate-300" />
-                                                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Loading Versions...</span>
-                                            </div>
-                                        ) : templateVersions.length === 0 ? (
-                                            <div className="text-center py-8 border-2 border-dashed border-slate-50 rounded-xl">
-                                                <p className="text-[10px] text-slate-300 font-bold uppercase">មិនទាន់មាន Version នៅឡើយទេ</p>
-                                            </div>
-                                        ) : (
-                                            <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 scrollbar-hide">
-                                                {templateVersions.map((ver) => (
-                                                    <div key={ver.id} className="bg-white p-3 rounded-xl border border-slate-100 flex items-center justify-between group hover:border-slate-300 transition-all shadow-sm">
-                                                        <div className="min-w-0">
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="text-xs font-black text-slate-900 font-kantumruy truncate">{ver.versionName}</span>
-                                                                {/* Stability Badge (Optional) */}
-                                                                <span className="text-[8px] bg-slate-50 text-slate-400 px-1.5 py-0.5 rounded-full font-bold">SAVED</span>
-                                                            </div>
-                                                            <p className="text-[9px] text-slate-400 mt-0.5">{new Date(ver.createdAt).toLocaleString('km-KH')}</p>
-                                                        </div>
-                                                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                onClick={() => handleRollback(ver.id)}
-                                                                className="h-8 w-8 text-emerald-600 hover:bg-emerald-50 rounded-lg"
-                                                                title="Restore this version"
-                                                            >
-                                                                <RotateCcw size={14} />
-                                                            </Button>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                                onClick={() => handleDeleteVersion(ver.id)}
-                                                                className="h-8 w-8 text-red-400 hover:bg-red-50 rounded-lg"
-                                                                title="Delete"
-                                                            >
-                                                                <Trash2 size={14} />
-                                                            </Button>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </AccordionItem>
-                        </div>
-                    </div>
+                    <Step5Extra
+                        wedding={wedding}
+                        updateTheme={updateTheme}
+                        updateParent={updateParent}
+                        updateLabel={updateLabel}
+                        handleSaveVersion={handleSaveVersion}
+                        handleRollback={handleRollback}
+                        handleDeleteVersion={handleDeleteVersion}
+                        fetchVersions={fetchVersions}
+                        templateVersions={templateVersions}
+                        fetchingVersions={fetchingVersions}
+                        isSavingVersion={isSavingVersion}
+                        newVersionTitle={newVersionTitle}
+                        setNewVersionTitle={setNewVersionTitle}
+                        activeAccordion={activeAccordion}
+                        setActiveAccordion={setActiveAccordion}
+                        PRESET_COLORS={PRESET_COLORS}
+                    />
                 );
             default:
                 return null;
@@ -1428,7 +642,7 @@ export default function DesignPage() {
     };
 
     const editorPanel = (
-        <div className="flex-1 min-h-0 bg-white/60 backdrop-blur-2xl border-r border-gray-100 shadow-2xl z-20">
+        <div className="flex-1 flex flex-col min-h-0 bg-card/60 backdrop-blur-md z-20">
             <StepWizard
                 currentStep={currentStep}
                 onNext={nextStep}
@@ -1436,6 +650,7 @@ export default function DesignPage() {
                 isLast={currentStep === STEPS.length}
                 onSave={saveChanges}
                 loading={loading}
+                setStep={setCurrentStep}
             >
                 {renderStepContent()}
             </StepWizard>
@@ -1446,42 +661,44 @@ export default function DesignPage() {
 
     // DESKTOP LAYOUT (In-flow, managed by DashboardLayout)
     const desktopLayout = (
-        <div className="hidden md:flex h-full w-full flex-row overflow-hidden bg-gray-50 relative">
+        <div className="hidden md:flex flex-row overflow-hidden bg-background h-screen w-full w-full">
             {/* 1. EDITOR PANEL (Left Sidebar) */}
-            <div className="flex-none w-[400px] flex flex-col z-20 relative bg-white border-r border-gray-200 shadow-sm h-full">
+            <div className="flex-none w-[400px] flex flex-col z-20 bg-card border-r border-border shadow-sm h-full">
                 {editorPanel}
             </div>
 
             {/* 2. PREVIEW AREA (Right Fluid) */}
-            <div className="flex-1 bg-slate-50 flex items-center justify-center p-12 relative overflow-hidden">
+            <div className="flex-1 bg-background flex items-center justify-center p-12 relative overflow-hidden">
                 {/* Background */}
                 <div className="absolute inset-0 z-0">
-                    <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-red-50 rounded-full blur-[120px]"></div>
-                    <div className="absolute bottom-[20%] right-[-5%] w-[30%] h-[30%] bg-slate-100 rounded-full blur-[100px]"></div>
+                    <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-red-50 dark:bg-red-950/20 rounded-full blur-[120px]"></div>
+                    <div className="absolute bottom-[20%] right-[-5%] w-[30%] h-[30%] bg-slate-100 dark:bg-slate-950/20 rounded-full blur-[100px]"></div>
                 </div>
 
                 {/* Desktop Preview Container */}
-                <motion.div
-                    layout
-                    className="relative z-10 bg-white shadow-2xl overflow-hidden transition-all duration-500 ease-in-out flex flex-col group origin-top w-[95%] h-[85vh] rounded-xl border-[4px] border-gray-900/10 ring-1 ring-gray-900/5"
+                <div
+                    className={clsx(
+                        "relative z-10 bg-background overflow-hidden transition-all duration-300 ease-in-out flex flex-col group origin-center shadow-2xl",
+                        previewMode === 'mobile' ? "w-[390px] h-[844px] rounded-[2rem] border-2 border-border ring-4 ring-border/20" : "w-[95%] h-[85vh] rounded-2xl border-4 border-muted"
+                    )}
                 >
                     <iframe
                         ref={iframeRef}
                         src="/preview"
-                        className="w-full h-full border-none bg-white"
+                        className="w-full h-full border-none bg-background"
                         title="Preview"
                     />
-                </motion.div>
+                </div>
 
                 <PreviewSync wedding={wedding} iframeRef={iframeRef} currentStep={currentStep} enableScrollSync={false} />
 
                 {/* View Toggle (Desktop Only) */}
-                <div className="absolute top-4 right-4 z-30 bg-white/90 backdrop-blur-md p-1 rounded-full shadow-lg gap-1 border border-gray-100 flex">
+                <div className="absolute top-4 right-4 z-30 bg-card/90 backdrop-blur-sm p-1 rounded-full shadow-lg gap-1 border border-border flex">
                     <button
                         onClick={() => setPreviewMode('mobile')}
                         className={clsx(
                             "p-2 rounded-full transition-all duration-300",
-                            previewMode === 'mobile' ? "bg-gray-900 text-white shadow-md" : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                            previewMode === 'mobile' ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:text-foreground hover:bg-muted"
                         )}
                         title="Mobile View"
                     >
@@ -1491,7 +708,7 @@ export default function DesignPage() {
                         onClick={() => setPreviewMode('desktop')}
                         className={clsx(
                             "p-2 rounded-full transition-all duration-300",
-                            previewMode === 'desktop' ? "bg-gray-900 text-white shadow-md" : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                            previewMode === 'desktop' ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:text-foreground hover:bg-muted"
                         )}
                         title="Desktop View"
                     >
@@ -1505,20 +722,20 @@ export default function DesignPage() {
     // MOBILE LAYOUT (Portal to Body, Full Screen Overlay)
     // Only render if mounted and on mobile (we use CSS md:hidden on the wrapper to handle resizing)
     const mobileLayout = mounted ? createPortal(
-        <div className="md:hidden fixed inset-0 w-screen h-[100dvh] z-[99999] bg-white flex flex-col overflow-hidden pt-[115px]" role="dialog" aria-label="Mobile Design Editor">
+        <div className="md:hidden fixed inset-0 w-screen h-[100dvh] z-[99999] bg-background flex flex-col overflow-hidden pt-[115px]" role="dialog" aria-label="Mobile Design Editor">
             {/* MOBILE HEADER (Fixed Top) */}
-            <div className="fixed top-0 left-0 right-0 h-[115px] bg-white border-b border-gray-200 z-[100000] shadow-md flex flex-col">
+            <div className="fixed top-0 left-0 right-0 h-[115px] bg-card border-b border-border z-[100000] shadow-md flex flex-col">
                 {/* Row 1: Dashboard Nav & Tabs */}
                 <div className="flex items-center px-4 pt-10 pb-2 gap-2">
-                    <Link href="/dashboard" className="p-2 -ml-2 text-gray-500 hover:text-gray-900 transition-colors">
+                    <Link href="/dashboard" className="p-2 -ml-2 text-muted-foreground hover:text-foreground transition-colors">
                         <ArrowLeft size={18} />
                     </Link>
-                    <div className="flex-1 bg-slate-100 p-1 rounded-xl flex relative h-9 font-khmer">
+                    <div className="flex-1 bg-muted p-1 rounded-xl flex relative h-9 font-khmer">
                         <button
                             onClick={() => setMobileTab('editor')}
                             className={clsx(
                                 "flex-1 text-[10px] font-bold rounded-lg transition-all z-10 flex items-center justify-center gap-1.5",
-                                mobileTab === 'editor' ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-900"
+                                mobileTab === 'editor' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                             )}
                         >
                             <Settings2 size={13} /> រចនា
@@ -1527,7 +744,7 @@ export default function DesignPage() {
                             onClick={() => setMobileTab('preview')}
                             className={clsx(
                                 "flex-1 text-[10px] font-bold rounded-lg transition-all z-10 flex items-center justify-center gap-1.5",
-                                mobileTab === 'preview' ? "bg-white text-red-600 shadow-sm" : "text-slate-500 hover:text-slate-900"
+                                mobileTab === 'preview' ? "bg-background text-red-600 shadow-sm" : "text-muted-foreground hover:text-foreground"
                             )}
                         >
                             <Smartphone size={13} /> មើលមុន
@@ -1536,18 +753,18 @@ export default function DesignPage() {
                 </div>
 
                 {/* Row 2: Step Navigation */}
-                <div className="flex items-center justify-between px-4 pb-2 border-t border-gray-100 pt-1.5 bg-gray-50/50 font-khmer">
+                <div className="flex items-center justify-between px-4 pb-2 border-t border-border pt-1.5 bg-muted/50 font-khmer">
                     <Button
                         variant="outline"
                         size="sm"
                         onClick={prevStep}
                         disabled={currentStep === 1}
-                        className="text-gray-500 hover:text-gray-900 h-7 px-2 text-[10px]"
+                        className="text-muted-foreground hover:text-foreground h-7 px-2 text-[10px]"
                     >
                         <ArrowLeft size={14} className="mr-1" /> ថយក្រោយ
                     </Button>
 
-                    <span className="text-[10px] font-medium text-gray-500">
+                    <span className="text-[10px] font-medium text-muted-foreground">
                         ជំហានទី {currentStep} / {STEPS.length}
                     </span>
 
@@ -1574,7 +791,7 @@ export default function DesignPage() {
 
             {/* 1. EDITOR PANEL (Full Content when active) */}
             <div className={clsx(
-                "flex-1 flex-col z-20 relative bg-white",
+                "flex-1 flex-col z-20 relative bg-background",
                 mobileTab === 'editor' ? "flex h-full overflow-y-auto" : "hidden"
             )}>
                 {/* Re-render editor panel directly. Since it's a variable, it works.
@@ -1585,11 +802,11 @@ export default function DesignPage() {
 
             {/* 2. PREVIEW AREA (Full Content when active) */}
             <div className={clsx(
-                "flex-1 bg-gray-100 items-center justify-center p-0 relative overflow-hidden",
+                "flex-1 bg-muted items-center justify-center p-0 relative overflow-hidden",
                 mobileTab === 'preview' ? "flex h-full" : "hidden"
             )}>
                 {/* Mobile Preview Container */}
-                <div className="w-full h-full bg-white relative">
+                <div className="w-full h-full bg-background relative">
                     {/* We need a second iframe reference or just render iframe.
                           Providing a new ref 'mobileIframeRef' would be better to avoid conflict if both mount.
                           But keeping it simple: render iframe. Sync will handle it if we duplicate the Sync component?
@@ -1603,116 +820,10 @@ export default function DesignPage() {
     ) : null;
 
     return (
-        <div className="relative">
+        <div className="relative h-[calc(100vh)] w-full overflow-hidden flex flex-col">
             {desktopLayout}
             {mobileLayout}
 
-            {/* Quick Notes Overlay Trigger */}
-            <motion.div
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="fixed bottom-6 right-6 md:right-10 z-[100] group"
-            >
-                <button
-                    onClick={() => setIsNotesOpen(true)}
-                    className="w-14 h-14 bg-slate-900 text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all group-hover:bg-black"
-                >
-                    <StickyNote className="w-6 h-6" />
-                </button>
-                <div className="absolute right-full mr-4 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-xl">
-                    កំណត់ត្រា (Quick Notes)
-                </div>
-            </motion.div>
-
-            {/* Quick Notes Panel */}
-            <AnimatePresence>
-                {isNotesOpen && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[1000] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-6"
-                        onClick={() => setIsNotesOpen(false)}
-                    >
-                        <motion.div
-                            initial={{ scale: 0.9, y: 20 }}
-                            animate={{ scale: 1, y: 0 }}
-                            exit={{ scale: 0.9, y: 20 }}
-                            onClick={(e) => e.stopPropagation()}
-                            className="w-full max-w-xl bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-slate-100"
-                        >
-                            <div className="p-8 border-b border-slate-50 flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-white">
-                                        <StickyNote className="w-5 h-5" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-black text-slate-900 font-kantumruy">កំណត់ត្រារហ័ស</h3>
-                                        <p className="text-[10px] text-slate-400 uppercase tracking-widest font-black">Quick Memo Space</p>
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={() => setIsNotesOpen(false)}
-                                    className="p-3 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-xl transition-all"
-                                >
-                                    <X size={20} />
-                                </button>
-                            </div>
-
-                            <div className="p-8 space-y-4">
-                                <textarea
-                                    value={quickNotes}
-                                    onChange={(e) => setQuickNotes(e.target.value)}
-                                    placeholder="សរសេរអ្វីមួយនៅទីនេះ..."
-                                    className="w-full h-[300px] bg-slate-50 border border-slate-100 rounded-2xl p-6 text-slate-700 focus:outline-none focus:ring-4 focus:ring-slate-900/5 focus:bg-white transition-all font-kantumruy leading-relaxed text-sm resize-none"
-                                />
-                                <div className="flex justify-between items-center text-[10px] text-slate-300 font-black uppercase tracking-widest px-2">
-                                    <span>Internal Only</span>
-                                    <div className="flex items-center gap-4">
-                                        {savingNotes && <span className="text-emerald-500 animate-pulse">Saving...</span>}
-                                        <span>Auto-sync enabled</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="p-8 pt-0">
-                                <Button
-                                    onClick={async () => {
-                                        await saveNotes(quickNotes);
-                                        setIsNotesOpen(false);
-                                    }}
-                                    className="w-full h-14 bg-slate-900 hover:bg-black text-white rounded-xl font-black uppercase tracking-widest shadow-xl shadow-slate-200 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-                                >
-                                    {savingNotes ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                                    រក្សាទុក និងបិទ (Save & Close)
-                                </Button>
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* === DESIGN PAGE CONFIRM MODALS === */}
-            <ConfirmModal
-                open={rollbackConfirm.open}
-                onClose={() => setRollbackConfirm({ open: false, versionId: "" })}
-                onConfirm={confirmRollback}
-                loading={rollbackLoading}
-                title="ទាញយក Version មកប្រើ"
-                description="ការកែប្រែបច្ចុប្បន្នទាំងអស់នឹងត្រូវប្ដូរជំនួស។ Template Design នឹងត្រូវបណ្ដុះបណ្ដាលឡើងវិញ។"
-                confirmLabel="យល់ព្រម Restore"
-                variant="info"
-            />
-            <ConfirmModal
-                open={deleteVersionConfirm.open}
-                onClose={() => setDeleteVersionConfirm({ open: false, versionId: "" })}
-                onConfirm={confirmDeleteVersion}
-                loading={false}
-                title="លុប Version នេះ"
-                description="Version នេះនឹងត្រូវបានលុបចោលជាអចិន្ត្រៃ។ សកម្មភាពនេះមិនអាចដកស្រាយបានឡើយ។"
-                confirmLabel="លុបចោល"
-                variant="danger"
-            />
         </div>
     );
 }
@@ -1725,7 +836,7 @@ function MobilePreviewWrapper({ wedding, currentStep }: { wedding: WeddingData |
             <iframe
                 ref={mobileIframeRef}
                 src="/preview"
-                className="w-full h-full border-none bg-white"
+                className="w-full h-full border-none bg-background"
                 title="Mobile Preview"
             />
             <PreviewSync wedding={wedding} iframeRef={mobileIframeRef} currentStep={currentStep} enableScrollSync={true} />
@@ -1733,6 +844,16 @@ function MobilePreviewWrapper({ wedding, currentStep }: { wedding: WeddingData |
     );
 }
 
+
+// --- Custom Hook ---
+function useDebounce<T>(value: T, delay: number): T {
+    const [debouncedValue, setDebouncedValue] = useState<T>(value);
+    useEffect(() => {
+        const handler = setTimeout(() => { setDebouncedValue(value); }, delay);
+        return () => { clearTimeout(handler); };
+    }, [value, delay]);
+    return debouncedValue;
+}
 
 function PreviewSync({ wedding, iframeRef, currentStep, enableScrollSync = true }: { wedding: WeddingData | null, iframeRef: React.RefObject<HTMLIFrameElement>, currentStep: number, enableScrollSync?: boolean }) {
     // Debounce to prevent frequent updates while typing

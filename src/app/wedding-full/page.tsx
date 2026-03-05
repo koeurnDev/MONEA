@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { CldImage } from 'next-cloudinary';
 import { Heart, MapPin, Calendar, Send, Music, Music2, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import clsx from 'clsx';
@@ -37,13 +37,13 @@ export default function FullWeddingInvitation() {
             {/* 1. Splash Screen (Video 2 Style) */}
             <AnimatePresence>
                 {!isOpen && (
-                    <motion.div
+                    <m.div
                         exit={{ y: "-100%" }}
                         transition={{ duration: 0.8, ease: "easeInOut" }}
                         className="fixed inset-0 z-[100] bg-white flex flex-col items-center justify-center text-center p-6 max-w-md mx-auto"
                     >
                         <div className="absolute inset-0 bg-[url('/floral-frame.png')] bg-contain bg-center bg-no-repeat opacity-80 pointer-events-none" />
-                        <motion.h2 className="text-pink-400 text-lg mb-4 z-10">សិរីសួស្តីអាពាហ៍ពិពាហ៍</motion.h2>
+                        <m.h2 className="text-pink-400 text-lg mb-4 z-10">សិរីសួស្តីអាពាហ៍ពិពាហ៍</m.h2>
                         <h1 className="text-5xl text-[#8E5A5A] mb-8 z-10 font-bold">ភារម្យ & សោភា</h1>
                         <button
                             onClick={() => { setIsOpen(true); setIsPlaying(true); }}
@@ -51,7 +51,7 @@ export default function FullWeddingInvitation() {
                         >
                             បើកសំបុត្រអញ្ជើញ
                         </button>
-                    </motion.div>
+                    </m.div>
                 )}
             </AnimatePresence>
 
@@ -67,7 +67,7 @@ export default function FullWeddingInvitation() {
             <section className="relative pt-32 pb-16 text-center overflow-hidden">
                 {/* Floating Butterflies */}
                 {[1, 2, 3].map((i) => (
-                    <motion.span
+                    <m.span
                         key={i}
                         animate={{
                             x: [0, 50, -50, 0],
@@ -79,14 +79,14 @@ export default function FullWeddingInvitation() {
                         style={{ top: '60%', left: `${i * 25}%` }}
                     >
                         🦋
-                    </motion.span>
+                    </m.span>
                 ))}
 
-                <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ duration: 1.5 }}>
+                <m.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} transition={{ duration: 1.5 }}>
                     <h2 className="text-pink-400 tracking-[0.3em] mb-6 text-sm font-semibold">SAVE THE DATE</h2>
                     <h1 className="text-6xl text-[#8E5A5A] leading-tight mb-4 font-bold">ភារម្យ <br />&<br /> សោភា</h1>
                     <p className="text-gray-500 italic mt-6 px-10">សូមគោរពអញ្ជើញ លោក... លោកស្រី...</p>
-                </motion.div>
+                </m.div>
             </section>
 
             {/* 4. Event Timeline */}
@@ -98,7 +98,7 @@ export default function FullWeddingInvitation() {
                         { time: "09:00 ព្រឹក", desc: "ពិធីកាត់សក់បង្កក់សិរី" },
                         { time: "04:30 ល្ងាច", desc: "អញ្ជើញពិសាភោជនាហារ" },
                     ].map((item, idx) => (
-                        <motion.div
+                        <m.div
                             key={idx}
                             initial={{ x: -20, opacity: 0 }}
                             whileInView={{ x: 0, opacity: 1 }}
@@ -112,7 +112,7 @@ export default function FullWeddingInvitation() {
                                 <span className="text-xs font-bold text-pink-500 uppercase block mb-1">{item.time}</span>
                                 <p className="text-gray-700 text-sm">{item.desc}</p>
                             </div>
-                        </motion.div>
+                        </m.div>
                     ))}
                 </div>
             </section>
@@ -120,7 +120,7 @@ export default function FullWeddingInvitation() {
             {/* 5. Photo Gallery (Video 3 Style) */}
             <section className="p-4 grid grid-cols-2 gap-2">
                 {galleryImages.map((src, idx) => (
-                    <motion.div
+                    <m.div
                         key={idx}
                         whileHover={{ scale: 0.98 }}
                         onClick={() => setSelectedImg(idx)}
@@ -137,7 +137,7 @@ export default function FullWeddingInvitation() {
                             className="object-cover transition-transform duration-500 group-hover:scale-110"
                         />
                         <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </motion.div>
+                    </m.div>
                 ))}
             </section>
 
@@ -174,7 +174,7 @@ export default function FullWeddingInvitation() {
             {/* Fullscreen Image Overlay */}
             <AnimatePresence>
                 {selectedImg !== null && (
-                    <motion.div
+                    <m.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -198,7 +198,7 @@ export default function FullWeddingInvitation() {
                                 priority
                             />
                         </div>
-                    </motion.div>
+                    </m.div>
                 )}
             </AnimatePresence>
         </div>

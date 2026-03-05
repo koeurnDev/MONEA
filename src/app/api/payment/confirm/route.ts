@@ -1,25 +1,23 @@
-export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { verifyToken } from "@/lib/auth"; // Helper to get user from token
-import { cookies } from "next/headers";
-
-async function getUser() {
-    const token = cookies().get("token")?.value;
-    if (!token) return null;
-    return verifyToken(token) as { userId: string } | null;
-}
+import { getServerUser } from "@/lib/auth";
+import { errorResponse } from "@/lib/api-utils";
 
 export async function POST(req: Request) {
-    const user = await getUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const user = await getServerUser();
+    if (!user) return errorResponse("Unauthorized", 401);
 
     try {
         const { packageType } = await req.json(); // "PRO" or "PREMIUM"
 
-        if (!packageType) return NextResponse.json({ error: "Package required" }, { status: 400 });
+        if (!packageType) return errorResponse("Package required", 400);
 
-        const wedding = await prisma.wedding.findFirst({ where: { userId: user.userId } });
+        let wedding;
+        if (user.role === "STAFF") {
+            wedding = await prisma.wedding.findUnique({ where: { id: (user as any).weddingId } });
+        } else {
+            wedding = await prisma.wedding.findFirst({ where: { userId: user.userId } });
+        }
         if (!wedding) {
             console.error("Payment Error: Wedding not found for userId", user.userId);
             return NextResponse.json({ error: "រកមិនឃើញទិន្នន័យមង្គលការ (Wedding Not Found)" }, { status: 404 });

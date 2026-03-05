@@ -1,5 +1,5 @@
 "use client";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { AlertTriangle, Trash2, RotateCcw, ShieldAlert, LucideIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -62,7 +62,7 @@ export function ConfirmModal({
     return createPortal(
         <AnimatePresence>
             {open && (
-                <motion.div
+                <m.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
@@ -70,7 +70,7 @@ export function ConfirmModal({
                     className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
                     onClick={() => !loading && onClose()}
                 >
-                    <motion.div
+                    <m.div
                         initial={{ scale: 0.9, opacity: 0, y: 20 }}
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         exit={{ scale: 0.95, opacity: 0, y: 10 }}
@@ -123,8 +123,8 @@ export function ConfirmModal({
                                 </Button>
                             </div>
                         </div>
-                    </motion.div>
-                </motion.div>
+                    </m.div>
+                </m.div>
             )}
         </AnimatePresence>,
         document.body

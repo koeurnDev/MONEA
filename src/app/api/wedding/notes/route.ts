@@ -1,27 +1,11 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { verifyToken } from "@/lib/auth";
-import { cookies } from "next/headers";
-
-async function getUser() {
-    const token = cookies().get("token")?.value;
-    if (!token) return null;
-
-    try {
-        const decoded = verifyToken(token) as any;
-        if (decoded && typeof decoded === "object") {
-            const role = decoded.role?.toUpperCase() || "ADMIN";
-            const userId = decoded.userId || decoded.sub || decoded.id;
-            return { ...decoded, role, userId } as any;
-        }
-    } catch (e) { }
-
-    return null;
-}
+import { getServerUser } from "@/lib/auth";
+import { sanitizeObject } from "@/lib/sanitize";
 
 export async function GET() {
-    const user = await getUser();
+    const user = await getServerUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const wedding = await prisma.wedding.findFirst({
@@ -35,10 +19,11 @@ export async function GET() {
 }
 
 export async function PATCH(req: Request) {
-    const user = await getUser();
+    const user = await getServerUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { notes } = await req.json();
+    const body = await req.json();
+    const { notes } = sanitizeObject<any>(body);
 
     const wedding = await prisma.wedding.findFirst({
         where: { userId: user.userId }

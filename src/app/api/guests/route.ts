@@ -96,8 +96,21 @@ export async function PATCH(req: Request) {
     try {
         const { id, ...updateFields } = data!;
 
-        if (updateFields.phone) {
-            updateFields.phone = encrypt(updateFields.phone);
+        // SECURITY: Ownership Check (IDOR Prevention)
+        const existingGuest = await prisma.guest.findUnique({ where: { id } });
+        if (!existingGuest) return errorResponse("Guest not found", 404);
+
+        let weddingId = null;
+        if (user.type === "staff") {
+            weddingId = user.weddingId!;
+        } else {
+            const wedding = await prisma.wedding.findFirst({ where: { userId: user.userId } });
+            if (wedding) weddingId = wedding.id;
+        }
+
+        if (existingGuest.weddingId !== weddingId) {
+            console.error(`[Security] IDOR attempt by user ${user.userId} on guest ${id}`);
+            return errorResponse("Access denied", 403);
         }
 
         const guest = await prisma.guest.update({
@@ -125,10 +138,25 @@ export async function DELETE(req: Request) {
 
     try {
         const guest = await prisma.guest.findUnique({ where: { id } });
-        if (guest) {
-            await prisma.guest.delete({ where: { id } });
-            await createLog(guest.weddingId, "DELETE", `Deleted guest: ${guest.name}`, user.email || user.role);
+        if (!guest) return errorResponse("Guest not found", 404);
+
+        // SECURITY: Ownership Check (IDOR Prevention)
+        let weddingId = null;
+        if (user.type === "staff") {
+            weddingId = user.weddingId!;
+        } else {
+            const wedding = await prisma.wedding.findFirst({ where: { userId: user.userId } });
+            if (wedding) weddingId = wedding.id;
         }
+
+        if (guest.weddingId !== weddingId) {
+            console.error(`[Security] IDOR attempt by user ${user.userId} to delete guest ${id}`);
+            return errorResponse("Access denied", 403);
+        }
+
+        await prisma.guest.delete({ where: { id } });
+        await createLog(guest.weddingId, "DELETE", `Deleted guest: ${guest.name}`, user.email || user.role);
+
         return NextResponse.json({ success: true });
     } catch (e) {
         return errorResponse("Failed to delete guest");

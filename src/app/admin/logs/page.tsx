@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Clock, ArrowUpRight, Sparkles, CheckCircle2, Search, Filter, ChevronLeft, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { motion } from "framer-motion";
+import { m } from 'framer-motion';
 
 export default function AdminLogsPage() {
     const [logs, setLogs] = useState<any[]>([]);
@@ -87,7 +87,7 @@ export default function AdminLogsPage() {
                             </thead>
                             <tbody className="divide-y divide-slate-50">
                                 {filteredLogs.map((log, i) => (
-                                    <motion.tr
+                                    <m.tr
                                         key={log.id}
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
@@ -115,7 +115,7 @@ export default function AdminLogsPage() {
                                         <td className="px-8 py-5 text-sm font-medium text-slate-600 font-kantumruy">
                                             {log.description}
                                         </td>
-                                    </motion.tr>
+                                    </m.tr>
                                 ))}
                                 {filteredLogs.length === 0 && !loading && (
                                     <tr>

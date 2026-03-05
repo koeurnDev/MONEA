@@ -72,11 +72,14 @@ export default function LiveSlideshowPage({ params }: { params: { id: string } }
                 {currentItem.type === 'VIDEO' ? (
                     <video src={currentItem.url} autoPlay muted loop className="max-w-full max-h-[90vh] rounded-lg shadow-2xl" />
                 ) : (
-                    <img
-                        src={currentItem.url}
-                        alt="Live Slide"
-                        className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl transition-opacity duration-500"
-                    />
+                    <div className="relative w-full h-[90vh]">
+                        <Image
+                            src={currentItem.url}
+                            alt="Live Slide"
+                            fill
+                            className="object-contain rounded-lg shadow-2xl transition-opacity duration-500"
+                        />
+                    </div>
                 )}
             </div>
 

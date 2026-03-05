@@ -30,11 +30,11 @@ export default async function GalleryPage({ params }: { params: { id: string } }
                                 {/* In a real app, uses a video thumbnail or player */}
                             </div>
                         ) : (
-                            <img
+                            <Image
                                 src={item.url}
                                 alt={item.caption || "Gallery Image"}
-                                className="w-full h-full object-cover"
-                                loading="lazy"
+                                fill
+                                className="object-cover"
                             />
                         )}
                     </div>

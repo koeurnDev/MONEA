@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { useState, useEffect } from "react";
 
 interface EnvelopeProps {
@@ -23,7 +23,7 @@ export const Envelope = ({ onOpen, guestName = "ភ្ញៀវកិត្ត�
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#fdf2f4] overflow-hidden">
             <AnimatePresence>
                 {!isOpen ? (
-                    <motion.div
+                    <m.div
                         initial={{ scale: 0.8, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 1.5, opacity: 0, rotate: -10 }}
@@ -51,10 +51,10 @@ export const Envelope = ({ onOpen, guestName = "ភ្ញៀវកិត្ត�
                             ក
                         </div>
 
-                    </motion.div>
+                    </m.div>
                 ) : (
                     // Animation for "Letter" coming out roughly
-                    <motion.div
+                    <m.div
                         initial={{ y: 0, opacity: 1 }}
                         animate={{ y: -500, opacity: 0 }}
                         transition={{ duration: 1 }}
@@ -64,7 +64,7 @@ export const Envelope = ({ onOpen, guestName = "ភ្ញៀវកិត្ត�
                             <h1 className="text-3xl font-serif text-[#8E5A5A] mb-4">សិរីសួស្តី</h1>
                             <p className="text-gray-500">សូមស្វាគមន៍មកកាន់ពិធីមង្គលការរបស់យើងខ្ញុំ...</p>
                         </div>
-                    </motion.div>
+                    </m.div>
                 )}
             </AnimatePresence>
         </div>

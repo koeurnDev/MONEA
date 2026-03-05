@@ -17,7 +17,7 @@ export function BottomNav() {
 
     return (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-md">
-            <div className="flex items-center justify-around rounded-full border border-white/20 bg-white/80 p-3 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-black/60">
+            <div className="flex items-center justify-around rounded-full border border-white/20 bg-white/80 p-3 shadow-2xl backdrop-blur-sm dark:border-white/10 dark:bg-black/60 will-change-transform">
                 {links.map((link) => {
                     const isActive = pathname.startsWith(link.href);
                     const Icon = link.icon;

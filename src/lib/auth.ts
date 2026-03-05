@@ -2,15 +2,17 @@ import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 import { prisma } from "./prisma";
 import { ROLES, Role } from "./constants";
+import crypto from "crypto";
 
 const SECRET = process.env.JWT_SECRET || "super-secret-key-change-in-prod";
 
-export function signToken(payload: any, options: { fingerprint?: string } = {}) {
+export function signToken(payload: any, options: { fingerprint?: string, expiresIn?: string } = {}) {
     const data = { ...payload };
     if (options.fingerprint) {
         data.fingerprint = options.fingerprint;
     }
-    const token = jwt.sign(data, SECRET, { expiresIn: "7d" });
+    const signOptions: jwt.SignOptions = { expiresIn: options.expiresIn ? (options.expiresIn as any) : "7d" };
+    const token = jwt.sign(data, SECRET, signOptions);
     return token;
 }
 
@@ -28,8 +30,12 @@ export function verifyToken(token: string) {
 export function generateFingerprint(req: { headers: any, ip?: string }) {
     const userAgent = req.headers.get("user-agent") || "unknown";
     const ip = req.ip || "unknown";
-    // Simple string concatenation as a fingerprint
-    return Buffer.from(`${userAgent}|${ip}`).toString('base64').substring(0, 32);
+    // Opaque SHA-256 fingerprint for session binding
+    return crypto
+        .createHash("sha256")
+        .update(`${userAgent}|${ip}`)
+        .digest("hex")
+        .substring(0, 32);
 }
 
 export type AuthUser = {

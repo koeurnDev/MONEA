@@ -15,7 +15,7 @@ export default async function SchedulePage({ params }: { params: { id: string } 
         <div className="min-h-screen bg-[#FFFDF5] p-4 pb-24">
             <div className="max-w-md mx-auto">
                 <div className="flex items-center justify-between mb-8">
-                    <h1 className="text-2xl font-moul text-red-900">កម្មវិធីបុណ្យ</h1>
+                    <h1 className="text-2xl font-moul text-red-900">កម្មវិធីការ</h1>
                     {/* Add back button or home link if needed */}
                 </div>
 

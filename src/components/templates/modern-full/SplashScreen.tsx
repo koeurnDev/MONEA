@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { WeddingData } from "../types";
 import { MoneaBranding } from '@/components/MoneaBranding';
 
@@ -42,7 +42,7 @@ export default function SplashScreen({
     return (
         <AnimatePresence>
             {!isOpen && (
-                <motion.div
+                <m.div
                     key="splash-screen"
                     exit={{ opacity: 0, scale: 1.1, pointerEvents: "none" }}
                     transition={{ duration: 1, ease: "easeInOut" }}
@@ -50,7 +50,7 @@ export default function SplashScreen({
                 >
                     {/* Background Layer */}
                     <div className="absolute inset-0 bg-[#050A08]">
-                        <motion.img
+                        <m.img
                             src="/images/bg_enchanted.jpg"
                             className="w-full h-full object-cover opacity-30"
                             initial={{ scale: 1 }}
@@ -65,7 +65,7 @@ export default function SplashScreen({
                     <div className="relative w-[90vw] h-[60vw] max-w-[500px] max-h-[350px] z-20 perspective-[2000px]">
 
                         {/* THE CARD (Inside) */}
-                        <motion.div
+                        <m.div
                             initial={{ y: 0, zIndex: 1 }}
                             animate={animationState === 'opening' ? { y: -220, zIndex: 30 } : { y: 0, zIndex: 1 }}
                             transition={{
@@ -97,14 +97,14 @@ export default function SplashScreen({
                                     </div>
                                 )}
                             </div>
-                        </motion.div>
+                        </m.div>
 
 
                         {/* ENVELOPE BACK (Base) */}
                         <div className="absolute inset-0 bg-[#2a1212] rounded-b-xl shadow-2xl overflow-hidden" style={{ zIndex: 0 }}></div>
 
                         {/* ENVELOPE FLAP (Top) */}
-                        <motion.div
+                        <m.div
                             initial={{ rotateX: 0 }}
                             animate={animationState === 'opening' ? { rotateX: 180, zIndex: 0 } : { rotateX: 0, zIndex: 10 }}
                             transition={{ duration: 0.8, ease: "easeInOut" }}
@@ -116,7 +116,7 @@ export default function SplashScreen({
                                 <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-white/10 to-transparent pointer-events-none"></div>
                                 <div className="absolute top-[2px] left-[2px] right-[2px] h-full clip-path-polygon-[0%_0%,50%_100%,100%_0%] bg-[#D4AF37]/40 -z-10 blur-[1px]"></div>
                             </div>
-                        </motion.div>
+                        </m.div>
 
                         {/* ENVELOPE POCKET (Front Bottom) */}
                         <div className="absolute bottom-0 left-0 right-0 h-full z-20 pointer-events-none">
@@ -135,7 +135,7 @@ export default function SplashScreen({
                             </div>
 
                             {/* WAX SEAL (Centered) */}
-                            <motion.button
+                            <m.button
                                 onClick={handleOpen}
                                 animate={animationState === 'opening' ? { opacity: 0, scale: 1.5 } : { opacity: 1, scale: 1 }}
                                 whileHover={{ scale: 1.05 }}
@@ -156,27 +156,27 @@ export default function SplashScreen({
                                     {/* Gold Flakes/Dust effect (optional - just using opacity) */}
                                     <div className="absolute inset-0 rounded-full opacity-20 bg-[url('https://www.transparenttextures.com/patterns/aged-paper.png')]"></div>
                                 </div>
-                            </motion.button>
+                            </m.button>
                         </div>
 
                     </div>
 
-                    <motion.p
+                    <m.p
                         animate={animationState === 'opening' ? { opacity: 0 } : { opacity: 1 }}
                         className="mt-10 text-white/50 text-sm font-kantumruy animate-pulse"
                     >
                         សូមចុចលើត្រាដើម្បីបើកសំបុត្រ
-                    </motion.p>
+                    </m.p>
 
                     {/* Platform Branding at the bottom */}
-                    <motion.div
+                    <m.div
                         initial={{ opacity: 0 }}
                         animate={animationState === 'opening' ? { opacity: 0 } : { opacity: 0.6 }}
                         className="absolute bottom-12"
                     >
                         <MoneaBranding />
-                    </motion.div>
-                </motion.div>
+                    </m.div>
+                </m.div>
             )}
         </AnimatePresence>
     );

@@ -5,6 +5,7 @@ import { uploadImage } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Image as ImageIcon, Upload } from "lucide-react";
+import Image from "next/image";
 
 export default function UploadPage({ params }: { params: { id: string } }) {
     const [preview, setPreview] = useState<string | null>(null);
@@ -31,7 +32,9 @@ export default function UploadPage({ params }: { params: { id: string } }) {
                     <div className="flex flex-col items-center justify-center w-full">
                         <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-64 border-2 border-red-200 border-dashed rounded-lg cursor-pointer bg-red-50 hover:bg-red-100 transition-colors overflow-hidden">
                             {preview ? (
-                                <img src={preview} alt="Preview" className="w-full h-full object-contain" />
+                                <div className="relative w-full h-full">
+                                    <Image src={preview} alt="Preview" fill className="object-contain" />
+                                </div>
                             ) : (
                                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
                                     <Upload className="w-10 h-10 text-red-300 mb-3" />

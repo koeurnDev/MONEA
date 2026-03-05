@@ -1,6 +1,6 @@
 import React from 'react';
 import { WeddingData } from "../types";
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 
 interface ParentsSectionProps {
     wedding: WeddingData;
@@ -9,7 +9,7 @@ interface ParentsSectionProps {
 
 export default function ParentsSection({ wedding, labels }: ParentsSectionProps) {
     return (
-        <motion.section
+        <m.section
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -83,6 +83,6 @@ export default function ParentsSection({ wedding, labels }: ParentsSectionProps)
                 </div>
 
             </div>
-        </motion.section>
+        </m.section>
     );
 }

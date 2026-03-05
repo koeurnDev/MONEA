@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { Clock } from 'lucide-react';
 import { WeddingData } from "../types";
 
@@ -33,7 +33,7 @@ export default function TimelineSection({ wedding, labels, primaryColor }: Timel
 
             <div className="space-y-12">
                 {timeline.map((item, idx) => (
-                    <motion.div
+                    <m.div
                         key={idx}
                         initial={{ y: 20, opacity: 0 }}
                         whileInView={{ y: 0, opacity: 1 }}
@@ -53,7 +53,7 @@ export default function TimelineSection({ wedding, labels, primaryColor }: Timel
 
                         {/* Center Node */}
                         <div className="absolute left-[19px] md:left-1/2 -translate-x-1/2 z-10 md:static md:w-2/12 md:translate-x-0 md:flex md:justify-center order-2">
-                            <div className="w-10 h-10 rounded-full bg-black/50 border-2 border-white/30 backdrop-blur-md flex items-center justify-center shadow-[0_0_15px_rgba(236,72,153,0.3)]">
+                            <div className="w-10 h-10 rounded-full bg-black/50 border-2 border-white/30 backdrop-blur-sm flex items-center justify-center shadow-[0_0_15px_rgba(236,72,153,0.3)] will-change-transform">
                                 <Clock size={16} className="text-pink-300" />
                             </div>
                         </div>
@@ -74,7 +74,7 @@ export default function TimelineSection({ wedding, labels, primaryColor }: Timel
                                 </div>
                             )}
                         </div>
-                    </motion.div>
+                    </m.div>
                 ))}
             </div>
         </div>

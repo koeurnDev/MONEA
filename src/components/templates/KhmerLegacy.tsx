@@ -1,11 +1,11 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
 import { WeddingData } from "./types";
-import { motion, AnimatePresence } from "framer-motion";
-import { MapPin, Calendar, Clock, Heart, Bell, Music, Music2, QrCode } from 'lucide-react';
+import { m, AnimatePresence } from 'framer-motion';
+import { MapPin, Calendar, Clock, Heart, Music, Music2, QrCode } from 'lucide-react';
 import { MoneaBranding } from '@/components/MoneaBranding';
 import { RevealSection, useImagePan } from './shared/CinematicComponents';
-import Countdown from './classic-khmer/Countdown';
+import Image from 'next/image';
 
 const KHMER_LEGACY_IMAGES = [
     "587515149_905397975378667_8301966555433407602_n.jpg",
@@ -42,7 +42,7 @@ const useSmartColor = (imageUrl: string) => {
     useEffect(() => {
         if (!imageUrl || typeof window === 'undefined') return;
 
-        const img = new Image();
+        const img = new window.Image();
         img.crossOrigin = "Anonymous";
         img.src = imageUrl;
 
@@ -129,7 +129,7 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                     if (vol < 0.6) { vol += 0.05; if (audioRef.current) audioRef.current.volume = vol; }
                     else { clearInterval(interval); }
                 }, 100);
-            }).catch(e => console.log(e));
+            }).catch(() => { });
         } else {
             let vol = audioRef.current.volume;
             const interval = setInterval(() => {
@@ -142,54 +142,50 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
     return (
         <main className="min-h-screen bg-[#FDFBF7] text-[#333] overflow-x-hidden selection:bg-[#E2D1B3]">
             <style jsx global>{`
-                @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Playfair+Display:wght@400;500;600;700;900&display=swap');
-                
                 :root {
-                    --color-cream: #FDFBF7;
-                    --color-ivory: #FAF9F6;
+                    --color-cream: #FFFFFF;
+                    --color-ivory: #F9F9F9;
                     --color-gold-deep: #B8860B;
                     --color-gold-light: #C5A059;
                     --color-text-main: #333333;
                 }
 
                 .font-khmer-moul { font-family: var(--font-moul), serif; }
-                .font-khmer-content { font-family: var(--font-kantumruy), sans-serif; }
-                .font-serif-elegant { font-family: 'Cormorant Garamond', serif; }
-                .font-playfair { font-family: 'Playfair Display', serif; }
+                .font-khmer-content { font-family: var(--font-kantumruy), sans-serif; line-height: 2.8; }
+                .font-serif-elegant { font-family: var(--font-playfair), serif; }
+                .font-playfair { font-family: var(--font-playfair), serif; }
                 
                 .text-gold { color: var(--color-gold-light); }
                 .bg-gold { background-color: var(--color-gold-light); }
                 .border-gold { border-color: var(--color-gold-light); }
                 
-                .schedule-text { font-size: 11px; line-height: 2; color: #555; }
+                .schedule-text { font-size: 11px; line-height: 2.2; color: #555; }
                 
                 .premium-texture {
-                    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c5a059' fill-opacity='0.015'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+                    background-image: url("https://www.transparenttextures.com/patterns/paper-fibers.png");
+                    background-repeat: repeat;
                 }
 
                 .border-lux {
-                    border: 1px solid rgba(184, 134, 11, 0.1);
-                    position: relative;
-                }
-                .border-lux::before {
-                    content: '';
-                    position: absolute;
-                    inset: 4px;
-                    border: 1px solid rgba(184, 134, 11, 0.05);
-                    pointer-events: none;
+                    border: 1px solid rgba(0, 0, 0, 0.03);
                 }
 
                 .gold-divider {
                     height: 1px;
                     background: linear-gradient(90deg, transparent, var(--color-gold-light), transparent);
                     width: 100%;
-                    max-width: 200px;
-                    margin: 2rem auto;
-                    opacity: 0.3;
+                    max-width: 140px;
+                    margin: 4.5rem auto;
+                    opacity: 0.1;
                 }
 
                 .parallax-text {
                     text-shadow: 0 10px 20px rgba(0,0,0,0.02);
+                }
+
+                @media (max-width: 480px) {
+                    .font-khmer-content { line-height: 2.2; }
+                    .gold-divider { margin: 3rem auto; }
                 }
             `}</style>
 
@@ -210,13 +206,13 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
             {/* CINEMATIC ENTRANCE OVERLAY */}
             <AnimatePresence>
                 {!revealed && (
-                    <motion.div
+                    <m.div
                         initial={{ opacity: 1 }}
                         exit={{ opacity: 0, scale: 1.1 }}
                         transition={{ duration: 1.5, ease: "easeInOut" }}
                         className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center text-center p-8"
                     >
-                        <motion.div
+                        <m.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.5, duration: 1 }}
@@ -229,7 +225,7 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                                 </h2>
                             </div>
 
-                            <motion.button
+                            <m.button
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => setRevealed(true)}
@@ -237,17 +233,18 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                                 className="px-10 py-4 border rounded-full bg-transparent font-khmer text-lg tracking-widest hover:bg-white/5 transition-all outline-none"
                             >
                                 {wedding.eventType === 'anniversary' ? 'ខួបអាពាហ៍ពិពាហ៍' : 'បើកសំបុត្រ'}
-                            </motion.button>
-                        </motion.div>
-                    </motion.div>
+                            </m.button>
+                        </m.div>
+                    </m.div>
                 )}
             </AnimatePresence>
 
-            <div className="max-w-[480px] mx-auto bg-white min-h-screen relative shadow-[0_0_100px_rgba(0,0,0,0.1)] overflow-hidden premium-texture font-serif-elegant">
+            {/* MAIN CONTAINER: Full Screen on Desktop */}
+            <div className="max-w-[480px] md:max-w-none mx-auto bg-white min-h-screen relative md:shadow-none overflow-hidden premium-texture font-serif-elegant">
 
                 {/* HERO SECTION / COVER */}
                 <section id="hero" className="relative h-screen flex flex-col items-center justify-center text-center overflow-hidden bg-black">
-                    <motion.div
+                    <m.div
                         initial={{ scale: 1.1, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         transition={{ duration: 2, ease: "easeOut" }}
@@ -260,34 +257,39 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                                     className="absolute inset-0 w-full h-full pointer-events-none scale-[1.5]"
                                     frameBorder="0"
                                     allow="autoplay; encrypted-media"
+                                    loading="lazy"
                                 />
                                 <div className="absolute inset-0 bg-black/40" />
                             </div>
                         ) : (
                             <>
-                                <img
+                                <Image
                                     src={heroImage}
-                                    className={`w-full h-full object-cover transition-none ${heroPan.isDragging ? 'cursor-grabbing' : 'cursor-grab group-hover:ring-4 ring-gold/30 ring-inset'}`}
+                                    fill
+                                    sizes="100vw"
+                                    className={`object-cover transition-none ${heroPan.isDragging ? 'cursor-grabbing' : 'cursor-grab group-hover:ring-4 ring-gold/30 ring-inset'}`}
                                     style={{
                                         objectPosition: `${heroPan.localX} ${heroPan.localY}`,
                                         transform: `scale(${wedding.themeSettings?.heroImageScale || 1})`,
                                         filter: `brightness(${wedding.themeSettings?.heroImageBrightness || 100}%) contrast(${wedding.themeSettings?.heroImageContrast || 100}%)`,
                                         userSelect: 'none',
-                                        touchAction: 'none'
+                                        touchAction: 'none',
+                                        willChange: 'object-position, transform'
                                     }}
                                     onMouseDown={heroPan.onStart}
                                     onTouchStart={heroPan.onStart}
+                                    priority
                                     draggable={false}
                                     alt="Wedding Hero"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40 pointer-events-none" />
                             </>
                         )}
-                    </motion.div>
+                    </m.div>
 
                     <div className="relative z-10 px-8 space-y-10 pointer-events-none">
                         <div className="space-y-4">
-                            <motion.div
+                            <m.div
                                 initial={{ y: 20, opacity: 0 }}
                                 animate={{ y: 0, opacity: 1 }}
                                 transition={{ delay: 1 }}
@@ -295,208 +297,133 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                                 className="font-playfair tracking-[0.3em] text-sm md:text-base uppercase"
                             >
                                 The Wedding Of
-                            </motion.div>
-                            <motion.h1
+                            </m.div>
+                            <m.h1
                                 initial={{ scale: 0.9, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
                                 transition={{ delay: 1.2, duration: 1 }}
-                                className="font-khmer-moul text-4xl md:text-5xl text-white drop-shadow-2xl leading-relaxed py-2"
+                                className="font-playfair text-6xl md:text-8xl text-white drop-shadow-2xl leading-tight py-2"
                             >
                                 {wedding.groomName} <br /> & <br /> {wedding.brideName}
-                            </motion.h1>
+                            </m.h1>
                         </div>
 
-                        <motion.div
+                        <m.div
                             initial={{ y: 20, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             transition={{ delay: 1.4 }}
                             className="space-y-6"
                         >
-                            <div className="bg-white/10 backdrop-blur-md border border-white/20 px-8 py-4 rounded-full inline-block">
+                            <div className="bg-white/10 backdrop-blur-sm border border-white/20 px-8 py-4 rounded-full inline-block">
                                 <span className="text-white font-serif-elegant text-xl tracking-widest">{formattedDateHero}</span>
                             </div>
-                        </motion.div>
+                        </m.div>
                     </div>
 
-                    <motion.div
+                    <m.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: [0, 1, 0] }}
                         transition={{ duration: 2, repeat: Infinity }}
                         className="absolute bottom-10 left-1/2 -translate-x-1/2 text-white/60 pointer-events-none"
                     >
                         <Clock size={24} strokeWidth={1} />
-                    </motion.div>
+                    </m.div>
                 </section>
 
-                {/* DECORATIVE CORNERS (SVGs) */}
-                <div className="absolute top-0 left-0 w-32 h-32 opacity-10 pointer-events-none rotate-0">
-                    <img src="https://www.transparenttextures.com/patterns/natural-paper.png" className="w-full h-full object-cover" />
-                </div>
+                {/* OVERLAYS */}
+                <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none bg-white mix-blend-overlay" />
+
+                {/* EDITORIAL BREAK 1 */}
+                <section className="w-full aspect-[4/3] md:aspect-video relative overflow-hidden bg-white">
+                    <Image src={galleryImages[1 % galleryImages.length]} fill className="object-cover" loading="lazy" decoding="async" alt="Editorial Break" />
+                </section>
 
                 {/* PAGE 1: FORMAL ENGLISH INVITATION */}
-                <section id="invitation-english" className="pt-32 pb-24 px-12 text-center space-y-14">
-                    <RevealSection>
-                        <div className="space-y-4">
-                            <div className="w-12 h-1 bg-gold/20 mx-auto rounded-full" />
-                            <p className="text-[10px] tracking-[0.3em] uppercase font-bold text-gray-400 max-w-[300px] mx-auto leading-relaxed px-4">
-                                WE CORDIALLY INVITE YOU TO CELEBRATE THE UNION OF OUR FAMILIES AND THE WEDDING CEREMONY OF
-                            </p>
-                        </div>
-                    </RevealSection>
-
-                    <RevealSection delay={0.2}>
-                        <div className="space-y-6">
-                            <h2
-                                style={{ color: smartColors.primary }}
-                                className="font-playfair text-5xl font-black tracking-tighter parallax-text"
-                            >
-                                {wedding.groomName}
-                            </h2>
-                            <div className="flex items-center justify-center gap-4">
-                                <div className="h-[1px] bg-gold/20 flex-1" />
-                                <span style={{ color: smartColors.primary }} className="font-serif-elegant text-4xl italic px-2">&</span>
-                                <div className="h-[1px] bg-gold/20 flex-1" />
-                            </div>
-                            <h2
-                                style={{ color: smartColors.primary }}
-                                className="font-playfair text-5xl font-black tracking-tighter parallax-text"
-                            >
-                                {wedding.brideName}
-                            </h2>
-                        </div>
-                    </RevealSection>
-
-                    <RevealSection delay={0.4}>
-                        <div className="space-y-8 pt-8 px-4 border-lux bg-ivory/50 rounded-xl py-10">
-                            <div className="text-[11px] tracking-[0.5em] uppercase font-black text-gold/60">SAVES THE DATE</div>
-                            <div className="space-y-4">
-                                <p className="font-playfair text-xl font-bold tracking-[0.1em] text-gray-800">
-                                    {formattedDateInvitation}
-                                </p>
-                                <div className="flex items-center justify-center gap-3">
-                                    <Clock size={16} className="text-gold/40" />
-                                    <p className="font-playfair text-lg font-bold text-gray-700">FIVE O'CLOCK IN THE EVENING</p>
+                <section id="invitation-english" className="pt-24 md:pt-48 pb-16 md:pb-40 px-4 md:px-12 text-left relative overflow-hidden">
+                    <div className="max-w-6xl mx-auto flex items-center gap-6 md:gap-24">
+                        <div className="flex-1 space-y-6 md:space-y-12 relative z-10">
+                            <RevealSection>
+                                <div className="space-y-3 md:space-y-6">
+                                    <div className="w-12 h-[1px] bg-black/20 mx-0" />
+                                    <p className="text-[7px] md:text-[10px] tracking-[0.4em] uppercase font-bold text-gray-400 max-w-[300px] mx-0 leading-relaxed px-0">
+                                        WE CORDIALLY INVITE YOU TO CELEBRATE THE UNION OF OUR FAMILIES AND THE WEDDING CEREMONY OF
+                                    </p>
                                 </div>
+                            </RevealSection>
+
+                            <RevealSection delay={0.2}>
+                                <div className="space-y-3 md:space-y-6">
+                                    <h2
+                                        style={{ color: smartColors.primary }}
+                                        className="font-playfair text-3xl md:text-8xl font-black tracking-tighter parallax-text"
+                                    >
+                                        {wedding.groomName}
+                                    </h2>
+                                    <div className="flex items-center justify-start gap-2 md:gap-4">
+                                        <div className="h-[1px] bg-gold/20 w-4 md:w-16" />
+                                        <span style={{ color: smartColors.primary }} className="font-serif-elegant text-xl md:text-4xl italic px-1 md:px-2">&</span>
+                                        <div className="h-[1px] bg-gold/20 w-4 md:w-16" />
+                                    </div>
+                                    <h2
+                                        style={{ color: smartColors.primary }}
+                                        className="font-playfair text-3xl md:text-8xl font-black tracking-tighter parallax-text"
+                                    >
+                                        {wedding.brideName}
+                                    </h2>
+                                </div>
+                            </RevealSection>
+                        </div>
+
+                        <div className="flex-1 block">
+                            <div className="aspect-[3/4] max-w-md ml-auto rounded-sm overflow-hidden shadow-2xl border-lux rotate-[2deg] relative">
+                                <Image src={galleryImages[11 % galleryImages.length]} fill className="object-cover" loading="lazy" decoding="async" alt="Couple" />
                             </div>
                         </div>
-                    </RevealSection>
-
-                    <RevealSection delay={0.6}>
-                        <div className="space-y-4 pt-10">
-                            <MapPin size={24} className="text-gold/30 mx-auto mb-4" />
-                            <p className="font-playfair text-sm font-bold tracking-widest text-gray-800 uppercase leading-relaxed max-w-[320px] mx-auto">
-                                PUMI TOUL LEAP SOPHEAK MONGUL <br /> WEDDING CENTER
-                            </p>
-                            <p className="text-[10px] tracking-widest text-gray-400 uppercase max-w-[280px] mx-auto leading-relaxed">
-                                TOUL LEAP VILLAGE, SNOR, KAMBOL, PHNOM PENH
-                            </p>
-                        </div>
-                    </RevealSection>
-
-                    <RevealSection delay={0.8}>
-                        <div className="gold-divider" />
-                        <p className="font-playfair text-sm tracking-[0.6em] text-gray-300 uppercase italic">Your Presence is our Gift</p>
-                    </RevealSection>
-                </section>
-
-                {/* PAGE 2: VISUALS & VERTICAL COUNTDOWN */}
-                <section id="event-info" className="py-24 px-10 bg-[#FAF9F6] border-y border-gold/5 relative">
-                    <div className="absolute top-0 right-0 w-48 h-48 opacity-[0.03] pointer-events-none">
-                        <img src="https://www.transparenttextures.com/patterns/xv.png" className="w-full h-full object-cover" />
                     </div>
-
-                    <RevealSection>
-                        <div className="flex flex-col items-center gap-16">
-                            <div className="text-[11px] tracking-[0.5em] uppercase font-bold text-gold flex items-center gap-4">
-                                <div className="w-8 h-[1px] bg-gold/30" />
-                                WEDDING HUB
-                                <div className="w-8 h-[1px] bg-gold/30" />
-                            </div>
-
-                            <div className="flex justify-center gap-8 w-full">
-                                <motion.div
-                                    whileHover={{ scale: 1.05 }}
-                                    className="flex-1 aspect-[4/5] bg-white p-2 shadow-2xl border-lux rounded-sm"
-                                >
-                                    <img src={galleryImages[0] || "/images/bg_staircase.jpg"} className="w-full h-full object-cover transition-all duration-700" />
-                                </motion.div>
-                                <div className="flex-1 flex flex-col justify-center items-center text-center p-6 space-y-6">
-                                    <Calendar size={32} className="text-gold/20" />
-                                    <div className="space-y-1">
-                                        <p className="font-khmer-moul text-xs text-gold/80">ប្រក្រតិទិន</p>
-                                        <p className="font-playfair text-4xl font-black text-gray-800 tracking-tighter">01.03</p>
-                                        <p className="text-[10px] tracking-widest text-gray-400 font-bold uppercase">MARCH 2026</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="w-full pt-10 px-8 flex justify-between items-center border-t border-gold/5">
-                                <div className="space-y-1">
-                                    <p className="font-playfair text-[10px] tracking-widest text-gold font-bold">COUNTDOWN</p>
-                                    <p className="font-khmer-content text-[9px] text-gray-400 italic">"Time flies, love stays."</p>
-                                </div>
-                                <div className="countdown-vertical">
-                                    <div className="countdown-row"><span className="countdown-num">20</span> <span className="countdown-unit">DAYS</span></div>
-                                    <div className="countdown-row"><span className="countdown-num">01</span> <span className="countdown-unit">HOURS</span></div>
-                                    <div className="countdown-row"><span className="countdown-num">37</span> <span className="countdown-unit">MINS</span></div>
-                                    <div className="countdown-row text-gold"><span className="countdown-num border-b-2 border-gold/20">12</span> <span className="countdown-unit">SECS</span></div>
-                                </div>
-                            </div>
-                        </div>
-                    </RevealSection>
                 </section>
 
-                {/* PAGE 3: DETAILED KHMER SCHEDULE */}
-                <section id="schedule-khmer" className="py-28 px-10 bg-white relative">
-                    <RevealSection>
-                        <div className="text-center mb-20 space-y-4">
-                            <Heart size={20} className="text-gold/20 mx-auto fill-gold/10" />
-                            <h2 className="font-khmer-moul text-2xl text-gold pb-6 tracking-wide drop-shadow-sm">កម្មវិធីវិវាហមង្គល</h2>
-                            <div className="w-24 h-[1px] bg-gold/10 mx-auto" />
-                        </div>
+                <section className="px-4 md:px-12 py-12 md:py-32 border-t border-gray-50 bg-white relative">
+                    <div className="max-w-6xl mx-auto flex flex-row items-start justify-between gap-6 md:gap-20">
+                        <RevealSection delay={0.4} className="flex-1">
+                            <div className="space-y-4 md:space-y-8 text-left">
+                                <div className="text-[7px] md:text-[10px] tracking-[0.6em] uppercase font-black text-gray-400">SAVES THE DATE</div>
+                                <div className="space-y-2 md:space-y-4">
+                                    <p className="font-playfair text-sm md:text-5xl font-bold tracking-[0.1em] text-gray-800">
+                                        {formattedDateInvitation}
+                                    </p>
+                                    <div className="flex items-center justify-start gap-2 md:gap-4">
+                                        <Clock size={12} className="text-gray-300 md:w-4 md:h-4" />
+                                        <p className="font-playfair text-[10px] md:text-2xl font-bold text-gray-600 uppercase">FIVE O'CLOCK IN THE EVENING</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </RevealSection>
 
-                        <div className="grid grid-cols-2 gap-10">
-                            <div className="space-y-12 border-r border-gold/5 pr-6">
-                                <RevealSection delay={0.1}>
-                                    <div className="space-y-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-6 h-6 rounded-full bg-gold/5 flex items-center justify-center text-[10px] font-bold text-gold">I</div>
-                                            <h4 className="font-khmer-moul text-[12px] text-gray-800">សិរីសួស្តីទី១</h4>
-                                        </div>
-                                        <div className="schedule-text pl-9">
-                                            <span className="text-gold font-bold">ម៉ោង ៣:០០ រសៀល</span> <br />
-                                            ពិធីសូត្រមន្តចម្រើនព្រះបរិត្ត <br />
-                                            <span className="text-gold font-bold pt-4 block">ម៉ោង ៥:០០ រសៀល</span>
-                                            ពិធីពិសារភោជនាហារពេលល្ងាច <br />
-                                            អញ្ជើញភ្ញៀវចូលរួមពិសារអាហារ
-                                        </div>
-                                    </div>
-                                </RevealSection>
+                        <RevealSection delay={0.6} className="flex-1">
+                            <div className="space-y-4 md:space-y-6 text-left">
+                                <MapPin size={16} className="text-gold/30 mx-0 mb-2 md:w-6 md:h-6" />
+                                <p className="font-playfair text-[9px] md:text-xl font-bold tracking-widest text-gray-800 uppercase leading-relaxed max-w-none mx-0">
+                                    PUMI TOUL LEAP SOPHEAK MONGUL <br className="hidden md:block" /> WEDDING CENTER
+                                </p>
+                                <p className="text-[7px] md:text-[14px] tracking-widest text-gray-400 uppercase max-w-none mx-0 leading-relaxed font-bold">
+                                    TOUL LEAP VILLAGE, SNOR, KAMBOL, PHNOM PENH
+                                </p>
+
+                                <div className="pt-2 md:pt-4 flex justify-start">
+                                    <div className="gold-divider mx-0" />
+                                </div>
                             </div>
-                            <div className="space-y-12 pl-6">
-                                <RevealSection delay={0.2}>
-                                    <div className="space-y-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-6 h-6 rounded-full bg-gold/5 flex items-center justify-center text-[10px] font-bold text-gold">II</div>
-                                            <h4 className="font-khmer-moul text-[12px] text-gray-800">សិរីសួស្តីទី២</h4>
-                                        </div>
-                                        <div className="schedule-text pl-9">
-                                            <span className="text-gold font-bold">ម៉ោង ៧:០០ ព្រឹក</span> <br />
-                                            ពិធីហែជំនូនទី១ តាមលំដាប់លំដោយ <br />
-                                            <span className="text-gold font-bold pt-4 block">ម៉ោង ៩:០០ ព្រឹក</span>
-                                            ពិធីកាត់សក់បង្កក់សិរី <br />
-                                            <span className="text-gold font-bold pt-4 block">ម៉ោង ១១:០០ ថ្ងៃត្រង់</span>
-                                            អញ្ជើញភ្ញៀវពិសារភោជនាហារ
-                                        </div>
-                                    </div>
-                                </RevealSection>
-                            </div>
-                        </div>
-                    </RevealSection>
+                        </RevealSection>
+                    </div>
                 </section>
 
-                {/* PAGE 4: KHMER PREAMBLE & CIRCULAR PROFILES */}
-                <section id="gallery" className="py-28 px-10 bg-[#FAF9F6] relative">
+                <RevealSection delay={0.8}>
+                    <div className="gold-divider" />
+                    <p className="font-playfair text-sm tracking-[0.6em] text-gray-300 uppercase italic">Your Presence is our Gift</p>
+                </RevealSection>
+
+                {/* PAGE 4 MOVED UP: KHMER PREAMBLE & CIRCULAR PROFILES */}
+                <section id="gallery" className="py-32 md:py-64 px-8 md:px-10 bg-[#FAF9F6]/30 relative">
                     <div className="absolute inset-0 opacity-[0.02] pointer-events-none">
                         <img src="https://www.transparenttextures.com/patterns/floral-paper.png" className="w-full h-full object-cover" />
                     </div>
@@ -508,37 +435,40 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                                 <h3 className="font-khmer-moul text-lg text-gray-600">សូមស្វាគមន៍មកកាន់ទំព័រខាងក្រោម</h3>
                             </div>
 
-                            <div className="w-full aspect-[16/10] bg-white p-3 shadow-2xl border-lux rotate-1 rounded-sm">
-                                <img src={galleryImages[2] || "/images/bg_staircase.jpg"} className="w-full h-full object-cover rounded-sm" />
+                            <div className="w-full aspect-[16/10] bg-white shadow-xl border-lux mt-10 relative">
+                                <Image src={galleryImages[2 % galleryImages.length]} fill className="object-cover" loading="lazy" decoding="async" alt="Love" />
                             </div>
 
-                            <div className="flex flex-col gap-32 pt-20 relative">
-                                <div className="absolute left-1/2 -top-10 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-gold/10 to-transparent -translate-x-1/2 hidden sm:block" />
+                            <div className="max-w-6xl mx-auto flex flex-row gap-8 md:gap-40 pt-16 md:pt-40 relative">
+                                <div className="absolute left-1/2 -top-10 bottom-0 w-[1px] bg-gradient-to-b from-transparent via-gold/10 to-transparent -translate-x-1/2 block" />
 
                                 {/* Groom */}
-                                <div className="flex flex-col items-center relative z-10">
-                                    <div className="absolute -top-6 font-playfair text-[11px] tracking-[0.8em] font-black text-gold/30">GROOM</div>
-                                    <motion.div
+                                <div className="flex flex-col items-center relative z-10 px-0 flex-1">
+                                    <div className="absolute -top-4 font-playfair text-[7px] md:text-[11px] tracking-[0.8em] font-black text-gold/30 uppercase">GROOM</div>
+                                    <m.div
                                         whileInView={{ scale: [0.95, 1], opacity: [0, 1] }}
-                                        className="w-full aspect-[4/5] rounded-[2rem] border-8 border-white shadow-2xl overflow-hidden mb-10 ring-1 ring-gold/10"
+                                        className="w-full aspect-[4/5] md:aspect-[3/4] rounded-[1rem] md:rounded-[4rem] border-4 md:border-[16px] border-white shadow-xl overflow-hidden mb-6 ring-1 ring-gold/10"
                                     >
-                                        <img
-                                            src={galleryImages[0] || "/images/bg_staircase.jpg"}
-                                            className={`w-full h-full object-cover shadow-inner transition-none ${groomPan.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-105'}`}
+                                        <Image
+                                            src={galleryImages[3 % galleryImages.length]}
+                                            fill
+                                            alt="Groom"
+                                            className={`object-cover shadow-inner transition-none ${groomPan.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-105'}`}
                                             style={{
                                                 objectPosition: `${groomPan.localX} ${groomPan.localY}`,
                                                 transform: `scale(${wedding.themeSettings?.groomImageScale || 1})`,
                                                 userSelect: 'none',
-                                                touchAction: 'none'
+                                                touchAction: 'none',
+                                                willChange: 'object-position, transform'
                                             }}
                                             onMouseDown={groomPan.onStart}
                                             onTouchStart={groomPan.onStart}
                                             draggable={false}
                                         />
-                                    </motion.div>
+                                    </m.div>
                                     <h4
                                         style={{ color: smartColors.primary }}
-                                        className="font-khmer-moul text-2xl tracking-widest"
+                                        className="font-khmer-moul text-sm md:text-5xl tracking-widest text-center"
                                     >
                                         {wedding.groomName}
                                     </h4>
@@ -546,29 +476,32 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                                 </div>
 
                                 {/* Bride */}
-                                <div className="flex flex-col items-center relative z-10">
-                                    <div className="absolute -top-6 font-playfair text-[11px] tracking-[0.8em] font-black text-gold/30">BRIDE</div>
-                                    <motion.div
+                                <div className="flex flex-col items-center relative z-10 px-0 flex-1">
+                                    <div className="absolute -top-4 font-playfair text-[7px] md:text-[11px] tracking-[0.8em] font-black text-gold/30 uppercase">BRIDE</div>
+                                    <m.div
                                         whileInView={{ scale: [0.95, 1], opacity: [0, 1] }}
-                                        className="w-full aspect-[4/5] rounded-[2rem] border-8 border-white shadow-2xl overflow-hidden mb-10 ring-1 ring-gold/10"
+                                        className="w-full aspect-[4/5] md:aspect-[3/4] rounded-[1rem] md:rounded-[4rem] border-4 md:border-[16px] border-white shadow-xl overflow-hidden mb-6 ring-1 ring-gold/10"
                                     >
-                                        <img
-                                            src={galleryImages[1] || "/images/bg_staircase.jpg"}
-                                            className={`w-full h-full object-cover shadow-inner transition-none ${bridePan.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-105'}`}
+                                        <Image
+                                            src={galleryImages[4 % galleryImages.length]}
+                                            fill
+                                            alt="Bride"
+                                            className={`object-cover shadow-inner transition-none ${bridePan.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-105'}`}
                                             style={{
                                                 objectPosition: `${bridePan.localX} ${bridePan.localY}`,
                                                 transform: `scale(${wedding.themeSettings?.brideImageScale || 1})`,
                                                 userSelect: 'none',
-                                                touchAction: 'none'
+                                                touchAction: 'none',
+                                                willChange: 'object-position, transform'
                                             }}
                                             onMouseDown={bridePan.onStart}
                                             onTouchStart={bridePan.onStart}
                                             draggable={false}
                                         />
-                                    </motion.div>
+                                    </m.div>
                                     <h4
                                         style={{ color: smartColors.primary }}
-                                        className="font-khmer-moul text-2xl tracking-widest"
+                                        className="font-khmer-moul text-sm md:text-5xl tracking-widest text-center"
                                     >
                                         {wedding.brideName}
                                     </h4>
@@ -579,214 +512,519 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                     </RevealSection>
                 </section>
 
-                {/* PAGE 5: FORMAL KHMER INVITATION & PARENTS */}
-                <section className="py-28 px-12 text-center bg-white space-y-20 relative">
+                {/* EDITORIAL BREAK 2 (Cinematic Full Page) */}
+                <section className="w-full flex flex-col md:flex-row min-h-[50vh] md:min-h-[80vh] bg-white group overflow-hidden">
+                    <div className="flex-1 h-[50vh] md:h-auto relative overflow-hidden">
+                        <Image src={galleryImages[5 % galleryImages.length]} fill className="object-cover grayscale-[20%] group-hover:grayscale-0 group-hover:scale-105 transition-all duration-[2s] ease-out" loading="lazy" decoding="async" alt="Editorial" />
+                    </div>
+                    <div className="flex-1 h-[50vh] md:h-auto p-4 md:p-20 flex items-center justify-center bg-[#FAF9F6]">
+                        <div className="w-full max-w-lg aspect-[4/5] relative">
+                            <Image src={galleryImages[6 % galleryImages.length]} fill className="object-cover shadow-2xl rounded-sm border-lux" loading="lazy" decoding="async" alt="Editorial Details" />
+                            <div className="absolute -bottom-10 -right-10 w-48 h-48 border-r border-b border-gold/20 hidden md:block" />
+                        </div>
+                    </div>
+                </section>
+
+                {/* PAGE 2: EVENT INFO / COUNTDOWN - Balanced for Wide Screen */}
+                <section id="event-info" className="py-32 md:py-64 px-8 md:px-12 bg-[#FAF9F6]/30 border-y border-gold/5 relative">
+                    <div className="absolute top-0 right-0 w-64 h-64 opacity-[0.03] pointer-events-none">
+                        <img src="https://www.transparenttextures.com/patterns/xv.png" className="w-full h-full object-cover" />
+                    </div>
+
+                    <div className="max-w-6xl mx-auto">
+                        <RevealSection>
+                            <div className="flex flex-col items-center gap-16">
+                                <div className="text-[11px] tracking-[0.5em] uppercase font-bold text-gold flex items-center gap-4">
+                                    <div className="w-12 h-[1px] bg-gold/30" />
+                                    WEDDING HUB
+                                    <div className="w-12 h-[1px] bg-gold/30" />
+                                </div>
+
+                                <div className="flex flex-row justify-center items-center gap-6 md:gap-32 w-full">
+                                    <m.div
+                                        whileHover={{ scale: 1.02 }}
+                                        className="w-1/2 aspect-[4/5] bg-white p-1 md:p-2 shadow-xl md:shadow-2xl border-lux relative"
+                                    >
+                                        <img src={galleryImages[7 % galleryImages.length]} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                                        <div className="absolute top-4 md:top-10 -left-6 font-playfair text-[30px] md:text-[80px] text-ivory/80 pointer-events-none z-0">01</div>
+                                    </m.div>
+
+                                    <div className="w-1/2 flex flex-col justify-center items-center text-center p-0 md:p-6 space-y-6 md:space-y-12">
+                                        <div className="space-y-2 md:space-y-4">
+                                            <Calendar size={24} className="text-gold/20 mx-auto md:w-12 md:h-12" />
+                                            <div className="space-y-1">
+                                                <p className="font-khmer-moul text-[8px] md:text-sm text-gold/80">ប្រក្រតិទិន</p>
+                                                <p className="font-playfair text-3xl md:text-8xl font-black text-gray-800 tracking-tighter">01.03</p>
+                                                <p className="text-[7px] md:text-[12px] tracking-[0.4em] text-gray-400 font-bold uppercase">MARCH 2026</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="w-full pt-4 md:pt-10 flex flex-col items-center gap-4 md:gap-8 border-t border-gold/5">
+                                            <div className="space-y-1 text-center">
+                                                <p className="font-playfair text-[8px] md:text-[12px] tracking-widest text-gold font-bold">COUNTDOWN</p>
+                                            </div>
+                                            <div className="countdown-vertical scale-[0.7] md:scale-100 md:flex-row md:gap-8">
+                                                <div className="countdown-row"><span className="countdown-num">20</span> <span className="countdown-unit">DAYS</span></div>
+                                                <div className="countdown-row"><span className="countdown-num">01</span> <span className="countdown-unit">HOURS</span></div>
+                                                <div className="countdown-row"><span className="countdown-num">37</span> <span className="countdown-unit">MINS</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </RevealSection>
+                    </div>
+                </section>
+
+                {/* PAGE 3: DETAILED KHMER SCHEDULE - Balanced */}
+                <section id="schedule-khmer" className="py-32 md:py-64 px-8 md:px-12 bg-white relative overflow-hidden">
+                    <div className="max-w-6xl mx-auto">
+                        <RevealSection>
+                            <div className="text-center mb-32 space-y-8">
+                                <Heart size={32} className="text-gold/20 mx-auto fill-gold/5 mb-4" />
+                                <h2 className="font-khmer-moul text-3xl md:text-5xl text-gray-800 tracking-wider">កម្មវិធីវិវាហមង្គល</h2>
+                                <div className="w-24 h-[1px] bg-gold/10 mx-auto" />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-6 md:gap-20">
+                                <div className="space-y-6 md:space-y-12 md:border-r border-gold/5 md:pr-10">
+                                    <RevealSection delay={0.1}>
+                                        <div className="space-y-4 md:space-y-10 group text-center md:text-left">
+                                            <div className="aspect-[4/5] w-full rounded-sm overflow-hidden shadow-xl border-lux relative">
+                                                <Image src={galleryImages[13 % galleryImages.length]} fill className="object-cover group-hover:scale-110 transition-transform duration-[3s]" loading="lazy" decoding="async" alt="Morning Schedule" />
+                                                <div className="absolute top-2 md:top-4 left-2 md:left-4 bg-white/90 backdrop-blur-sm px-2 md:px-4 py-1 md:py-2 text-[6px] md:text-[10px] font-black text-gold tracking-widest shadow-sm">MORNING</div>
+                                            </div>
+                                            <div className="space-y-3 md:space-y-6">
+                                                <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4">
+                                                    <div className="w-8 h-8 md:w-12 md:h-12 rounded-full border border-gold/10 flex items-center justify-center text-[10px] md:text-xs font-black text-gold">01</div>
+                                                    <h4 className="font-khmer-moul text-[10px] md:text-lg text-gray-800">សិរីសួស្តីទី១</h4>
+                                                </div>
+                                                <div className="font-khmer-content text-[9px] md:text-[15px] leading-[2] md:leading-[2.5] text-gray-500 md:pl-16">
+                                                    <span className="text-gold font-bold">ម៉ោង ៣:០០ រសៀល</span> <br />
+                                                    ពិធីសូត្រមន្តចម្រើនព្រះបរិត្ត <br />
+                                                    <span className="text-gold font-bold pt-2 md:pt-6 block">ម៉ោង ៥:០០ រសៀល</span>
+                                                    ពិធីពិសារភោជនាហារ
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </RevealSection>
+                                </div>
+
+                                <div className="space-y-6 md:space-y-12">
+                                    <RevealSection delay={0.2}>
+                                        <div className="space-y-4 md:space-y-10 group text-center md:text-right">
+                                            <div className="aspect-[4/5] w-full rounded-sm overflow-hidden shadow-xl border-lux relative">
+                                                <Image src={galleryImages[14 % galleryImages.length]} fill className="object-cover group-hover:scale-110 transition-transform duration-[3s]" loading="lazy" decoding="async" alt="Evening Schedule" />
+                                                <div className="absolute top-2 md:top-4 right-2 md:right-4 bg-white/90 backdrop-blur-sm px-2 md:px-4 py-1 md:py-2 text-[6px] md:text-[10px] font-black text-gold tracking-widest shadow-sm">EVENING</div>
+                                            </div>
+                                            <div className="space-y-3 md:space-y-6">
+                                                <div className="flex flex-col-reverse md:flex-row items-center justify-end gap-2 md:gap-4">
+                                                    <h4 className="font-khmer-moul text-[10px] md:text-lg text-gray-800">សិរីសួស្តីទី២</h4>
+                                                    <div className="w-8 h-8 md:w-12 md:h-12 rounded-full border border-gold/10 flex items-center justify-center text-[10px] md:text-xs font-black text-gold">02</div>
+                                                </div>
+                                                <div className="font-khmer-content text-[9px] md:text-[15px] leading-[2] md:leading-[2.5] text-gray-500 md:pr-16">
+                                                    <span className="text-gold font-bold">ម៉ោង ៨:០០ ព្រឹក</span> <br />
+                                                    ពិធីកាត់សក់បង្កក់សិរី <br />
+                                                    <span className="text-gold font-bold pt-2 md:pt-6 block">ម៉ោង ១០:៣០ ព្រឹក</span>
+                                                    ពិធីហែជំនូន និងសែនព្រេន
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </RevealSection>
+                                </div>
+                            </div>
+                        </RevealSection>
+                    </div>
+                </section>
+
+                {/* EDITORIAL BREAK 3 (Ultra-Wide) */}
+                <section className="w-full aspect-square md:aspect-[21/9] h-auto md:h-[60vh] relative overflow-hidden bg-white border-y border-gold/5">
+                    <img src={galleryImages[8 % galleryImages.length]} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-white opacity-20" />
+                </section>
+
+                {/* VISUAL TRANSITION: FAMILY BANNER */}
+                <section className="w-full py-24 md:py-48 flex flex-col items-center bg-white space-y-16">
+                    <div className="max-w-6xl mx-auto w-full px-8">
+                        <RevealSection>
+                            <div className="text-center space-y-6 mb-12">
+                                <p className="font-khmer-moul text-sm text-gold/60 uppercase tracking-widest">មាតាបិតា និងក្រុមគ្រួសារ</p>
+                                <p className="font-serif-elegant italic text-gray-300 text-2xl">Foundation of Love</p>
+                            </div>
+                        </RevealSection>
+                    </div>
+                    <div className="w-full aspect-[21/9] md:h-auto md:aspect-[21/7] overflow-hidden grayscale-[10%] hover:grayscale-0 transition-all duration-[2s]">
+                        <img src={galleryImages[15 % galleryImages.length]} className="w-full h-full object-cover" />
+                    </div>
+                </section>
+                {/* PAGE 5: FORMAL KHMER INVITATION & PARENTS - Inner Centered */}
+                <section className="py-32 md:py-64 px-8 md:px-12 text-center bg-white relative">
                     <div className="absolute inset-0 premium-texture opacity-30 pointer-events-none" />
 
-                    <RevealSection>
-                        <div className="space-y-4 mb-20">
-                            <div className="text-[10px] tracking-[0.6em] text-gray-300 font-bold uppercase italic">Traditional Blessing</div>
-                            <h2 className="font-khmer-moul text-2xl text-gold tracking-widest leading-relaxed">សួស្តីអាពាហ៍ពិពាហ៍</h2>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-10 mb-24 px-6 relative">
-                            <div className="absolute left-1/2 top-0 bottom-0 w-[1px] bg-gold/10 -translate-x-1/2" />
-                            <div className="space-y-3 font-khmer-content text-[12px] font-bold text-gray-600 leading-relaxed">
-                                <p className="text-gold/40 text-[9px] uppercase tracking-widest mb-2 font-black">GROOM'S PARENTS</p>
-                                <p>លោក {wedding.themeSettings?.parents?.groomFather || "មាតាបិតាខាងប្រុស"}</p>
-                                <p>អ្នកស្រី {wedding.themeSettings?.parents?.groomMother || ""}</p>
+                    <div className="max-w-6xl mx-auto space-y-20 md:space-y-32">
+                        <RevealSection>
+                            <div className="space-y-8 mb-24">
+                                <div className="text-[12px] tracking-[0.6em] text-gray-400 font-bold uppercase italic">Traditional Blessing</div>
+                                <h2 className="font-khmer-moul text-3xl md:text-5xl text-gray-800 tracking-wider leading-relaxed">សួស្តីអាពាហ៍ពិពាហ៍</h2>
                             </div>
-                            <div className="space-y-3 font-khmer-content text-[12px] font-bold text-gray-600 leading-relaxed">
-                                <p className="text-gold/40 text-[9px] uppercase tracking-widest mb-2 font-black">BRIDE'S PARENTS</p>
-                                <p>លោក {wedding.themeSettings?.parents?.brideFather || "មាតាបិតាខាងស្រី"}</p>
-                                <p>អ្នកស្រី {wedding.themeSettings?.parents?.brideMother || ""}</p>
-                            </div>
-                        </div>
 
-                        <div className="space-y-14 bg-[#FAF9F6]/80 p-10 rounded-3xl border-lux relative overflow-hidden">
-                            <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-gold/10 rounded-tl-3xl" />
-                            <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-gold/10 rounded-br-3xl" />
-
-                            <h3 className="font-khmer-moul text-gray-800 text-sm tracking-widest">មានកិត្តិយសគោរពអញ្ជើញ</h3>
-                            <p className="font-khmer-content text-[15px] leading-[2.8] text-gray-500 max-w-[340px] mx-auto text-left italic">
-                                ឯកឧត្តម អ្នកឧកញ៉ា ឧកញ៉ា លោកជំទាវ លោក លោកស្រី អ្នកនាង កញ្ញា ម៉ែឪ អញ្ជើញចូលរួមជាអធិបតី និងពិសាភោជនាហារ ដើម្បីផ្តល់សក្ខីភាព ដ៏ខ្ពង់ខ្ពស់ ក្នុងពិធីអាពាហ៍ពិពាហ៍របស់កូនប្រុស-កូនស្រីរបស់យើងខ្ញុំ
-                            </p>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-12 pt-24">
-                            <div className="space-y-4">
-                                <div className="text-[10px] tracking-widest text-gold/40 uppercase font-black">THE GROOM</div>
-                                <p className="font-khmer-moul text-lg text-gray-800 tracking-wider">ហេង សីហា</p>
-                                <div className="h-[2px] bg-gradient-to-r from-transparent via-gold/10 to-transparent" />
-                            </div>
-                            <div className="space-y-4">
-                                <div className="text-[10px] tracking-widest text-gold/40 uppercase font-black">THE BRIDE</div>
-                                <p className="font-khmer-moul text-lg text-gray-800 tracking-wider">ម៉ែន ពេជ្រច័ន្ទរស្មី</p>
-                                <div className="h-[2px] bg-gradient-to-r from-transparent via-gold/10 to-transparent" />
-                            </div>
-                        </div>
-
-                        <div className="pt-28">
-                            <p className="font-khmer-content text-[13px] text-gray-400 font-medium leading-[2.5] px-4 max-w-[360px] mx-auto">
-                                ដែលនឹងប្រព្រឹត្តទៅនៅថ្ងៃអាទិត្យ ១៣កើត ខែផល្គុន ឆ្នាំរោង សប្តស័ក ពុទ្ធសករាជ ២៥៦៩ ត្រូវនឹងថ្ងៃទី០១ ខែមីនា ឆ្នាំ២០២៦ វេលាម៉ោង ០៥:០០នាទីល្ងាច នៅវិមានស្បៃពិពាហ៍សើភ័ណមង្គល។
-                            </p>
-                            <p className="font-playfair text-[10px] tracking-[0.8em] text-gold/30 mt-10 uppercase">Sincerely Thank You</p>
-                        </div>
-                    </RevealSection>
-                </section>
-
-                {/* MAPS & QR AS ELEGANT CARDS */}
-                <section className="py-28 px-10 bg-[#FAF9F6] space-y-24 relative overflow-hidden">
-                    <div className="absolute -top-20 -left-20 w-64 h-64 bg-gold/5 rounded-full blur-[100px]" />
-
-                    <RevealSection>
-                        <div className="space-y-12">
-                            <div className="text-center space-y-4">
-                                <h4 className="font-khmer-moul text-xs text-gold/60 uppercase tracking-widest">ទីតាំងកម្មវិធី</h4>
-                                <p className="font-serif-elegant text-sm italic text-gray-400 tracking-widest">Find your way to us</p>
-                            </div>
-                            <div className="w-full aspect-video bg-white p-3 shadow-2xl border-lux rounded-sm">
-                                <img src={galleryImages[3] || "/images/bg_staircase.jpg"} className="w-full h-full object-cover opacity-90" />
-                            </div>
-                        </div>
-                    </RevealSection>
-
-                    <div className="grid grid-cols-2 gap-6 px-2">
-                        <RevealSection delay={0.1}>
-                            <motion.div
-                                whileHover={{ y: -5 }}
-                                className="bg-white p-8 shadow-xl border-lux flex flex-col items-center gap-6 rounded-2xl group hover:shadow-gold/10 transition-all cursor-pointer h-full"
-                            >
-                                <div className="text-[10px] font-black tracking-widest uppercase text-gold/40">LOCATION</div>
-                                <div className="p-4 bg-gray-50 rounded-xl group-hover:bg-ivory transition-colors ring-1 ring-gold/5">
-                                    <QrCode size={40} className="text-gold/30" />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-20 mb-32 px-6 relative">
+                                <div className="absolute left-1/2 top-0 bottom-0 w-[1px] bg-gold/10 -translate-x-1/2 hidden md:block" />
+                                <div className="space-y-4 font-khmer-content text-[15px] font-bold text-gray-600 leading-relaxed">
+                                    <p className="text-gold/60 text-[11px] uppercase tracking-[0.4em] mb-4 font-black">GROOM'S PARENTS</p>
+                                    <p>លោក {wedding.themeSettings?.parents?.groomFather || "មាតាបិតាខាងប្រុស"}</p>
+                                    <p>អ្នកស្រី {wedding.themeSettings?.parents?.groomMother || ""}</p>
                                 </div>
-                                <div className="text-[9px] text-gray-400 text-center leading-relaxed h-12 overflow-hidden px-2 mt-auto">
-                                    Scan to find the venue on Map
+                                <div className="space-y-4 font-khmer-content text-[15px] font-bold text-gray-600 leading-relaxed">
+                                    <p className="text-gold/60 text-[11px] uppercase tracking-[0.4em] mb-4 font-black">BRIDE'S PARENTS</p>
+                                    <p>លោក {wedding.themeSettings?.parents?.brideFather || "មាតាបិតាខាងស្រី"}</p>
+                                    <p>អ្នកស្រី {wedding.themeSettings?.parents?.brideMother || ""}</p>
                                 </div>
-                            </motion.div>
-                        </RevealSection>
-                        <RevealSection delay={0.2}>
-                            <motion.div
-                                whileHover={{ y: -5 }}
-                                className="bg-white p-8 shadow-xl border-lux flex flex-col items-center gap-6 rounded-2xl group hover:shadow-gold/10 transition-all cursor-pointer h-full"
-                            >
-                                <div className="text-[10px] font-black tracking-widest uppercase text-gold/40">WEDDING GIFTS</div>
-                                <div className="p-4 bg-gray-50 rounded-xl group-hover:bg-ivory transition-colors ring-1 ring-gold/5">
-                                    <QrCode size={40} className="text-gold/30" />
+                            </div>
+
+                            <div className="space-y-16 bg-white/80 p-12 md:p-24 rounded-3xl border-lux relative overflow-hidden shadow-2xl">
+                                <h3 className="font-khmer-moul text-gray-800 text-lg md:text-xl tracking-widest">មានកិត្តិយសគោរពអញ្ជើញ</h3>
+                                <p className="font-khmer-content text-[16px] md:text-[18px] leading-[3] text-gray-500 max-w-[480px] mx-auto text-left italic font-medium">
+                                    ឯកឧត្តម អ្នកឧកញ៉ា ឧកញ៉ា លោកជំទាវ លោក លោកស្រី អ្នកនាង កញ្ញា ម៉ែឪ អញ្ជើញចូលរួមជាអធិបតី និងពិសាភោជនាហារ ដើម្បីផ្តល់សក្ខីភាព ដ៏ខ្ពង់ខ្ពស់ ក្នុងពិធីអាពាហ៍ពិពាហ៍របស់កូនប្រុស-កូនស្រីរបស់យើងខ្ញុំ
+                                </p>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-12 pt-32">
+                                <div className="space-y-6">
+                                    <div className="text-[11px] tracking-[0.4em] text-gold/50 uppercase font-black">THE GROOM</div>
+                                    <p className="font-khmer-moul text-xl md:text-4xl text-gray-800 tracking-wider">ហេង សីហា</p>
+                                    <div className="h-[2px] bg-gradient-to-r from-transparent via-gold/20 to-transparent w-32 mx-auto" />
                                 </div>
-                                <div className="text-[9px] text-gray-400 text-center leading-relaxed h-12 overflow-hidden px-2 mt-auto">
-                                    Thank you for your warm wishes!
+                                <div className="space-y-6">
+                                    <div className="text-[11px] tracking-[0.4em] text-gold/50 uppercase font-black">THE BRIDE</div>
+                                    <p className="font-khmer-moul text-xl md:text-4xl text-gray-800 tracking-wider">ម៉ែន ពេជ្រច័ន្ទរស្មី</p>
+                                    <div className="h-[2px] bg-gradient-to-r from-transparent via-gold/20 to-transparent w-32 mx-auto" />
                                 </div>
-                            </motion.div>
+                            </div>
+
+                            <div className="pt-40">
+                                <p className="font-khmer-content text-[15px] md:text-[17px] text-gray-400 font-medium leading-[3] px-4 max-w-[520px] mx-auto">
+                                    ដែលនឹងប្រព្រឹត្តទៅនៅថ្ងៃអាទិត្យ ១៣កើត ខែផល្គុន ឆ្នាំរោង សប្តស័ក ពុទ្ធសករាជ ២៥៦៩ ត្រូវនឹងថ្ងៃទី០១ ខែមីនា ឆ្នាំ២០២៦ វេលាម៉ោង ០៥:០០នាទីល្ងាច នៅវិមានស្បៃពិពាហ៍សើភ័ណមង្គល។
+                                </p>
+                                <p className="font-playfair text-[12px] tracking-[1em] text-gold/30 mt-16 uppercase italic">Sincerely Thank You</p>
+                            </div>
                         </RevealSection>
                     </div>
-
-                    <RevealSection delay={0.3}>
-                        <div className="text-center pt-20">
-                            <h3 className="font-playfair text-3xl tracking-[0.5em] text-gold/20 uppercase mb-12">Thank you</h3>
-                            <div className="space-y-6 font-khmer-moul text-sm text-gray-400 tracking-[0.2em] opacity-80">
-                                <p>{wedding.groomName}</p>
-                                <p className="font-serif-elegant italic text-gold/30 text-xl font-normal">&</p>
-                                <p>{wedding.brideName}</p>
-                            </div>
-                        </div>
-                    </RevealSection>
                 </section>
 
-                {/* THE GALLERY PATTERNS (Luxury Refinement) */}
-                <section className="py-24 px-6 space-y-6 bg-white relative">
-                    <RevealSection>
-                        <div className="text-center mb-24 space-y-6">
-                            <div className="h-[1px] w-12 bg-gold/20 mx-auto" />
-                            <h2 className="font-playfair text-4xl font-black italic text-gray-800 tracking-tighter">Golden Memories</h2>
-                            <p className="font-serif-elegant text-sm text-gray-400 tracking-[0.4em] uppercase">Private Gallery</p>
-                        </div>
-                    </RevealSection>
+                {/* EDITORIAL BREAK 4 (Large Portrait Focus) */}
+                <section className="w-full py-24 md:py-48 bg-[#FAF9F6]/10 flex flex-col items-center px-4 relative overflow-hidden">
+                    <div className="absolute top-0 w-64 h-[2px] bg-gradient-to-r from-transparent via-gold/10 to-transparent" />
+                    <div className="w-full max-w-xl aspect-[3/4] relative overflow-hidden ring-1 ring-black/5 shadow-2xl">
+                        <img src={galleryImages[9 % galleryImages.length]} className="w-full h-full object-cover" />
+                    </div>
+                </section>
 
-                    {/* DYNAMIC GALLERY MODES */}
-                    <div className="space-y-12">
-                        {wedding.themeSettings?.galleryStyle === 'slider' ? (
-                            <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-8 no-scrollbar -mx-6 px-6">
-                                {galleryImages.map((img, idx) => (
-                                    <motion.div
-                                        key={idx}
-                                        className="flex-shrink-0 w-[85%] aspect-[3/4] snap-center rounded-2xl overflow-hidden border-lux shadow-2xl bg-white p-2"
-                                    >
-                                        <img src={img} className="w-full h-full object-cover rounded-xl" />
-                                    </motion.div>
-                                ))}
-                            </div>
-                        ) : wedding.themeSettings?.galleryStyle === 'polaroid' ? (
-                            <div className="grid grid-cols-2 gap-x-4 gap-y-10 px-2 pt-10 pb-20">
-                                {galleryImages.slice(0, 8).map((img, idx) => (
-                                    <motion.div
-                                        key={idx}
-                                        initial={{ rotate: idx % 2 === 0 ? -3 : 3 }}
-                                        whileInView={{ rotate: idx % 2 === 0 ? -1 : 1 }}
-                                        className="bg-white p-3 pt-3 pb-12 shadow-xl border border-gray-100 rounded-sm relative group"
-                                    >
-                                        <img src={img} className="w-full h-full object-cover" />
-                                        <div className="absolute bottom-4 left-0 right-0 text-center font-serif-elegant italic text-[10px] text-gray-400">
-                                            Moment {idx + 1}
-                                        </div>
-                                    </motion.div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="space-y-6">
-                                {/* DEFAULT MASONRY PATTERN (Already implemented as split view) */}
-                                <div className="grid grid-cols-2 gap-4 h-[350px] px-2">
-                                    <RevealSection delay={0.05} className="h-full border-lux p-1 bg-white rounded-xl">
-                                        <img src={galleryImages[0 % galleryImages.length]} className="w-full h-full object-cover rounded-lg" />
-                                    </RevealSection>
-                                    <RevealSection delay={0.1} className="h-full border-lux p-1 bg-white rounded-xl">
-                                        <img src={galleryImages[1 % galleryImages.length]} className="w-full h-full object-cover rounded-lg" />
-                                    </RevealSection>
+                {/* MAPS & QR AS ELEGANT CARDS - Full Screen Balanced */}
+                <section className="py-32 md:py-64 px-8 md:px-12 bg-[#FAF9F6]/20 relative overflow-hidden">
+                    <div className="absolute -top-20 -left-20 w-96 h-96 bg-gold/5 rounded-full blur-[100px]" />
+
+                    <div className="max-w-6xl mx-auto space-y-32 md:space-y-48">
+                        <RevealSection>
+                            <div className="space-y-16">
+                                <div className="text-center space-y-6">
+                                    <h4 className="font-khmer-moul text-lg text-gold/60 uppercase tracking-widest">ទីតាំងកម្មវិធី</h4>
+                                    <p className="font-serif-elegant text-xl italic text-gray-400 tracking-widest font-medium">Find your way to us</p>
                                 </div>
-                                <div className="w-full h-[450px] px-2">
-                                    <RevealSection delay={0.2} className="h-full border-lux p-2 bg-white rounded-2xl">
-                                        <img src={galleryImages[2 % galleryImages.length]} className="w-full h-full object-cover rounded-xl" />
-                                    </RevealSection>
+                                <div className="w-full md:aspect-[21/9] bg-white shadow-2xl border-lux rounded-sm overflow-hidden group">
+                                    <img src={galleryImages[10 % galleryImages.length] || "/images/bg_staircase.jpg"} className="w-full h-full object-cover group-hover:scale-105 transition-all duration-[4s]" />
+                                    <div className="absolute inset-0 bg-black/5 pointer-events-none" />
                                 </div>
-                                <div className="grid grid-cols-2 gap-4 h-[600px] px-2">
-                                    <div className="flex flex-col gap-4">
-                                        <RevealSection delay={0.6} className="flex-1 border-lux p-1 bg-white rounded-xl">
-                                            <img src={galleryImages[6 % galleryImages.length]} className="w-full h-full object-cover rounded-lg" />
-                                        </RevealSection>
-                                        <RevealSection delay={0.7} className="flex-1 border-lux p-1 bg-white rounded-xl">
-                                            <img src={galleryImages[7 % galleryImages.length]} className="w-full h-full object-cover rounded-lg" />
-                                        </RevealSection>
+                            </div>
+                        </RevealSection>
+
+                        <div className="grid grid-cols-2 gap-4 md:gap-20">
+                            <RevealSection delay={0.1}>
+                                <m.div
+                                    whileHover={{ y: -10 }}
+                                    className="bg-white p-6 md:p-20 shadow-xl md:shadow-2xl border-lux flex flex-col items-center gap-4 md:gap-10 rounded-2xl md:rounded-3xl group hover:shadow-gold/10 transition-all cursor-pointer h-full relative overflow-hidden"
+                                >
+                                    <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-gold/10 to-transparent" />
+                                    <div className="text-[7px] md:text-[12px] font-black tracking-[0.8em] uppercase text-gold/60">LOCATION</div>
+                                    <div className="p-4 md:p-8 bg-gray-50 rounded-xl md:rounded-2xl group-hover:bg-ivory transition-colors ring-1 ring-gold/5">
+                                        <QrCode size={32} className="text-gold/30 md:w-16 md:h-16" />
                                     </div>
-                                    <RevealSection delay={0.8} className="h-full border-lux p-1 bg-white rounded-xl">
-                                        <img src={galleryImages[8 % galleryImages.length]} className="w-full h-full object-cover rounded-lg" />
-                                    </RevealSection>
-                                </div>
-                            </div>
-                        )}
+                                    <div className="text-[7px] md:text-[11px] text-gray-400 text-center leading-relaxed md:leading-[2] md:h-12 px-2 md:px-6 md:mt-auto font-medium">
+                                        Click to view Google Maps location
+                                    </div>
+                                </m.div>
+                            </RevealSection>
+
+                            <RevealSection delay={0.2}>
+                                <m.div
+                                    whileHover={{ y: -10 }}
+                                    className="bg-white p-6 md:p-20 shadow-xl md:shadow-2xl border-lux flex flex-col items-center gap-4 md:gap-10 rounded-2xl md:rounded-3xl group hover:shadow-gold/10 transition-all cursor-pointer h-full relative overflow-hidden"
+                                >
+                                    <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-gold/10 to-transparent" />
+                                    <div className="text-[7px] md:text-[12px] font-black tracking-[0.8em] uppercase text-gold/60">WEDDING GIFTS</div>
+                                    <div className="p-4 md:p-8 bg-gray-50 rounded-xl md:rounded-2xl group-hover:bg-ivory transition-colors ring-1 ring-gold/5">
+                                        <QrCode size={32} className="text-gold/30 md:w-16 md:h-16" />
+                                    </div>
+                                    <div className="text-[7px] md:text-[11px] text-gray-400 text-center leading-relaxed md:leading-[2] md:h-12 px-2 md:px-6 md:mt-auto font-medium">
+                                        Thank you for your warm wishes!
+                                    </div>
+                                </m.div>
+                            </RevealSection>
+                        </div>
                     </div>
                 </section>
 
-                {/* FINAL KHMER PREAMBLE & FOOTER */}
-                <section className="py-28 px-12 text-center bg-white border-t border-gold/5 pb-48 relative">
-                    <div className="absolute inset-0 premium-texture opacity-20 pointer-events-none" />
-                    <RevealSection>
-                        <div className="space-y-20 relative z-10">
-                            <p className="font-khmer-content text-[13px] leading-[2.8] text-gray-500 max-w-[340px] mx-auto opacity-80 italic font-medium">
-                                យើងខ្ញុំសូមថ្លែងអំណរគុណយ៉ាងជ្រាលជ្រៅបំផុតចំពោះការផ្តល់កិត្តិយសចូលរួម ក្នុងពិធីរបស់យើងខ្ញុំ និងសូមជូនពរឱ្យទទួលបាននូវព្រះពុទ្ធពរ ៤ ប្រការគឺ អាយុ វណ្ណៈ សុខៈ ពលៈ កុំបីឃ្លៀងឃ្លាតឡើយ។
-                            </p>
-                            <div className="pt-10">
-                                <MoneaBranding />
+                {/* SIGNATURE MOMENTS & THANK YOU - Full screen balance */}
+                <section className="py-32 md:py-64 px-8 md:px-12 bg-white relative overflow-hidden">
+                    <div className="max-w-6xl mx-auto space-y-32 md:space-y-48">
+                        <RevealSection delay={0.3}>
+                            <div className="text-center">
+                                <h3 className="font-playfair text-4xl tracking-[0.5em] text-gold/20 uppercase mb-16">Thank you</h3>
+                                <div className="space-y-8 font-khmer-moul text-sm text-gray-500 tracking-[0.2em] opacity-80">
+                                    <p className="text-lg">{wedding.groomName}</p>
+                                    <p className="font-serif-elegant italic text-gold/30 text-3xl font-normal">&</p>
+                                    <p className="text-lg">{wedding.brideName}</p>
+                                </div>
                             </div>
-                            <div className="text-[11px] tracking-[0.8em] font-black text-gray-200 uppercase pt-4">
-                                MOMENTS MATTERS
+                        </RevealSection>
+
+                        {/* SIGNATURE MOMENTS GRID - Balanced */}
+                        <div className="grid grid-cols-3 gap-6 md:gap-8 pt-20">
+                            <div className="col-span-1 aspect-[3/4] rounded-sm overflow-hidden shadow-xl md:shadow-2xl border-lux mt-6 md:mt-0">
+                                <img src={galleryImages[23 % galleryImages.length]} className="w-full h-full object-cover" />
+                            </div>
+                            <div className="col-span-1 aspect-[3/4] rounded-sm overflow-hidden shadow-xl md:shadow-2xl border-lux md:mt-24">
+                                <img src={galleryImages[24 % galleryImages.length]} className="w-full h-full object-cover" />
+                            </div>
+                            <div className="col-span-1 aspect-[3/4] rounded-sm overflow-hidden shadow-xl md:shadow-2xl border-lux mt-0">
+                                <img src={galleryImages[25 % galleryImages.length]} className="w-full h-full object-cover" />
                             </div>
                         </div>
-                    </RevealSection>
+                    </div>
                 </section>
-            </div>
 
-            {musicUrl && <audio ref={audioRef} src={musicUrl} loop preload="auto" style={{ display: 'none' }} />}
+                {/* THE GALLERY PATTERNS (Luxury Refinement) - Full Bleed */}
+                <section id="gallery-sections" className="py-32 md:py-64 px-6 md:px-12 bg-white relative">
+                    <div className="max-w-7xl mx-auto space-y-32 md:space-y-48">
+                        <RevealSection>
+                            <div className="text-center space-y-8">
+                                <div className="h-[1px] w-24 bg-gold/10 mx-auto" />
+                                <h2 className="font-playfair text-4xl md:text-6xl font-black italic text-gray-800 tracking-tighter">Golden Memories</h2>
+                                <p className="font-serif-elegant text-sm text-gold/40 tracking-[0.5em] uppercase">Private Gallery</p>
+                            </div>
+                        </RevealSection>
+
+                        {/* DYNAMIC GALLERY MODES */}
+                        <div className="space-y-48">
+                            {wedding.themeSettings?.galleryStyle === 'slider' ? (
+                                <div className="flex gap-8 overflow-x-auto snap-x snap-mandatory pb-12 no-scrollbar -mx-6 px-6 md:mx-0 md:px-0">
+                                    {galleryImages.map((img, idx) => (
+                                        <m.div
+                                            key={idx}
+                                            className="flex-shrink-0 w-[85%] md:w-[450px] aspect-[3/4] snap-center rounded-sm overflow-hidden border-lux shadow-2xl bg-white"
+                                        >
+                                            <img src={img} className="w-full h-full object-cover" />
+                                        </m.div>
+                                    ))}
+                                </div>
+                            ) : wedding.themeSettings?.galleryStyle === 'polaroid' ? (
+                                <div className="space-y-32 flex flex-col items-center">
+                                    {/* SECTION 1: Pre-Wedding */}
+                                    {galleryImages.length > 0 && (
+                                        <div className="w-full">
+                                            <div className="text-center mb-16">
+                                                <h3 className="font-playfair text-3xl italic text-gray-700">The Pre-Wedding</h3>
+                                                <div className="w-12 h-[1px] bg-gold/10 mx-auto mt-6" />
+                                            </div>
+                                            <div className="grid grid-cols-3 gap-4 md:gap-8 px-2 pb-10">
+                                                {galleryImages.slice(18, 24).map((img, idx) => (
+                                                    <m.div
+                                                        key={idx + 18}
+                                                        initial={{ rotate: idx % 2 === 0 ? -3 : 3 }}
+                                                        whileInView={{ rotate: idx % 2 === 0 ? -1 : 1 }}
+                                                        className="bg-white p-2 md:p-4 pt-2 md:pt-4 pb-8 md:pb-16 shadow-xl md:shadow-2xl border border-gray-100 rounded-sm relative group"
+                                                    >
+                                                        <img src={img} className="w-full h-32 md:h-80 object-cover" />
+                                                    </m.div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* SECTION 2: Ceremony */}
+                                    {galleryImages.length > 6 && (
+                                        <div className="w-full">
+                                            <div className="text-center mb-16 pt-16 border-t border-gold/5">
+                                                <h3 className="font-playfair text-3xl italic text-gray-700">The Ceremony</h3>
+                                                <div className="w-12 h-[1px] bg-gold/10 mx-auto mt-6" />
+                                            </div>
+                                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 px-2 pb-10">
+                                                {galleryImages.slice(0, 8).map((img, idx) => (
+                                                    <m.div
+                                                        key={idx}
+                                                        initial={{ rotate: idx % 2 === 0 ? 3 : -3 }}
+                                                        whileInView={{ rotate: idx % 2 === 0 ? 1 : -1 }}
+                                                        className="bg-white p-4 pt-4 pb-16 shadow-2xl border border-gray-100 rounded-sm relative group"
+                                                    >
+                                                        <img src={img} className="w-full h-64 md:h-80 object-cover" />
+                                                    </m.div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* SECTION 3: Reception */}
+                                    {galleryImages.length > 12 && (
+                                        <div className="w-full">
+                                            <div className="text-center mb-16 pt-16 border-t border-gold/5">
+                                                <h3 className="font-playfair text-3xl italic text-gray-700">The Reception</h3>
+                                                <div className="w-12 h-[1px] bg-gold/10 mx-auto mt-6" />
+                                            </div>
+                                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 px-2 pb-10">
+                                                {galleryImages.slice(8, 16).map((img, idx) => (
+                                                    <m.div
+                                                        key={idx + 8}
+                                                        initial={{ rotate: idx % 2 === 0 ? -2 : 2 }}
+                                                        whileInView={{ rotate: idx % 2 === 0 ? -1 : 1 }}
+                                                        className="bg-white p-4 pt-4 pb-16 shadow-2xl border border-gray-100 rounded-sm relative group"
+                                                    >
+                                                        <img src={img} className="w-full h-64 md:h-80 object-cover" />
+                                                    </m.div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="space-y-32">
+                                    {/* SECTION 1: Pre-Wedding (Refined Editorial) */}
+                                    {galleryImages.length > 0 && (
+                                        <div>
+                                            <div className="text-center mb-16">
+                                                <h3 className="font-playfair text-3xl md:text-4xl italic text-gray-700">Pre-Wedding</h3>
+                                                <div className="w-16 h-[1px] bg-gold/10 mx-auto mt-6" />
+                                            </div>
+                                            <div className="grid grid-cols-3 gap-2 md:gap-8 px-1">
+                                                {galleryImages.slice(0, 6).map((img, idx) => {
+                                                    // Standardized Editorial Pattern (Pattern A):
+                                                    // Global (3cols): 2+1(L+S), 1+1+1(S+S+S), 3(F)
+                                                    let spanClass = "col-span-1 h-[120px] md:h-[450px]";
+                                                    if (idx === 0) spanClass = "col-span-2 h-[150px] md:h-[600px]";
+                                                    if (idx === 5) spanClass = "col-span-3 h-[140px] md:h-[500px]";
+
+                                                    return (
+                                                        <RevealSection
+                                                            key={idx}
+                                                            delay={0.1 + (idx % 3) * 0.1}
+                                                            className={`border-lux bg-white shadow-2xl relative overflow-hidden group ${spanClass}`}
+                                                        >
+                                                            <m.img
+                                                                whileHover={{ scale: 1.05 }}
+                                                                transition={{ duration: 1.5 }}
+                                                                src={img}
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        </RevealSection>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* SECTION 2: Ceremony (Refined Editorial) */}
+                                    {galleryImages.length > 6 && (
+                                        <div>
+                                            <div className="text-center mb-16 pt-32 border-t border-gold/5">
+                                                <h3 className="font-playfair text-3xl md:text-4xl italic text-gray-700">Traditional Ceremony</h3>
+                                                <div className="w-16 h-[1px] bg-gold/10 mx-auto mt-6" />
+                                            </div>
+                                            <div className="grid grid-cols-3 gap-2 md:gap-8 px-1">
+                                                {galleryImages.slice(6, 12).map((img, idx) => {
+                                                    // Pattern Variation (Pattern B): Responsive Balance
+                                                    // Global (3cols): 1+2(S+L), 1+1+1(S+S+S), 3(F)
+                                                    let spanClass = "col-span-1 h-[120px] md:h-[450px]";
+                                                    if (idx === 1) spanClass = "col-span-2 h-[150px] md:h-[600px]";
+                                                    if (idx === 5) spanClass = "col-span-3 h-[140px] md:h-[500px]";
+
+                                                    return (
+                                                        <RevealSection
+                                                            key={idx + 6}
+                                                            delay={0.1 + (idx % 3) * 0.1}
+                                                            className={`border-lux bg-white shadow-2xl relative overflow-hidden group ${spanClass}`}
+                                                        >
+                                                            <m.img
+                                                                whileHover={{ scale: 1.05 }}
+                                                                transition={{ duration: 1.5 }}
+                                                                src={img}
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        </RevealSection>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* SECTION 3: Reception (Refined Editorial) */}
+                                    {galleryImages.length > 12 && (
+                                        <div>
+                                            <div className="text-center mb-16 pt-32 border-t border-gold/5">
+                                                <h3 className="font-playfair text-3xl md:text-4xl italic text-gray-700">Evening Reception</h3>
+                                                <div className="w-16 h-[1px] bg-gold/10 mx-auto mt-6" />
+                                            </div>
+                                            <div className="grid grid-cols-3 gap-2 md:gap-8 px-1">
+                                                {galleryImages.slice(12, 18).map((img, idx) => {
+                                                    // Pattern Variation (Pattern C): Responsive Balance
+                                                    // Global (3cols): 1+1+1(S+S+S), 2+1(L+S), 3(F)
+                                                    let spanClass = "col-span-1 h-[120px] md:h-[450px]";
+                                                    if (idx === 3) spanClass = "col-span-2 h-[150px] md:h-[600px]";
+                                                    if (idx === 5) spanClass = "col-span-3 h-[140px] md:h-[500px]";
+
+                                                    return (
+                                                        <RevealSection
+                                                            key={idx + 12}
+                                                            delay={0.1 + (idx % 3) * 0.1}
+                                                            className={`border-lux bg-white shadow-2xl relative overflow-hidden group ${spanClass}`}
+                                                        >
+                                                            <m.img
+                                                                whileHover={{ scale: 1.05 }}
+                                                                transition={{ duration: 1.5 }}
+                                                                src={img}
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        </RevealSection>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </section>
+
+                {/* FINAL KHMER PREAMBLE & FOOTER - Inner Centered */}
+                <section className="py-60 px-12 text-center bg-white border-t border-gold/5 pb-64 relative">
+                    <div className="max-w-4xl mx-auto">
+                        <RevealSection>
+                            <div className="space-y-24 relative z-10">
+                                <p className="font-khmer-content text-[16px] md:text-[18px] leading-[3] text-gray-500 max-w-[480px] mx-auto opacity-80 italic font-medium">
+                                    យើងខ្ញុំសូមថ្លែងអំណរគុណយ៉ាងជ្រាលជ្រៅបំផុតចំពោះការផ្តល់កិត្តិយសចូលរួម ក្នុងពិធីរបស់យើងខ្ញុំ និងសូមជូនពរឱ្យទទួលបាននូវព្រះពុទ្ធពរ ៤ ប្រការគឺ អាយុ វណ្ណៈ សុខៈ ពលៈ កុំបីឃ្លៀងឃ្លាតឡើយ។
+                                </p>
+                                <div className="pt-10">
+                                    <MoneaBranding />
+                                </div>
+                                <div className="text-[11px] tracking-[0.8em] font-black text-gray-200 uppercase pt-4">
+                                    MOMENTS MATTERS
+                                </div>
+                            </div>
+                        </RevealSection>
+                    </div>
+                </section>
+
+                {musicUrl && <audio ref={audioRef} src={musicUrl} loop preload="auto" style={{ display: 'none' }} />}
+            </div>
         </main>
     );
 }

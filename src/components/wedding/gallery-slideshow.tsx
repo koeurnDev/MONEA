@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 
@@ -28,7 +28,7 @@ export const GallerySlideshow = ({ images }: GallerySlideshowProps) => {
     return (
         <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-xl group bg-black/5">
             <AnimatePresence mode="wait">
-                <motion.div
+                <m.div
                     key={index}
                     initial={{ opacity: 0, scale: 1.1 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -49,7 +49,7 @@ export const GallerySlideshow = ({ images }: GallerySlideshowProps) => {
                             <div className="w-10 h-10 border-4 border-white border-t-pink-400 rounded-full animate-spin"></div>
                         </div>
                     )}
-                </motion.div>
+                </m.div>
             </AnimatePresence>
 
             {/* Navigation Buttons */}

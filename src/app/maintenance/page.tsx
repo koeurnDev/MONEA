@@ -1,12 +1,12 @@
 "use client";
-import { motion } from "framer-motion";
+import { m } from 'framer-motion';
 import { ShieldAlert, Clock, Sparkles, Heart } from "lucide-react";
 
 export default function MaintenancePage() {
     return (
         <div className="min-h-screen bg-[#FDFCFB] flex items-center justify-center p-6 text-center">
             <div className="max-w-2xl w-full">
-                <motion.div
+                <m.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="relative"
@@ -43,7 +43,7 @@ export default function MaintenancePage() {
                             <Heart size={10} className="text-red-400" /> Powered by MONEA System
                         </div>
                     </div>
-                </motion.div>
+                </m.div>
             </div>
         </div>
     );

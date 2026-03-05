@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { WeddingData } from "../types";
 import { Heart } from 'lucide-react';
 import { CldImage } from 'next-cloudinary';
@@ -22,7 +22,7 @@ export default function LoveStory({ wedding }: { wedding: WeddingData }) {
 
                 <div className="space-y-20 relative z-10">
                     {story.map((item, idx) => (
-                        <motion.div
+                        <m.div
                             key={idx}
                             initial={{ opacity: 0, y: 50 }}
                             whileInView={{ opacity: 1, y: 0 }}
@@ -55,7 +55,7 @@ export default function LoveStory({ wedding }: { wedding: WeddingData }) {
                                 <h5 className="font-cinzel text-xl text-white mb-2">{item.title}</h5>
                                 <p className="font-cormorant text-gray-400 text-lg leading-relaxed">{item.desc}</p>
                             </div>
-                        </motion.div>
+                        </m.div>
                     ))}
                 </div>
             </div>

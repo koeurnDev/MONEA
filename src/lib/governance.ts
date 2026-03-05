@@ -4,6 +4,8 @@ export const GOVERNANCE_ACTIONS = {
     PUBLISH: "PUBLISH",
     ROLLBACK: "ROLLBACK",
     CONFIG_UPDATE: "CONFIG_UPDATE",
+    ENABLE_2FA: "ENABLE_2FA",
+    REVOKE_SESSIONS: "REVOKE_SESSIONS",
 };
 
 export class SystemGovernance {

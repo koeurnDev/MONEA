@@ -1,5 +1,6 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
+import Image from 'next/image';
 import { WeddingData } from "../types";
 
 export default function Invitation({ wedding }: { wedding: WeddingData }) {
@@ -7,10 +8,15 @@ export default function Invitation({ wedding }: { wedding: WeddingData }) {
         <section className="relative py-24 px-6 overflow-hidden">
             {/* Background Texture */}
             <div className="absolute inset-0 bg-[#08120e] opacity-90 z-0"></div>
-            <img src="/templates/enchanted/bg-floral.jpg" className="absolute inset-0 w-full h-full object-cover opacity-20 z-0 mix-blend-overlay" />
+            <Image
+                src="/templates/enchanted/bg-floral.jpg"
+                alt="Floral Background"
+                fill
+                className="object-cover opacity-20 z-0 mix-blend-overlay"
+            />
 
             <div className="relative z-10 max-w-3xl mx-auto text-center">
-                <motion.div
+                <m.div
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 1 }}
@@ -46,7 +52,7 @@ export default function Invitation({ wedding }: { wedding: WeddingData }) {
                             RSVP NOW
                         </button>
                     </div>
-                </motion.div>
+                </m.div>
             </div>
         </section>
     );

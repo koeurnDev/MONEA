@@ -12,7 +12,7 @@ export default function MobileNav({ wedding, mapLink }: { wedding?: WeddingData,
 
     return (
         <div className="fixed bottom-4 left-4 right-4 z-[999] pointer-events-none flex justify-center">
-            <div className="pointer-events-auto bg-black/40 backdrop-blur-md shadow-2xl rounded-full px-6 py-3 flex justify-between items-center border border-white/20 w-full max-w-sm">
+            <div className="pointer-events-auto bg-black/40 backdrop-blur-sm shadow-2xl rounded-full px-6 py-3 flex justify-between items-center border border-white/20 w-full max-w-sm will-change-transform">
 
                 <button onClick={() => scrollTo('hero')} className="flex flex-col items-center text-white/70 hover:text-white transition-colors p-1">
                     <Home size={20} />

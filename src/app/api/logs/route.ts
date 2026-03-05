@@ -1,28 +1,15 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { verifyToken } from "@/lib/auth";
-import { cookies } from "next/headers";
+import { getServerUser } from "@/lib/auth";
 import fs from 'fs';
 
 
-async function getUser() {
-    const token = cookies().get("token")?.value;
-    if (!token) return null;
-    try {
-        const decoded = verifyToken(token) as any;
-        if (decoded && typeof decoded === "object") {
-            const role = decoded.role?.toUpperCase() || "ADMIN";
-            const userId = decoded.userId || decoded.sub || decoded.id;
-            return { ...decoded, role, userId } as { userId: string, role: string };
-        }
-    } catch (e) { }
-    return null;
-}
+// Legacy getUser removed in favor of getServerUser
 
 export async function GET() {
     try {
-        const user = await getUser();
+        const user = await getServerUser();
         if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const wedding = await prisma.wedding.findFirst({ where: { userId: user.userId } });

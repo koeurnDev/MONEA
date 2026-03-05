@@ -12,6 +12,13 @@ export default function MasterSettingsPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
 
+    // 2FA States
+    const [qrCode, setQrCode] = useState<string | null>(null);
+    const [twoFactorToken, setTwoFactorToken] = useState("");
+    const [secret, setSecret] = useState<string | null>(null);
+    const [is2FASetupLoading, setIs2FASetupLoading] = useState(false);
+    const [is2FAEnabled, setIs2FAEnabled] = useState(false); // We should ideally get this from an API, assuming false for now if not setup
+
     useEffect(() => {
         fetch("/api/admin/master/settings")
             .then(res => res.json())
@@ -31,6 +38,44 @@ export default function MasterSettingsPage() {
             console.error(e);
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleSetup2FA = async () => {
+        setIs2FASetupLoading(true);
+        try {
+            const res = await fetch("/api/auth/2fa/setup", { method: "POST" });
+            const data = await res.json();
+            if (data.qrCodeDataUrl) {
+                setQrCode(data.qrCodeDataUrl);
+                setSecret(data.secret);
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setIs2FASetupLoading(false);
+        }
+    };
+
+    const handleVerify2FA = async () => {
+        setIs2FASetupLoading(true);
+        try {
+            const res = await fetch("/api/auth/2fa/verify", {
+                method: "POST",
+                body: JSON.stringify({ token: twoFactorToken }),
+                headers: { "Content-Type": "application/json" }
+            });
+            const data = await res.json();
+            if (data.success) {
+                setIs2FAEnabled(true);
+                setQrCode(null);
+            } else {
+                alert(data.error || "Invalid Token");
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setIs2FASetupLoading(false);
         }
     };
 
@@ -74,6 +119,69 @@ export default function MasterSettingsPage() {
                 </div>
 
                 <div className="grid grid-cols-1 gap-6">
+
+                    {/* Master Account 2FA */}
+                    <Card className="border-none shadow-sm shadow-slate-200/50 rounded-[2.5rem] overflow-hidden bg-white">
+                        <CardContent className="p-8">
+                            <div className="flex flex-col space-y-4">
+                                <div className="space-y-1">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <ShieldAlert className="w-5 h-5 text-indigo-500" />
+                                        <Label className="text-lg font-black text-slate-900">Two-Factor Authentication (2FA)</Label>
+                                    </div>
+                                    <p className="text-sm text-slate-500 font-medium w-3/4">
+                                        Protect your Master Admin account with an additional layer of security using an Authenticator app (e.g., Google Authenticator).
+                                    </p>
+                                </div>
+
+                                {is2FAEnabled ? (
+                                    <div className="p-4 bg-green-50 border border-green-100 rounded-2xl flex items-center gap-3">
+                                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                                        <span className="text-sm font-bold text-green-800">2FA is currently ENABLED and protecting your account.</span>
+                                    </div>
+                                ) : !qrCode ? (
+                                    <div>
+                                        <Button
+                                            onClick={handleSetup2FA}
+                                            disabled={is2FASetupLoading}
+                                            className="h-10 px-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-md"
+                                        >
+                                            {is2FASetupLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Set up 2FA"}
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <div className="p-6 bg-slate-50 border border-slate-100 rounded-3xl flex flex-col md:flex-row gap-8 items-center">
+                                        <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-100">
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img src={qrCode} alt="2FA QR Code" className="w-32 h-32 rounded-xl" />
+                                        </div>
+                                        <div className="space-y-3 flex-1 flex flex-col">
+                                            <p className="text-xs text-slate-500 font-medium">1. Scan this QR Code with your Authenticator app.</p>
+                                            <p className="text-xs text-slate-500 font-medium">2. Enter the 6-digit code below to verify and enable 2FA.</p>
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    placeholder="Enter 6-digit code"
+                                                    className="h-10 px-4 w-48 rounded-xl border border-slate-200 text-sm focus:border-indigo-500 outline-none"
+                                                    value={twoFactorToken}
+                                                    onChange={(e) => setTwoFactorToken(e.target.value)}
+                                                    maxLength={6}
+                                                />
+                                                <Button
+                                                    onClick={handleVerify2FA}
+                                                    disabled={is2FASetupLoading || twoFactorToken.length < 6}
+                                                    className="h-10 px-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs shadow-md"
+                                                >
+                                                    {is2FASetupLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify Code"}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+
                     {/* Maintenance Mode */}
                     <Card className="border-none shadow-sm shadow-slate-200/50 rounded-[2.5rem] overflow-hidden bg-white">
                         <CardContent className="p-8">

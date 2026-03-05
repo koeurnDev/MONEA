@@ -1,28 +1,14 @@
-export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { verifyToken } from "@/lib/auth";
-import { cookies } from "next/headers";
-import bcrypt from "bcryptjs";
+import { getServerUser } from "@/lib/auth";
 import crypto from "crypto";
+import { CryptoUtils } from "@/lib/crypto";
 
 
-async function getUser() {
-    const token = cookies().get("token")?.value;
-    if (!token) return null;
-    try {
-        const decoded = verifyToken(token) as any;
-        if (decoded && typeof decoded === "object") {
-            const role = decoded.role?.toUpperCase() || "ADMIN";
-            const userId = decoded.userId || decoded.sub || decoded.id;
-            return { ...decoded, role, userId } as { userId: string, role: string };
-        }
-    } catch (e) { }
-    return null;
-}
+// Legacy getUser removed in favor of getServerUser
 
 export async function GET() {
-    const user = await getUser();
+    const user = await getServerUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     let wedding = await prisma.wedding.findFirst({
@@ -66,7 +52,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
     try {
-        const user = await getUser();
+        const user = await getServerUser();
         if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         let wedding = await prisma.wedding.findFirst({
@@ -74,19 +60,7 @@ export async function POST(req: Request) {
         });
 
         if (!wedding) {
-            try {
-                wedding = await prisma.wedding.create({
-                    data: {
-                        userId: user.userId,
-                        groomName: "កូនកំលោះ",
-                        brideName: "កូនក្រមុំ",
-                        date: new Date(),
-                    }
-                });
-            } catch (e) {
-                console.error("Failed to auto-create wedding for staff:", e);
-                return NextResponse.json({ error: "Failed to create wedding profile" }, { status: 500 });
-            }
+            return NextResponse.json({ error: "សូមបង្កើតព័ត៌មានមង្គលការជាមុនសិន (Please create a wedding profile first)" }, { status: 403 });
         }
 
         const body = await req.json();
@@ -110,7 +84,7 @@ export async function POST(req: Request) {
             }, { status: 400 });
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword = await CryptoUtils.hash(password);
         const accessToken = crypto.randomUUID();
 
         const newStaff = await prisma.staff.create({
@@ -133,7 +107,7 @@ export async function POST(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-    const user = await getUser();
+    const user = await getServerUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { searchParams } = new URL(req.url);

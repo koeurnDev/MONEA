@@ -12,7 +12,7 @@ export async function GET() {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const [history, logs, templateVersions] = await Promise.all([
+        const [history, logs, templateVersions, templateUsageRaw] = await Promise.all([
             SystemGovernance.getHistory(),
             SystemGovernance.getLogs(),
             prisma.weddingTemplateVersion.findMany({
@@ -23,10 +23,21 @@ export async function GET() {
                         select: { groomName: true, brideName: true, id: true }
                     }
                 }
+            }),
+            prisma.wedding.groupBy({
+                by: ['templateId'],
+                _count: { id: true },
+                orderBy: { _count: { id: 'desc' } }
             })
         ]);
 
-        return NextResponse.json({ history, logs, templateVersions });
+        // Format template usage to be easier to consume
+        const templateUsage = templateUsageRaw.map(item => ({
+            templateId: item.templateId,
+            count: item._count.id
+        }));
+
+        return NextResponse.json({ history, logs, templateVersions, templateUsage });
     } catch (error) {
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
