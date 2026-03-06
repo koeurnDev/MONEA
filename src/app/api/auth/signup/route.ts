@@ -5,7 +5,7 @@ import { ROLES } from "@/lib/constants";
 import { CryptoUtils } from "@/lib/crypto";
 
 export async function GET(req: Request) {
-    return NextResponse.redirect(new URL('/register', req.url));
+    return NextResponse.json({ message: "Registration endpoint active. Use POST to register." }, { status: 405 });
 }
 
 export async function OPTIONS(req: Request) {

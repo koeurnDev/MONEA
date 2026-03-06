@@ -9,8 +9,7 @@ import { sendTelegramAlert } from "@/lib/telegram";
 import { CryptoUtils } from "@/lib/crypto";
 
 export async function GET(req: Request) {
-    // Graceful redirect if user accidentally navigates to the API URL in their browser
-    return NextResponse.redirect(new URL('/login', req.url));
+    return NextResponse.json({ message: "Authentication endpoint active. Use POST to sign in." }, { status: 405 });
 }
 
 export async function OPTIONS(req: Request) {
