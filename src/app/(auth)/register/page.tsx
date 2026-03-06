@@ -65,7 +65,13 @@ export default function RegisterPage() {
                 }),
             });
 
-            const data = await res.json();
+            let data;
+            try {
+                data = await res.json();
+            } catch (err) {
+                data = { error: "ម៉ាស៊ីនមេមានបញ្ហា (Server Response Error)", details: `HTTP Status Code: ${res.status} ${res.statusText}` };
+            }
+
             if (res.ok) {
                 // Redirect to login or potentially a welcome/onboarding page
                 router.push("/login?registered=true");

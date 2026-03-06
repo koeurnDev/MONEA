@@ -58,7 +58,12 @@ export default function LoginPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(body),
             });
-            const data = await res.json();
+            let data;
+            try {
+                data = await res.json();
+            } catch (err) {
+                data = { error: "ម៉ាស៊ីនមេមានបញ្ហា (Server Response Error)", details: `HTTP Status Code: ${res.status} ${res.statusText}` };
+            }
 
             if (res.ok) {
                 // Redirect based on Role
