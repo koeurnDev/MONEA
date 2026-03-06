@@ -5,12 +5,14 @@ import { ROLES, Role } from "./constants";
 import crypto from "crypto";
 
 const RAW_SECRET = process.env.JWT_SECRET;
+const FALLBACK_SECRET = "super-secret-key-change-in-prod";
 
-if (process.env.NODE_ENV === "production" && !RAW_SECRET) {
-    throw new Error("[CRITICAL] JWT_SECRET is missing in production. Authentication is compromised.");
+function getSecret() {
+    if (process.env.NODE_ENV === "production" && !RAW_SECRET) {
+        throw new Error("[CRITICAL] JWT_SECRET is missing in production. Authentication is compromised.");
+    }
+    return RAW_SECRET || FALLBACK_SECRET;
 }
-
-const SECRET = RAW_SECRET || "super-secret-key-change-in-prod";
 
 export function signToken(payload: any, options: { fingerprint?: string, expiresIn?: string } = {}) {
     const data = { ...payload };
@@ -18,13 +20,12 @@ export function signToken(payload: any, options: { fingerprint?: string, expires
         data.fingerprint = options.fingerprint;
     }
     const signOptions: jwt.SignOptions = { expiresIn: options.expiresIn ? (options.expiresIn as any) : "7d" };
-    const token = jwt.sign(data, SECRET, signOptions);
-    return token;
+    return jwt.sign(data, getSecret(), signOptions);
 }
 
 export function verifyToken(token: string) {
     try {
-        return jwt.verify(token, SECRET);
+        return jwt.verify(token, getSecret());
     } catch (error) {
         return null;
     }

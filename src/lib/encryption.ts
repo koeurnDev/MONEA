@@ -5,16 +5,14 @@ const IV_LENGTH = 12; // Standard for GCM
 const AUTH_TAG_LENGTH = 16;
 const RAW_KEY = process.env.ENCRYPTION_KEY;
 
-if (process.env.NODE_ENV === "production" && !RAW_KEY) {
-    throw new Error("[CRITICAL] ENCRYPTION_KEY is missing in production. Data privacy cannot be guaranteed.");
-}
-
-const KEY = RAW_KEY || 'default-hex-key-32-chars-long-placeholder'; // 32 bytes for aes-256
-
 let cachedKey: Buffer | null = null;
 function getHashedKey() {
+    if (process.env.NODE_ENV === "production" && !RAW_KEY) {
+        throw new Error("[CRITICAL] ENCRYPTION_KEY is missing in production. Data privacy cannot be guaranteed.");
+    }
     if (!cachedKey) {
-        cachedKey = crypto.createHash('sha256').update(KEY).digest();
+        const keyToHash = RAW_KEY || 'default-hex-key-32-chars-long-placeholder';
+        cachedKey = crypto.createHash('sha256').update(keyToHash).digest();
     }
     return cachedKey;
 }

@@ -2,14 +2,11 @@ import bcrypt from "bcryptjs";
 
 const PEPPER = process.env.SECURITY_PEPPER;
 
-if (process.env.NODE_ENV === "production" && !PEPPER) {
-    throw new Error("[CRITICAL] SECURITY_PEPPER is missing in production. Application cannot start safely.");
-}
-
-const FINAL_PEPPER = PEPPER || "monea-default-pepper-ch4ng3-me";
-
 function applyPepper(plainText: string): string {
-    return plainText + FINAL_PEPPER;
+    if (process.env.NODE_ENV === "production" && !PEPPER) {
+        throw new Error("[CRITICAL] SECURITY_PEPPER is missing in production. Security breach prevented.");
+    }
+    return plainText + (PEPPER || "monea-default-pepper-ch4ng3-me");
 }
 
 export const CryptoUtils = {
