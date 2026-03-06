@@ -204,9 +204,12 @@ export function Statistics() {
     useEffect(() => {
         const fetchStats = () => {
             fetch('/api/public-stats')
-                .then(res => res.json())
+                .then(async res => {
+                    if (!res.ok) throw new Error("Stats error");
+                    return await res.json();
+                })
                 .then(data => {
-                    if (!data.error) {
+                    if (data && !data.error) {
                         setRealStats({
                             couples: data.couples > 999 ? `${(data.couples / 1000).toFixed(1)}K+` : `${data.couples}+`,
                             templates: data.templates > 99 ? `${data.templates}+` : `${data.templates}+`,

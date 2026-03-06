@@ -9,3 +9,9 @@
 
  ✓ Starting...
  ✓ Ready in 3.7s
+ ✓ Compiled /src/middleware in 289ms (140 modules)
+ ○ Compiling /api/auth/login ...
+ ✓ Compiled /api/auth/login in 753ms (151 modules)
+ POST /api/auth/login 400 in 1018ms
+ ✓ Compiled in 1777ms (343 modules)
+ ✓ Compiled in 135ms (140 modules)
