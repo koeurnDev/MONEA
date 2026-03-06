@@ -4,7 +4,13 @@ import { prisma } from "./prisma";
 import { ROLES, Role } from "./constants";
 import crypto from "crypto";
 
-const SECRET = process.env.JWT_SECRET || "super-secret-key-change-in-prod";
+const RAW_SECRET = process.env.JWT_SECRET;
+
+if (process.env.NODE_ENV === "production" && !RAW_SECRET) {
+    throw new Error("[CRITICAL] JWT_SECRET is missing in production. Authentication is compromised.");
+}
+
+const SECRET = RAW_SECRET || "super-secret-key-change-in-prod";
 
 export function signToken(payload: any, options: { fingerprint?: string, expiresIn?: string } = {}) {
     const data = { ...payload };
