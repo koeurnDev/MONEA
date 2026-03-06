@@ -27,7 +27,7 @@ const BLOCKED_BOTS = ["python-requests", "curl", "wget", "headlesschrome", "pupp
 const SENSITIVE_WRITE_PATHS = [
     "/api/guestbook",
     "/api/auth/signin",
-    "/api/auth/register",
+    "/api/auth/signup",
     "/api/support/ticket",
     "/api/staff/login",
     "/api/guests/view"
