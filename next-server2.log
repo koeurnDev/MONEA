@@ -1,0 +1,18 @@
+
+> monea-platform@1.2.0 dev
+> next dev -H 0.0.0.0
+
+ ⚠ Port 3000 is in use, trying 3001 instead.
+ ⚠ Port 3001 is in use, trying 3002 instead.
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3002
+  - Network:      http://0.0.0.0:3002
+  - Environments: .env
+
+ ✓ Starting...
+ ✓ Ready in 2.1s
+ ✓ Compiled /src/middleware in 231ms (140 modules)
+ ✓ Compiled /api/auth/register in 136ms (62 modules)
+ POST /api/auth/register 400 in 247ms
+ ✓ Compiled in 170ms (62 modules)
+ ✓ Compiled in 29ms
