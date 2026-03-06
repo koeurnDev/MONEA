@@ -177,7 +177,7 @@ export async function POST(req: Request) {
 
                 const role = user.role?.toUpperCase() || ROLES.EVENT_MANAGER;
                 if (role === ROLES.PLATFORM_OWNER) {
-                    await sendTelegramAlert(
+                    sendTelegramAlert(
                         `🔔 *Superadmin Login Detected*\n\n` +
                         `👤 *Email:* ${user.email}\n` +
                         `🌐 *IP:* ${ip}\n` +

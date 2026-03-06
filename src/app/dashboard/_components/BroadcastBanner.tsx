@@ -10,9 +10,16 @@ export function BroadcastBanner() {
 
     useEffect(() => {
         fetch("/api/admin/master/broadcast")
-            .then(res => res.json())
+            .then(async res => {
+                if (!res.ok) return [];
+                try {
+                    return await res.json();
+                } catch (e) {
+                    return [];
+                }
+            })
             .then(data => {
-                const active = data.filter((b: any) => b.active);
+                const active = Array.isArray(data) ? data.filter((b: any) => b.active) : [];
                 setBroadcasts(active);
             })
             .catch(() => { });
