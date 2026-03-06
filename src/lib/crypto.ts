@@ -1,13 +1,15 @@
 import bcrypt from "bcryptjs";
 
-const PEPPER = process.env.SECURITY_PEPPER || "monea-default-pepper-ch4ng3-me";
+const PEPPER = process.env.SECURITY_PEPPER;
 
-/**
- * Applies a server-side pepper to a string before hashing or comparing.
- * This provides a 2nd layer of security.
- */
+if (process.env.NODE_ENV === "production" && !PEPPER) {
+    throw new Error("[CRITICAL] SECURITY_PEPPER is missing in production. Application cannot start safely.");
+}
+
+const FINAL_PEPPER = PEPPER || "monea-default-pepper-ch4ng3-me";
+
 function applyPepper(plainText: string): string {
-    return plainText + PEPPER;
+    return plainText + FINAL_PEPPER;
 }
 
 export const CryptoUtils = {
