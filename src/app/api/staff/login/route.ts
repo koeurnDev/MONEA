@@ -5,11 +5,12 @@ import { signToken, generateFingerprint } from "@/lib/auth";
 import bcrypt from "bcryptjs";
 import { ROLES } from "@/lib/constants";
 import { CryptoUtils } from "@/lib/crypto";
-const { authenticator } = require("otplib");
+// const { authenticator } = require("otplib"); - Dynamic import used inside POST for ESM compatibility
 
 const rateLimit = new Map<string, { count: number, lastAttempt: number }>();
 
 export async function POST(req: Request) {
+    const { authenticator } = await import("otplib") as any;
     try {
         const ip = req.headers.get("x-forwarded-for") || "unknown";
         const userAgent = req.headers.get("user-agent") || "unknown";

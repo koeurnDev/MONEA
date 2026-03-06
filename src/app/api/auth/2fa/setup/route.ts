@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
-const { authenticator } = require("otplib");
+// const { authenticator } = require("otplib");
 import qrcode from "qrcode";
 import { prisma } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
@@ -8,6 +8,7 @@ import crypto from "crypto";
 import { CryptoUtils } from "@/lib/crypto";
 
 export async function POST(req: Request) {
+    const { authenticator } = await import("otplib") as any;
     const user = await getServerUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
