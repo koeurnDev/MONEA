@@ -232,7 +232,7 @@ export async function POST(req: Request) {
             }
 
             if (isPasswordValid) {
-                const { authenticator } = await import("otplib");
+                const { authenticator } = await import("otplib") as any;
                 if ((staff as any).twoFactorEnabled && (staff as any).twoFactorSecret) {
                     if (!twoFactorToken) return NextResponse.json({ require2FA: true, error: "2FA Token required" }, { status: 428 });
 
