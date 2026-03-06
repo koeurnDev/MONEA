@@ -17,10 +17,14 @@ export const CryptoUtils = {
         return bcrypt.hash(applyPepper(plainText), saltRounds);
     },
 
-    /**
-     * Compares a plain text string against a hashed string using the pepper.
-     */
     async compare(plainText: string, hashed: string): Promise<boolean> {
-        return bcrypt.compare(applyPepper(plainText), hashed);
+        // 1. Try with current PEPPER
+        const match = await bcrypt.compare(applyPepper(plainText), hashed);
+        if (match) return true;
+
+        // 2. Fallback: Try with legacy default pepper
+        // This is necessary for users created during the transition or on local dev
+        const legacyPepper = "monea-default-pepper-ch4ng3-me";
+        return bcrypt.compare(plainText + legacyPepper, hashed);
     }
 };
