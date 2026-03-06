@@ -1,4 +1,3 @@
-import "server-only";
 // Used fire-and-forget fetch to avoid blocking the main server threads
 const escapeHtml = (unsafe: string) => {
     return (unsafe || "")
