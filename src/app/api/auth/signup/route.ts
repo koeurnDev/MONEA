@@ -4,9 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { ROLES } from "@/lib/constants";
 import { CryptoUtils } from "@/lib/crypto";
 
-export async function GET(req: Request) {
-    return NextResponse.json({ message: "Registration endpoint active. Use POST to register." }, { status: 405 });
-}
+// No explicit GET handler to avoid 405 conflicts.
+
 
 export async function OPTIONS(req: Request) {
     const response = new NextResponse(null, { status: 200 });
