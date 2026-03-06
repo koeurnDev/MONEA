@@ -51,6 +51,7 @@
     "react-hook-form": "^7.70.0",
     "react-qr-code": "^2.0.18",
     "react-qr-scanner": "^1.0.0-alpha.11",
+    "server-only": "^0.0.1",
     "swr": "^2.3.8",
     "tailwind-merge": "^3.4.0",
     "tailwindcss-animate": "^1.0.7",

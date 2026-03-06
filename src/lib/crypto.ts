@@ -1,3 +1,4 @@
+import "server-only";
 import bcrypt from "bcryptjs";
 
 const PEPPER = process.env.SECURITY_PEPPER;
