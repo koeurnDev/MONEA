@@ -4,13 +4,11 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { signToken, generateFingerprint } from "@/lib/auth";
 import { ROLES } from "@/lib/constants";
-const { authenticator } = require("otplib");
+// Dynamic require moved inside POST for safety
 import { sendTelegramAlert } from "@/lib/telegram";
 import { CryptoUtils } from "@/lib/crypto";
 
-export async function GET(req: Request) {
-    return NextResponse.json({ message: "Authentication endpoint active. Use POST to sign in." }, { status: 405 });
-}
+// No explicit GET handler to avoid 405 conflicts. Next.js handles disallowed methods natively.
 
 export async function OPTIONS(req: Request) {
     const response = new NextResponse(null, { status: 200 });
@@ -141,6 +139,7 @@ export async function POST(req: Request) {
             }
 
             if (isPasswordValid) {
+                const { authenticator } = require("otplib");
                 if ((user as any).twoFactorEnabled && (user as any).twoFactorSecret) {
                     if (!twoFactorToken) return NextResponse.json({ require2FA: true, error: "2FA Token required" }, { status: 428 });
 
@@ -233,6 +232,7 @@ export async function POST(req: Request) {
             }
 
             if (isPasswordValid) {
+                const { authenticator } = require("otplib");
                 if ((staff as any).twoFactorEnabled && (staff as any).twoFactorSecret) {
                     if (!twoFactorToken) return NextResponse.json({ require2FA: true, error: "2FA Token required" }, { status: 428 });
 
