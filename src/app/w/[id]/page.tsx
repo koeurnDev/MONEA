@@ -61,13 +61,17 @@ export default function SmartQRPage({
     searchParams
 }: {
     params: { id: string },
-    searchParams: { template?: string }
+    searchParams: { template?: string, guestId?: string }
 }) {
     // Render the skeleton immediately while the server fetches the wedding data
     // NextJS Streaming SSR will replace this entirely once the DB query resolves
     return (
         <Suspense fallback={<WeddingSkeleton />}>
-            <WeddingDataView id={params.id} template={searchParams.template} />
+            <WeddingDataView
+                id={params.id}
+                template={searchParams.template}
+                guestId={searchParams.guestId}
+            />
         </Suspense>
     );
 }

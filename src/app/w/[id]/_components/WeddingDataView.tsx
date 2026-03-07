@@ -1,4 +1,3 @@
-```typescript
 import { prisma } from "@/lib/prisma";
 import { unstable_cache } from "next/cache";
 import VIPPremiumKhmer from "@/components/templates/VIPPremiumKhmer";
@@ -15,7 +14,7 @@ type WeddingWithRelations = Wedding & {
     galleryItems: GalleryItem[];
 };
 
-export async function WeddingDataView({ id, template }: { id: string; template?: string }) {
+export async function WeddingDataView({ id, template, guestId }: { id: string; template?: string; guestId?: string }) {
     // Cache this heavy database query for 60 minutes or until invalidated by a tag
     // This solves the slow data fetching issue on the edge runtime for dynamic routes
     const getCachedWedding = unstable_cache(
@@ -33,8 +32,8 @@ export async function WeddingDataView({ id, template }: { id: string; template?:
                 }
             });
         },
-        [`wedding - ${ id } `],
-        { revalidate: 3600, tags: [`wedding - ${ id } `] }
+        [`wedding - ${id} `],
+        { revalidate: 3600, tags: [`wedding - ${id} `] }
     );
 
     const wedding = await getCachedWedding(id);
@@ -53,7 +52,7 @@ export async function WeddingDataView({ id, template }: { id: string; template?:
             return (
                 <>
                     <AnalyticsTracker weddingId={id} />
-                    <KhmerLegacy wedding={wedding as any} />
+                    <KhmerLegacy wedding={{ ...wedding, guestId } as any} />
                     {rsvpEnabled && (
                         <div className="fixed bottom-24 right-6 z-50">
                             {/* Floating RSVP button or section would go here,
@@ -67,7 +66,7 @@ export async function WeddingDataView({ id, template }: { id: string; template?:
             return (
                 <>
                     <AnalyticsTracker weddingId={id} />
-                    <VIPPremiumKhmer wedding={wedding as any} />
+                    <VIPPremiumKhmer wedding={{ ...wedding, guestId } as any} />
                     {rsvpEnabled && (
                         <div className="bg-[#0A0A0A] py-20 px-6 border-t border-white/5">
                             <div className="max-w-4xl mx-auto">

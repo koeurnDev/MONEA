@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { WeddingData } from "./types";
 import { m, AnimatePresence } from 'framer-motion';
 import { MapPin, Calendar, Clock, Heart, Music, Music2, QrCode } from 'lucide-react';
+import QRCode from "react-qr-code";
 import { CldImage } from 'next-cloudinary';
 import { MoneaBranding } from '@/components/MoneaBranding';
 import { RevealSection, useImagePan } from './shared/CinematicComponents';
@@ -831,6 +832,36 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                         <RevealSection delay={0.3}>
                             <div className="text-center">
                                 <h3 className="font-playfair text-4xl tracking-[0.5em] text-gold/20 uppercase mb-16">Thank you</h3>
+
+                                {wedding.guestId && (
+                                    <m.div
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        whileInView={{ opacity: 1, scale: 1 }}
+                                        className="mb-24 p-8 bg-white shadow-2xl rounded-[3rem] border-lux max-w-sm mx-auto flex flex-col items-center gap-6"
+                                    >
+                                        <div className="text-center space-y-2">
+                                            <p className="font-khmer-moul text-sm text-gold">សំបុត្រឌីជីថល</p>
+                                            <p className="font-playfair text-[10px] tracking-[0.4em] text-gray-400 uppercase font-black">Digital Invitation Token</p>
+                                        </div>
+
+                                        <div className="p-4 bg-white rounded-3xl ring-1 ring-gold/5 shadow-inner">
+                                            <QRCode
+                                                value={wedding.guestId}
+                                                size={180}
+                                                style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                                                viewBox={`0 0 256 256`}
+                                                fgColor={smartColors.dark || "#1a1a1a"}
+                                            />
+                                        </div>
+
+                                        <div className="text-center space-y-1">
+                                            <p className="font-khmer-content text-xs text-gray-500 font-bold leading-relaxed">
+                                                សូមបង្ហាញ QR នេះដល់បុគ្គលិក <br /> ដើម្បីឆែកឈ្មោះចូលរួមកម្មវិធី
+                                            </p>
+                                        </div>
+                                    </m.div>
+                                )}
+
                                 <div className="space-y-8 font-khmer-moul text-sm text-gray-500 tracking-[0.2em] opacity-80">
                                     <p className="text-lg">{wedding.groomName}</p>
                                     <p className="font-serif-elegant italic text-gold/30 text-3xl font-normal">&</p>

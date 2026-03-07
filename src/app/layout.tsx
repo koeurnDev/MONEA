@@ -69,6 +69,19 @@ export default function RootLayout({
               <AnimationProvider>
                 <LoadingBar />
                 {children}
+                <script
+                  dangerouslySetInnerHTML={{
+                    __html: `
+                      if ('serviceWorker' in navigator) {
+                        window.addEventListener('load', function() {
+                          navigator.serviceWorker.register('/sw.js').catch(function(err) {
+                            console.error('ServiceWorker registration failed: ', err);
+                          });
+                        });
+                      }
+                    `,
+                  }}
+                />
               </AnimationProvider>
             </LoadingProvider>
           </SWRProvider>

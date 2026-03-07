@@ -1,124 +1,71 @@
-export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
 import { ROLES } from "@/lib/constants";
-import { logActivity } from "@/lib/logger";
-import { decrypt } from "@/lib/encryption";
 
-// Helper to get context from either Admin Token or Staff Token
-// No longer using legacy getAuthContext
-
-// GET: Lookup guest by ID (Code)
-export async function GET(req: Request) {
-    const user = await getServerUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-    const { searchParams } = new URL(req.url);
-    const code = searchParams.get("code");
-
-    if (!code) return NextResponse.json({ error: "Code required" }, { status: 400 });
-
-    try {
-        const guest = await prisma.guest.findUnique({
-            where: { id: code },
-            include: { wedding: true }
-        });
-
-        if (!guest) return NextResponse.json({ error: "Guest not found" }, { status: 404 });
-
-        // Authorization Check
-        if (user.type === "admin") {
-            if (user.role === ROLES.PLATFORM_OWNER) {
-                // Allowed for all
-            } else if (guest.wedding.userId !== user.userId) {
-                return NextResponse.json({ error: "Access Denied" }, { status: 403 });
-            }
-        } else if (user.type === "staff") {
-            if (guest.weddingId !== user.weddingId) {
-                return NextResponse.json({ error: "Access Denied" }, { status: 403 });
-            }
-        }
-
-        // Decrypt guest phone
-        if (guest.phone) {
-            guest.phone = decrypt(guest.phone);
-        }
-
-        return NextResponse.json(guest);
-    } catch (error) {
-        return NextResponse.json({ error: "Server Error" }, { status: 500 });
-    }
-}
-
-// POST: Check-in + optional Gift
 export async function POST(req: Request) {
-    const user = await getServerUser();
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
     try {
-        const body = await req.json();
-        const { guestId, giftAmount, giftCurrency } = body;
+        const user = await getServerUser();
+        if (!user) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
 
-        if (!guestId) return NextResponse.json({ error: "Guest ID required" }, { status: 400 });
+        const { guestId, weddingId } = await req.json();
 
-        const guest = await prisma.guest.findUnique({
-            where: { id: guestId }
-        });
+        if (!guestId || !weddingId) {
+            return NextResponse.json({ error: "Missing guestId or weddingId" }, { status: 400 });
+        }
 
-        if (!guest) return NextResponse.json({ error: "Guest not found" }, { status: 404 });
-
-        // Authorization Check
-        if (user.type === "admin") {
-            if (user.role === ROLES.PLATFORM_OWNER) {
-                // Allowed
-            } else {
-                const wedding = await prisma.wedding.findUnique({ where: { id: guest.weddingId } });
-                if (wedding?.userId !== user.userId) {
-                    return NextResponse.json({ error: "Access Denied" }, { status: 403 });
-                }
+        // Authorization Check:
+        // 1. Staff must belong to the same weddingId
+        // 2. Admins must own the wedding (or be platform owner)
+        if (user.type === "staff") {
+            if (user.weddingId !== weddingId) {
+                return NextResponse.json({ error: "Access Denied: Staff mismatch" }, { status: 403 });
             }
-        } else if (user.type === "staff") {
-            if (guest.weddingId !== user.weddingId) {
-                return NextResponse.json({ error: "Access Denied" }, { status: 403 });
+        } else if (user.role !== ROLES.PLATFORM_OWNER) {
+            const wedding = await prisma.wedding.findFirst({
+                where: { id: weddingId, userId: user.userId }
+            });
+            if (!wedding) {
+                return NextResponse.json({ error: "Access Denied: Wedding ownership mismatch" }, { status: 403 });
             }
         }
 
-        // Update Guest status
-        await prisma.guest.update({
-            where: { id: guestId },
+        // Mark Guest as Arrived
+        const guest = await prisma.guest.update({
+            where: { id: guestId, weddingId: weddingId },
             data: {
                 hasArrived: true,
-                arrivedAt: new Date(),
+                arrivedAt: new Date()
+            },
+            select: { name: true, group: true }
+        });
+
+        // Audit Log
+        await prisma.log.create({
+            data: {
+                action: "CHECK_IN",
+                description: `Guest ${guest.name} checked in`,
+                actorName: user.name || user.email || "Unknown Actor",
+                weddingId: weddingId,
+                ip: req.headers.get("x-forwarded-for") || "unknown"
             }
         });
 
-        const actorName = user.type === "staff" ? `Staff: ${user.name}` : (user.role === ROLES.PLATFORM_OWNER ? "Platform Owner" : "Event Manager");
+        return NextResponse.json({
+            success: true,
+            guest: {
+                name: guest.name,
+                group: guest.group
+            }
+        });
 
-        // If Gift provided, record it
-        if (giftAmount && giftAmount > 0) {
-            await prisma.gift.create({
-                data: {
-                    amount: giftAmount,
-                    currency: giftCurrency || "USD",
-                    method: "CASH_AT_EVENT",
-                    guestId: guest.id,
-                    weddingId: guest.weddingId
-                }
-            });
-            await logActivity(guest.weddingId, "GIFT", `Received ${giftAmount} ${giftCurrency} from ${guest.name}`, actorName);
-        } else {
-            await logActivity(guest.weddingId, "CHECK_IN", `Checked in guest ${guest.name}`, actorName);
-        }
-
-        // Decrypt guest phone before returning
-        if (guest.phone) {
-            guest.phone = decrypt(guest.phone);
-        }
-
-        return NextResponse.json({ success: true, guest });
-    } catch (error) {
+    } catch (error: any) {
         console.error("Check-in Error:", error);
-        return NextResponse.json({ error: "Server Error" }, { status: 500 });
+        return NextResponse.json({
+            error: "Failed to check in guest",
+            details: error.message
+        }, { status: 500 });
     }
 }

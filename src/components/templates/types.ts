@@ -77,4 +77,5 @@ export interface WeddingData {
     } | null;
     templateId?: string | null;
     eventType?: 'wedding' | 'anniversary';
+    guestId?: string; // Unique ID for QR check-in
 }
