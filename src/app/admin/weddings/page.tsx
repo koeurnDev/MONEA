@@ -27,6 +27,7 @@ export default function AdminWeddingsPage() {
     const [saving, setSaving] = useState(false);
     const [selectedWedding, setSelectedWedding] = useState<Wedding | null>(null);
     const [saveToast, setSaveToast] = useState<"success" | "error" | null>(null);
+    const [visibleCount, setVisibleCount] = useState(15);
 
     // Edit Form State
     const [editForm, setEditForm] = useState({
@@ -131,20 +132,20 @@ export default function AdminWeddingsPage() {
                     <Heart size={14} />
                     EVENT MANAGEMENT
                 </div>
-                <h1 className="text-3xl font-black text-slate-900 tracking-tight font-kantumruy">គ្រប់គ្រងមង្គលការ</h1>
-                <p className="text-slate-500 font-medium font-kantumruy text-sm">មើល កែប្រែគម្រោង និងគ្រប់គ្រងស្ថានភាពមង្គលការទាំងអស់ក្នុងប្រព័ន្ធ MONEA ។</p>
+                <h1 className="text-3xl font-black text-foreground tracking-tight font-kantumruy">គ្រប់គ្រងមង្គលការ</h1>
+                <p className="text-muted-foreground font-medium font-kantumruy text-sm">មើល កែប្រែគម្រោង និងគ្រប់គ្រងស្ថានភាពមង្គលការទាំងអស់ក្នុងប្រព័ន្ធ MONEA ។</p>
             </div>
 
-            <div className="bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-sm shadow-slate-100/50">
+            <div className="bg-card rounded-3xl border border-border overflow-hidden shadow-sm shadow-black/5">
                 <Table>
-                    <TableHeader className="bg-slate-50/50">
-                        <TableRow className="border-slate-100 hover:bg-transparent">
-                            <TableHead className="text-slate-600 font-bold uppercase text-xs tracking-tight py-6 px-8">អ្នកប្រើប្រាស់</TableHead>
-                            <TableHead className="text-slate-600 font-bold uppercase text-xs tracking-tight">ឈ្មោះប្តីប្រពន្ធ</TableHead>
-                            <TableHead className="text-slate-600 font-bold uppercase text-xs tracking-tight">កញ្ចប់សេវាកម្ម</TableHead>
-                            <TableHead className="text-slate-600 font-bold uppercase text-xs tracking-tight">ថ្ងៃផុតកំណត់</TableHead>
-                            <TableHead className="text-slate-600 font-bold uppercase text-xs tracking-tight">ស្ថានភាព</TableHead>
-                            <TableHead className="text-right text-slate-600 font-bold uppercase text-xs tracking-tight px-8">សកម្មភាព</TableHead>
+                    <TableHeader className="bg-muted/30">
+                        <TableRow className="border-border hover:bg-transparent">
+                            <TableHead className="text-muted-foreground font-bold uppercase text-xs tracking-tight py-6 px-8">អ្នកប្រើប្រាស់</TableHead>
+                            <TableHead className="text-muted-foreground font-bold uppercase text-xs tracking-tight">ឈ្មោះប្តីប្រពន្ធ</TableHead>
+                            <TableHead className="text-muted-foreground font-bold uppercase text-xs tracking-tight">កញ្ចប់សេវាកម្ម</TableHead>
+                            <TableHead className="text-muted-foreground font-bold uppercase text-xs tracking-tight">ថ្ងៃផុតកំណត់</TableHead>
+                            <TableHead className="text-muted-foreground font-bold uppercase text-xs tracking-tight">ស្ថានភាព</TableHead>
+                            <TableHead className="text-right text-muted-foreground font-bold uppercase text-xs tracking-tight px-8">សកម្មភាព</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -153,40 +154,40 @@ export default function AdminWeddingsPage() {
                                 <TableCell colSpan={6} className="text-center py-20">
                                     <div className="flex flex-col items-center gap-6">
                                         <div className="relative w-12 h-12">
-                                            <div className="absolute inset-0 border-4 border-slate-100 rounded-full" />
+                                            <div className="absolute inset-0 border-4 border-muted rounded-full" />
                                             <div className="absolute inset-0 border-4 border-red-600 border-t-transparent rounded-full animate-spin" />
                                         </div>
-                                        <span className="text-slate-500 text-xs font-bold uppercase tracking-widest">កំពុងទាញយកទិន្នន័យ...</span>
+                                        <span className="text-muted-foreground text-xs font-bold uppercase tracking-widest">កំពុងទាញយកទិន្នន័យ...</span>
                                     </div>
                                 </TableCell>
                             </TableRow>
                         ) : weddings.length === 0 ? (
-                            <TableRow><TableCell colSpan={6} className="text-center py-20 text-slate-400 font-bold uppercase tracking-widest text-xs">មិនមានទិន្នន័យឡើយ</TableCell></TableRow>
+                            <TableRow><TableCell colSpan={6} className="text-center py-20 text-muted-foreground font-bold uppercase tracking-widest text-xs">មិនមានទិន្នន័យឡើយ</TableCell></TableRow>
                         ) : (
-                            weddings.map((w) => (
-                                <TableRow key={w.id} className="border-slate-50 hover:bg-slate-50/30 group transition-colors">
-                                    <TableCell className="font-medium text-slate-500 px-8 font-mono text-xs">{w.user?.email || "N/A"}</TableCell>
-                                    <TableCell className="text-slate-900 font-bold font-kantumruy">{w.groomName} & {w.brideName}</TableCell>
+                            weddings.slice(0, visibleCount).map((w) => (
+                                <TableRow key={w.id} className="border-border/50 hover:bg-muted/30 group transition-colors">
+                                    <TableCell className="font-medium text-muted-foreground px-8 font-mono text-xs">{w.user?.email || "N/A"}</TableCell>
+                                    <TableCell className="text-foreground font-bold font-kantumruy">{w.groomName} & {w.brideName}</TableCell>
                                     <TableCell>
                                         <span className={cn(
                                             "px-3 py-1 rounded-full text-[11px] font-black tracking-widest uppercase border",
-                                            w.packageType === 'PREMIUM' ? 'bg-purple-50 text-purple-700 border-purple-100 shadow-sm' :
-                                                w.packageType === 'PRO' ? 'bg-blue-50 text-blue-700 border-blue-100' :
-                                                    'bg-slate-100 text-slate-700 border-slate-200'
+                                            w.packageType === 'PREMIUM' ? 'bg-purple-500/10 text-purple-600 border-purple-500/20 shadow-sm' :
+                                                w.packageType === 'PRO' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' :
+                                                    'bg-muted text-foreground/70 border-border'
                                         )}>
                                             {w.packageType}
                                         </span>
                                     </TableCell>
                                     <TableCell className={cn(
                                         "text-xs font-mono",
-                                        w.expiresAt && new Date(w.expiresAt) < new Date() ? "text-red-600 font-bold" : "text-slate-500"
+                                        w.expiresAt && new Date(w.expiresAt) < new Date() ? "text-red-500 font-bold" : "text-muted-foreground"
                                     )}>
                                         {w.expiresAt ? new Date(w.expiresAt).toLocaleDateString() : 'N/A'}
                                     </TableCell>
                                     <TableCell>
                                         <span className={cn(
                                             "px-2.5 py-1.5 rounded-lg text-xs font-black tracking-widest uppercase inline-flex items-center gap-2 border",
-                                            w.status === 'ACTIVE' ? 'bg-green-50 text-green-700 border-green-200/50' : 'bg-red-50 text-red-700 border-red-200/50'
+                                            w.status === 'ACTIVE' ? 'bg-green-500/10 text-green-600 border-green-500/20' : 'bg-red-500/10 text-red-600 border-red-500/20'
                                         )}>
                                             <span className={cn("w-2 h-2 rounded-full", w.status === 'ACTIVE' ? "bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.4)]" : "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]")} />
                                             {w.status === 'ACTIVE' ? 'កុំពុងដំណើរការ' : 'បានបិទ'}
@@ -207,27 +208,39 @@ export default function AdminWeddingsPage() {
                         )}
                     </TableBody>
                 </Table>
+
+                {weddings.length > visibleCount && (
+                    <div className="p-8 border-t border-border bg-muted/20 flex justify-center">
+                        <Button
+                            variant="outline"
+                            className="rounded-xl font-bold font-kantumruy"
+                            onClick={() => setVisibleCount(prev => prev + 15)}
+                        >
+                            បង្ហាញបន្ថែមទៀត ({weddings.length - visibleCount})
+                        </Button>
+                    </div>
+                )}
             </div>
 
             {/* Edit Modal */}
             <Dialog open={!!selectedWedding} onOpenChange={(open) => {
                 if (!open && !saving) setSelectedWedding(null);
             }}>
-                <DialogContent className="bg-white border-slate-100 text-slate-900 rounded-3xl max-w-md shadow-2xl p-0 overflow-hidden">
+                <DialogContent className="bg-card border-border text-foreground rounded-3xl max-w-md shadow-2xl p-0 overflow-hidden">
                     <DialogHeader className="p-8 pb-4">
                         <DialogTitle className="text-2xl font-black font-kantumruy tracking-tight">កែប្រែព័ត៌មានមង្គលការ</DialogTitle>
-                        <DialogDescription className="text-slate-500 font-medium">កំណត់គម្រោងសេវាកម្ម និងស្ថានភាពសម្រាប់: {selectedWedding?.groomName}</DialogDescription>
+                        <DialogDescription className="text-muted-foreground font-medium">កំណត់គម្រោងសេវាកម្ម និងស្ថានភាពសម្រាប់: {selectedWedding?.groomName}</DialogDescription>
                     </DialogHeader>
                     <div className="px-8 py-4 space-y-6 font-kantumruy">
                         <div className="space-y-2">
-                            <Label className="text-slate-500 text-xs font-black uppercase tracking-widest">គម្រោងសេវាកម្ម</Label>
+                            <Label className="text-muted-foreground text-xs font-black uppercase tracking-widest">គម្រោងសេវាកម្ម</Label>
                             <Select
                                 value={editForm.packageType}
                                 onValueChange={(v) => setEditForm({ ...editForm, packageType: v })}
                                 disabled={saving}
                             >
-                                <SelectTrigger className="bg-slate-50 border-slate-100 rounded-xl h-12 text-slate-900 shadow-sm"><SelectValue /></SelectTrigger>
-                                <SelectContent className="bg-white border-slate-100 rounded-xl">
+                                <SelectTrigger className="bg-muted/50 border-border rounded-xl h-12 text-foreground shadow-sm"><SelectValue /></SelectTrigger>
+                                <SelectContent className="bg-card border-border rounded-xl">
                                     <SelectItem value="FREE">គម្រោងឥតគិតថ្លៃ (Free)</SelectItem>
                                     <SelectItem value="PRO">គម្រោង Pro</SelectItem>
                                     <SelectItem value="PREMIUM">គម្រោង Premium</SelectItem>
@@ -235,34 +248,34 @@ export default function AdminWeddingsPage() {
                             </Select>
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-slate-500 text-xs font-black uppercase tracking-widest">ស្ថានភាព</Label>
+                            <Label className="text-muted-foreground text-xs font-black uppercase tracking-widest">ស្ថានភាព</Label>
                             <Select
                                 value={editForm.status}
                                 onValueChange={(v) => setEditForm({ ...editForm, status: v })}
                                 disabled={saving}
                             >
-                                <SelectTrigger className="bg-slate-50 border-slate-100 rounded-xl h-12 text-slate-900 shadow-sm"><SelectValue /></SelectTrigger>
-                                <SelectContent className="bg-white border-slate-100 rounded-xl">
+                                <SelectTrigger className="bg-muted/50 border-border rounded-xl h-12 text-foreground shadow-sm"><SelectValue /></SelectTrigger>
+                                <SelectContent className="bg-card border-border rounded-xl">
                                     <SelectItem value="ACTIVE">បើកដំណើរការ (Active)</SelectItem>
                                     <SelectItem value="ARCHIVED">បិទម្ដងអាសន្ន (Archived)</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-slate-500 text-xs font-black uppercase tracking-widest">ថ្ងៃផុតកំណត់</Label>
+                            <Label className="text-muted-foreground text-xs font-black uppercase tracking-widest">ថ្ងៃផុតកំណត់</Label>
                             <Input
                                 type="date"
-                                className="bg-slate-50 border-slate-100 rounded-xl h-12 text-slate-900 shadow-sm"
+                                className="bg-muted/50 border-border rounded-xl h-12 text-foreground shadow-sm"
                                 value={editForm.expiresAt}
                                 onChange={(e) => setEditForm({ ...editForm, expiresAt: e.target.value })}
                                 disabled={saving}
                             />
                         </div>
                     </div>
-                    <DialogFooter className="p-8 pt-6 flex gap-3 bg-slate-50/50">
+                    <DialogFooter className="p-8 pt-6 flex gap-3 bg-muted/30">
                         <Button
                             variant="ghost"
-                            className="flex-1 rounded-xl h-12 text-slate-500 hover:text-slate-900 hover:bg-slate-100 font-bold font-kantumruy"
+                            className="flex-1 rounded-xl h-12 text-muted-foreground hover:text-foreground hover:bg-muted font-bold font-kantumruy"
                             onClick={() => setSelectedWedding(null)}
                             disabled={saving}
                         >

@@ -41,15 +41,15 @@ const Step4Media: React.FC<Step4MediaProps> = ({
 
     return (
         <div className="space-y-6">
-            <div className="bg-muted/50 border border-border p-4 rounded-xl mb-2">
+            <div className="bg-muted/40 p-4 rounded-xl mb-2 shadow-[0_2px_12px_rgba(0,0,0,0.03)] dark:shadow-none">
                 <h3 className="text-sm font-bold text-foreground font-kantumruy mb-1">ជំហានទី៤៖ រូបភាព និងវីដេអូ</h3>
-                <p className="text-xs text-muted-foreground leading-relaxed">សូមបញ្ចូលរូបថតរបស់អ្នក។ <br /><span className="font-bold text-pink-600">"រូបភាពតាមពុម្ព"</span> ជារូបភាពប្រចាំម៉ូដដែលត្រូវតែមាន ចំណែក <span className="font-bold text-pink-600">"រូបភាពរួម"</span> ជារូបភាពវិចិត្រសាលបន្ថែម។</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">សូមបញ្ចូលរូបថតរបស់អ្នក។ <br /><span className="font-bold text-red-600">"រូបភាពតាមពុម្ព"</span> ជារូបភាពប្រចាំម៉ូដដែលត្រូវតែមាន ចំណែក <span className="font-bold text-red-600">"រូបភាពរួម"</span> ជារូបភាពវិចិត្រសាលបន្ថែម។</p>
             </div>
 
             {/* 1. SPECIAL SLOTS */}
             {layout && (
                 <div className="space-y-3">
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest bg-muted p-1 px-2 rounded inline-block">រូបភាពតាមពុម្ព (Template Required)</p>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest bg-muted/60 p-1 px-2 rounded inline-block shadow-sm">រូបភាពតាមពុម្ព (Template Required)</p>
                     <div className="grid grid-cols-2 lg:grid-cols-2 gap-3">
                         {layout.labels.map((label, idx) => {
                             const item = wedding.galleryItems?.[idx];
@@ -58,7 +58,7 @@ const Step4Media: React.FC<Step4MediaProps> = ({
                             return (
                                 <div key={idx} className="space-y-1">
                                     <p className="text-[10px] font-bold text-muted-foreground truncate">{label}</p>
-                                    <div className="relative aspect-[3/4] rounded-lg border-2 border-dashed border-border/50 overflow-hidden bg-muted/30 flex flex-col items-center justify-center group">
+                                    <div className="relative aspect-[3/4] rounded-lg overflow-hidden bg-muted/30 flex flex-col items-center justify-center group shadow-inner">
                                         {hasUrl ? (
                                             <>
                                                 <Image src={item.url} alt={label} className="object-cover" fill sizes="(max-width: 768px) 50vw, 33vw" />
@@ -85,9 +85,9 @@ const Step4Media: React.FC<Step4MediaProps> = ({
                                                 }}
                                             >
                                                 {({ open }) => (
-                                                    <button onClick={() => open()} className="w-full h-full flex flex-col items-center justify-center gap-2 group-hover:bg-pink-50 dark:group-hover:bg-pink-900/20 transition-colors p-2 text-center">
-                                                        <Plus size={16} className="text-muted-foreground/60 group-hover:text-pink-500" />
-                                                        <span className="text-[10px] text-muted-foreground/80 font-bold group-hover:text-pink-600 font-kantumruy">ដាក់រូបភាពទីនេះ</span>
+                                                    <button onClick={() => open()} className="w-full h-full flex flex-col items-center justify-center gap-2 group-hover:bg-red-50 dark:group-hover:bg-red-950/20 transition-colors p-2 text-center">
+                                                        <Plus size={16} className="text-muted-foreground/60 group-hover:text-red-600" />
+                                                        <span className="text-[10px] text-muted-foreground/80 font-bold group-hover:text-red-700 font-kantumruy">ដាក់រូបភាពទីនេះ</span>
                                                     </button>
                                                 )}
                                             </CldUploadWidget>
@@ -101,15 +101,15 @@ const Step4Media: React.FC<Step4MediaProps> = ({
             )}
 
             {/* 2. GENERAL GALLERY */}
-            <div className="space-y-3 pt-4 border-t border-dashed border-border/50">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest bg-muted p-1 px-2 rounded inline-block">រូបភាពរួម (Gallery)</p>
+            <div className="space-y-3 pt-4">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest bg-muted/60 p-1 px-2 rounded inline-block shadow-sm">រូបភាពរួម (Gallery)</p>
                 <div className="grid grid-cols-3 gap-2">
                     {wedding.galleryItems?.map((item: any, idx: number) => {
                         const isSpecial = layout && idx < layout.slots;
                         if (isSpecial || !item.url) return null;
 
                         return (
-                            <div key={idx} className="relative aspect-square rounded-md overflow-hidden group border">
+                            <div key={idx} className="relative aspect-square rounded-md overflow-hidden group shadow-sm bg-muted/20">
                                 <Image src={item.url} alt="Extra Gallery" className="object-cover" fill sizes="(max-width: 768px) 33vw, 20vw" />
                                 <button
                                     onClick={() => removeGalleryItem(idx)}
@@ -126,8 +126,8 @@ const Step4Media: React.FC<Step4MediaProps> = ({
                         onDragLeave={() => setIsDraggingGallery(false)}
                         onDrop={(e) => { e.preventDefault(); setIsDraggingGallery(false); handleGalleryDirectUpload(e.dataTransfer.files); }}
                         className={clsx(
-                            "aspect-square rounded-md border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all group relative",
-                            isDraggingGallery ? "border-pink-500 bg-pink-50 dark:bg-pink-950/20 scale-105" : "border-border bg-muted/30 hover:bg-background hover:border-pink-300"
+                            "aspect-square rounded-md flex flex-col items-center justify-center gap-2 transition-all group relative shadow-inner bg-muted/30",
+                            isDraggingGallery ? "bg-red-50 dark:bg-red-950/20 scale-105" : "hover:bg-background hover:shadow-md"
                         )}
                     >
                         {galleryUploading ? (
@@ -159,7 +159,7 @@ const Step4Media: React.FC<Step4MediaProps> = ({
                     </div>
                 </div>
 
-                <div className="mt-4 p-3 bg-muted rounded-xl border border-border">
+                <div className="mt-4 p-3 bg-muted/40 rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.03)] dark:shadow-none">
                     <Label className="text-[10px] text-muted-foreground font-bold uppercase mb-3 block">រចនាបថរូបភាព (Gallery Style)</Label>
                     <div className="grid grid-cols-3 gap-2">
                         {['masonry', 'slider', 'polaroid'].map((style) => (
@@ -167,10 +167,10 @@ const Step4Media: React.FC<Step4MediaProps> = ({
                                 key={style}
                                 onClick={() => updateTheme('galleryStyle', style as any)}
                                 className={clsx(
-                                    "py-2 rounded-lg text-[10px] font-bold uppercase transition-all border",
+                                    "py-2 rounded-lg text-[10px] font-bold uppercase transition-all shadow-sm",
                                     (wedding.themeSettings as any)?.galleryStyle === style || (style === 'masonry' && !(wedding.themeSettings as any)?.galleryStyle)
-                                        ? "bg-primary text-primary-foreground border-primary"
-                                        : "bg-background text-muted-foreground border-border hover:border-primary/50"
+                                        ? "bg-red-600 text-white shadow-red-100 dark:shadow-none"
+                                        : "bg-background text-muted-foreground hover:bg-muted/50"
                                 )}
                             >
                                 {style === 'masonry' ? 'ក្រឡា (Grid)' : style === 'slider' ? 'រំកិល (Slide)' : 'ប៉ុឡារ៉ូអ៊ីត (Polaroid)'}
@@ -201,7 +201,7 @@ const Step4Media: React.FC<Step4MediaProps> = ({
                     placeholder="បញ្ចូលតំណភ្ជាប់ YouTube..."
                     value={wedding.themeSettings?.videoUrl || ""}
                     onDebouncedChange={(val) => updateTheme('videoUrl', val as string)}
-                    className="mb-2"
+                    className="mb-2 border-none shadow-sm bg-muted"
                 />
             </div>
         </div>

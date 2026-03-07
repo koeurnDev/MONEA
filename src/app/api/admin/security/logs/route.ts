@@ -11,7 +11,7 @@ export async function GET() {
 
     try {
         const logs = await prisma.securityLog.findMany({
-            where: {
+            where: user.role === "SUPERADMIN" ? {} : {
                 email: user.email
             },
             orderBy: {

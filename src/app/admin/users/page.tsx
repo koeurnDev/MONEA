@@ -103,49 +103,49 @@ export default function AdminUsersPage() {
                     <Users size={14} />
                     PLATFORM MEMBERSHIP
                 </div>
-                <h2 className="text-3xl font-black tracking-tight text-slate-900 font-kantumruy">ការគ្រប់គ្រងអ្នកប្រើប្រាស់</h2>
-                <p className="text-slate-500 font-medium font-kantumruy text-sm">មើល និងគ្រប់គ្រងគណនីប្តីប្រពន្ធទាំងអស់ដែលប្រើប្រាស់ប្រព័ន្ធ MONEA ។</p>
+                <h2 className="text-3xl font-black tracking-tight text-foreground font-kantumruy">ការគ្រប់គ្រងអ្នកប្រើប្រាស់</h2>
+                <p className="text-muted-foreground font-medium font-kantumruy text-sm">មើល និងគ្រប់គ្រងគណនីប្តីប្រពន្ធទាំងអស់ដែលប្រើប្រាស់ប្រព័ន្ធ MONEA ។</p>
             </div>
 
-            <div className="bg-white rounded-3xl border border-slate-100 overflow-hidden shadow-sm shadow-slate-100/50">
+            <div className="bg-card rounded-3xl border border-border overflow-hidden shadow-sm shadow-black/5">
                 <Table>
-                    <TableHeader className="bg-slate-50/50">
-                        <TableRow className="border-slate-100 hover:bg-transparent">
-                            <TableHead className="text-slate-600 font-bold uppercase text-xs tracking-tight px-8 py-6">អ៊ីមែល</TableHead>
-                            <TableHead className="text-slate-600 font-bold uppercase text-xs tracking-tight">តួនាទី</TableHead>
-                            <TableHead className="text-slate-600 font-bold uppercase text-xs tracking-tight text-center">ចំនួនមង្គលការ</TableHead>
-                            <TableHead className="text-slate-600 font-bold uppercase text-xs tracking-tight">ឈ្មោះប្តីប្រពន្ធ</TableHead>
-                            <TableHead className="text-slate-600 font-bold uppercase text-xs tracking-tight">ថ្ងៃចុះឈ្មោះ</TableHead>
-                            <TableHead className="text-right text-slate-600 font-bold uppercase text-xs tracking-tight px-8">សកម្មភាព</TableHead>
+                    <TableHeader className="bg-muted/30">
+                        <TableRow className="border-border hover:bg-transparent">
+                            <TableHead className="text-muted-foreground font-bold uppercase text-xs tracking-tight px-8 py-6">អ៊ីមែល</TableHead>
+                            <TableHead className="text-muted-foreground font-bold uppercase text-xs tracking-tight">តួនាទី</TableHead>
+                            <TableHead className="text-muted-foreground font-bold uppercase text-xs tracking-tight text-center">ចំនួនមង្គលការ</TableHead>
+                            <TableHead className="text-muted-foreground font-bold uppercase text-xs tracking-tight">ឈ្មោះប្តីប្រពន្ធ</TableHead>
+                            <TableHead className="text-muted-foreground font-bold uppercase text-xs tracking-tight">ថ្ងៃចុះឈ្មោះ</TableHead>
+                            <TableHead className="text-right text-muted-foreground font-bold uppercase text-xs tracking-tight px-8">សកម្មភាព</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {users.map((user) => (
-                            <TableRow key={user.id} className="border-slate-50 hover:bg-slate-50/30 transition-colors group">
-                                <TableCell className="font-medium text-slate-900 px-8 font-mono text-xs">{user.email}</TableCell>
+                            <TableRow key={user.id} className="border-border/50 hover:bg-muted/30 transition-colors group">
+                                <TableCell className="font-medium text-foreground px-8 font-mono text-xs">{user.email}</TableCell>
                                 <TableCell>
                                     <Badge className={cn(
                                         "px-2 py-0.5 rounded-md text-[11px] font-black tracking-widest uppercase border whitespace-nowrap",
                                         user.role === ROLES.PLATFORM_OWNER
-                                            ? "bg-slate-900 text-white border-slate-900"
+                                            ? "bg-foreground text-background border-foreground"
                                             : user.role === ROLES.EVENT_MANAGER
-                                                ? "bg-red-50 text-red-700 border-red-100"
-                                                : "bg-blue-50 text-blue-700 border-blue-100"
+                                                ? "bg-red-500/10 text-red-600 border-red-500/20"
+                                                : "bg-blue-500/10 text-blue-600 border-blue-500/20"
                                     )}>
                                         {ROLE_LABELS[user.role as keyof typeof ROLE_LABELS] || user.role}
                                     </Badge>
                                 </TableCell>
-                                <TableCell className="text-center text-slate-900 font-bold">{user.weddings.length}</TableCell>
+                                <TableCell className="text-center text-foreground font-bold">{user.weddings.length}</TableCell>
                                 <TableCell>
                                     {user.weddings[0] ? (
-                                        <span className="text-sm text-slate-700 font-bold font-kantumruy">
+                                        <span className="text-sm text-foreground/80 font-bold font-kantumruy">
                                             {user.weddings[0].groomName} & {user.weddings[0].brideName}
                                         </span>
                                     ) : (
-                                        <span className="text-slate-400 italic text-xs font-kantumruy">មិនទាន់មានមង្គលការ</span>
+                                        <span className="text-muted-foreground italic text-xs font-kantumruy">មិនទាន់មានមង្គលការ</span>
                                     )}
                                 </TableCell>
-                                <TableCell className="text-xs text-slate-500 font-mono">{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+                                <TableCell className="text-xs text-muted-foreground font-mono">{new Date(user.createdAt).toLocaleDateString()}</TableCell>
                                 <TableCell className="text-right px-8">
                                     <Button
                                         variant="outline"
@@ -163,7 +163,7 @@ export default function AdminUsersPage() {
             </div>
 
             <Dialog open={!!selectedUserId} onOpenChange={(open) => !open && setSelectedUserId(null)}>
-                <DialogContent className="max-w-4xl p-0 overflow-hidden bg-slate-50 border-slate-100 max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-4xl p-0 overflow-hidden bg-background border-border max-h-[90vh] overflow-y-auto">
                     <DialogTitle className="sr-only">គ្រប់គ្រងអ្នកប្រើប្រាស់</DialogTitle>
                     <DialogDescription className="sr-only">ផ្លាស់ប្តូរតួនាទី និងលេខសម្ងាត់របស់អ្នកប្រើប្រាស់។</DialogDescription>
 
@@ -177,21 +177,21 @@ export default function AdminUsersPage() {
                             {/* Header */}
                             <div className="flex items-start justify-between gap-4">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-16 h-16 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center shrink-0">
+                                    <div className="w-16 h-16 rounded-2xl bg-red-500/10 text-red-600 flex items-center justify-center shrink-0">
                                         <User size={32} strokeWidth={2.5} />
                                     </div>
                                     <div>
-                                        <h2 className="text-2xl font-black tracking-tight text-slate-900 font-kantumruy">គ្រប់គ្រងគណនី</h2>
-                                        <p className="text-slate-500 font-mono text-sm">{selectedUserDetails.email}</p>
+                                        <h2 className="text-2xl font-black tracking-tight text-foreground font-kantumruy">គ្រប់គ្រងគណនី</h2>
+                                        <p className="text-muted-foreground font-mono text-sm">{selectedUserDetails.email}</p>
                                     </div>
                                 </div>
                                 <Badge className={cn(
                                     "px-3 py-1 rounded-lg text-sm font-black tracking-widest uppercase border whitespace-nowrap hidden sm:inline-flex",
                                     selectedUserDetails.role === ROLES.PLATFORM_OWNER
-                                        ? "bg-slate-900 text-white border-slate-900"
+                                        ? "bg-foreground text-background border-foreground"
                                         : selectedUserDetails.role === ROLES.EVENT_MANAGER
-                                            ? "bg-red-50 text-red-700 border-red-100"
-                                            : "bg-blue-50 text-blue-700 border-blue-100"
+                                            ? "bg-red-500/10 text-red-600 border-red-500/20"
+                                            : "bg-blue-500/10 text-blue-600 border-blue-500/20"
                                 )}>
                                     {ROLE_LABELS[selectedUserDetails.role as keyof typeof ROLE_LABELS] || selectedUserDetails.role}
                                 </Badge>
@@ -201,17 +201,17 @@ export default function AdminUsersPage() {
                                 {/* Main Content Area */}
                                 <div className="md:col-span-2 space-y-8">
                                     {/* Settings Box */}
-                                    <div className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
-                                        <h3 className="text-lg font-black text-slate-900 font-kantumruy mb-6">ការកំណត់តួនាទី (Role Settings)</h3>
+                                    <div className="bg-card rounded-3xl border border-border p-8 shadow-sm">
+                                        <h3 className="text-lg font-black text-foreground font-kantumruy mb-6">ការកំណត់តួនាទី (Role Settings)</h3>
 
                                         <div className="space-y-6">
                                             <div className="space-y-2">
-                                                <label className="text-sm font-bold text-slate-700 font-kantumruy">តួនាទីអ្នកប្រើប្រាស់</label>
+                                                <label className="text-sm font-bold text-foreground/80 font-kantumruy">តួនាទីអ្នកប្រើប្រាស់</label>
 
                                                 {selectedUserDetails.role === ROLES.PLATFORM_OWNER ? (
-                                                    <div className="flex items-center gap-2 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                                                    <div className="flex items-center gap-2 p-4 bg-muted/50 rounded-xl border border-border">
                                                         <ShieldAlert size={18} className="text-amber-500 shrink-0" />
-                                                        <span className="text-sm font-medium text-slate-600 font-kantumruy">
+                                                        <span className="text-sm font-medium text-muted-foreground font-kantumruy">
                                                             អ្នកមិនអាចផ្លាស់ប្តូរតួនាទីរបស់ {ROLE_LABELS[ROLES.PLATFORM_OWNER]} ផ្សេងទៀតបានទេ។
                                                         </span>
                                                     </div>
@@ -250,25 +250,25 @@ export default function AdminUsersPage() {
                                     </div>
 
                                     {/* Associated Weddings */}
-                                    <div className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
-                                        <h3 className="text-lg font-black text-slate-900 font-kantumruy mb-6 flex items-center justify-between">
+                                    <div className="bg-card rounded-3xl border border-border p-8 shadow-sm">
+                                        <h3 className="text-lg font-black text-foreground font-kantumruy mb-6 flex items-center justify-between">
                                             <span>មង្គលការរបស់គណនីនេះ</span>
-                                            <Badge variant="secondary" className="bg-slate-100 text-slate-700">{selectedUserDetails.weddings?.length || 0}</Badge>
+                                            <Badge variant="secondary" className="bg-muted text-foreground">{selectedUserDetails.weddings?.length || 0}</Badge>
                                         </h3>
 
                                         {selectedUserDetails.weddings && selectedUserDetails.weddings.length > 0 ? (
                                             <div className="space-y-4">
                                                 {selectedUserDetails.weddings.map((w: any) => (
-                                                    <div key={w.id} className="p-4 rounded-2xl border border-slate-100 flex items-center justify-between hover:border-red-100 hover:bg-red-50/50 transition-colors group cursor-pointer" onClick={() => window.location.href = `/admin/weddings/${w.id}`}>
+                                                    <div key={w.id} className="p-4 rounded-2xl border border-border flex items-center justify-between hover:border-red-500/30 hover:bg-red-500/5 transition-colors group cursor-pointer" onClick={() => window.location.href = `/admin/weddings/${w.id}`}>
                                                         <div className="flex flex-col gap-1">
-                                                            <span className="font-black text-slate-900 font-kantumruy group-hover:text-red-700 transition-colors">
+                                                            <span className="font-black text-foreground font-kantumruy group-hover:text-red-600 transition-colors">
                                                                 {w.groomName} & {w.brideName}
                                                             </span>
-                                                            <span className="text-xs font-mono text-slate-500 uppercase">ID: {w.id.substring(0, 8)}...</span>
+                                                            <span className="text-xs font-mono text-muted-foreground uppercase">ID: {w.id.substring(0, 8)}...</span>
                                                         </div>
                                                         <Badge variant="outline" className={cn(
                                                             "uppercase tracking-widest text-[10px]",
-                                                            w.status === "ACTIVE" ? "border-emerald-200 text-emerald-700 bg-emerald-50" : "border-slate-200 text-slate-500 bg-slate-50"
+                                                            w.status === "ACTIVE" ? "border-emerald-500/30 text-emerald-600 bg-emerald-500/10" : "border-border text-muted-foreground bg-muted/50"
                                                         )}>
                                                             {w.status}
                                                         </Badge>
@@ -276,8 +276,8 @@ export default function AdminUsersPage() {
                                                 ))}
                                             </div>
                                         ) : (
-                                            <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-100 border-dashed">
-                                                <p className="text-sm font-kantumruy text-slate-500 font-medium">គណនីនេះមិនទាន់មានមង្គលការនៅឡើយទេ</p>
+                                            <div className="p-8 text-center bg-muted/30 rounded-2xl border border-border border-dashed">
+                                                <p className="text-sm font-kantumruy text-muted-foreground font-medium">គណនីនេះមិនទាន់មានមង្គលការនៅឡើយទេ</p>
                                             </div>
                                         )}
                                     </div>
@@ -285,23 +285,23 @@ export default function AdminUsersPage() {
 
                                 {/* Sidebar Info */}
                                 <div className="space-y-6">
-                                    <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm">
-                                        <h3 className="text-sm font-black text-slate-900 font-kantumruy mb-4 uppercase tracking-wider">ព័ត៌មានលម្អិត</h3>
+                                    <div className="bg-card rounded-3xl border border-border p-6 shadow-sm">
+                                        <h3 className="text-sm font-black text-foreground font-kantumruy mb-4 uppercase tracking-wider">ព័ត៌មានលម្អិត</h3>
 
                                         <div className="space-y-4">
                                             <div>
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">User ID</label>
-                                                <p className="text-xs font-mono font-medium text-slate-700 break-all">{selectedUserDetails.id}</p>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">User ID</label>
+                                                <p className="text-xs font-mono font-medium text-foreground/80 break-all">{selectedUserDetails.id}</p>
                                             </div>
                                             <div>
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">ថ្ងៃចុះឈ្មោះ (Joined)</label>
-                                                <p className="text-sm font-medium text-slate-700">{new Date(selectedUserDetails.createdAt).toLocaleDateString()} {new Date(selectedUserDetails.createdAt).toLocaleTimeString()}</p>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">ថ្ងៃចុះឈ្មោះ (Joined)</label>
+                                                <p className="text-sm font-medium text-foreground/80">{new Date(selectedUserDetails.createdAt).toLocaleDateString()} {new Date(selectedUserDetails.createdAt).toLocaleTimeString()}</p>
                                             </div>
                                             <div>
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">ស្ថានភាព (Status)</label>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">ស្ថានភាព (Status)</label>
                                                 <div className="flex items-center gap-2 mt-1">
                                                     <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                                                    <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">សកម្ម (Active)</span>
+                                                    <span className="text-xs font-bold text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-md">សកម្ម (Active)</span>
                                                 </div>
                                             </div>
                                         </div>

@@ -67,7 +67,7 @@ export function ConfirmModal({
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+                    className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 sm:backdrop-blur-sm"
                     onClick={() => !loading && onClose()}
                 >
                     <m.div
@@ -75,25 +75,26 @@ export function ConfirmModal({
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         exit={{ scale: 0.95, opacity: 0, y: 10 }}
                         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                        className="bg-white rounded-[2rem] shadow-2xl shadow-black/20 w-full max-w-md overflow-hidden"
+                        className="bg-white rounded-[2rem] shadow-2xl shadow-black/20 w-full max-w-[28rem] md:max-w-xl overflow-hidden"
                         onClick={e => e.stopPropagation()}
                     >
                         {/* Gradient header */}
-                        <div className={`bg-gradient-to-br ${cfg.bg} p-8 flex flex-col items-center gap-3 relative overflow-hidden`}>
+                        <div className={`bg-gradient-to-br ${cfg.bg} p-6 md:p-10 flex flex-col md:flex-row items-center md:items-start gap-5 relative overflow-hidden`}>
                             <div className="absolute inset-0 opacity-10">
                                 <div className="absolute top-[-20%] right-[-20%] w-48 h-48 rounded-full bg-white" />
                             </div>
-                            <div className={`w-16 h-16 rounded-2xl ${cfg.iconBg} backdrop-blur-sm flex items-center justify-center border border-white/30`}>
+                            <div className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl ${cfg.iconBg} sm:backdrop-blur-sm flex items-center justify-center border border-white/30 shrink-0`}>
                                 <Icon size={28} className={cfg.iconColor} />
                             </div>
-                            <div className="text-center z-10">
-                                <h2 className="text-xl font-black text-white">{title}</h2>
+                            <div className="text-center md:text-left z-10 pt-1">
+                                <h2 className="text-xl md:text-2xl font-black text-white">{title}</h2>
+                                <p className="hidden md:block text-white/70 text-sm mt-1 font-medium italic">សកម្មភាពនេះមិនអាចត្រឡប់ថយក្រោយបានទេ</p>
                             </div>
                         </div>
 
                         {/* Body */}
-                        <div className="p-8 space-y-5">
-                            <p className="text-sm text-slate-600 leading-relaxed text-center">{description}</p>
+                        <div className="p-6 md:p-10 space-y-6">
+                            <p className="text-[15px] text-slate-600 leading-relaxed text-center md:text-left font-medium">{description}</p>
 
                             {detail && (
                                 <div className="bg-slate-50 rounded-2xl p-4 flex items-center gap-3 border border-slate-100">
@@ -107,19 +108,19 @@ export function ConfirmModal({
                             <div className="flex gap-3 pt-2">
                                 <Button
                                     variant="outline"
-                                    className="flex-1 h-12 rounded-2xl border-2 border-slate-200 font-black text-slate-600 hover:bg-slate-50"
+                                    className="flex-1 h-12 md:h-14 rounded-2xl border-2 border-slate-100 font-black text-slate-500 hover:bg-slate-50 hover:text-red-500 hover:border-red-100 transition-all"
                                     onClick={onClose}
                                     disabled={loading}
                                 >
-                                    <X size={15} className="mr-1.5" /> {cancelLabel}
+                                    {cancelLabel}
                                 </Button>
                                 <Button
-                                    className={`flex-1 h-12 rounded-2xl text-white font-black gap-2 shadow-lg ${cfg.confirmClass}`}
+                                    className={`flex-1 h-12 md:h-14 rounded-2xl text-white font-black gap-2 shadow-xl ${cfg.confirmClass} transition-all active:scale-95`}
                                     onClick={onConfirm}
                                     disabled={loading}
                                 >
-                                    {loading ? <Loader2 size={15} className="animate-spin" /> : <Icon size={15} />}
-                                    {loading ? "Processing..." : confirmLabel}
+                                    {loading ? <Loader2 size={18} className="animate-spin" /> : <Icon size={18} />}
+                                    {loading ? "កំពុងដំណើរការ..." : confirmLabel}
                                 </Button>
                             </div>
                         </div>

@@ -5,7 +5,8 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { m, AnimatePresence, LazyMotion, domMax } from 'framer-motion';
 import { Maximize, Minimize, Volume2, VolumeX, Users, Gift, Sparkles, Trophy, Heart, Clock, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import confetti from "canvas-confetti";
+// Lazy load confetti to improve performance
+const loadConfetti = () => import("canvas-confetti");
 
 // Fetcher for SWR
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -161,10 +162,11 @@ export default function LiveDisplayPage() {
         };
         const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
 
-        const interval: any = setInterval(function () {
+        const interval: any = setInterval(async function () {
             const timeLeft = animationEnd - Date.now();
             if (timeLeft <= 0) return clearInterval(interval);
             const particleCount = 80 * (timeLeft / duration);
+            const confetti = (await loadConfetti()).default;
             confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
             confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
         }, 300);
@@ -211,7 +213,7 @@ export default function LiveDisplayPage() {
     };
 
     if (!serverData && !error) return (
-        <div className="flex flex-col items-center justify-center h-screen bg-[#0A0500] space-y-4">
+        <div className="flex flex-col items-center justify-center h-screen bg-background space-y-4">
             <Loader2 className="animate-spin text-amber-500" size={48} />
             <div className="text-amber-500/50 text-xl font-kantumruy font-black uppercase tracking-[0.3em] animate-pulse">កំពុងភ្ជាប់ទិន្នន័យ...</div>
         </div>
@@ -222,23 +224,23 @@ export default function LiveDisplayPage() {
 
     if (!hasStarted && serverData) {
         return (
-            <div className="relative w-full h-screen bg-[#0A0500] overflow-hidden flex items-center justify-center font-kantumruy text-center">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-amber-900/10 via-[#0A0500] to-black" />
+            <div className="relative w-full h-screen bg-background overflow-hidden flex items-center justify-center font-kantumruy text-center">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-amber-500/5 dark:from-amber-900/10 via-background to-background" />
                 <m.div
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="relative z-10 px-8"
                 >
-                    <div className="w-20 h-20 bg-amber-500/10 rounded-3xl border-2 border-amber-500/20 flex items-center justify-center mx-auto mb-10">
+                    <div className="w-20 h-20 bg-amber-500/10 rounded-3xl flex items-center justify-center mx-auto mb-10 shadow-[0_8px_32px_rgba(245,158,11,0.1)]">
                         <Trophy className="w-10 h-10 text-amber-500" />
                     </div>
-                    <h1 className="text-4xl md:text-6xl font-black text-white mb-6 leading-tight">MONEA បង្ហាញកាដូ</h1>
-                    <p className="text-slate-400 text-lg md:text-xl font-medium mb-12 max-w-lg mx-auto">
+                    <h1 className="text-4xl md:text-6xl font-black text-foreground mb-6 leading-tight">MONEA បង្ហាញកាដូ</h1>
+                    <p className="text-muted-foreground text-lg md:text-xl font-medium mb-12 max-w-lg mx-auto">
                         សូមចុចប៊ូតុងខាងក្រោមដើម្បីចាប់ផ្តើម <br /> បង្ហាញកាដូ និង ភ្ញៀវកិត្តិយស
                     </p>
                     <button
                         onClick={startPresentation}
-                        className="group relative px-16 py-6 bg-amber-500 text-slate-900 font-black text-2xl rounded-[2rem] shadow-[0_20px_50px_rgba(245,158,11,0.25)] transition-all hover:scale-[1.05] active:scale-95 overflow-hidden"
+                        className="group relative px-16 py-6 bg-amber-500 text-white dark:text-slate-900 font-black text-2xl rounded-[2rem] shadow-[0_20px_50px_rgba(245,158,11,0.25)] transition-all hover:scale-[1.05] active:scale-95 overflow-hidden"
                     >
                         ចាប់ផ្តើមដំណើរការ
                     </button>
@@ -249,24 +251,24 @@ export default function LiveDisplayPage() {
 
     return (
         <LazyMotion features={domMax}>
-            <div className="relative w-full min-h-screen lg:h-screen bg-[#0A0500] text-white overflow-hidden flex flex-col font-kantumruy">
+            <div className="relative w-full min-h-screen lg:h-screen bg-background text-foreground overflow-hidden flex flex-col font-kantumruy">
 
                 {/* Background elements - Clean & Minimal */}
                 <div className="absolute inset-0 z-0">
-                    <div className="absolute inset-0 bg-[#0A0500]" />
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-amber-950/20 via-transparent to-transparent opacity-60" />
+                    <div className="absolute inset-0 bg-background" />
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-amber-500/5 dark:from-amber-950/20 via-transparent to-transparent opacity-60" />
                     <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay" />
                 </div>
 
                 {/* Header - Neat & Informative */}
-                <header className="relative z-50 h-24 px-12 flex justify-between items-center bg-black/20 backdrop-blur-md border-b border-white/5">
+                <header className="relative z-50 h-24 px-12 flex justify-between items-center bg-background/50 backdrop-blur-md shadow-[0_4px_24px_rgba(0,0,0,0.04)]">
                     <div className="flex gap-8 items-center">
                         <div className="flex items-center gap-4">
                             <Users className="w-6 h-6 text-amber-500" />
                             <div>
-                                <span className="text-[10px] text-slate-500 font-black uppercase tracking-widest leading-none block mb-1">ភ្ញៀវដែលបានមកដល់</span>
-                                <div className="text-2xl font-black text-white leading-none font-mono">
-                                    {guestCount} <span className="text-sm text-slate-600 font-bold">/ {totalGuests}</span>
+                                <span className="text-[10px] text-muted-foreground font-black uppercase tracking-widest leading-none block mb-1">ភ្ញៀវដែលបានមកដល់</span>
+                                <div className="text-2xl font-black text-foreground leading-none font-mono">
+                                    {guestCount} <span className="text-sm text-muted-foreground/40 font-bold">/ {totalGuests}</span>
                                 </div>
                             </div>
                         </div>
@@ -276,15 +278,15 @@ export default function LiveDisplayPage() {
                         <button
                             onClick={() => setSoundEnabled(!soundEnabled)}
                             className={cn(
-                                "w-12 h-12 rounded-2xl transition-all flex items-center justify-center border",
-                                soundEnabled ? "bg-amber-500/10 border-amber-500/30 text-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.2)]" : "bg-white/5 border-white/5 text-slate-600 hover:text-slate-400"
+                                "w-12 h-12 rounded-2xl transition-all flex items-center justify-center",
+                                soundEnabled ? "bg-amber-500/10 text-amber-500 shadow-[0_4px_16px_rgba(245,158,11,0.2)]" : "bg-muted text-muted-foreground hover:text-foreground shadow-sm"
                             )}
                         >
                             {soundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
                         </button>
                         <button
                             onClick={toggleFullscreen}
-                            className="w-12 h-12 bg-white/5 border border-white/5 rounded-2xl transition-all text-slate-600 hover:text-white flex items-center justify-center"
+                            className="w-12 h-12 bg-muted rounded-2xl transition-all text-muted-foreground hover:text-foreground flex items-center justify-center shadow-sm"
                         >
                             {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
                         </button>
@@ -299,7 +301,7 @@ export default function LiveDisplayPage() {
                             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                             className="text-center mb-16 space-y-4"
                         >
-                            <h2 className="text-white text-6xl md:text-7xl lg:text-8xl font-black leading-tight tracking-tight font-kantumruy">
+                            <h2 className="text-foreground text-6xl md:text-7xl lg:text-8xl font-black leading-tight tracking-tight font-kantumruy">
                                 សូមអរគុណ
                             </h2>
                             <div className="flex items-center justify-center gap-4">
@@ -309,7 +311,7 @@ export default function LiveDisplayPage() {
                                 </p>
                                 <div className="h-px w-20 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
                             </div>
-                            <p className="text-slate-400 text-lg md:text-xl font-medium font-kantumruy leading-relaxed max-w-xl mx-auto pt-4">
+                            <p className="text-muted-foreground text-lg md:text-xl font-medium font-kantumruy leading-relaxed max-w-xl mx-auto pt-4">
                                 សូមគោរពជូនពរ បវរសួស្ដី ជ័យមង្គល វិបុលសុខ មហាប្រសើរ <br /> ដល់លោកអ្នក និងក្រុមគ្រួសារ ជួបតែសំណាងល្អជានិច្ច!
                             </p>
                         </m.div>
@@ -324,7 +326,7 @@ export default function LiveDisplayPage() {
                                     transition={{ duration: 0.8 }}
                                     className="w-full max-w-3xl"
                                 >
-                                    <div className="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[4rem] p-12 md:p-20 text-center relative shadow-2xl overflow-hidden min-h-[480px] flex flex-col justify-center">
+                                    <div className="bg-card backdrop-blur-3xl rounded-[4rem] p-12 md:p-20 text-center relative shadow-[0_32px_120px_-20px_rgba(0,0,0,0.15)] dark:shadow-[0_32px_120px_-20px_rgba(0,0,0,0.5)] overflow-hidden min-h-[480px] flex flex-col justify-center">
                                         <m.div
                                             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
                                             className="text-amber-500/50 font-black tracking-[0.5em] uppercase text-xs mb-8"
@@ -332,7 +334,7 @@ export default function LiveDisplayPage() {
                                             កាដូថ្មីទទួលបានពី
                                         </m.div>
 
-                                        <div className="text-5xl md:text-7xl lg:text-[6rem] font-black text-white leading-[1.1] mb-12 font-kantumruy tracking-tight">
+                                        <div className="text-5xl md:text-7xl lg:text-[6rem] font-black text-foreground leading-[1.1] mb-12 font-kantumruy tracking-tight">
                                             <CinematicText text={latestGift.guest?.name || "ភ្ញៀវកិត្តិយស"} />
                                         </div>
 
@@ -340,7 +342,7 @@ export default function LiveDisplayPage() {
                                             "relative flex flex-col items-center justify-center transition-all duration-1000",
                                             !amountVisible && "blur-2xl opacity-5"
                                         )}>
-                                            <div className="w-full h-px bg-white/10 mb-12" />
+                                            <div className="w-full h-px bg-muted mb-12" />
                                             <m.div
                                                 className={cn("font-mono font-black tracking-tighter leading-none flex items-center justify-center gap-4 text-amber-500", style.fontSize)}
                                             >
@@ -350,13 +352,13 @@ export default function LiveDisplayPage() {
                                                 </span>
                                                 {latestGift.currency === "KHR" && <span className="text-[0.4em] font-kantumruy font-black">៛</span>}
                                             </m.div>
-                                            <div className="w-full h-px bg-white/10 mt-12" />
+                                            <div className="w-full h-px bg-muted mt-12" />
                                         </div>
 
                                         {latestGift.guest?.source && (
                                             <m.div
                                                 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }}
-                                                className="mt-12 flex items-center gap-3 px-8 py-3 rounded-full bg-white/5 border border-white/5 text-slate-400 font-bold font-kantumruy w-fit mx-auto"
+                                                className="mt-12 flex items-center gap-3 px-8 py-3 rounded-full bg-muted text-muted-foreground font-bold font-kantumruy w-fit mx-auto"
                                             >
                                                 <Heart size={16} className="text-amber-500" fill="currentColor" />
                                                 {latestGift.guest.source}
@@ -373,8 +375,8 @@ export default function LiveDisplayPage() {
                     {/* Vertical Guest List - Orderly & Clean */}
                     <div className="w-full lg:w-[35%] h-[75vh] flex flex-col">
                         <div className="mb-8 flex items-center gap-6 px-4">
-                            <h3 className="text-2xl font-black text-white uppercase font-kantumruy tracking-tight">បញ្ជីភ្ញៀវកិត្តិយស</h3>
-                            <div className="flex-1 h-px bg-white/10" />
+                            <h3 className="text-2xl font-black text-foreground uppercase font-kantumruy tracking-tight">បញ្ជីភ្ញៀវកិត្តិយស</h3>
+                            <div className="flex-1 h-px bg-muted" />
                             <Gift className="text-amber-500/50" size={24} />
                         </div>
 
@@ -391,17 +393,17 @@ export default function LiveDisplayPage() {
                                         layout
                                         initial={{ opacity: 0, x: 20 }}
                                         animate={{ opacity: 1, x: 0 }}
-                                        className="p-6 rounded-3xl bg-white/[0.04] border border-white/[0.04] flex items-center justify-between"
+                                        className="p-6 rounded-3xl bg-card shadow-[0_4px_16px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_16px_rgba(0,0,0,0.2)] flex items-center justify-between transition-all"
                                     >
                                         <div className="flex items-center gap-5">
-                                            <div className="w-12 h-12 rounded-2xl bg-black/40 flex items-center justify-center text-xl">
+                                            <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center text-xl">
                                                 🧧
                                             </div>
                                             <div>
-                                                <div className="text-xl font-bold text-white font-kantumruy leading-none mb-2">
+                                                <div className="text-xl font-bold text-foreground font-kantumruy leading-none mb-2">
                                                     {gift.guest?.name || "ភ្ញៀវកិត្តិយស"}
                                                 </div>
-                                                <div className="text-[10px] text-slate-500 font-bold uppercase tracking-widest flex items-center gap-2">
+                                                <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest flex items-center gap-2">
                                                     <Clock size={10} /> {new Date(gift.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                 </div>
                                             </div>
@@ -434,7 +436,7 @@ export default function LiveDisplayPage() {
                                 initial={{ scale: 0.9, y: 20, opacity: 0 }}
                                 animate={{ scale: 1, y: 0, opacity: 1 }}
                                 exit={{ scale: 1.1, opacity: 0 }}
-                                className="bg-[#0D0700] p-24 rounded-[5rem] flex flex-col items-center gap-10 border border-white/5 text-center"
+                                className="bg-card p-24 rounded-[5rem] flex flex-col items-center gap-10 text-center shadow-2xl"
                             >
                                 <m.div
                                     animate={{ y: [0, -10, 0] }} transition={{ duration: 1, repeat: Infinity }}
@@ -444,7 +446,7 @@ export default function LiveDisplayPage() {
                                 </m.div>
                                 <div className="space-y-4">
                                     <div className="text-amber-500 font-black tracking-[0.5em] uppercase text-sm font-kantumruy">កាដូថ្មីទទួលបាន!</div>
-                                    <div className="text-6xl md:text-8xl font-black text-white font-kantumruy leading-tight">
+                                    <div className="text-6xl md:text-8xl font-black text-foreground font-kantumruy leading-tight">
                                         {latestGift.guest?.name || "ភ្ញៀវកិត្តិយស"}
                                     </div>
                                 </div>

@@ -2,40 +2,37 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function WeddingSkeleton() {
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col pt-20">
-            {/* Header / Nav Area */}
-            <div className="absolute top-0 w-full h-20 bg-white/50 backdrop-blur-md border-b border-slate-100 flex items-center justify-center">
-                <Skeleton className="h-6 w-32 rounded-md" />
-            </div>
+        <div className="min-h-screen bg-[#0A0A0A] flex flex-col relative overflow-hidden">
+            {/* Hero Skeleton (Cinematic Style) */}
+            <div className="relative h-screen w-full flex flex-col justify-end p-6 md:p-16">
+                {/* Background Pulse */}
+                <div className="absolute inset-0 bg-slate-900/40 animate-pulse" />
 
-            {/* Hero Main */}
-            <div className="flex-1 flex flex-col items-center justify-center max-w-4xl mx-auto w-full px-6 py-20 mt-10 space-y-8">
-                {/* Rings / Decorative Element */}
-                <Skeleton className="w-16 h-16 rounded-full" />
+                {/* Content Overlay */}
+                <div className="relative z-10 w-full max-w-5xl mx-auto flex flex-col items-center space-y-8 pb-12">
+                    <div className="w-full bg-slate-800/20 backdrop-blur-xl border border-white/5 rounded-[2rem] p-10 md:p-16 flex flex-col items-center space-y-6">
+                        {/* Decorative Icon */}
+                        <Skeleton className="w-12 h-12 rounded-full bg-slate-700/30" />
 
-                {/* Save the date text */}
-                <Skeleton className="h-4 w-48 rounded-full" />
+                        {/* Subtitle */}
+                        <Skeleton className="h-4 w-32 rounded-full bg-slate-700/30" />
 
-                {/* Names */}
-                <Skeleton className="h-16 w-3/4 max-w-sm rounded-[2rem]" />
-                <Skeleton className="h-12 w-12 rounded-full" />
-                <Skeleton className="h-16 w-3/4 max-w-sm rounded-[2rem]" />
+                        {/* Names */}
+                        <div className="space-y-4 w-full flex flex-col items-center">
+                            <Skeleton className="h-12 md:h-20 w-3/4 max-w-md rounded-xl bg-slate-700/30" />
+                            <Skeleton className="h-6 w-12 rounded-full bg-slate-700/30" />
+                            <Skeleton className="h-12 md:h-20 w-3/4 max-w-md rounded-xl bg-slate-700/30" />
+                        </div>
 
-                {/* Timer Area */}
-                <div className="flex gap-4 mt-8 pt-8">
-                    <Skeleton className="w-20 h-24 rounded-2xl" />
-                    <Skeleton className="w-20 h-24 rounded-2xl" />
-                    <Skeleton className="w-20 h-24 rounded-2xl" />
-                    <Skeleton className="w-20 h-24 rounded-2xl" />
+                        {/* Date */}
+                        <Skeleton className="h-4 w-48 rounded-full bg-slate-700/30 mt-4" />
+                    </div>
                 </div>
             </div>
 
-            {/* Bottom Quick Actions Nav Area Fallback */}
-            <div className="fixed bottom-0 w-full h-24 bg-white/50 backdrop-blur-md border-t border-slate-100 flex items-center justify-around px-4 pb-4">
-                <Skeleton className="h-12 w-12 rounded-full" />
-                <Skeleton className="h-12 w-12 rounded-full" />
-                <Skeleton className="h-12 w-12 rounded-full" />
-                <Skeleton className="h-12 w-12 rounded-full" />
+            {/* Float Action Placeholder */}
+            <div className="fixed top-6 right-6 z-50">
+                <Skeleton className="w-12 h-12 rounded-full bg-slate-800/50 backdrop-blur-md" />
             </div>
         </div>
     );

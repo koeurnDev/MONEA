@@ -1,3 +1,4 @@
+"use client";
 import React from 'react';
 import { m } from 'framer-motion';
 import { WeddingData } from "../types";

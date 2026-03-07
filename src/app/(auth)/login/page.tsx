@@ -17,12 +17,13 @@ import { Input } from "@/components/ui/input";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Heart, Lock, Mail, ArrowRight, UserCog, Loader2, Key, Users } from "lucide-react";
+import { Heart, Lock, Mail, ArrowRight, UserCog, Loader2, Key, Users, ChevronLeft } from "lucide-react";
 import { m, AnimatePresence } from 'framer-motion';
 import Image from "next/image";
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
 import { ROLES } from "@/lib/constants";
-import { Turnstile } from '@marsidev/react-turnstile';
+import dynamic from "next/dynamic";
+const Turnstile = dynamic(() => import("@marsidev/react-turnstile").then(mod => mod.Turnstile), { ssr: false });
 
 const loginSchema = z.object({
     email: z.string().email({ message: "សូមបញ្ចូលអ៊ីមែលឱ្យបានត្រឹមត្រូវ" }),
@@ -33,8 +34,10 @@ export default function LoginPage() {
     const router = useRouter();
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const [requireCaptcha, setRequireCaptcha] = useState(false);
+    const [requireCaptcha, setRequireCaptcha] = useState(true);
     const [captchaToken, setCaptchaToken] = useState("");
+    const [show2FA, setShow2FA] = useState(false);
+    const [twoFactorToken, setTwoFactorToken] = useState("");
 
     // Form
     const form = useForm<z.infer<typeof loginSchema>>({
@@ -44,7 +47,7 @@ export default function LoginPage() {
 
     // Handler
     async function onSubmit(values: z.infer<typeof loginSchema>) {
-        if (requireCaptcha && !captchaToken) {
+        if (!captchaToken) {
             setError("សូមផ្ទៀងផ្ទាត់ CAPTCHA។ (Please verify CAPTCHA)");
             return;
         }
@@ -52,7 +55,11 @@ export default function LoginPage() {
         setError("");
         setIsLoading(true);
         try {
-            const body = { ...values, turnstileToken: captchaToken || undefined };
+            const body = {
+                ...values,
+                turnstileToken: captchaToken || undefined,
+                twoFactorToken: show2FA ? twoFactorToken : undefined
+            };
             const res = await fetch("/api/auth/signin", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -77,10 +84,13 @@ export default function LoginPage() {
                 }
                 router.refresh();
             } else {
-                if (res.status === 428 && data.requireCaptcha) {
+                if (res.status === 428 && data.require2FA) {
+                    setShow2FA(true);
+                    setError(""); // Clear password errors and wait for user to enter token
+                    return; // IMPORTANT: Stop here so we don't set the "2FA Token required" error message immediately
+                } else if (res.status === 428 && data.requireCaptcha) {
                     setRequireCaptcha(true);
                 } else if (res.status === 400 && data.error?.includes("CAPTCHA")) {
-                    // Reset captcha if it failed serverside
                     setCaptchaToken("");
                 }
                 let errorMsg = data.error || "អ៊ីមែល ឬ ពាក្យសម្ងាត់មិនត្រឹមត្រូវ";
@@ -97,7 +107,7 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="min-h-screen w-full relative flex items-center justify-center overflow-hidden bg-black">
+        <div className="min-h-screen w-full relative flex items-center justify-center bg-black py-4 md:py-10">
             {/* Background Image with Overlay */}
             <div className="absolute inset-0 z-0">
                 <Image
@@ -115,76 +125,148 @@ export default function LoginPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
-                className="relative z-10 w-full max-w-md p-6"
+                className="relative z-10 w-full max-w-md p-4 md:p-6"
             >
-                <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+                <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-4 md:p-6 shadow-2xl relative overflow-hidden">
+                    {/* Back Button */}
+                    <Link
+                        href="/"
+                        className="absolute left-6 top-6 text-white/40 hover:text-white transition-colors group flex items-center gap-1 text-[10px] font-black uppercase tracking-widest z-20"
+                    >
+                        <ChevronLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" /> ត្រឡប់
+                    </Link>
+
                     {/* Header */}
-                    <div className="text-center mb-8">
+                    <div className="text-center mb-3 md:mb-5">
                         <Link href="/" className="inline-flex justify-center">
-                            <MoneaLogo showText size="md" variant="dark" />
+                            <MoneaLogo showText size="sm" variant="dark" />
                         </Link>
 
-                        <h1 className="text-2xl font-bold text-white mb-2 font-kantumruy">ចូលប្រើប្រាស់</h1>
-                        <p className="text-white/40 text-xs font-kantumruy">សូមបញ្ចូលគណនីរបស់អ្នកដើម្បីបន្ត</p>
+                        <h1 className="text-xl md:text-2xl font-bold text-white mb-1 font-kantumruy">ចូលប្រើប្រាស់</h1>
+                        <p className="text-white/40 text-[10px] md:text-xs font-kantumruy">សូមបញ្ចូលគណនីរបស់អ្នកដើម្បីបន្ត</p>
                     </div>
 
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                            <FormField
-                                control={form.control}
-                                name="email"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="text-white/80 text-xs uppercase tracking-wider font-bold ml-1">អ៊ីមែល</FormLabel>
-                                        <div className="relative group">
-                                            <div className="absolute left-3 top-3 text-white/40 group-focus-within:text-pink-400 transition-colors">
-                                                <Mail className="w-5 h-5" />
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2.5 md:space-y-3">
+                            <AnimatePresence mode="wait">
+                                {!show2FA ? (
+                                    <m.div
+                                        key="password-step"
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: 20 }}
+                                        className="space-y-2.5 md:space-y-3"
+                                    >
+                                        <FormField
+                                            control={form.control}
+                                            name="email"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-white/80 text-xs uppercase tracking-wider font-bold ml-1">អ៊ីមែល</FormLabel>
+                                                    <div className="relative group">
+                                                        <div className="absolute left-3 top-2.5 md:top-3 text-white/40 group-focus-within:text-pink-400 transition-colors">
+                                                            <Mail className="w-4 h-4 md:w-5 md:h-5" />
+                                                        </div>
+                                                        <Input
+                                                            placeholder="name@example.com"
+                                                            autoComplete="email"
+                                                            className="pl-10 bg-white/5 border-white/10 text-white rounded-xl focus:border-pink-500/50 h-10 md:h-11"
+                                                            {...field}
+                                                        />
+                                                    </div>
+                                                    <FormMessage className="text-red-400 text-xs" />
+                                                </FormItem>
+                                            )}
+                                        />
+                                        <FormField
+                                            control={form.control}
+                                            name="password"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <div className="flex justify-between items-center mb-1">
+                                                        <FormLabel className="text-white/80 text-xs uppercase tracking-wider font-bold ml-1">ពាក្យសម្ងាត់</FormLabel>
+                                                        <Link href="/forgot-password" className="text-[10px] text-pink-400 hover:text-pink-300">ភ្លេច?</Link>
+                                                    </div>
+                                                    <div className="relative group">
+                                                        <div className="absolute left-3 top-2.5 md:top-3 text-white/40 group-focus-within:text-pink-400 transition-colors">
+                                                            <Lock className="w-4 h-4 md:w-5 md:h-5" />
+                                                        </div>
+                                                        <Input
+                                                            type="password"
+                                                            placeholder="••••••••"
+                                                            autoComplete="current-password"
+                                                            className="pl-10 bg-white/5 border-white/10 text-white rounded-xl focus:border-pink-500/50 h-10 md:h-11"
+                                                            {...field}
+                                                        />
+                                                    </div>
+                                                    <FormMessage className="text-red-400 text-xs" />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    </m.div>
+                                ) : (
+                                    <m.div
+                                        key="2fa-step"
+                                        initial={{ opacity: 0, x: 20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: -20 }}
+                                        className="space-y-4 py-2"
+                                    >
+                                        <div className="text-center space-y-1 mb-4">
+                                            <div className="w-12 h-12 bg-pink-500/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                                                <Key className="text-pink-400 w-6 h-6" />
                                             </div>
-                                            <Input placeholder="name@example.com" className="pl-10 bg-white/5 border-white/10 text-white rounded-xl focus:border-pink-500/50" {...field} />
+                                            <h3 className="text-white font-bold font-kantumruy">ផ្ទៀងផ្ទាត់ ២ ជាន់ (2FA)</h3>
+                                            <p className="text-white/40 text-[10px] font-kantumruy">សូមបញ្ចូលលេខកូដពីកម្មវិធី Authenticator របស់អ្នក</p>
                                         </div>
-                                        <FormMessage className="text-red-400 text-xs" />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="password"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <div className="flex justify-between items-center mb-1">
-                                            <FormLabel className="text-white/80 text-xs uppercase tracking-wider font-bold ml-1">ពាក្យសម្ងាត់</FormLabel>
-                                            <Link href="/forgot-password" className="text-[10px] text-pink-400 hover:text-pink-300">ភ្លេច?</Link>
-                                        </div>
-                                        <div className="relative group">
-                                            <div className="absolute left-3 top-3 text-white/40 group-focus-within:text-pink-400 transition-colors">
-                                                <Lock className="w-5 h-5" />
+
+                                        <div className="space-y-2">
+                                            <div className="relative group">
+                                                <div className="absolute left-3 top-3 text-white/40 group-focus-within:text-pink-400 transition-colors">
+                                                    <Lock className="w-5 h-5" />
+                                                </div>
+                                                <Input
+                                                    value={twoFactorToken}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value.replace(/[០-៩]/g, (d) =>
+                                                            (d.charCodeAt(0) - 6112).toString()
+                                                        ).replace(/[^0-9]/g, "");
+                                                        setTwoFactorToken(val);
+                                                    }}
+                                                    placeholder="000000"
+                                                    autoComplete="one-time-code"
+                                                    className="pl-10 text-center text-xl font-black tracking-[0.5em] bg-white/5 border-white/10 text-white rounded-xl focus:border-pink-500/50 h-12"
+                                                    maxLength={6}
+                                                    autoFocus
+                                                    inputMode="numeric"
+                                                />
                                             </div>
-                                            <Input type="password" placeholder="••••••••" className="pl-10 bg-white/5 border-white/10 text-white rounded-xl focus:border-pink-500/50" {...field} />
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                onClick={() => setShow2FA(false)}
+                                                className="w-full text-white/40 hover:text-white hover:bg-white/5 text-[10px] font-kantumruy h-8"
+                                            >
+                                                ត្រឡប់ទៅវាយពាក្យសម្ងាត់វិញ
+                                            </Button>
                                         </div>
-                                        <FormMessage className="text-red-400 text-xs" />
-                                    </FormItem>
+                                    </m.div>
                                 )}
-                            />
+                            </AnimatePresence>
 
-                            {requireCaptcha && (
-                                <m.div
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: 'auto' }}
-                                    className="flex justify-center my-4 overflow-hidden"
-                                >
-                                    <Turnstile
-                                        siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA"}
-                                        onSuccess={(token) => {
-                                            setCaptchaToken(token);
-                                            setError(""); // Clear error when verified
-                                        }}
-                                        options={{ theme: 'dark' }}
-                                    />
-                                </m.div>
-                            )}
+                            <div className="flex justify-center my-2 overflow-hidden scale-90 md:scale-100 origin-center">
+                                <Turnstile
+                                    siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA"}
+                                    onSuccess={(token) => {
+                                        setCaptchaToken(token);
+                                        setError(""); // Clear error when verified
+                                    }}
+                                    options={{ theme: 'dark' }}
+                                />
+                            </div>
 
-                            <Button type="submit" disabled={isLoading} className="w-full bg-gradient-to-r from-pink-500 to-rose-600 rounded-xl font-bold uppercase tracking-wide h-11 border border-white/10 hover:shadow-lg hover:shadow-pink-500/20 transition-all mt-2">
-                                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "ចូលគណនី"}
+                            <Button type="submit" disabled={isLoading || !captchaToken} className="w-full bg-gradient-to-r from-pink-500 to-rose-600 rounded-xl font-bold uppercase tracking-wide h-10 md:h-11 border border-white/10 hover:shadow-lg hover:shadow-pink-500/20 transition-all mt-1">
+                                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : show2FA ? "ផ្ទៀងផ្ទាត់ និងចូល" : "ចូលគណនី"}
                             </Button>
                         </form>
                     </Form>
@@ -196,17 +278,13 @@ export default function LoginPage() {
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: 10 }}
-                                className="mt-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-200 text-xs text-center font-kantumruy"
+                                className="mt-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-200 text-xs text-center font-kantumruy"
                             >
                                 {error}
                             </m.div>
                         )}
                     </AnimatePresence>
 
-                    {/* Bottom Branding */}
-                    <div className="text-center mt-6 opacity-30">
-                        <MoneaLogo size="sm" variant="dark" className="justify-center grayscale" />
-                    </div>
                 </div>
             </m.div>
         </div>

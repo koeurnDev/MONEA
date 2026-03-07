@@ -1,28 +1,44 @@
+"use client";
 import React from 'react';
 import { m, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
+import { CldImage } from 'next-cloudinary';
 import { WeddingData } from "../types";
 
 export default function Hero({ wedding }: { wedding: WeddingData }) {
     const { scrollY } = useScroll();
-    const y1 = useTransform(scrollY, [0, 500], [0, 200]);
-    const opacity = useTransform(scrollY, [0, 300], [1, 0]);
+    const yParallax = useTransform(scrollY, [0, 500], [0, 200]);
+    const opacityParallax = useTransform(scrollY, [0, 300], [1, 0]);
+
+    const [isMobile, setIsMobile] = React.useState(false);
+    React.useEffect(() => {
+        setIsMobile(window.innerWidth < 768);
+    }, []);
+
+    const y = isMobile ? 0 : yParallax;
+    const opacity = isMobile ? 1 : opacityParallax;
 
     return (
         <section className="relative h-screen overflow-hidden flex items-center justify-center text-center">
             {/* Parallax Background */}
             <m.div
-                style={{ y: y1 }}
+                style={{ y }}
                 className="absolute inset-0 z-0"
             >
                 <div className="absolute inset-0 bg-black/40 z-10" />
-                <Image
-                    src="/templates/enchanted/bg-main.jpg"
-                    alt="Enchanted Forest"
-                    fill
-                    priority
-                    className="object-cover"
-                />
+                {wedding.themeSettings?.heroImage?.startsWith('http') ? (
+                    <img src={wedding.themeSettings.heroImage} alt="Couple" className="w-full h-full object-cover" />
+                ) : wedding.themeSettings?.heroImage ? (
+                    <CldImage src={wedding.themeSettings.heroImage} alt="Couple" fill className="object-cover" sizes="100vw" priority />
+                ) : (
+                    <Image
+                        src="/templates/enchanted/bg-main.jpg"
+                        alt="Enchanted Forest"
+                        fill
+                        priority
+                        className="object-cover"
+                    />
+                )}
             </m.div>
 
             {/* Content */}

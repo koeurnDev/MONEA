@@ -49,33 +49,33 @@ export default function MasterAdminPage() {
     }, []);
 
     if (loading) return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-slate-200 border-t-red-600" />
+        <div className="min-h-screen bg-background flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-muted border-t-red-600" />
         </div>
     );
 
     return (
-        <div className="min-h-screen bg-[#FDFCFB]">
+        <div className="min-h-screen bg-background">
             {/* Top Bar */}
-            <div className="bg-white border-b border-slate-100 sticky top-0 z-50">
+            <div className="bg-background/80 backdrop-blur-md border-b border-border sticky top-0 z-50">
                 <div className="max-w-[1600px] mx-auto px-8 h-20 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white">
+                        <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-primary-foreground">
                             <ShieldCheck size={20} />
                         </div>
                         <div>
-                            <h1 className="text-lg font-black text-slate-900 uppercase tracking-tighter">Master Control</h1>
-                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">System Administration</p>
+                            <h1 className="text-lg font-black text-foreground uppercase tracking-tighter">Master Control</h1>
+                            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">System Administration</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
                         <Link href="/admin/master/audit">
-                            <Button variant="outline" className="h-10 rounded-xl font-bold text-xs uppercase tracking-widest border-slate-200">
+                            <Button variant="outline" className="h-10 rounded-xl font-bold text-xs uppercase tracking-widest border-border">
                                 System Logs
                             </Button>
                         </Link>
                         <Link href="/admin/master/settings">
-                            <Button className="h-10 rounded-xl font-bold text-xs uppercase tracking-widest bg-slate-900 text-white">
+                            <Button className="h-10 rounded-xl font-bold text-xs uppercase tracking-widest bg-primary text-primary-foreground">
                                 Global Settings
                             </Button>
                         </Link>
@@ -87,16 +87,16 @@ export default function MasterAdminPage() {
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {[
-                        { label: "Total Weddings", value: data?.stats?.totalWeddings || 0, icon: PartyPopper, color: "text-red-600", bg: "bg-red-50" },
-                        { label: "Active Hirers", value: data?.stats?.totalUsers || 0, icon: Users, color: "text-blue-600", bg: "bg-blue-50" },
-                        { label: "Global Guests", value: data?.stats?.totalGuests || 0, icon: Activity, color: "text-green-600", bg: "bg-green-50" },
-                        { label: "IP Blacklist", value: data?.stats?.blacklistedIPs || 0, icon: Lock, color: "text-slate-600", bg: "bg-slate-50" },
+                        { label: "Total Weddings", value: data?.stats?.totalWeddings || 0, icon: PartyPopper, color: "text-red-500", bg: "bg-red-500/10" },
+                        { label: "Active Hirers", value: data?.stats?.totalUsers || 0, icon: Users, color: "text-blue-500", bg: "bg-blue-500/10" },
+                        { label: "Global Guests", value: data?.stats?.totalGuests || 0, icon: Activity, color: "text-green-500", bg: "bg-green-500/10" },
+                        { label: "IP Blacklist", value: data?.stats?.blacklistedIPs || 0, icon: Lock, color: "text-orange-500", bg: "bg-orange-500/10" },
                     ].map((s, i) => (
-                        <Card key={i} className="border-none shadow-sm shadow-slate-200/50 rounded-[2rem] overflow-hidden">
+                        <Card key={i} className="bg-card border-border shadow-sm rounded-[2rem] overflow-hidden">
                             <CardContent className="p-8 flex items-center justify-between">
                                 <div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{s.label}</p>
-                                    <h3 className="text-3xl font-black text-slate-900">{s.value}</h3>
+                                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mb-1">{s.label}</p>
+                                    <h3 className="text-3xl font-black text-foreground">{s.value}</h3>
                                 </div>
                                 <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center", s.bg, s.color)}>
                                     <s.icon size={24} />
@@ -108,14 +108,14 @@ export default function MasterAdminPage() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     {/* Recent Hirers / Weddings */}
-                    <Card className="lg:col-span-8 border-none shadow-sm shadow-slate-200/50 rounded-[2.5rem] overflow-hidden bg-white">
-                        <CardHeader className="p-8 border-b border-slate-50 flex flex-row items-center justify-between">
+                    <Card className="lg:col-span-8 bg-card border-border shadow-sm rounded-[2.5rem] overflow-hidden">
+                        <CardHeader className="p-8 border-b border-border/50 flex flex-row items-center justify-between">
                             <div>
-                                <CardTitle className="text-xl font-black text-slate-900 tracking-tight">Recent Hirers (អ្នកជួលកម្មវិធី)</CardTitle>
-                                <p className="text-xs text-slate-400 font-bold mt-1">Latest wedding platform activations</p>
+                                <CardTitle className="text-xl font-black text-foreground tracking-tight">Recent Hirers (អ្នកជួលកម្មវិធី)</CardTitle>
+                                <p className="text-xs text-muted-foreground font-bold mt-1">Latest wedding platform activations</p>
                             </div>
                             <Link href="/admin/master/weddings">
-                                <Button variant="ghost" className="text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-red-600">
+                                <Button variant="ghost" className="text-xs font-bold uppercase tracking-widest text-muted-foreground hover:text-red-600">
                                     View All <ArrowRight size={14} className="ml-2" />
                                 </Button>
                             </Link>
@@ -124,40 +124,40 @@ export default function MasterAdminPage() {
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left">
                                     <thead>
-                                        <tr className="bg-slate-50/50">
-                                            <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Wedding Name</th>
-                                            <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Plan</th>
-                                            <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
-                                            <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Created</th>
+                                        <tr className="bg-muted/50">
+                                            <th className="px-8 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Wedding Name</th>
+                                            <th className="px-8 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Plan</th>
+                                            <th className="px-8 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Status</th>
+                                            <th className="px-8 py-4 text-[10px] font-black text-muted-foreground uppercase tracking-widest text-right">Created</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-slate-50">
+                                    <tbody className="divide-y divide-border/50">
                                         {data?.recentWeddings?.map((w) => (
-                                            <tr key={w.id} className="hover:bg-slate-50/30 transition-colors group">
+                                            <tr key={w.id} className="hover:bg-muted/30 transition-colors group">
                                                 <td className="px-8 py-6">
                                                     <div className="flex flex-col">
-                                                        <span className="font-bold text-slate-900">{w.groomName} & {w.brideName}</span>
-                                                        <span className="text-[10px] text-slate-400 font-mono">ID: {w.id}</span>
+                                                        <span className="font-bold text-foreground">{w.groomName} & {w.brideName}</span>
+                                                        <span className="text-[10px] text-muted-foreground font-mono">ID: {w.id}</span>
                                                     </div>
                                                 </td>
                                                 <td className="px-8 py-6">
                                                     <span className={cn(
                                                         "text-[9px] font-black uppercase px-2 py-1 rounded-md",
-                                                        w.packageType === 'PREMIUM' ? 'bg-amber-100 text-amber-700' :
-                                                            w.packageType === 'PRO' ? 'bg-blue-100 text-blue-700' :
-                                                                'bg-slate-100 text-slate-600'
+                                                        w.packageType === 'PREMIUM' ? 'bg-amber-500/20 text-amber-600' :
+                                                            w.packageType === 'PRO' ? 'bg-blue-500/20 text-blue-600' :
+                                                                'bg-muted text-muted-foreground'
                                                     )}>
                                                         {w.packageType}
                                                     </span>
                                                 </td>
                                                 <td className="px-8 py-6">
                                                     <div className="flex items-center gap-2">
-                                                        <div className={cn("w-1.5 h-1.5 rounded-full", w.status === 'ACTIVE' ? 'bg-green-500' : 'bg-slate-300')} />
-                                                        <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">{w.status}</span>
+                                                        <div className={cn("w-1.5 h-1.5 rounded-full", w.status === 'ACTIVE' ? 'bg-green-500' : 'bg-muted-foreground/30')} />
+                                                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{w.status}</span>
                                                     </div>
                                                 </td>
                                                 <td className="px-8 py-6 text-right">
-                                                    <span className="text-xs font-medium text-slate-400">
+                                                    <span className="text-xs font-medium text-muted-foreground">
                                                         {new Date(w.createdAt).toLocaleDateString()}
                                                     </span>
                                                 </td>
@@ -171,7 +171,7 @@ export default function MasterAdminPage() {
 
                     {/* Master Controls */}
                     <div className="lg:col-span-4 space-y-6">
-                        <Card className="border-none shadow-sm shadow-slate-200/50 rounded-[2.5rem] overflow-hidden bg-slate-900 text-white">
+                        <Card className="bg-card border-border shadow-sm rounded-[2.5rem] overflow-hidden bg-slate-950 text-white">
                             <CardHeader className="p-8 pb-0">
                                 <CardTitle className="text-xl font-black tracking-tight">System Health</CardTitle>
                             </CardHeader>
@@ -212,37 +212,37 @@ export default function MasterAdminPage() {
                             </CardContent>
                         </Card>
 
-                        <Card className="border-none shadow-sm shadow-slate-200/50 rounded-[2.5rem] overflow-hidden bg-white">
+                        <Card className="bg-card border-border shadow-sm rounded-[2.5rem] overflow-hidden">
                             <CardHeader className="p-8 pb-4">
-                                <CardTitle className="text-lg font-black text-slate-900 tracking-tight">Security Actions</CardTitle>
+                                <CardTitle className="text-lg font-black text-foreground tracking-tight">Security Actions</CardTitle>
                             </CardHeader>
                             <CardContent className="p-8 pt-0 space-y-3">
                                 <Link href="/admin/master/payments" className="block">
-                                    <Button className="w-full h-12 bg-red-600 hover:bg-red-700 text-white rounded-2xl text-xs font-bold uppercase tracking-widest shadow-lg shadow-red-100 transition-all flex items-center gap-2">
+                                    <Button className="w-full h-12 bg-red-600 hover:bg-red-700 text-white rounded-2xl text-xs font-bold uppercase tracking-widest shadow-lg shadow-red-500/10 transition-all flex items-center gap-2">
                                         <DollarSign size={16} /> Payment Center
                                     </Button>
                                 </Link>
                                 <Link href="/admin/master/users" className="block">
-                                    <Button variant="outline" className="w-full h-12 border-slate-100 hover:bg-slate-50 text-slate-800 rounded-2xl text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+                                    <Button variant="outline" className="w-full h-12 border-border hover:bg-muted text-foreground rounded-2xl text-xs font-bold uppercase tracking-widest flex items-center gap-2">
                                         <Users size={16} /> User Directory
                                     </Button>
                                 </Link>
-                                <div className="border-t border-slate-50 my-4" />
+                                <div className="border-t border-border/50 my-4" />
                                 <Link href="/admin/master/broadcast" className="block text-center">
-                                    <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] hover:text-slate-900 transition-colors">Broadcast Center</span>
+                                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] hover:text-foreground transition-colors">Broadcast Center</span>
                                 </Link>
                                 <Link href="/admin/master/support" className="block">
-                                    <Button variant="outline" className="w-full h-12 border-slate-100 bg-primary/5 hover:bg-primary/10 text-primary rounded-2xl text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 group transition-all">
+                                    <Button variant="outline" className="w-full h-12 border-border bg-primary/5 hover:bg-primary/10 text-primary rounded-2xl text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 group transition-all">
                                         <LifeBuoy size={16} className="group-hover:rotate-12 transition-transform" />
                                         Support Desk
                                         <span className="bg-primary text-white text-[8px] px-1.5 py-0.5 rounded-md animate-pulse ml-1">LIVE</span>
                                     </Button>
                                 </Link>
                                 <Link href="/admin/master/audit" className="block text-center mt-3">
-                                    <span className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] hover:text-slate-900 transition-colors">Audit Explorer</span>
+                                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] hover:text-foreground transition-colors">Audit Explorer</span>
                                 </Link>
                                 <Link href="/admin/master/analytics" className="block mt-4">
-                                    <Button variant="outline" className="w-full h-12 border-slate-100 hover:bg-slate-50 text-slate-600 rounded-2xl text-xs font-bold uppercase tracking-widest">
+                                    <Button variant="outline" className="w-full h-12 border-border hover:bg-muted text-muted-foreground rounded-2xl text-xs font-bold uppercase tracking-widest">
                                         Revenue & Growth
                                     </Button>
                                 </Link>

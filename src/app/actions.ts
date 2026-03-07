@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { v2 as cloudinary } from 'cloudinary';
 import { redirect } from "next/navigation";
+import { verifyTurnstile } from "@/lib/turnstile";
 
 cloudinary.config({
     cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
@@ -73,11 +74,21 @@ export async function submitGuestbookEntry(formData: FormData) {
     const guestName = formData.get("guestName") as string;
     const message = formData.get("message") as string;
     const honeypot = formData.get("website_url") as string;
+    const turnstileToken = formData.get("turnstileToken") as string;
 
     // Honeypot check: If this hidden field is filled, it's a bot
     if (honeypot) {
         console.warn(`[Security] Honeypot trigger! Bot detected via Guestbook. Wedding: ${weddingId}`);
         return; // Silently ignore bot submission
+    }
+
+    // Turnstile check
+    if (!turnstileToken) {
+        throw new Error("Missing CAPTCHA verification");
+    }
+    const isHuman = await verifyTurnstile(turnstileToken);
+    if (!isHuman) {
+        throw new Error("CAPTCHA verification failed");
     }
 
     if (!weddingId || !guestName || !message) {

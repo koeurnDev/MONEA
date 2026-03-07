@@ -1,3 +1,4 @@
+"use client";
 import Link from "next/link";
 import { Facebook, Instagram, Twitter } from "lucide-react";
 import { MoneaLogo } from "@/components/ui/MoneaLogo";

@@ -22,6 +22,7 @@ export default function GuestPage() {
     const [search, setSearch] = useState("");
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [visibleCount, setVisibleCount] = useState(20);
 
     // 3. Selection / Action State
     const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -154,36 +155,36 @@ export default function GuestPage() {
             </div>
 
             {/* Header Area (Hidden in Print) */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 print:hidden">
-                <div className="space-y-1">
-                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-red-600 mb-1">
-                        <Users size={12} />
+            <div className="flex flex-row justify-between items-center gap-3 print:hidden">
+                <div className="space-y-0.5 min-w-0">
+                    <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.25em] text-red-600 mb-0.5">
+                        <Users size={10} />
                         Guest Management
                     </div>
-                    <h2 className="text-3xl font-black tracking-tight text-foreground font-kantumruy">
-                        បញ្ជីឈ្មោះភ្ញៀវ {isArchived && <span className="ml-2 text-red-600 text-sm">(ឯកសារ)</span>}
+                    <h2 className="text-xl md:text-3xl font-black tracking-tight text-foreground font-kantumruy leading-tight truncate">
+                        បញ្ជីឈ្មោះភ្ញៀវ {isArchived && <span className="ml-1 text-red-600 text-xs">(ឯកសារ)</span>}
                     </h2>
-                    <p className="text-muted-foreground font-medium font-kantumruy text-sm">
+                    <p className="text-muted-foreground font-medium font-kantumruy text-xs hidden md:block">
                         គ្រប់គ្រងបញ្ជីឈ្មោះភ្ញៀវ និងការផ្ញើតំណរភ្ជាប់អញ្ជើញ។
                     </p>
                 </div>
 
-                <div className="grid grid-cols-2 sm:flex sm:items-center gap-3 w-full md:w-auto">
-                    <div className="grid grid-cols-2 gap-3 sm:flex w-full sm:w-auto">
-                        {!isArchived && <div className="col-span-2 sm:col-span-1"><GuestImport onSuccess={loadData} /></div>}
+                <div className="flex items-center gap-1.5 shrink-0">
+                    <div className="flex items-center gap-1.5">
+                        {!isArchived && <GuestImport onSuccess={loadData} className="h-8 px-2.5 text-[10px] sm:h-9 sm:px-3 sm:text-[11px]" />}
                         <Button
                             variant="outline"
                             onClick={exportCSV}
-                            className="h-11 px-4 border-border text-muted-foreground hover:text-foreground hover:bg-muted hover:border-border rounded-xl font-kantumruy font-bold transition-all flex-1 sm:flex-none"
+                            className="h-8 px-2.5 sm:h-9 sm:px-3 border-border text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl font-kantumruy font-bold transition-all text-[10px] sm:text-[11px]"
                         >
-                            <Download className="mr-2 h-4 w-4 text-blue-600" /> Excel
+                            <Download className="mr-1 h-3 w-3 sm:h-3.5 sm:w-3.5 text-blue-600" /> Excel
                         </Button>
                         <Button
                             variant="outline"
                             onClick={handlePrint}
-                            className="h-11 px-4 border-border text-muted-foreground hover:text-foreground hover:bg-muted hover:border-border rounded-xl font-kantumruy font-bold transition-all flex-1 sm:flex-none"
+                            className="h-8 px-2.5 sm:h-9 sm:px-3 border-border text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl font-kantumruy font-bold transition-all text-[10px] sm:text-[11px]"
                         >
-                            <Printer className="mr-2 h-4 w-4 text-muted-foreground" /> PDF
+                            <Printer className="mr-1 h-3 w-3 sm:h-3.5 sm:w-3.5 text-muted-foreground" /> PDF
                         </Button>
                     </div>
                     <div className="hidden sm:block">
@@ -200,7 +201,7 @@ export default function GuestPage() {
                                         <Plus className="mr-2 h-4 w-4" /> បន្ថែមភ្ញៀវ
                                     </Button>
                                 </DialogTrigger>
-                                <DialogContent className="sm:max-w-[480px] rounded-[2rem] border-none shadow-2xl bg-card p-6 pt-12 md:p-8 md:pt-14">
+                                <DialogContent className="sm:max-w-[480px] rounded-3xl border-none shadow-2xl bg-card p-4 pt-10 md:p-8 md:pt-14">
                                     <VisuallyHidden.Root>
                                         <DialogTitle>បន្ថែម/កែប្រែភ្ញៀវ (Add/Edit Guest)</DialogTitle>
                                         <DialogDescription>
@@ -240,8 +241,8 @@ export default function GuestPage() {
                 </div>
             </div>
 
-            <div className="bg-card rounded-[2rem] border border-border shadow-sm overflow-hidden print:border-none print:shadow-none print:rounded-none">
-                <div className="p-4 md:p-6 border-b border-border flex flex-col sm:flex-row items-center gap-4 print:hidden">
+            <div className="bg-card rounded-3xl shadow-[0_4px_24px_rgba(0,0,0,0.07)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.25)] overflow-hidden print:shadow-none print:rounded-none">
+                <div className="p-4 md:p-6 flex flex-col sm:flex-row items-center gap-4 print:hidden">
                     <div className="relative w-full sm:max-w-sm">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
                         <Input
@@ -259,7 +260,13 @@ export default function GuestPage() {
                 </div>
 
                 {/* Mobile View */}
-                <div className="md:hidden divide-y divide-border print:hidden">
+                <div className="md:hidden space-y-2 p-3 print:hidden">
+                    {/* Mobile Column Headers — CSS Grid aligned (matches desktop) */}
+                    <div className="grid px-4 pb-1.5" style={{ gridTemplateColumns: '1fr 1fr auto' }}>
+                        <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest opacity-50">ឈ្មោះភ្ញៀវ</span>
+                        <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest text-center opacity-50">មកពីណា / ទីតាំង</span>
+                        <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest text-right opacity-50">សកម្មភាព</span>
+                    </div>
                     {loading ? (
                         <div className="h-64 flex flex-col items-center justify-center gap-4">
                             <div className="w-8 h-8 border-4 border-red-600/20 border-t-red-600 rounded-full animate-spin" />
@@ -271,59 +278,73 @@ export default function GuestPage() {
                             <p className="font-kantumruy font-bold">មិនមានទិន្នន័យភ្ញៀវឡើយ</p>
                         </div>
                     ) : (
-                        filteredGuests.map((g: any) => (
-                            <div key={g.id} className="p-4 hover:bg-muted/30 transition-colors">
-                                <div className="flex justify-between items-center mb-3">
-                                    <div className="flex flex-col min-w-0 flex-1 mr-4">
-                                        <span className="font-bold text-foreground font-kantumruy text-base truncate">{g.name}</span>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-[9px] font-bold font-kantumruy border border-border">
-                                                {g.source || g.group || "ទូទៅ"}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center gap-1 shrink-0">
-                                        {!isArchived && (
-                                            <>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8 text-muted-foreground hover:text-blue-600 hover:bg-muted rounded-lg"
-                                                    onClick={() => { setEditingGuest(g); setOpen(true); }}
-                                                >
-                                                    <Edit className="h-4 w-4" />
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8 text-muted-foreground hover:text-red-600 hover:bg-muted rounded-lg"
-                                                    onClick={() => handleDelete(g.id)}
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </>
-                                        )}
-                                    </div>
+                        filteredGuests.slice(0, visibleCount).map((g: any) => (
+                            <div key={g.id} className="bg-background rounded-2xl px-4 py-3 shadow-[0_2px_12px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.2)] grid items-center min-h-[52px]" style={{ gridTemplateColumns: '1fr 1fr auto' }}>
+                                {/* Col 1: Name (left) */}
+                                <div className="min-w-0 flex items-center">
+                                    <span className="font-bold text-foreground font-kantumruy text-sm truncate leading-tight">{g.name}</span>
                                 </div>
-                                <Button
-                                    variant={copiedId === g.id ? "default" : "outline"}
-                                    size="sm"
-                                    onClick={() => copyLink(g.name, g.id)}
-                                    className={cn(
-                                        "w-full h-10 rounded-xl font-kantumruy font-bold text-[11px] transition-all",
-                                        copiedId === g.id
-                                            ? "bg-green-600 hover:bg-green-700 text-white border-transparent"
-                                            : "border-border text-muted-foreground hover:text-red-600 dark:hover:text-red-400 hover:border-red-100 dark:hover:border-red-900/50 hover:bg-muted/50"
-                                    )
-                                    }>
-                                    {copiedId === g.id ? (
-                                        <span className="flex items-center gap-1.5"><CheckCircle2 size={14} /> ចម្លងរួច</span>
-                                    ) : (
-                                        <span className="flex items-center gap-1.5"><Copy size={14} /> ចម្លងតំណរ (Copy Link)</span>
+
+                                {/* Col 2: Location (center) */}
+                                <div className="flex justify-center items-center">
+                                    <span className="px-2 py-0.5 rounded-md bg-muted text-muted-foreground text-[10px] font-semibold truncate max-w-full text-center">
+                                        {g.source || g.group || "ទូទៅ"}
+                                    </span>
+                                </div>
+
+                                {/* Col 3: Actions (right — matches desktop) */}
+                                <div className="flex items-center gap-2 justify-end">
+                                    <Button
+                                        variant={copiedId === g.id ? "default" : "outline"}
+                                        size="sm"
+                                        onClick={() => copyLink(g.name, g.id)}
+                                        className={cn(
+                                            "h-8 px-3 rounded-xl font-kantumruy font-bold text-[10px] transition-all border-border",
+                                            copiedId === g.id
+                                                ? "bg-green-600 hover:bg-green-700 text-white border-transparent"
+                                                : "text-muted-foreground hover:text-red-600 hover:border-red-100 dark:hover:border-red-900/50 hover:bg-muted/50"
+                                        )}
+                                    >
+                                        {copiedId === g.id ? (
+                                            <span className="flex items-center gap-1.5"><CheckCircle2 size={12} /> ចំលង</span>
+                                        ) : (
+                                            <span className="flex items-center gap-1.5"><Copy size={12} /> ចំលងតំណរ</span>
+                                        )}
+                                    </Button>
+                                    {!isArchived && (
+                                        <>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-8 w-8 text-muted-foreground hover:text-blue-600 hover:bg-muted rounded-xl"
+                                                onClick={() => { setEditingGuest(g); setOpen(true); }}
+                                            >
+                                                <Edit className="h-3.5 w-3.5" />
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-8 w-8 text-muted-foreground hover:text-red-600 hover:bg-muted rounded-xl"
+                                                onClick={() => handleDelete(g.id)}
+                                            >
+                                                <Trash2 className="h-3.5 w-3.5" />
+                                            </Button>
+                                        </>
                                     )}
-                                </Button>
+                                </div>
                             </div>
                         ))
+                    )}
+                    {filteredGuests.length > visibleCount && (
+                        <div className="pt-4 flex justify-center">
+                            <Button
+                                variant="outline"
+                                onClick={() => setVisibleCount(prev => prev + 50)}
+                                className="w-full h-12 rounded-2xl border-dashed border-2 border-border text-muted-foreground font-kantumruy font-bold hover:bg-muted/50"
+                            >
+                                <Plus size={16} className="mr-2" /> បង្ហាញបន្ថែម ({filteredGuests.length - visibleCount})
+                            </Button>
+                        </div>
                     )}
                 </div>
 
@@ -418,6 +439,17 @@ export default function GuestPage() {
                             )}
                         </TableBody>
                     </Table>
+                    {filteredGuests.length > visibleCount && (
+                        <div className="p-6 border-t border-border flex justify-center print:hidden">
+                            <Button
+                                variant="outline"
+                                onClick={() => setVisibleCount(prev => prev + 50)}
+                                className="w-full max-w-xs h-12 rounded-2xl border-dashed border-2 border-border text-muted-foreground font-kantumruy font-bold hover:bg-muted/50"
+                            >
+                                <Plus size={16} className="mr-2" /> បង្ហាញបន្ថែម ({filteredGuests.length - visibleCount})
+                            </Button>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -456,7 +488,7 @@ export default function GuestPage() {
                                 <Plus size={28} strokeWidth={3} />
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="w-[94vw] max-w-[480px] rounded-[2.5rem] border-none shadow-2xl p-6 pt-12 bg-card">
+                        <DialogContent className="w-[94vw] max-w-[480px] rounded-3xl border-none shadow-2xl p-4 pt-10 bg-card">
                             <VisuallyHidden.Root>
                                 <DialogTitle>បន្ថែម/កែប្រែភ្ញៀវ (Add/Edit Guest - Mobile)</DialogTitle>
                                 <DialogDescription>

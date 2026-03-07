@@ -4,30 +4,34 @@ import { Megaphone, X, ExternalLink } from "lucide-react";
 import { m, AnimatePresence } from 'framer-motion';
 import { cn } from "@/lib/utils";
 
-export function BroadcastBanner() {
+export function BroadcastBanner({ isAuthenticated = true }: { isAuthenticated?: boolean }) {
     const [broadcasts, setBroadcasts] = useState<any[]>([]);
     const [dismissed, setDismissed] = useState<string[]>([]);
 
     useEffect(() => {
-        fetch("/api/admin/master/broadcast")
+        if (!isAuthenticated || broadcasts.length > 0) return;
+
+        fetch("/api/broadcast")
             .then(async res => {
+                if (res.status === 401) return [];
                 if (!res.ok) return [];
                 try {
-                    return await res.json();
+                    const data = await res.json();
+                    const active = Array.isArray(data) ? data.filter((b: any) => b.active) : [];
+                    setBroadcasts(active);
                 } catch (e) {
                     return [];
                 }
             })
-            .then(data => {
-                const active = Array.isArray(data) ? data.filter((b: any) => b.active) : [];
-                setBroadcasts(active);
-            })
             .catch(() => { });
-    }, []);
+    }, [isAuthenticated, broadcasts.length]);
 
     const activeBroadcasts = broadcasts.filter(b => !dismissed.includes(b.id));
 
     if (activeBroadcasts.length === 0) return null;
+
+    // Detect mobile for zero-animation mode
+    const isMobile = typeof window !== 'undefined' && (window.innerWidth < 768 || navigator.maxTouchPoints > 0);
 
     return (
         <div className="space-y-2 mb-6">
@@ -35,8 +39,8 @@ export function BroadcastBanner() {
                 {activeBroadcasts.map((b) => (
                     <m.div
                         key={b.id}
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
+                        initial={isMobile ? false : { opacity: 0, scale: 0.95 }}
+                        animate={isMobile ? false : { opacity: 1, scale: 1 }}
                         className={cn(
                             "relative overflow-hidden rounded-2xl border p-4 shadow-sm transition-colors",
                             b.type === 'WARNING' ? 'bg-amber-50 border-amber-100 text-amber-900 dark:bg-amber-950/30 dark:border-amber-900/50 dark:text-amber-200' :

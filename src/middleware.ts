@@ -228,7 +228,7 @@ export async function middleware(request: NextRequest) {
 
     // 2. Apply Security Headers
     const securityHeaders = {
-        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://res.cloudinary.com https://upload-widget.cloudinary.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://res.cloudinary.com https://*.googleusercontent.com; connect-src 'self' https://res.cloudinary.com https://challenges.cloudflare.com; frame-src 'self' https://upload-widget.cloudinary.com https://challenges.cloudflare.com; object-src 'none'; base-uri 'self';",
+        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://res.cloudinary.com https://upload-widget.cloudinary.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://res.cloudinary.com https://*.googleusercontent.com https://images.unsplash.com; connect-src 'self' https://res.cloudinary.com https://challenges.cloudflare.com; frame-src 'self' https://upload-widget.cloudinary.com https://challenges.cloudflare.com; object-src 'none'; base-uri 'self';",
         "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
         "X-Content-Type-Options": "nosniff",
         "X-Frame-Options": "DENY",

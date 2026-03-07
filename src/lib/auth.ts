@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
+import { cache } from "react";
 import { prisma } from "./prisma";
 import { ROLES, Role } from "./constants";
 import crypto from "crypto";
@@ -56,8 +57,9 @@ export type AuthUser = {
 
 /**
  * Consolidates server-side user retrieval from cookies (Token or Staff Token)
+ * Memoized to avoid redundant database queries per request
  */
-export async function getServerUser(): Promise<AuthUser | null> {
+export const getServerUser = cache(async (): Promise<AuthUser | null> => {
     const cookieStore = cookies();
     const token = cookieStore.get("token")?.value;
     const staffToken = cookieStore.get("staff_token")?.value;
@@ -84,7 +86,7 @@ export async function getServerUser(): Promise<AuthUser | null> {
                 userId,
                 role,
                 email: user.email,
-                name: user.name || "Admin",
+                name: user.name || undefined,
                 type: "admin"
             };
         }
@@ -124,4 +126,4 @@ export async function getServerUser(): Promise<AuthUser | null> {
     }
 
     return null;
-}
+});

@@ -3,15 +3,21 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
 import { errorResponse } from "@/lib/api-utils";
+import { verifyTurnstile } from "@/lib/turnstile";
 
 export async function POST(req: Request) {
     const user = await getServerUser();
     if (!user) return errorResponse("Unauthorized", 401);
 
     try {
-        const { packageType } = await req.json(); // "PRO" or "PREMIUM"
+        const { packageType, turnstileToken } = await req.json(); // "PRO" or "PREMIUM"
 
         if (!packageType) return errorResponse("Package required", 400);
+
+        // Turnstile check
+        if (!turnstileToken) return errorResponse("Please verify CAPTCHA", 428);
+        const isHuman = await verifyTurnstile(turnstileToken);
+        if (!isHuman) return errorResponse("CAPTCHA verification failed", 400);
 
         let wedding;
         if (user.role === "STAFF") {
