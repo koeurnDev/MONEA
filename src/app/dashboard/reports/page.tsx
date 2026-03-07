@@ -192,7 +192,7 @@ export default function ReportsPage() {
                     <Button
                         variant="outline"
                         onClick={handlePrint}
-                        className="h-11 px-6 border-border text-muted-foreground hover:text-foreground hover:bg-muted hover:border-border rounded-xl font-kantumruy font-bold transition-all"
+                        className="h-11 px-6 bg-background/50 border-none shadow-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl font-kantumruy font-bold transition-all"
                     >
                         <Printer className="mr-2 h-4 w-4 text-muted-foreground" /> PDF Report
                     </Button>
@@ -215,7 +215,7 @@ export default function ReportsPage() {
                         { label: "សាច់ប្រាក់រៀល", value: stats.totalGiftsKhr.toLocaleString() + " ៛", sub: "សរុបចំនួន " + stats.giftsCount + " នាក់", icon: Gift, color: "text-amber-600", bg: "bg-amber-50/50 dark:bg-amber-950/20" },
                         { label: "ពាក្យជូនពរ", value: stats.wishesCount, sub: "ពីភ្ញៀវកិត្តិយស", icon: MessageSquare, color: "text-pink-600", bg: "bg-pink-50/50 dark:bg-pink-950/20" },
                     ].map((stat, i) => (
-                        <Card key={i} className="border-none shadow-sm hover:shadow-md transition-all rounded-[2rem] overflow-hidden group relative bg-card">
+                        <Card key={i} className="border-none shadow-[0_4px_20px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.2)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all rounded-[2rem] overflow-hidden group relative bg-card">
                             <CardContent className="p-8 pt-10">
                                 <div className={`p-4 rounded-2xl ${stat.bg} ${stat.color} w-fit mb-6 transition-transform group-hover:scale-110 duration-500`}>
                                     <stat.icon className="h-6 w-6" />
@@ -226,7 +226,7 @@ export default function ReportsPage() {
                                     </div>
                                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{stat.label}</p>
                                 </div>
-                                <div className="mt-6 pt-4 border-t border-border">
+                                <div className="mt-6 pt-4 bg-muted/20 -mx-8 -mb-10 p-8">
                                     <span className="text-[10px] font-bold text-muted-foreground font-kantumruy">{stat.sub}</span>
                                 </div>
                             </CardContent>
@@ -239,7 +239,7 @@ export default function ReportsPage() {
             <div className="grid gap-10 lg:grid-cols-12">
                 <div className="lg:col-span-12">
                     <div className="flex items-center gap-3 mb-6">
-                        <div className="w-8 h-8 rounded-xl bg-red-50 dark:bg-red-950/20 flex items-center justify-center text-red-600 border border-red-100 dark:border-red-900/50">
+                        <div className="w-8 h-8 rounded-xl bg-red-50 dark:bg-red-950/20 flex items-center justify-center text-red-600 shadow-sm">
                             <CheckCircle className="w-4 h-4" />
                         </div>
                         <h3 className="text-lg font-bold text-foreground font-kantumruy">សកម្មភាព និងស្ថិតិលម្អិត</h3>
@@ -247,10 +247,10 @@ export default function ReportsPage() {
                 </div>
 
                 {/* Left Side: Activity Log */}
-                <Card className="lg:col-span-7 border-none shadow-sm rounded-[2rem] bg-card overflow-hidden">
-                    <CardHeader className="p-8 pb-4 border-b border-border flex flex-row items-center justify-between">
+                <Card className="lg:col-span-7 border-none shadow-[0_4px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.2)] rounded-[2rem] bg-card overflow-hidden">
+                    <CardHeader className="p-8 pb-4 bg-muted/20 flex flex-row items-center justify-between">
                         <CardTitle className="text-lg font-bold text-foreground font-kantumruy">សកម្មភាពចុងក្រោយ</CardTitle>
-                        <div className="px-3 py-1 rounded-full bg-muted text-[10px] font-bold text-muted-foreground uppercase tracking-widest border border-border">
+                        <div className="px-3 py-1 rounded-full bg-background/50 text-[10px] font-bold text-muted-foreground uppercase tracking-widest shadow-sm">
                             Live updates
                         </div>
                     </CardHeader>
@@ -260,11 +260,11 @@ export default function ReportsPage() {
                                 <span className="text-xs font-bold font-kantumruy uppercase tracking-widest">មិនទាន់មានសកម្មភាពទេ</span>
                             </div>
                         ) : (
-                            <div className="divide-y divide-border">
+                            <div className="divide-y divide-border/5">
                                 {logs.map((log: any) => (
                                     <div key={log.id} className="p-6 px-8 hover:bg-muted/50 transition-colors flex gap-6 items-start group">
                                         <div className={cn(
-                                            "w-10 h-10 rounded-xl flex items-center justify-center transition-all",
+                                            "w-10 h-10 rounded-xl flex items-center justify-center transition-all shadow-sm",
                                             log.action === 'GIFT' ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600' :
                                                 log.action === 'CHECK_IN' ? 'bg-blue-50 dark:bg-blue-950/20 text-blue-600' :
                                                     log.action === 'WISH' ? 'bg-pink-50 dark:bg-pink-950/20 text-pink-600' : 'bg-muted text-muted-foreground'
@@ -277,7 +277,7 @@ export default function ReportsPage() {
                                             <p className="font-bold text-foreground font-kantumruy leading-relaxed">{log.description}</p>
                                             <div className="flex items-center gap-3 mt-1.5">
                                                 <span className="text-[10px] font-bold text-red-600 uppercase tracking-[0.2em]">{log.actorName}</span>
-                                                <div className="w-1 h-1 rounded-full bg-border" />
+                                                <div className="w-1 h-1 rounded-full bg-muted-foreground/20" />
                                                 <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                                                     {(() => {
                                                         const diff = Date.now() - new Date(log.createdAt).getTime();
@@ -298,8 +298,8 @@ export default function ReportsPage() {
 
                 {/* Right Side: Insights & Exports */}
                 <div className="lg:col-span-5 space-y-8">
-                    <Card className="border-none shadow-sm rounded-[2rem] bg-card overflow-hidden">
-                        <CardHeader className="p-8 pb-4 border-b border-border">
+                    <Card className="border-none shadow-[0_4px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.2)] rounded-[2rem] bg-card overflow-hidden">
+                        <CardHeader className="p-8 pb-4 bg-muted/20">
                             <CardTitle className="text-lg font-bold text-foreground font-kantumruy">ស្ថិតិតាមទីតាំង</CardTitle>
                         </CardHeader>
                         <CardContent className="p-8 pb-10">
@@ -343,7 +343,7 @@ export default function ReportsPage() {
                                                     <p className="text-[10px] font-bold text-muted-foreground font-mono">{data.khr.toLocaleString()} ៛</p>
                                                 </div>
                                             </div>
-                                            <div className="h-2 w-full bg-muted rounded-full overflow-hidden border border-border">
+                                            <div className="h-2.5 w-full bg-muted/50 rounded-full overflow-hidden shadow-inner">
                                                 <div
                                                     className="h-full bg-red-600 rounded-full transition-all duration-1000"
                                                     style={{ width: `${stats.totalGuests > 0 ? (data.guests / stats.totalGuests) * 100 : 0}%` }}
@@ -360,7 +360,7 @@ export default function ReportsPage() {
                     <div className="grid gap-6">
                         <Button
                             onClick={exportFinancialReport}
-                            className="h-14 bg-card border border-border hover:bg-muted text-foreground rounded-2xl shadow-sm hover:shadow transition-all group px-6"
+                            className="h-14 bg-card border-none hover:bg-muted text-foreground rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-md transition-all group px-6"
                         >
                             <div className="flex items-center justify-between w-full">
                                 <div className="flex items-center gap-3">
@@ -376,7 +376,7 @@ export default function ReportsPage() {
                         <Button
                             onClick={exportGuestList}
                             variant="outline"
-                            className="h-14 bg-card border border-border hover:bg-muted text-foreground rounded-2xl shadow-sm hover:shadow transition-all group px-6"
+                            className="h-14 bg-card border-none hover:bg-muted text-foreground rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-md transition-all group px-6"
                         >
                             <div className="flex items-center justify-between w-full">
                                 <div className="flex items-center gap-3">

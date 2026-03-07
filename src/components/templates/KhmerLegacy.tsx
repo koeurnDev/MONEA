@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { WeddingData } from "./types";
 import { m, AnimatePresence } from 'framer-motion';
 import { MapPin, Calendar, Clock, Heart, Music, Music2, QrCode } from 'lucide-react';
+import { CldImage } from 'next-cloudinary';
 import { MoneaBranding } from '@/components/MoneaBranding';
 import { RevealSection, useImagePan } from './shared/CinematicComponents';
 import Image from 'next/image';
@@ -118,24 +119,14 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
         } catch (e) { return ""; }
     }, [wedding.date]);
 
-    // Audio Logic
+    // Audio Logic - Simplified for performance
     useEffect(() => {
         if (!musicUrl || !audioRef.current) return;
         if (isPlaying) {
-            audioRef.current.volume = 0;
-            audioRef.current.play().then(() => {
-                let vol = 0;
-                const interval = setInterval(() => {
-                    if (vol < 0.6) { vol += 0.05; if (audioRef.current) audioRef.current.volume = vol; }
-                    else { clearInterval(interval); }
-                }, 100);
-            }).catch(() => { });
+            audioRef.current.volume = 0.6;
+            audioRef.current.play().catch(() => setIsPlaying(false));
         } else {
-            let vol = audioRef.current.volume;
-            const interval = setInterval(() => {
-                if (vol > 0.05) { vol -= 0.05; if (audioRef.current) audioRef.current.volume = vol; }
-                else { if (audioRef.current) audioRef.current.pause(); clearInterval(interval); }
-            }, 50);
+            audioRef.current.pause();
         }
     }, [isPlaying, musicUrl]);
 
@@ -159,7 +150,7 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                 .bg-gold { background-color: var(--color-gold-light); }
                 .border-gold { border-color: var(--color-gold-light); }
                 
-                .schedule-text { font-size: 11px; line-height: 2.2; color: #555; }
+                .schedule-text { font-size: 13px; line-height: 2.2; color: #555; }
                 
                 .premium-texture {
                     background-image: url("https://www.transparenttextures.com/patterns/paper-fibers.png");
@@ -168,6 +159,7 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
 
                 .border-lux {
                     border: 1px solid rgba(0, 0, 0, 0.03);
+                    will-change: transform;
                 }
 
                 .gold-divider {
@@ -219,7 +211,7 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                             className="space-y-8"
                         >
                             <div className="space-y-2">
-                                <p className="text-white/40 tracking-[0.4em] uppercase text-[10px]">Premium Invitation</p>
+                                <p className="text-white/40 tracking-[0.4em] uppercase text-xs">Premium Invitation</p>
                                 <h2 className="text-white font-khmer-moul text-2xl md:text-3xl tracking-widest leading-relaxed">
                                     សិរីមង្គលអាពាហ៍ពិពាហ៍
                                 </h2>
@@ -230,7 +222,7 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => setRevealed(true)}
                                 style={{ borderColor: smartColors.primary, color: smartColors.primary }}
-                                className="px-10 py-4 border rounded-full bg-transparent font-khmer text-lg tracking-widest hover:bg-white/5 transition-all outline-none"
+                                className="px-10 py-4 border rounded-full bg-black/20 sm:backdrop-blur-md font-khmer text-lg tracking-widest hover:bg-white/5 transition-all outline-none"
                             >
                                 {wedding.eventType === 'anniversary' ? 'ខួបអាពាហ៍ពិពាហ៍' : 'បើកសំបុត្រ'}
                             </m.button>
@@ -243,7 +235,7 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
             <div className="max-w-[480px] md:max-w-none mx-auto bg-white min-h-screen relative md:shadow-none overflow-hidden premium-texture font-serif-elegant">
 
                 {/* HERO SECTION / COVER */}
-                <section id="hero" className="relative h-screen flex flex-col items-center justify-center text-center overflow-hidden bg-black">
+                <section id="hero" className="relative min-h-screen flex flex-col items-center justify-center text-center overflow-hidden bg-black py-20">
                     <m.div
                         initial={{ scale: 1.1, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
@@ -263,25 +255,46 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                             </div>
                         ) : (
                             <>
-                                <Image
-                                    src={heroImage}
-                                    fill
-                                    sizes="100vw"
-                                    className={`object-cover transition-none ${heroPan.isDragging ? 'cursor-grabbing' : 'cursor-grab group-hover:ring-4 ring-gold/30 ring-inset'}`}
-                                    style={{
-                                        objectPosition: `${heroPan.localX} ${heroPan.localY}`,
-                                        transform: `scale(${wedding.themeSettings?.heroImageScale || 1})`,
-                                        filter: `brightness(${wedding.themeSettings?.heroImageBrightness || 100}%) contrast(${wedding.themeSettings?.heroImageContrast || 100}%)`,
-                                        userSelect: 'none',
-                                        touchAction: 'none',
-                                        willChange: 'object-position, transform'
-                                    }}
-                                    onMouseDown={heroPan.onStart}
-                                    onTouchStart={heroPan.onStart}
-                                    priority
-                                    draggable={false}
-                                    alt="Wedding Hero"
-                                />
+                                {heroImage.startsWith('/') ? (
+                                    <Image
+                                        src={heroImage}
+                                        fill
+                                        sizes="100vw"
+                                        className={`object-cover transition-none ${heroPan.isDragging ? 'cursor-grabbing' : 'cursor-grab group-hover:ring-4 ring-gold/30 ring-inset'}`}
+                                        style={{
+                                            objectPosition: `${heroPan.localX} ${heroPan.localY}`,
+                                            transform: `scale(${wedding.themeSettings?.heroImageScale || 1})`,
+                                            filter: `brightness(${wedding.themeSettings?.heroImageBrightness || 100}%) contrast(${wedding.themeSettings?.heroImageContrast || 100}%)`,
+                                            userSelect: 'none',
+                                            touchAction: 'none',
+                                            willChange: 'object-position, transform'
+                                        }}
+                                        onMouseDown={heroPan.onStart}
+                                        onTouchStart={heroPan.onStart}
+                                        priority
+                                        draggable={false}
+                                        alt="Wedding Hero"
+                                    />
+                                ) : (
+                                    <CldImage
+                                        src={heroImage}
+                                        fill
+                                        className={`object-cover transition-none ${heroPan.isDragging ? 'cursor-grabbing' : 'cursor-grab group-hover:ring-4 ring-gold/30 ring-inset'}`}
+                                        style={{
+                                            objectPosition: `${heroPan.localX} ${heroPan.localY}`,
+                                            transform: `scale(${wedding.themeSettings?.heroImageScale || 1})`,
+                                            filter: `brightness(${wedding.themeSettings?.heroImageBrightness || 100}%) contrast(${wedding.themeSettings?.heroImageContrast || 100}%)`,
+                                            userSelect: 'none',
+                                            touchAction: 'none',
+                                            willChange: 'object-position, transform'
+                                        }}
+                                        onMouseDown={heroPan.onStart}
+                                        onTouchStart={heroPan.onStart}
+                                        priority
+                                        draggable={false}
+                                        alt="Wedding Hero"
+                                    />
+                                )}
                                 <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40 pointer-events-none" />
                             </>
                         )}
@@ -299,10 +312,10 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                                 The Wedding Of
                             </m.div>
                             <m.h1
-                                initial={{ scale: 0.9, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                transition={{ delay: 1.2, duration: 1 }}
-                                className="font-playfair text-6xl md:text-8xl text-white drop-shadow-2xl leading-tight py-2"
+                                initial={{ y: 20, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ delay: 1, duration: 1.2 }}
+                                className="text-2xl xs:text-3xl sm:text-5xl md:text-9xl font-bold tracking-[0.2em] md:tracking-[0.5em] text-white/90 drop-shadow-2xl font-serif-kh-bold"
                             >
                                 {wedding.groomName} <br /> & <br /> {wedding.brideName}
                             </m.h1>
@@ -314,8 +327,8 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                             transition={{ delay: 1.4 }}
                             className="space-y-6"
                         >
-                            <div className="bg-white/10 backdrop-blur-sm border border-white/20 px-8 py-4 rounded-full inline-block">
-                                <span className="text-white font-serif-elegant text-xl tracking-widest">{formattedDateHero}</span>
+                            <div className="bg-white/30 sm:backdrop-blur-sm border border-white/20 px-8 py-4 rounded-full inline-block">
+                                <span className="text-white font-serif-elegant text-base md:text-xl tracking-widest">{formattedDateHero}</span>
                             </div>
                         </m.div>
                     </div>
@@ -339,13 +352,13 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                 </section>
 
                 {/* PAGE 1: FORMAL ENGLISH INVITATION */}
-                <section id="invitation-english" className="pt-24 md:pt-48 pb-16 md:pb-40 px-4 md:px-12 text-left relative overflow-hidden">
+                <section id="invitation-english" className="pt-12 md:pt-48 pb-16 md:pb-40 px-4 md:px-12 text-left relative overflow-hidden">
                     <div className="max-w-6xl mx-auto flex items-center gap-6 md:gap-24">
                         <div className="flex-1 space-y-6 md:space-y-12 relative z-10">
                             <RevealSection>
                                 <div className="space-y-3 md:space-y-6">
                                     <div className="w-12 h-[1px] bg-black/20 mx-0" />
-                                    <p className="text-[7px] md:text-[10px] tracking-[0.4em] uppercase font-bold text-gray-400 max-w-[300px] mx-0 leading-relaxed px-0">
+                                    <p className="text-[10px] md:text-[10px] tracking-[0.4em] uppercase font-bold text-gray-400 max-w-[300px] mx-0 leading-relaxed px-0">
                                         WE CORDIALLY INVITE YOU TO CELEBRATE THE UNION OF OUR FAMILIES AND THE WEDDING CEREMONY OF
                                     </p>
                                 </div>
@@ -355,7 +368,7 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                                 <div className="space-y-3 md:space-y-6">
                                     <h2
                                         style={{ color: smartColors.primary }}
-                                        className="font-playfair text-3xl md:text-8xl font-black tracking-tighter parallax-text"
+                                        className="font-playfair text-2xl xs:text-3xl md:text-8xl font-black tracking-tighter parallax-text"
                                     >
                                         {wedding.groomName}
                                     </h2>
@@ -388,7 +401,7 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                             <div className="space-y-4 md:space-y-8 text-left">
                                 <div className="text-[7px] md:text-[10px] tracking-[0.6em] uppercase font-black text-gray-400">SAVES THE DATE</div>
                                 <div className="space-y-2 md:space-y-4">
-                                    <p className="font-playfair text-sm md:text-5xl font-bold tracking-[0.1em] text-gray-800">
+                                    <p className="font-playfair text-xl md:text-5xl font-bold tracking-[0.1em] text-gray-800">
                                         {formattedDateInvitation}
                                     </p>
                                     <div className="flex items-center justify-start gap-2 md:gap-4">
@@ -402,10 +415,10 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                         <RevealSection delay={0.6} className="flex-1">
                             <div className="space-y-4 md:space-y-6 text-left">
                                 <MapPin size={16} className="text-gold/30 mx-0 mb-2 md:w-6 md:h-6" />
-                                <p className="font-playfair text-[9px] md:text-xl font-bold tracking-widest text-gray-800 uppercase leading-relaxed max-w-none mx-0">
+                                <p className="font-playfair text-sm md:text-xl font-bold tracking-widest text-gray-800 uppercase leading-relaxed max-w-none mx-0">
                                     PUMI TOUL LEAP SOPHEAK MONGUL <br className="hidden md:block" /> WEDDING CENTER
                                 </p>
-                                <p className="text-[7px] md:text-[14px] tracking-widest text-gray-400 uppercase max-w-none mx-0 leading-relaxed font-bold">
+                                <p className="text-xs md:text-[14px] tracking-widest text-gray-400 uppercase max-w-none mx-0 leading-relaxed font-bold">
                                     TOUL LEAP VILLAGE, SNOR, KAMBOL, PHNOM PENH
                                 </p>
 
@@ -431,8 +444,8 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                     <RevealSection>
                         <div className="text-center space-y-16">
                             <div className="space-y-4">
-                                <p className="font-playfair text-[10px] tracking-[0.5em] text-gray-400 uppercase font-black">THE SOULS</p>
-                                <h3 className="font-khmer-moul text-lg text-gray-600">សូមស្វាគមន៍មកកាន់ទំព័រខាងក្រោម</h3>
+                                <p className="font-playfair text-xs tracking-[0.5em] text-gray-400 uppercase font-black">THE SOULS</p>
+                                <h3 className="font-khmer-moul text-base md:text-lg text-gray-600">សូមស្វាគមន៍មកកាន់ទំព័រខាងក្រោម</h3>
                             </div>
 
                             <div className="w-full aspect-[16/10] bg-white shadow-xl border-lux mt-10 relative">
@@ -444,27 +457,46 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
 
                                 {/* Groom */}
                                 <div className="flex flex-col items-center relative z-10 px-0 flex-1">
-                                    <div className="absolute -top-4 font-playfair text-[7px] md:text-[11px] tracking-[0.8em] font-black text-gold/30 uppercase">GROOM</div>
+                                    <div className="absolute -top-4 font-playfair text-xs md:text-[11px] tracking-[0.8em] font-black text-gold/30 uppercase">GROOM</div>
                                     <m.div
                                         whileInView={{ scale: [0.95, 1], opacity: [0, 1] }}
                                         className="w-full aspect-[4/5] md:aspect-[3/4] rounded-[1rem] md:rounded-[4rem] border-4 md:border-[16px] border-white shadow-xl overflow-hidden mb-6 ring-1 ring-gold/10"
                                     >
-                                        <Image
-                                            src={galleryImages[3 % galleryImages.length]}
-                                            fill
-                                            alt="Groom"
-                                            className={`object-cover shadow-inner transition-none ${groomPan.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-105'}`}
-                                            style={{
-                                                objectPosition: `${groomPan.localX} ${groomPan.localY}`,
-                                                transform: `scale(${wedding.themeSettings?.groomImageScale || 1})`,
-                                                userSelect: 'none',
-                                                touchAction: 'none',
-                                                willChange: 'object-position, transform'
-                                            }}
-                                            onMouseDown={groomPan.onStart}
-                                            onTouchStart={groomPan.onStart}
-                                            draggable={false}
-                                        />
+                                        {galleryImages[3 % galleryImages.length].startsWith('/') ? (
+                                            <Image
+                                                src={galleryImages[3 % galleryImages.length]}
+                                                fill
+                                                alt="Groom"
+                                                className={`object-cover shadow-inner transition-none ${groomPan.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-105'}`}
+                                                style={{
+                                                    objectPosition: `${groomPan.localX} ${groomPan.localY}`,
+                                                    transform: `scale(${wedding.themeSettings?.groomImageScale || 1})`,
+                                                    userSelect: 'none',
+                                                    touchAction: 'none',
+                                                    willChange: 'object-position, transform'
+                                                }}
+                                                onMouseDown={groomPan.onStart}
+                                                onTouchStart={groomPan.onStart}
+                                                draggable={false}
+                                            />
+                                        ) : (
+                                            <CldImage
+                                                src={galleryImages[3 % galleryImages.length]}
+                                                fill
+                                                alt="Groom"
+                                                className={`object-cover shadow-inner transition-none ${groomPan.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-105'}`}
+                                                style={{
+                                                    objectPosition: `${groomPan.localX} ${groomPan.localY}`,
+                                                    transform: `scale(${wedding.themeSettings?.groomImageScale || 1})`,
+                                                    userSelect: 'none',
+                                                    touchAction: 'none',
+                                                    willChange: 'object-position, transform'
+                                                }}
+                                                onMouseDown={groomPan.onStart}
+                                                onTouchStart={groomPan.onStart}
+                                                draggable={false}
+                                            />
+                                        )}
                                     </m.div>
                                     <h4
                                         style={{ color: smartColors.primary }}
@@ -477,27 +509,46 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
 
                                 {/* Bride */}
                                 <div className="flex flex-col items-center relative z-10 px-0 flex-1">
-                                    <div className="absolute -top-4 font-playfair text-[7px] md:text-[11px] tracking-[0.8em] font-black text-gold/30 uppercase">BRIDE</div>
+                                    <div className="absolute -top-4 font-playfair text-xs md:text-[11px] tracking-[0.8em] font-black text-gold/30 uppercase">BRIDE</div>
                                     <m.div
                                         whileInView={{ scale: [0.95, 1], opacity: [0, 1] }}
                                         className="w-full aspect-[4/5] md:aspect-[3/4] rounded-[1rem] md:rounded-[4rem] border-4 md:border-[16px] border-white shadow-xl overflow-hidden mb-6 ring-1 ring-gold/10"
                                     >
-                                        <Image
-                                            src={galleryImages[4 % galleryImages.length]}
-                                            fill
-                                            alt="Bride"
-                                            className={`object-cover shadow-inner transition-none ${bridePan.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-105'}`}
-                                            style={{
-                                                objectPosition: `${bridePan.localX} ${bridePan.localY}`,
-                                                transform: `scale(${wedding.themeSettings?.brideImageScale || 1})`,
-                                                userSelect: 'none',
-                                                touchAction: 'none',
-                                                willChange: 'object-position, transform'
-                                            }}
-                                            onMouseDown={bridePan.onStart}
-                                            onTouchStart={bridePan.onStart}
-                                            draggable={false}
-                                        />
+                                        {galleryImages[4 % galleryImages.length].startsWith('/') ? (
+                                            <Image
+                                                src={galleryImages[4 % galleryImages.length]}
+                                                fill
+                                                alt="Bride"
+                                                className={`object-cover shadow-inner transition-none ${bridePan.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-105'}`}
+                                                style={{
+                                                    objectPosition: `${bridePan.localX} ${bridePan.localY}`,
+                                                    transform: `scale(${wedding.themeSettings?.brideImageScale || 1})`,
+                                                    userSelect: 'none',
+                                                    touchAction: 'none',
+                                                    willChange: 'object-position, transform'
+                                                }}
+                                                onMouseDown={bridePan.onStart}
+                                                onTouchStart={bridePan.onStart}
+                                                draggable={false}
+                                            />
+                                        ) : (
+                                            <CldImage
+                                                src={galleryImages[4 % galleryImages.length]}
+                                                fill
+                                                alt="Bride"
+                                                className={`object-cover shadow-inner transition-none ${bridePan.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-105'}`}
+                                                style={{
+                                                    objectPosition: `${bridePan.localX} ${bridePan.localY}`,
+                                                    transform: `scale(${wedding.themeSettings?.brideImageScale || 1})`,
+                                                    userSelect: 'none',
+                                                    touchAction: 'none',
+                                                    willChange: 'object-position, transform'
+                                                }}
+                                                onMouseDown={bridePan.onStart}
+                                                onTouchStart={bridePan.onStart}
+                                                draggable={false}
+                                            />
+                                        )}
                                     </m.div>
                                     <h4
                                         style={{ color: smartColors.primary }}
@@ -526,7 +577,7 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                 </section>
 
                 {/* PAGE 2: EVENT INFO / COUNTDOWN - Balanced for Wide Screen */}
-                <section id="event-info" className="py-32 md:py-64 px-8 md:px-12 bg-[#FAF9F6]/30 border-y border-gold/5 relative">
+                <section id="event-info" className="py-16 md:py-64 px-8 md:px-12 bg-[#FAF9F6]/30 border-y border-gold/5 relative">
                     <div className="absolute top-0 right-0 w-64 h-64 opacity-[0.03] pointer-events-none">
                         <img src="https://www.transparenttextures.com/patterns/xv.png" className="w-full h-full object-cover" />
                     </div>
@@ -577,7 +628,7 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                 </section>
 
                 {/* PAGE 3: DETAILED KHMER SCHEDULE - Balanced */}
-                <section id="schedule-khmer" className="py-32 md:py-64 px-8 md:px-12 bg-white relative overflow-hidden">
+                <section id="schedule-khmer" className="py-16 md:py-64 px-8 md:px-12 bg-white relative overflow-hidden">
                     <div className="max-w-6xl mx-auto">
                         <RevealSection>
                             <div className="text-center mb-32 space-y-8">
@@ -596,10 +647,10 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                                             </div>
                                             <div className="space-y-3 md:space-y-6">
                                                 <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4">
-                                                    <div className="w-8 h-8 md:w-12 md:h-12 rounded-full border border-gold/10 flex items-center justify-center text-[10px] md:text-xs font-black text-gold">01</div>
-                                                    <h4 className="font-khmer-moul text-[10px] md:text-lg text-gray-800">សិរីសួស្តីទី១</h4>
+                                                    <div className="w-8 h-8 md:w-12 md:h-12 rounded-full border border-gold/10 flex items-center justify-center text-xs md:text-xs font-black text-gold">01</div>
+                                                    <h4 className="font-khmer-moul text-xs md:text-lg text-gray-800">សិរីសួស្តីទី១</h4>
                                                 </div>
-                                                <div className="font-khmer-content text-[9px] md:text-[15px] leading-[2] md:leading-[2.5] text-gray-500 md:pl-16">
+                                                <div className="font-khmer-content text-xs md:text-[15px] leading-[2] md:leading-[2.5] text-gray-500 md:pl-16">
                                                     <span className="text-gold font-bold">ម៉ោង ៣:០០ រសៀល</span> <br />
                                                     ពិធីសូត្រមន្តចម្រើនព្រះបរិត្ត <br />
                                                     <span className="text-gold font-bold pt-2 md:pt-6 block">ម៉ោង ៥:០០ រសៀល</span>
@@ -619,10 +670,10 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                                             </div>
                                             <div className="space-y-3 md:space-y-6">
                                                 <div className="flex flex-col-reverse md:flex-row items-center justify-end gap-2 md:gap-4">
-                                                    <h4 className="font-khmer-moul text-[10px] md:text-lg text-gray-800">សិរីសួស្តីទី២</h4>
-                                                    <div className="w-8 h-8 md:w-12 md:h-12 rounded-full border border-gold/10 flex items-center justify-center text-[10px] md:text-xs font-black text-gold">02</div>
+                                                    <h4 className="font-khmer-moul text-xs md:text-lg text-gray-800">សិរីសួស្តីទី២</h4>
+                                                    <div className="w-8 h-8 md:w-12 md:h-12 rounded-full border border-gold/10 flex items-center justify-center text-xs md:text-xs font-black text-gold">02</div>
                                                 </div>
-                                                <div className="font-khmer-content text-[9px] md:text-[15px] leading-[2] md:leading-[2.5] text-gray-500 md:pr-16">
+                                                <div className="font-khmer-content text-xs md:text-[15px] leading-[2] md:leading-[2.5] text-gray-500 md:pr-16">
                                                     <span className="text-gold font-bold">ម៉ោង ៨:០០ ព្រឹក</span> <br />
                                                     ពិធីកាត់សក់បង្កក់សិរី <br />
                                                     <span className="text-gold font-bold pt-2 md:pt-6 block">ម៉ោង ១០:៣០ ព្រឹក</span>
@@ -658,7 +709,7 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                     </div>
                 </section>
                 {/* PAGE 5: FORMAL KHMER INVITATION & PARENTS - Inner Centered */}
-                <section className="py-32 md:py-64 px-8 md:px-12 text-center bg-white relative">
+                <section className="py-16 md:py-64 px-8 md:px-12 text-center bg-white relative">
                     <div className="absolute inset-0 premium-texture opacity-30 pointer-events-none" />
 
                     <div className="max-w-6xl mx-auto space-y-20 md:space-y-32">
@@ -721,7 +772,7 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                 </section>
 
                 {/* MAPS & QR AS ELEGANT CARDS - Full Screen Balanced */}
-                <section className="py-32 md:py-64 px-8 md:px-12 bg-[#FAF9F6]/20 relative overflow-hidden">
+                <section className="py-16 md:py-64 px-8 md:px-12 bg-[#FAF9F6]/20 relative overflow-hidden">
                     <div className="absolute -top-20 -left-20 w-96 h-96 bg-gold/5 rounded-full blur-[100px]" />
 
                     <div className="max-w-6xl mx-auto space-y-32 md:space-y-48">
@@ -775,7 +826,7 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                 </section>
 
                 {/* SIGNATURE MOMENTS & THANK YOU - Full screen balance */}
-                <section className="py-32 md:py-64 px-8 md:px-12 bg-white relative overflow-hidden">
+                <section className="py-16 md:py-64 px-8 md:px-12 bg-white relative overflow-hidden">
                     <div className="max-w-6xl mx-auto space-y-32 md:space-y-48">
                         <RevealSection delay={0.3}>
                             <div className="text-center">

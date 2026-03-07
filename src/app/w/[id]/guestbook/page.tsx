@@ -1,12 +1,9 @@
 export const dynamic = 'force-dynamic';
 import { prisma } from "@/lib/prisma";
-import { submitGuestbookEntry } from "@/app/actions";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { MessageSquare, Heart, User, Sparkles } from "lucide-react";
+import { MessageSquare, Heart } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { BottomNav } from "@/components/layout/BottomNav";
+import { GuestbookForm } from "./GuestbookForm";
 
 async function getMessages(weddingId: string) {
     return await prisma.guestbookEntry.findMany({
@@ -33,47 +30,7 @@ export default async function GuestbookPage({ params }: { params: { id: string }
                 </div>
 
                 {/* Form Section */}
-                <GlassCard className="p-6" gradient>
-                    <div className="flex items-center gap-2 mb-6">
-                        <Sparkles className="w-5 h-5 text-amber-500" />
-                        <h2 className="text-lg font-bold font-moul text-gray-800 dark:text-gray-100">សរសេរពាក្យជូនពរ</h2>
-                    </div>
-
-                    <form action={submitGuestbookEntry} className="space-y-5">
-                        <input type="hidden" name="weddingId" value={params.id} />
-
-                        <div className="space-y-2 group">
-                            <label className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">ឈ្មោះរបស់អ្នក (Your Name)</label>
-                            <div className="relative">
-                                <User className="absolute left-3 top-3 w-5 h-5 text-gray-400 group-focus-within:text-rose-500 transition-colors" />
-                                <Input
-                                    name="guestName"
-                                    placeholder="ឈ្មោះភ្ញៀវ"
-                                    className="pl-10 h-12 bg-white/50 border-gray-200 focus:border-rose-300 focus:ring-rose-200 dark:bg-black/20 dark:border-white/10"
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <div className="space-y-2 group">
-                            <label className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">ពាក្យជូនពរ (Wishes)</label>
-                            {/* Honeypot field - hidden from users, filled by bots */}
-                            <div className="hidden" aria-hidden="true">
-                                <input name="website_url" type="text" tabIndex={-1} autoComplete="off" />
-                            </div>
-                            <Textarea
-                                name="message"
-                                placeholder="សូមជូនពរ..."
-                                className="min-h-[120px] bg-white/50 border-gray-200 focus:border-rose-300 focus:ring-rose-200 resize-none dark:bg-black/20 dark:border-white/10"
-                                required
-                            />
-                        </div>
-
-                        <Button type="submit" className="w-full bg-gradient-to-r from-rose-600 to-orange-600 hover:opacity-90 transition-opacity text-white h-12 rounded-xl text-lg font-medium shadow-lg shadow-rose-200 dark:shadow-rose-900/20">
-                            ផ្ញើជូនពរ (Send Wishes)
-                        </Button>
-                    </form>
-                </GlassCard>
+                <GuestbookForm weddingId={params.id} />
 
                 {/* Messages List */}
                 <div className="space-y-4">
@@ -113,7 +70,7 @@ export default async function GuestbookPage({ params }: { params: { id: string }
                                 <MessageSquare className="w-8 h-8 text-gray-300" />
                             </div>
                             <p className="text-gray-400 font-medium">មិនទាន់មានពាក្យជូនពរទេ</p>
-                            <p className="text-gray-300 text-sm"> jadilah yang pertama mengirim ucapan!</p>
+                            <p className="text-gray-300 text-sm"> Be the first to send a wish!</p>
                         </div>
                     )}
                 </div>

@@ -13,9 +13,9 @@ function FeatureCard({ icon: Icon, title, desc, delay }: { icon: any, title: str
         <m.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.8, delay }}
-            className="group relative p-8 rounded-[2rem] bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 overflow-hidden hover:bg-slate-100 dark:hover:bg-white/10 transition-all duration-300 shadow-sm hover:shadow-xl dark:shadow-none"
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.6, delay: delay * 0.8 }}
+            className="group relative p-6 md:p-8 rounded-[2rem] bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 overflow-hidden hover:bg-slate-100 dark:hover:bg-white/10 transition-all duration-300 shadow-sm hover:shadow-xl dark:shadow-none"
         >
             <div className="absolute inset-0 bg-gradient-to-br from-pink-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             <div className="relative z-10 w-14 h-14 mb-8 rounded-2xl bg-white dark:bg-white/5 flex items-center justify-center border border-slate-200 dark:border-white/10 group-hover:scale-110 group-hover:bg-pink-50 dark:group-hover:bg-white/10 transition-all duration-300 shadow-sm dark:shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
@@ -67,14 +67,14 @@ export function Features() {
                 <div className="text-center max-w-3xl mx-auto mb-20 flex flex-col items-center">
                     <m.span
                         initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-                        className="inline-flex items-center gap-2 py-1.5 px-4 rounded-full border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-pink-600 dark:text-pink-300 font-mono text-xs uppercase tracking-[0.2em] mb-6 backdrop-blur-md"
+                        className="inline-flex items-center gap-2 py-1.5 px-4 rounded-full border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-pink-600 dark:text-pink-300 font-mono text-xs uppercase tracking-[0.2em] mb-6 sm:backdrop-blur-md"
                     >
                         <Star className="w-3 h-3" />
                         លក្ខណៈពិសេស
                     </m.span>
                     <m.h2
                         initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}
-                        className="text-3xl md:text-5xl lg:text-[3.5rem] font-bold font-kantumruy text-slate-900 dark:text-white mb-6 tracking-tight"
+                        className="text-xl xs:text-2xl sm:text-3xl md:text-5xl lg:text-[3.5rem] font-bold font-kantumruy text-slate-900 dark:text-white mb-6 tracking-tight"
                     >
                         អ្វីដែល MONEA ផ្តល់ជូន
                     </m.h2>
@@ -117,13 +117,13 @@ export function HowItWorks() {
                 <div className="text-center max-w-3xl mx-auto mb-20 flex flex-col items-center">
                     <m.span
                         initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-                        className="inline-flex items-center gap-2 py-1.5 px-4 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-pink-600 dark:text-pink-300 font-mono text-xs uppercase tracking-[0.2em] mb-6 backdrop-blur-md"
+                        className="inline-flex items-center gap-2 py-1.5 px-4 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-pink-600 dark:text-pink-300 font-mono text-xs uppercase tracking-[0.2em] mb-6 sm:backdrop-blur-md"
                     >
                         ជំហានងាយៗ
                     </m.span>
                     <m.h2
                         initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}
-                        className="text-3xl md:text-5xl lg:text-[3.5rem] font-bold font-kantumruy text-slate-900 dark:text-white mb-6 tracking-tight"
+                        className="text-2xl xs:text-3xl md:text-5xl lg:text-[3.5rem] font-bold font-kantumruy text-slate-900 dark:text-white mb-6 tracking-tight"
                     >
                         របៀបប្រើប្រាស់
                     </m.h2>
@@ -149,7 +149,7 @@ export function HowItWorks() {
                             <div className="absolute top-6 left-8 text-4xl font-bold font-mono text-slate-900/[0.05] dark:text-white/[0.08] group-hover:text-pink-500/20 transition-colors pointer-events-none italic">
                                 0{idx + 1}
                             </div>
-                            <div className="w-24 h-24 rounded-3xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center mb-8 relative z-10 group-hover:bg-pink-50 dark:group-hover:bg-white/10 group-hover:-translate-y-2 transition-all duration-300 shadow-sm dark:shadow-xl backdrop-blur-xl">
+                            <div className="w-24 h-24 rounded-3xl bg-white dark:bg-white/10 border border-slate-200 dark:border-white/10 flex items-center justify-center mb-8 relative z-10 group-hover:bg-pink-50 dark:group-hover:bg-white/10 group-hover:-translate-y-2 transition-all duration-300 shadow-sm dark:shadow-xl sm:backdrop-blur-sm will-change-transform">
                                 <step.icon className="w-10 h-10 text-pink-600 dark:text-pink-300 group-hover:text-pink-500 dark:group-hover:text-pink-200 transition-colors" />
                             </div>
                             <h3 className="text-xl font-bold font-kantumruy text-slate-900 dark:text-white mb-3 group-hover:text-pink-600 dark:group-hover:text-pink-100 transition-colors">
@@ -238,7 +238,7 @@ export function Statistics() {
         <section className="py-20 bg-white dark:bg-black relative border-t border-slate-100 dark:border-white/5 overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-r from-pink-900/10 via-transparent to-pink-900/10" />
             <div className="container mx-auto px-6 max-w-6xl relative z-10">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
+                <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
                     {stats.map((stat, idx) => (
                         <m.div
                             key={idx}
@@ -248,14 +248,14 @@ export function Statistics() {
                             transition={{ duration: 0.8, delay: 0.1 * idx }}
                             className="text-center"
                         >
-                            <h3 className="text-3xl md:text-5xl lg:text-6xl font-bold font-mono text-transparent bg-clip-text bg-gradient-to-br from-slate-900 to-slate-500 dark:from-white dark:to-white/50 mb-3 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+                            <h3 className="text-2xl xs:text-3xl md:text-5xl lg:text-6xl font-bold font-mono text-transparent bg-clip-text bg-gradient-to-br from-slate-900 to-slate-500 dark:from-white dark:to-white/50 mb-3 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">
                                 <CountUp value={stat.value} />
                             </h3>
                             <div className="text-slate-500 dark:text-white/40 font-kantumruy font-medium text-[10px] md:text-sm uppercase tracking-widest leading-tight min-h-[40px] flex flex-col justify-start">
                                 {stat.label.includes("(") ? (
                                     <>
                                         <span>{stat.label.split("(")[0]}</span>
-                                        <span className="text-[8px] md:text-xs text-pink-500/60 mt-1 whitespace-nowrap">({stat.label.split("(")[1]}</span>
+                                        <span className="text-xs text-pink-500/60 mt-1 whitespace-nowrap">({stat.label.split("(")[1]}</span>
                                     </>
                                 ) : (
                                     <span>{stat.label}</span>
@@ -277,13 +277,13 @@ export function Pricing() {
                 <div className="text-center mb-20 flex flex-col items-center">
                     <m.span
                         initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-                        className="inline-flex items-center justify-center py-1.5 px-4 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-pink-600 dark:text-pink-300 font-mono text-xs uppercase tracking-[0.2em] mb-6 backdrop-blur-md"
+                        className="inline-flex items-center justify-center py-1.5 px-4 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 text-pink-600 dark:text-pink-300 font-mono text-xs uppercase tracking-[0.2em] mb-6 sm:backdrop-blur-md"
                     >
                         ជម្រើសតម្លៃ
                     </m.span>
                     <m.h2
                         initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}
-                        className="text-3xl md:text-5xl lg:text-[3.5rem] font-bold font-kantumruy text-slate-900 dark:text-white mb-6 tracking-tight"
+                        className="text-xl xs:text-2xl sm:text-3xl md:text-5xl lg:text-[3.5rem] font-bold font-kantumruy text-slate-900 dark:text-white mb-6 tracking-tight"
                     >
                         គម្រោងតម្លៃ
                     </m.h2>
@@ -301,7 +301,7 @@ export function Pricing() {
                         { name: "បរិបូរណ៍", price: "19$", desc: "ពេញនិយមបំផុត", features: ["ពុម្ពគំរូទាំងអស់", "ភ្ញៀវមិនកំណត់", "ទុកបានរហូត", "QR កាដូ", "ផែនទី Google"], highlight: true },
                         { name: "អាជីវកម្ម", price: "49$", desc: "សម្រាប់អ្នករៀបចំកម្មវិធី", features: ["ស្លាកយីហោផ្ទាល់ខ្លួន", "ការប្រើប្រាស់ API", "ជំនួយ ២៤/៧ - VIP"] }
                     ].map((plan, i) => (
-                        <div key={i} className={cn("relative p-8 rounded-3xl border flex flex-col items-start justify-between min-h-[500px] transition-all duration-300 group hover:-translate-y-2", plan.highlight ? "bg-white dark:bg-white/10 border-pink-500/50 shadow-xl dark:shadow-[0_0_40px_rgba(236,72,153,0.15)]" : "bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-pink-200 dark:hover:border-white/30 shadow-sm")}>
+                        <div key={i} className={cn("relative p-6 md:p-8 rounded-3xl border flex flex-col items-start justify-between min-h-0 md:min-h-[500px] transition-all duration-300 group hover:-translate-y-2", plan.highlight ? "bg-white dark:bg-white/10 border-pink-500/50 shadow-xl dark:shadow-[0_0_40px_rgba(236,72,153,0.15)]" : "bg-white dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-pink-200 dark:hover:border-white/30 shadow-sm")}>
                             {plan.highlight && (
                                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-pink-500 to-rose-600 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
                                     ការណែនាំ
@@ -325,7 +325,7 @@ export function Pricing() {
                                     ))}
                                 </ul>
                             </div>
-                            <Button className={cn("w-full py-6 mt-8 text-base font-bold font-kantumruy transition-all rounded-xl", plan.highlight ? "bg-slate-900 dark:bg-white text-white dark:text-black hover:bg-black dark:hover:bg-gray-200" : "bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-white/20")}>
+                            <Button className={cn("w-full py-4 md:py-6 mt-6 md:mt-8 text-sm md:text-base font-bold font-kantumruy transition-all rounded-xl", plan.highlight ? "bg-slate-900 dark:bg-white text-white dark:text-black hover:bg-black dark:hover:bg-gray-200" : "bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-white/20")}>
                                 ជ្រើសរើស
                             </Button>
                         </div>
@@ -362,13 +362,13 @@ export function Testimonials() {
                 <div className="text-center mb-20 flex flex-col items-center">
                     <m.span
                         initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-                        className="inline-flex items-center gap-2 py-1.5 px-4 rounded-full border border-white/10 bg-white/5 text-pink-300 font-mono text-xs uppercase tracking-[0.2em] mb-6 backdrop-blur-md"
+                        className="inline-flex items-center gap-2 py-1.5 px-4 rounded-full border border-white/10 bg-white/5 text-pink-300 font-mono text-xs uppercase tracking-[0.2em] mb-6 sm:backdrop-blur-md"
                     >
                         មតិអតិថិជន
                     </m.span>
                     <m.h2
                         initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}
-                        className="text-3xl md:text-5xl lg:text-[3.5rem] font-bold font-kantumruy text-slate-900 dark:text-white mb-6 tracking-tight"
+                        className="text-xl xs:text-2xl sm:text-3xl md:text-5xl lg:text-[3.5rem] font-bold font-kantumruy text-slate-900 dark:text-white mb-6 tracking-tight"
                     >
                         ចំណាប់អារម្មណ៍ពិតៗ
                     </m.h2>
@@ -381,7 +381,7 @@ export function Testimonials() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.8, delay: 0.1 * idx }}
-                            className="bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 p-8 rounded-3xl relative hover:bg-slate-100 dark:hover:bg-white/10 transition-colors shadow-sm"
+                            className="bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 p-5 sm:p-8 rounded-3xl relative hover:bg-slate-100 dark:hover:bg-white/10 transition-colors shadow-sm"
                         >
                             <Quote className="w-10 h-10 text-slate-200 dark:text-white/10 absolute top-6 right-6" />
                             <div className="flex gap-1 mb-6">
@@ -432,7 +432,7 @@ export function FAQ() {
                 <div className="text-center mb-16 flex flex-col items-center">
                     <m.h2
                         initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-                        className="text-3xl md:text-5xl lg:text-[3.5rem] font-bold font-kantumruy text-slate-900 dark:text-white mb-6 tracking-tight"
+                        className="text-xl xs:text-2xl sm:text-3xl md:text-5xl lg:text-[3.5rem] font-bold font-kantumruy text-slate-900 dark:text-white mb-6 tracking-tight"
                     >
                         សំណួរដែលសួរញឹកញាប់
                     </m.h2>
@@ -449,9 +449,9 @@ export function FAQ() {
                         >
                             <button
                                 onClick={() => setOpenIdx(openIdx === idx ? null : idx)}
-                                className="w-full px-6 py-6 text-left flex items-center justify-between gap-4 focus:outline-none"
+                                className="w-full px-5 py-5 text-left flex items-center justify-between gap-4 focus:outline-none"
                             >
-                                <span className="font-bold font-kantumruy text-slate-900 dark:text-white text-lg">{faq.q}</span>
+                                <span className="font-bold font-kantumruy text-slate-900 dark:text-white text-base sm:text-lg">{faq.q}</span>
                                 <span className="shrink-0 w-8 h-8 rounded-full border border-slate-200 dark:border-white/20 flex items-center justify-center text-slate-500 dark:text-white/50 bg-slate-50 dark:bg-black/50">
                                     {openIdx === idx ? <Minus size={16} /> : <Plus size={16} />}
                                 </span>
@@ -483,11 +483,11 @@ export function FinalCTA() {
         <section className="py-32 relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-pink-900 via-black to-blue-900" />
             <div className="absolute inset-0 bg-[url('/images/bg_tunnel.jpg')] opacity-20 bg-cover bg-center mix-blend-overlay" />
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
+            <div className="absolute inset-0 bg-black/60 sm:backdrop-blur-[2px]" />
             <div className="container mx-auto px-6 max-w-4xl relative z-10 text-center flex flex-col items-center">
                 <m.h2
                     initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-                    className="text-4xl md:text-5xl lg:text-[4rem] font-bold font-kantumruy text-white mb-8 tracking-tight drop-shadow-2xl"
+                    className="text-xl xs:text-2xl sm:text-4xl md:text-5xl lg:text-[4rem] font-bold font-kantumruy text-white mb-8 tracking-tight drop-shadow-2xl"
                 >
                     រួចរាល់សម្រាប់ការបង្កើត<br className="max-md:hidden" />ធៀបអញ្ជើញរបស់អ្នកហើយឬនៅ?
                 </m.h2>
@@ -499,10 +499,11 @@ export function FinalCTA() {
                 </m.p>
                 <m.div
                     initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: 0.2 }}
+                    className="w-full flex justify-center"
                 >
-                    <Link href="/register" className="group relative flex h-16 w-[280px] items-center justify-center overflow-hidden rounded-full bg-white text-black transition-all duration-300 hover:scale-105 shadow-[0_0_40px_rgba(255,255,255,0.2)] hover:shadow-[0_0_60px_rgba(255,255,255,0.4)]">
+                    <Link href="/register" className="group relative flex h-14 md:h-16 px-12 md:px-20 items-center justify-center overflow-hidden rounded-full bg-white text-black transition-all duration-300 hover:scale-105 shadow-[0_0_40px_rgba(255,255,255,0.2)] hover:shadow-[0_0_60px_rgba(255,255,255,0.4)]">
                         <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-pink-200 to-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                        <span className="font-kantumruy text-xl font-bold relative z-10 pt-1">ចុះឈ្មោះឥឡូវនេះទីនេះ</span>
+                        <span className="font-kantumruy text-sm sm:text-base md:text-xl font-bold relative z-10 pt-1 flex items-center justify-center">ចុះឈ្មោះឥឡូវនេះ</span>
                     </Link>
                 </m.div>
             </div>

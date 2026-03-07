@@ -10,14 +10,24 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
     useEffect(() => {
         if (isDashboard) return;
 
+        // Detection for touch devices to use native scroll
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+            (navigator.maxTouchPoints > 0);
+
+        if (isMobile) {
+            console.log("[Performance] Mobile/Touch detected - using native scroll");
+            return;
+        }
+
         const lenis = new Lenis({
-            duration: 0.5,
+            duration: 0.8,
             easing: (t) => 1 - Math.pow(1 - t, 4),
             orientation: "vertical",
             gestureOrientation: "vertical",
             smoothWheel: true,
             wheelMultiplier: 1.1,
             touchMultiplier: 1.5,
+            syncTouch: true,
         });
 
         function raf(time: number) {

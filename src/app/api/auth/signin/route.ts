@@ -34,7 +34,10 @@ export async function POST(req: Request) {
         const geoIp = req.headers.get("x-vercel-ip-country") || req.headers.get("cf-ipcountry") || "UNKNOWN";
         const userAgent = req.headers.get("user-agent") || "UNKNOWN";
 
-        if (turnstileToken && process.env.TURNSTILE_SECRET_KEY !== '1x0000000000000000000000000000000AA') {
+        if (process.env.TURNSTILE_SECRET_KEY !== '1x0000000000000000000000000000000AA') {
+            if (!turnstileToken) {
+                return NextResponse.json({ error: "សូមផ្ទៀងផ្ទាត់ CAPTCHA ដើម្បីបន្ត។" }, { status: 428 });
+            }
             const formData = new URLSearchParams();
             formData.append('secret', process.env.TURNSTILE_SECRET_KEY || '');
             formData.append('response', turnstileToken);
@@ -119,9 +122,6 @@ export async function POST(req: Request) {
         if (user && user.lockedUntil && user.lockedUntil > new Date()) {
             return NextResponse.json({ error: `គណនីចាក់សោរបណ្តោះអាសន្ន (Locked until ${user.lockedUntil.toLocaleTimeString()})` }, { status: 423 });
         }
-        if (user && user.failedAttempts >= 3 && !turnstileToken) {
-            return NextResponse.json({ requireCaptcha: true, error: "សូមផ្ទៀងផ្ទាត់ CAPTCHA ដើម្បីបន្ត។" }, { status: 428 });
-        }
 
         if (user) {
             // 1. Try Peppered Password Comparison
@@ -139,12 +139,17 @@ export async function POST(req: Request) {
             }
 
             if (isPasswordValid) {
-                const { authenticator } = await import("otplib") as any;
+                const otplib = await import("otplib") as any;
                 if ((user as any).twoFactorEnabled && (user as any).twoFactorSecret) {
                     if (!twoFactorToken) return NextResponse.json({ require2FA: true, error: "2FA Token required" }, { status: 428 });
 
                     // 1. Try TOTP
-                    let is2faValid = authenticator.verify({ token: twoFactorToken, secret: (user as any).twoFactorSecret });
+                    const verifyResult = await otplib.verify({
+                        token: twoFactorToken,
+                        secret: (user as any).twoFactorSecret,
+                        epochTolerance: 2
+                    });
+                    let is2faValid = verifyResult && verifyResult.valid;
 
                     // 2. Try Recovery Codes if TOTP fails
                     if (!is2faValid && (user as any).twoFactorRecoveryCodes) {
@@ -212,9 +217,6 @@ export async function POST(req: Request) {
         if (staff && staff.lockedUntil && staff.lockedUntil > new Date()) {
             return NextResponse.json({ error: `គណនីចាក់សោរបណ្តោះអាសន្ន (Locked until ${staff.lockedUntil.toLocaleTimeString()})` }, { status: 423 });
         }
-        if (staff && staff.failedAttempts >= 3 && !turnstileToken) {
-            return NextResponse.json({ requireCaptcha: true, error: "សូមផ្ទៀងផ្ទាត់ CAPTCHA ដើម្បីបន្ត។" }, { status: 428 });
-        }
 
         if (staff && staff.password) {
             // 1. Try Peppered Password Comparison
@@ -232,12 +234,17 @@ export async function POST(req: Request) {
             }
 
             if (isPasswordValid) {
-                const { authenticator } = await import("otplib") as any;
+                const otplib = await import("otplib") as any;
                 if ((staff as any).twoFactorEnabled && (staff as any).twoFactorSecret) {
                     if (!twoFactorToken) return NextResponse.json({ require2FA: true, error: "2FA Token required" }, { status: 428 });
 
                     // 1. Try TOTP
-                    let is2faValid = authenticator.verify({ token: twoFactorToken, secret: (staff as any).twoFactorSecret });
+                    const verifyResult = await otplib.verify({
+                        token: twoFactorToken,
+                        secret: (staff as any).twoFactorSecret,
+                        epochTolerance: 2
+                    });
+                    let is2faValid = verifyResult && verifyResult.valid;
 
                     // 2. Try Recovery Codes if TOTP fails (Peppered)
                     if (!is2faValid && (staff as any).twoFactorRecoveryCodes) {

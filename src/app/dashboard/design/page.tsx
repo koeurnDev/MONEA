@@ -122,9 +122,9 @@ const STEPS = [
 
 
 const StepWizard = ({ children, currentStep, onNext, onPrev, isLast, onSave, loading, setStep }: any) => (
-    <div className="flex flex-col h-full bg-card overflow-hidden z-20 border-r border-border shadow-2xl dark:shadow-none">
+    <div className="flex flex-col h-full bg-card overflow-hidden z-20 shadow-[0_4px_40px_rgba(0,0,0,0.08)] dark:shadow-none">
         {/* Header */}
-        <div className="p-8 pb-6 border-b border-border shadow-sm z-10">
+        <div className="p-8 pb-6 shadow-[0_4px_20px_rgba(0,0,0,0.03)] dark:shadow-none z-10 bg-card/50 backdrop-blur-md">
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground shadow-lg dark:shadow-none">
@@ -136,7 +136,7 @@ const StepWizard = ({ children, currentStep, onNext, onPrev, isLast, onSave, loa
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <div className="bg-muted p-2 px-4 rounded-full border border-border flex items-center gap-2">
+                    <div className="bg-muted p-2 px-4 rounded-full flex items-center gap-2 shadow-inner">
                         <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                         <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Live Editor</span>
                     </div>
@@ -172,13 +172,13 @@ const StepWizard = ({ children, currentStep, onNext, onPrev, isLast, onSave, loa
         </div>
 
         {/* Footer */}
-        <div className="p-8 bg-muted/50 border-t border-border backdrop-blur-sm">
+        <div className="p-8 bg-muted/40 backdrop-blur-sm shadow-[0_-4px_20px_rgba(0,0,0,0.03)] dark:shadow-none">
             <div className="flex gap-4 font-khmer">
                 {currentStep > 1 && (
                     <Button
                         variant="ghost"
                         onClick={onPrev}
-                        className="h-12 px-8 rounded-xl font-bold text-muted-foreground hover:bg-background hover:text-foreground transition-all flex items-center gap-2 border border-border"
+                        className="h-12 px-8 rounded-xl font-bold text-muted-foreground hover:bg-background hover:text-foreground transition-all flex items-center gap-2 bg-background/50 shadow-sm"
                     >
                         <ArrowLeft className="w-4 h-4" /> ថយក្រោយ
                     </Button>
@@ -187,8 +187,8 @@ const StepWizard = ({ children, currentStep, onNext, onPrev, isLast, onSave, loa
                     onClick={isLast ? onSave : onNext}
                     disabled={loading}
                     className={clsx(
-                        "h-12 flex-1 rounded-xl font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95",
-                        isLast ? "bg-slate-900 dark:bg-slate-800 hover:bg-black dark:hover:bg-slate-700 text-white shadow-none" : "bg-red-600 hover:bg-red-700 text-white shadow-red-100 dark:shadow-none"
+                        "h-12 flex-1 rounded-xl font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 active:scale-95 shadow-md",
+                        isLast ? "bg-slate-900 dark:bg-slate-800 hover:bg-black dark:hover:bg-slate-700 text-white" : "bg-red-600 hover:bg-red-700 text-white"
                     )}
                 >
                     {loading ? (
@@ -661,9 +661,9 @@ export default function DesignPage() {
 
     // DESKTOP LAYOUT (In-flow, managed by DashboardLayout)
     const desktopLayout = (
-        <div className="hidden md:flex flex-row overflow-hidden bg-background h-screen w-full w-full">
+        <div className="hidden md:flex flex-row overflow-hidden bg-background h-screen w-full">
             {/* 1. EDITOR PANEL (Left Sidebar) */}
-            <div className="flex-none w-[400px] flex flex-col z-20 bg-card border-r border-border shadow-sm h-full">
+            <div className="flex-none w-[400px] flex flex-col z-20 bg-card shadow-[0_0_40px_rgba(0,0,0,0.05)] dark:shadow-none h-full">
                 {editorPanel}
             </div>
 
@@ -678,8 +678,8 @@ export default function DesignPage() {
                 {/* Desktop Preview Container */}
                 <div
                     className={clsx(
-                        "relative z-10 bg-background overflow-hidden transition-all duration-300 ease-in-out flex flex-col group origin-center shadow-2xl",
-                        previewMode === 'mobile' ? "w-[390px] h-[844px] rounded-[2rem] border-2 border-border ring-4 ring-border/20" : "w-[95%] h-[85vh] rounded-2xl border-4 border-muted"
+                        "relative z-10 bg-background overflow-hidden transition-all duration-300 ease-in-out flex flex-col group origin-center shadow-[0_32px_120px_-20px_rgba(0,0,0,0.2)] dark:shadow-[0_32px_120px_-20px_rgba(0,0,0,0.6)]",
+                        previewMode === 'mobile' ? "w-[390px] h-[844px] rounded-[3rem]" : "w-[95%] h-[85vh] rounded-2xl"
                     )}
                 >
                     <iframe
@@ -693,7 +693,7 @@ export default function DesignPage() {
                 <PreviewSync wedding={wedding} iframeRef={iframeRef} currentStep={currentStep} enableScrollSync={false} />
 
                 {/* View Toggle (Desktop Only) */}
-                <div className="absolute top-4 right-4 z-30 bg-card/90 backdrop-blur-sm p-1 rounded-full shadow-lg gap-1 border border-border flex">
+                <div className="absolute top-4 right-4 z-30 bg-card/90 backdrop-blur-sm p-1 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] gap-1 flex">
                     <button
                         onClick={() => setPreviewMode('mobile')}
                         className={clsx(
@@ -724,7 +724,7 @@ export default function DesignPage() {
     const mobileLayout = mounted ? createPortal(
         <div className="md:hidden fixed inset-0 w-screen h-[100dvh] z-[99999] bg-background flex flex-col overflow-hidden pt-[115px]" role="dialog" aria-label="Mobile Design Editor">
             {/* MOBILE HEADER (Fixed Top) */}
-            <div className="fixed top-0 left-0 right-0 h-[115px] bg-card border-b border-border z-[100000] shadow-md flex flex-col">
+            <div className="fixed top-0 left-0 right-0 h-[115px] bg-card z-[100000] shadow-[0_4px_20px_rgba(0,0,0,0.05)] flex flex-col">
                 {/* Row 1: Dashboard Nav & Tabs */}
                 <div className="flex items-center px-4 pt-10 pb-2 gap-2">
                     <Link href="/dashboard" className="p-2 -ml-2 text-muted-foreground hover:text-foreground transition-colors">
@@ -753,13 +753,13 @@ export default function DesignPage() {
                 </div>
 
                 {/* Row 2: Step Navigation */}
-                <div className="flex items-center justify-between px-4 pb-2 border-t border-border pt-1.5 bg-muted/50 font-khmer">
+                <div className="flex items-center justify-between px-4 pb-2 pt-1.5 bg-muted/40 backdrop-blur-sm font-khmer shadow-sm">
                     <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                         onClick={prevStep}
                         disabled={currentStep === 1}
-                        className="text-muted-foreground hover:text-foreground h-7 px-2 text-[10px]"
+                        className="text-muted-foreground hover:text-foreground h-7 px-2 text-[10px] bg-background/50 shadow-sm"
                     >
                         <ArrowLeft size={14} className="mr-1" /> ថយក្រោយ
                     </Button>

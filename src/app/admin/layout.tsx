@@ -44,9 +44,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     const SidebarContent = () => (
         <div className="flex flex-col h-full bg-card relative overflow-hidden text-foreground">
-            {/* Subtle Gradient Accents for Depth (Light) */}
-            <div className="absolute top-0 -left-24 w-48 h-48 bg-red-100/30 blur-[100px] rounded-full pointer-events-none" />
-            <div className="absolute bottom-0 -right-24 w-48 h-48 bg-blue-100/30 blur-[100px] rounded-full pointer-events-none" />
+            {/* Subtle Gradient Accents for Depth */}
+            <div className="absolute top-0 -left-24 w-48 h-48 bg-red-400/10 dark:bg-red-900/10 blur-[100px] rounded-full pointer-events-none" />
+            <div className="absolute bottom-0 -right-24 w-48 h-48 bg-blue-400/10 dark:bg-blue-900/10 blur-[100px] rounded-full pointer-events-none" />
 
             {/* Logo Area */}
             <div className="p-8 pb-10">
@@ -57,7 +57,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
             {/* Navigation Section */}
             <nav className="flex-1 px-4 space-y-1">
-                <div className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 border-b border-transparent">
+                <div className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2 border-b border-transparent">
                     តាមដានប្រព័ន្ធ
                 </div>
                 {navItems.map((item) => {
@@ -87,7 +87,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </nav>
 
             {/* System Info Highlight */}
-            <div className="mx-6 my-8 p-6 rounded-3xl bg-muted border border-border">
+            <div className="mx-6 my-8 p-6 rounded-3xl bg-muted/50 border border-border">
                 <div className="flex items-center gap-2 mb-3">
                     <div className="relative flex items-center justify-center">
                         <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />

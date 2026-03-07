@@ -41,16 +41,14 @@ html {
 
 :root {
   --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
+  --background-start-rgb: 255, 255, 255;
   --background-end-rgb: 255, 255, 255;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+.dark {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 0, 0, 0;
+  --background-end-rgb: 0, 0, 0;
 }
 
 @layer utilities {
@@ -133,6 +131,13 @@ html {
 
   body {
     @apply bg-background text-foreground;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+
+  button,
+  a {
+    touch-action: manipulation;
   }
 }
 
@@ -150,13 +155,57 @@ html {
   /* Firefox */
 }
 
-/* 5. Mobile Speed Beast Mode: Disable Heavy Animations */
+/* 5. Mobile Optimization: GPU Acceleration focus */
 @media (max-width: 768px) {
-  .heavy-animation,
-  .will-change-transform,
-  .animate-spin-slow {
-    animation: none !important;
-    transition: none !important;
-    will-change: auto !important;
+
+  /* Reduce filter complexity for mobile GPUs */
+  .backdrop-blur-md,
+  .backdrop-blur-lg,
+  .backdrop-blur-xl,
+  .backdrop-blur-2xl {
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
   }
+
+  /* Extreme optimization for small phones (Prism-like speed) */
+  @media (max-width: 480px) {
+
+    .backdrop-blur-md,
+    .backdrop-blur-lg,
+    .backdrop-blur-xl,
+    .backdrop-blur-2xl {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+
+    /* Kill non-essential transitions for raw speed */
+    *,
+    :before,
+    :after {
+      transition: none !important;
+      animation: none !important;
+    }
+
+    /* Reduce shadow paint cost */
+    .shadow-sm,
+    .shadow-md,
+    .shadow-lg,
+    .shadow-xl,
+    .shadow-2xl {
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05) !important;
+    }
+  }
+
+  /* Ensure hardware acceleration remains active for specific elements */
+  .will-change-transform {
+    will-change: transform !important;
+  }
+}
+
+/* Hardware Acceleration Utility */
+.accelerate-gpu {
+  backface-visibility: hidden;
+  perspective: 1000;
+  transform: translateZ(0);
+  will-change: transform, opacity;
 }

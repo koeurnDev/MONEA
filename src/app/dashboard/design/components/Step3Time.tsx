@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DebouncedInput } from "@/components/ui/debounced-input";
+import { DebouncedTextarea } from "@/components/ui/debounced-textarea";
 import { MapPin, Clock, Trash2, Plus } from "lucide-react";
 import type { WeddingData } from '@/components/templates/types';
 
@@ -41,17 +42,17 @@ const Step3Time: React.FC<Step3TimeProps> = ({ wedding, updateWedding, updateThe
             </div>
             <div>
                 <Label className="mb-2 block text-xs">កាលបរិច្ឆេទតាមច័ន្ទគតិ (Khmer Lunar Date)</Label>
-                <Input
+                <DebouncedInput
                     placeholder="ឧ. ថ្ងៃព្រហស្បតិ៍ ៥កើត ខែផល្គុន..."
                     value={wedding.themeSettings?.lunarDate || ""}
-                    onChange={(e) => updateTheme("lunarDate", e.target.value)}
+                    onDebouncedChange={(val) => updateTheme("lunarDate", val)}
                 />
             </div>
             <div>
                 <Label className="mb-2 block text-xs">ទីកន្លែង (Location)</Label>
-                <Input
+                <DebouncedInput
                     value={wedding.location || ""}
-                    onChange={(e) => updateWedding("location", e.target.value)}
+                    onDebouncedChange={(val) => updateWedding("location", val)}
                 />
             </div>
             <div>
@@ -67,22 +68,22 @@ const Step3Time: React.FC<Step3TimeProps> = ({ wedding, updateWedding, updateThe
                 <div className="space-y-3">
                     {wedding.activities?.map((activity: any, idx: number) => (
                         <div key={idx} className="flex gap-2 items-start">
-                            <Input
+                            <DebouncedInput
                                 className="w-24"
                                 value={activity.time}
-                                onChange={(e) => {
+                                onDebouncedChange={(val) => {
                                     const newActs = [...(wedding.activities || [])];
-                                    newActs[idx] = { ...newActs[idx], time: e.target.value };
+                                    newActs[idx] = { ...newActs[idx], time: val as string };
                                     updateWedding("activities", newActs);
                                 }}
                                 placeholder="Time"
                             />
-                            <Input
+                            <DebouncedInput
                                 className="flex-1"
                                 value={activity.description}
-                                onChange={(e) => {
+                                onDebouncedChange={(val) => {
                                     const newActs = [...(wedding.activities || [])];
-                                    newActs[idx] = { ...newActs[idx], description: e.target.value };
+                                    newActs[idx] = { ...newActs[idx], description: val as string };
                                     updateWedding("activities", newActs);
                                 }}
                                 placeholder="Description"

@@ -20,9 +20,9 @@ const KenBurnsImage = memo(({ src }: { src: string }) => (
     <div className="relative w-full h-full overflow-hidden">
         <m.div
             initial={{ scale: 1, x: "-2%", y: "-2%" }}
-            animate={{ scale: 1.15, x: "2%", y: "2%" }}
-            transition={{ duration: 25, repeat: Infinity, repeatType: "mirror", ease: "linear" }}
-            className="w-[105%] h-[105%] relative will-change-transform"
+            animate={{ scale: 1.1, x: "1%", y: "1%" }}
+            transition={{ duration: 30, repeat: Infinity, repeatType: "mirror", ease: "linear" }}
+            className="w-[102%] h-[102%] relative will-change-transform"
         >
             {src.startsWith('/') ? (
                 <Image src={src} fill className="object-cover" alt="" sizes="100vw" />
@@ -41,7 +41,8 @@ const ParallaxImage = memo(({ src, speed, className = "" }: { src: string; speed
         target: ref,
         offset: ["start end", "end start"]
     });
-    const y = useTransform(scrollYProgress, [0, 1], [0, speed * 200]);
+    const yParallax = useTransform(scrollYProgress, [0, 1], [0, speed * 200]);
+    const y = typeof window !== 'undefined' && window.innerWidth < 768 ? 0 : yParallax;
 
     return (
         <m.div ref={ref} style={{ y }} className={`relative rounded-2xl overflow-hidden shadow-2xl will-change-transform ${className}`}>
@@ -66,16 +67,34 @@ const CinematicStoryGallery = memo(({ items, labels, theme = 'light' }: Cinemati
     });
 
     const xMove = useTransform(horizontalScrollProgress, [0.1, 0.9], ["0%", "-100%"]);
-    const springXMove = useSpring(xMove, { stiffness: 50, damping: 20 });
+
+    const [isMobile, setIsMobile] = React.useState(false);
+    React.useEffect(() => {
+        setIsMobile(window.innerWidth < 768);
+    }, []);
+
+    const springXMove = useSpring(xMove, {
+        stiffness: isMobile ? 100 : 50,
+        damping: isMobile ? 30 : 20,
+        mass: isMobile ? 0.5 : 1
+    });
 
     // Filter for images and ensure we have enough items
     const safeItems = useMemo(() => {
         const imageItems = (items || []).filter(i => i?.type === 'IMAGE');
-        if (imageItems.length === 0) return Array(20).fill({ url: '/images/couple.jpg', type: 'IMAGE' });
+        // If no images at all, fallback to a default
+        if (imageItems.length === 0) return Array(24).fill({ url: '/images/couple.jpg', type: 'IMAGE' });
+
+        // Use all available items, repeating only if necessary to fill the cinematic slots
         const list = [...imageItems];
-        while (list.length < 20) list.push(...imageItems);
-        // Deduplicate to avoid excessive image loads if possible, though here we need content
-        return list;
+        if (list.length < 24) {
+            let i = 0;
+            while (list.length < 24) {
+                list.push(imageItems[i % imageItems.length]);
+                i++;
+            }
+        }
+        return list.slice(0, 24);
     }, [items]);
 
     const t = {

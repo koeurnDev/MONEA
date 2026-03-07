@@ -67,7 +67,7 @@ export default function SchedulePage() {
 
                 <Dialog open={open} onOpenChange={setOpen}>
                     <DialogTrigger asChild>
-                        <Button onClick={() => setEditActivity(null)} className="h-11 px-8 bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-lg shadow-red-100 dark:shadow-none transition-all font-kantumruy font-bold">
+                        <Button onClick={() => setEditActivity(null)} className="h-11 px-8 bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-md transition-all font-kantumruy font-bold">
                             <Plus className="mr-2 h-4 w-4" /> បន្ថែមកម្មវិធី
                         </Button>
                     </DialogTrigger>
@@ -96,7 +96,7 @@ export default function SchedulePage() {
                         </div>
                     ) : activities.length === 0 ? (
                         <div className="max-w-md mx-auto bg-muted/50 border-2 border-dashed border-border rounded-[2.5rem] p-12 text-center group hover:border-red-200 transition-all">
-                            <div className="w-20 h-20 bg-background border border-border shadow-sm rounded-full flex items-center justify-center text-muted-foreground/30 mx-auto mb-6 group-hover:scale-110 transition-transform duration-500">
+                            <div className="w-20 h-20 bg-background shadow-[0_8px_30px_rgba(0,0,0,0.04)] rounded-full flex items-center justify-center text-muted-foreground/30 mx-auto mb-6 group-hover:scale-110 transition-transform duration-500">
                                 <Activity size={40} />
                             </div>
                             <h3 className="text-xl font-black text-foreground mb-2 font-kantumruy">មិនទាន់មានកម្មវិធី</h3>
@@ -104,7 +104,7 @@ export default function SchedulePage() {
 
                             <Button
                                 onClick={() => { setEditActivity(null); setOpen(true); }}
-                                className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-12 px-10 font-bold shadow-lg shadow-red-100 dark:shadow-none transition-all font-kantumruy"
+                                className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-12 px-10 font-bold shadow-md transition-all font-kantumruy"
                             >
                                 បង្កើតថ្មី
                             </Button>
@@ -113,13 +113,13 @@ export default function SchedulePage() {
                         activities.map((item, index) => (
                             <div key={item.id} className="group relative pl-0 sm:pl-20">
                                 {/* Bullet */}
-                                <div className="absolute left-7 top-10 w-4 h-4 rounded-full bg-background border-[3px] border-red-600 z-10 transition-all duration-500 group-hover:scale-125 group-hover:bg-red-600 hidden sm:block" />
+                                <div className="absolute left-7 top-10 w-4 h-4 rounded-full bg-background border-[3px] border-red-600 z-10 transition-all duration-500 group-hover:scale-125 group-hover:bg-red-600 hidden sm:block shadow-sm" />
 
-                                <Card className="border border-border shadow-sm hover:shadow-md transition-all rounded-[2rem] bg-card overflow-hidden group-hover:-translate-y-1 duration-300">
+                                <Card className="border-none shadow-[0_4px_20px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.2)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all rounded-[2rem] bg-card overflow-hidden group-hover:-translate-y-1 duration-300">
                                     <div className="flex flex-col md:flex-row items-center">
                                         {/* Time Box */}
-                                        <div className="w-full md:w-40 p-8 flex flex-col items-center justify-center bg-muted/30 border-b md:border-b-0 md:border-r border-border">
-                                            <div className="p-3 rounded-2xl bg-background shadow-sm text-red-600 mb-3 border border-border">
+                                        <div className="w-full md:w-40 p-8 flex flex-col items-center justify-center bg-muted/20 md:border-r border-border/10">
+                                            <div className="p-3 rounded-2xl bg-background shadow-inner text-red-600 mb-3">
                                                 <Clock size={20} />
                                             </div>
                                             <span className="text-xl font-black text-foreground font-mono tracking-tight">{item.time}</span>
@@ -132,7 +132,7 @@ export default function SchedulePage() {
                                                 <div className="flex items-center gap-3">
                                                     <h3 className="text-xl font-black text-foreground font-kantumruy leading-tight">{item.title}</h3>
                                                     {index === 0 && (
-                                                        <span className="px-3 py-1 rounded-full bg-red-50 dark:bg-red-950/30 text-red-600 text-[10px] font-black uppercase tracking-widest border border-red-100 dark:border-red-900/50 ring-4 ring-red-50/50 dark:ring-red-950/20">
+                                                        <span className="px-3 py-1 rounded-full bg-red-50 dark:bg-red-950/30 text-red-600 text-[10px] font-black uppercase tracking-widest ring-4 ring-red-50/50 dark:ring-red-950/20">
                                                             Starting Event
                                                         </span>
                                                     )}
@@ -146,23 +146,23 @@ export default function SchedulePage() {
                                         </div>
 
                                         {/* Status / Order & Actions */}
-                                        <div className="p-8 flex items-center justify-between md:justify-end gap-6 border-t md:border-t-0 border-border">
-                                            <div className="hidden lg:flex w-10 h-10 rounded-full border border-border items-center justify-center text-[10px] font-black text-muted-foreground/40 bg-muted/10">
+                                        <div className="p-8 flex items-center justify-between md:justify-end gap-6 bg-muted/10 md:bg-transparent">
+                                            <div className="hidden lg:flex w-10 h-10 rounded-full items-center justify-center text-[10px] font-black text-muted-foreground/30 bg-muted/30 shadow-inner">
                                                 {String(index + 1).padStart(2, '0')}
                                             </div>
                                             <div className="flex gap-2">
                                                 <Button
-                                                    variant="outline"
+                                                    variant="ghost"
                                                     size="icon"
-                                                    className="h-10 w-10 text-muted-foreground hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:border-blue-200 dark:hover:border-blue-900 rounded-xl transition-all"
+                                                    className="h-10 w-10 text-muted-foreground hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-xl transition-all shadow-sm bg-background/50"
                                                     onClick={() => { setEditActivity(item); setOpen(true); }}
                                                 >
                                                     <Pencil className="h-4 w-4" />
                                                 </Button>
                                                 <Button
-                                                    variant="outline"
+                                                    variant="ghost"
                                                     size="icon"
-                                                    className="h-10 w-10 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 hover:border-red-200 dark:hover:border-red-900 rounded-xl transition-all"
+                                                    className="h-10 w-10 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all shadow-sm bg-background/50"
                                                     onClick={() => handleDelete(item.id)}
                                                 >
                                                     <Trash2 className="h-4 w-4" />

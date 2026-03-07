@@ -77,7 +77,7 @@ export default function NotesPage() {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="space-y-2">
                     <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-2xl bg-card dark:bg-slate-800 flex items-center justify-center text-foreground shadow-xl shadow-slate-200 dark:shadow-none border border-border">
+                        <div className="w-12 h-12 rounded-2xl bg-card flex items-center justify-center text-foreground shadow-[0_4px_20px_rgba(0,0,0,0.05)] dark:bg-slate-800">
                             <BookOpen className="w-6 h-6" />
                         </div>
                         <div>
@@ -101,7 +101,7 @@ export default function NotesPage() {
                     <Button
                         onClick={handleSave}
                         disabled={saving}
-                        className="h-12 px-8 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest shadow-lg shadow-slate-200 dark:shadow-none active:scale-95 transition-all flex items-center gap-2"
+                        className="h-12 px-8 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest shadow-md active:scale-95 transition-all flex items-center gap-2"
                     >
                         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                         រក្សាទុក (Save)
@@ -113,7 +113,7 @@ export default function NotesPage() {
             <m.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-card rounded-[2.5rem] border border-border shadow-2xl shadow-slate-200/50 dark:shadow-none p-8 md:p-12 relative overflow-hidden"
+                className="bg-card rounded-[2.5rem] shadow-[0_4px_24px_rgba(0,0,0,0.07)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.2)] p-8 md:p-12 relative overflow-hidden"
             >
                 <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/5 blur-[100px] rounded-full -mr-32 -mt-32 pointer-events-none" />
 
@@ -135,7 +135,7 @@ export default function NotesPage() {
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
                             placeholder="សរសេរព័ត៌មានសំខាន់ៗនៅទីនេះ (ឧ៖ លេខទូរស័ព្ទជាងថតរូប, បញ្ជីឈ្មោះអ្នកមកជួយការ, ឬការចងចាំផ្សេងៗ...)"
-                            className="w-full min-h-[500px] bg-muted/50 border border-border rounded-3xl p-8 text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:bg-background focus:border-primary/20 transition-all font-kantumruy leading-relaxed text-lg resize-none"
+                            className="w-full min-h-[500px] bg-muted/40 border-none rounded-3xl p-8 text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:bg-background shadow-inner transition-all font-kantumruy leading-relaxed text-lg resize-none"
                         />
                         <div className="absolute bottom-6 right-8 flex items-center gap-2 text-muted-foreground/30 group-focus-within:text-muted-foreground transition-colors">
                             <Sparkles className="w-4 h-4" />
@@ -144,21 +144,21 @@ export default function NotesPage() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6">
-                        <div className="p-6 bg-muted/50 rounded-2xl border border-border space-y-2 group hover:bg-card transition-all">
-                            <div className="w-10 h-10 rounded-xl bg-background border border-border flex items-center justify-center text-muted-foreground group-hover:text-red-500 transition-colors">
+                        <div className="p-6 bg-muted/30 rounded-2xl space-y-2 group hover:bg-background hover:shadow-sm transition-all">
+                            <div className="w-10 h-10 rounded-xl bg-background shadow-sm flex items-center justify-center text-muted-foreground group-hover:text-red-500 transition-colors">
                                 <History className="w-5 h-5" />
                             </div>
                             <h4 className="text-xs font-black text-foreground uppercase tracking-wide">Persistence</h4>
                             <p className="text-[11px] text-muted-foreground font-khmer">រាល់កំណត់ត្រារបស់អ្នកនឹងត្រូវបានរក្សាទុកដោយស្វ័យប្រវត្តិក្នុងប្រព័ន្ធ។</p>
                         </div>
-                        <div className="p-6 bg-muted/50 rounded-2xl border border-border space-y-2 group hover:bg-card transition-all">
-                            <div className="w-10 h-10 rounded-xl bg-background border border-border flex items-center justify-center text-muted-foreground group-hover:text-red-500 transition-colors">
+                        <div className="p-6 bg-muted/30 rounded-2xl space-y-2 group hover:bg-background hover:shadow-sm transition-all">
+                            <div className="w-10 h-10 rounded-xl bg-background shadow-sm flex items-center justify-center text-muted-foreground group-hover:text-red-500 transition-colors">
                                 <FileText className="w-5 h-5" />
                             </div>
                             <h4 className="text-xs font-black text-foreground uppercase tracking-wide">Usage</h4>
                             <p className="text-[11px] text-muted-foreground font-khmer">អ្នកអាចប្រើវាសម្រាប់កត់ត្រាលេខទូរស័ព្ទសំខាន់ៗ ឬអ្វីដែលត្រូវធ្វើ (To-do list)។</p>
                         </div>
-                        <div className="p-6 bg-muted/30 rounded-2xl border border-border border-dashed flex items-center justify-center text-center">
+                        <div className="p-6 bg-muted/20 rounded-2xl flex items-center justify-center text-center shadow-inner">
                             <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest leading-loose">Monea Premium <br /> Internal Admin Center</p>
                         </div>
                     </div>

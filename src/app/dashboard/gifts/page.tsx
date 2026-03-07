@@ -19,6 +19,7 @@ export default function GiftPage() {
     const [userRole, setUserRole] = useState<"admin" | "staff" | null>(null);
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [visibleCount, setVisibleCount] = useState(20);
 
     const [offlineCount, setOfflineCount] = useState(0);
     const [isSyncing, setIsSyncing] = useState(false);
@@ -210,74 +211,77 @@ export default function GiftPage() {
             )}
 
             {/* Header Area (Hidden in Print) */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 print:hidden">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden">
                 <div className="space-y-1">
                     <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-red-600 mb-1">
                         <Gift size={12} />
                         Gift Tracking
                     </div>
-                    <h2 className="text-3xl font-black tracking-tight text-foreground font-kantumruy">
-                        បញ្ជីចំណងដៃ
-                    </h2>
-                    <p className="text-muted-foreground font-medium font-kantumruy text-sm">
-                        គ្រប់គ្រង និងតាមដានរាល់សកម្មភាពទទួលចំណងដៃបន្តផ្ទាល់។
-                    </p>
+                    <div className="flex items-center gap-3">
+                        <h2 className="text-2xl md:text-3xl font-black tracking-tight text-foreground font-kantumruy">
+                            បញ្ជីចំណងដៃ
+                        </h2>
+                        <span className="hidden sm:inline-flex px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 text-[10px] font-black tracking-widest uppercase">
+                            Gifts
+                        </span>
+                    </div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:flex sm:items-center gap-3 w-full md:w-auto">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
                     <Link href="/dashboard/gifts/live" target="_blank" prefetch={false} className="flex-1 sm:flex-none">
-                        <Button variant="outline" className="w-full h-11 px-6 border-border text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl font-kantumruy font-bold transition-all">
-                            <Monitor className="mr-2 h-4 w-4" /> Live
+                        <Button variant="outline" className="w-full h-9 md:h-10 px-4 md:px-6 border-none bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground rounded-xl font-kantumruy font-bold transition-all text-[11px] md:text-sm shadow-sm">
+                            <Monitor className="mr-2 h-3.5 w-3.5" /> Live
                         </Button>
                     </Link>
 
                     <Button
-                        variant="outline"
+                        variant="ghost"
                         onClick={handlePrint}
-                        className="h-11 px-6 border-border text-muted-foreground hover:text-foreground hover:bg-muted hover:border-border rounded-xl font-kantumruy font-bold transition-all flex-1 sm:flex-none"
+                        className="h-9 md:h-10 px-4 md:px-6 bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground rounded-xl font-kantumruy font-bold transition-all flex-1 sm:flex-none text-[11px] md:text-sm shadow-sm"
                     >
-                        <Printer className="mr-2 h-4 w-4 text-muted-foreground" /> PDF
+                        <Printer className="mr-2 h-3.5 w-3.5 text-muted-foreground" /> PDF
                     </Button>
 
-                    <div className="hidden sm:block">
-                        <Dialog open={open} onOpenChange={setOpen}>
-                            <DialogTrigger asChild>
-                                <Button className="h-11 px-8 bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-lg shadow-red-100 dark:shadow-none transition-all font-kantumruy font-bold">
-                                    <Plus className="mr-2 h-4 w-4" /> កត់ត្រាថ្មី
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-[480px] rounded-[2rem] border-none shadow-2xl p-6 pt-12 md:p-8 md:pt-14 bg-card">
-                                <VisuallyHidden.Root>
-                                    <DialogTitle>កត់ត្រាចំណងដៃថ្មី (Add New Gift)</DialogTitle>
-                                    <DialogDescription>
-                                        បំពេញព័ត៌មានដើម្បីកត់ត្រាចំណងដដៃថ្មី (Fill in the details to add a new gift record)
-                                    </DialogDescription>
-                                </VisuallyHidden.Root>
-                                <GiftForm
-                                    onSuccess={() => fetchGifts()}
-                                    onDone={() => setOpen(false)}
-                                />
-                            </DialogContent>
-                        </Dialog>
-                    </div>
+                    <Dialog open={open} onOpenChange={setOpen}>
+                        <DialogTrigger asChild>
+                            <Button className="h-9 md:h-10 px-4 md:px-6 bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-lg shadow-red-100 dark:shadow-none transition-all font-kantumruy font-bold flex-1 sm:flex-none text-[11px] md:text-sm">
+                                <Plus className="mr-2 h-4 w-4" /> <span className="sm:hidden">ថ្មី</span><span className="hidden sm:inline">កត់ត្រាថ្មី</span>
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[480px] rounded-3xl border-none shadow-2xl p-4 pt-10 md:p-8 md:pt-14 bg-card">
+                            <VisuallyHidden.Root>
+                                <DialogTitle>កត់ត្រាចំណងដៃថ្មី (Add New Gift)</DialogTitle>
+                                <DialogDescription>
+                                    បំពេញព័ត៌មានដើម្បីកត់ត្រាចំណងដដៃថ្មី (Fill in the details to add a new gift record)
+                                </DialogDescription>
+                            </VisuallyHidden.Root>
+                            <GiftForm
+                                onSuccess={() => fetchGifts()}
+                                onDone={() => setOpen(false)}
+                            />
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </div>
 
             {/* Summary Cards (Hidden in Print) */}
             {userRole !== "staff" && (
-                <div className="grid gap-4 md:grid-cols-3 grid-cols-2 print:hidden">
+                <div className="grid gap-2 grid-cols-3 print:hidden">
                     {[
-                        { label: "ភ្ញៀវសរុប", value: gifts.length, sub: "នាក់ (Guests)", color: "text-foreground", icon: Users },
-                        { label: "សាច់ប្រាក់ដុល្លារ", value: "$" + totalUSD.toLocaleString(), sub: "USD Collected", color: "text-emerald-600", icon: DollarSign },
-                        { label: "សាច់ប្រាក់រៀល", value: totalKHR.toLocaleString() + " ៛", sub: "KHR Collected", color: "text-blue-600", icon: Gift },
+                        { label: "ភ្ញៀវ", value: gifts.length, sub: "នាក់", color: "text-foreground", icon: Users },
+                        { label: "សាច់ប្រាក់ $", value: "$" + totalUSD.toLocaleString(), sub: "USD", color: "text-emerald-600 dark:text-emerald-400", icon: DollarSign },
+                        { label: "សាច់ប្រាក់ ៛", value: totalKHR.toLocaleString() + " ៛", sub: "KHR", color: "text-indigo-600 dark:text-indigo-400", icon: Gift },
                     ].map((stat, i) => (
-                        <Card key={i} className="border-none shadow-sm hover:shadow-md transition-all rounded-[2rem] overflow-hidden group bg-card">
-                            <CardContent className="p-8">
-                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-4">{stat.label}</p>
-                                <div className={cn("text-3xl font-black font-kantumruy mb-2", stat.color)}>
+                        <Card key={i} className="border-none shadow-[0_4px_24px_rgba(0,0,0,0.07)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.2)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.12)] transition-all rounded-2xl overflow-hidden group bg-card">
+                            <CardContent className="p-3 md:p-6 text-center">
+                                <p className="text-[8px] md:text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 flex items-center justify-center gap-1">
+                                    <stat.icon size={10} className="opacity-30" />
+                                    {stat.label}
+                                </p>
+                                <div className={cn("text-sm md:text-2xl font-black font-kantumruy mb-1", stat.color)}>
                                     {loading ? "..." : stat.value}
                                 </div>
-                                <p className="text-[10px] font-bold text-muted-foreground/30 uppercase tracking-widest">{stat.sub}</p>
+                                <p className="text-[8px] font-bold text-muted-foreground/30 uppercase tracking-widest">{stat.sub}</p>
                             </CardContent>
                         </Card>
                     ))}
@@ -285,9 +289,18 @@ export default function GiftPage() {
             )}
 
             {/* List Section */}
-            <div className="bg-card rounded-[2rem] border border-border shadow-sm overflow-hidden min-h-[400px]">
+            <div className="bg-card rounded-[2rem] shadow-[0_4px_24px_rgba(0,0,0,0.07)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.2)] overflow-hidden min-h-[400px] border-none">
                 {/* Mobile Card List View */}
-                <div className="md:hidden divide-y divide-border print:hidden">
+                <div className="md:hidden p-3 space-y-2 print:hidden">
+                    {/* Mobile Column Headers — 5 columns: ID, Name, Amount, Method, Time */}
+                    <div className="grid px-4 pb-1.5 opacity-50 gap-2 items-center" style={{ gridTemplateColumns: '24px 1.5fr 1fr auto 60px' }}>
+                        <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">ល.រ</span>
+                        <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">ឈ្មោះភ្ញៀវ</span>
+                        <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest text-center">ចំនួនទឹកប្រាក់</span>
+                        <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest text-right">វិធីសាស្ត្រ</span>
+                        <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest text-right">ម៉ោង</span>
+                    </div>
+
                     {loading ? (
                         <div className="p-20 text-center">
                             <div className="w-8 h-8 border-4 border-red-600/20 border-t-red-600 rounded-full animate-spin mx-auto mb-4" />
@@ -299,33 +312,63 @@ export default function GiftPage() {
                             <p className="font-kantumruy font-bold">មិនមានទិន្នន័យឡើយ</p>
                         </div>
                     ) : (
-                        sortedGifts.map((g) => (
-                            <div key={g.id} className="p-5 hover:bg-muted/30 transition-colors">
-                                <div className="flex justify-between items-start mb-3">
-                                    <div className="flex flex-col min-w-0">
-                                        <span className="font-bold text-foreground font-kantumruy text-base truncate">
-                                            {g.guest?.name || <span className="text-muted-foreground/30 italic">មិនស្គាល់</span>}
-                                        </span>
-                                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
-                                            {new Date(g.createdAt).toLocaleDateString("km-KH")} • {new Date(g.createdAt).toLocaleTimeString("km-KH", { hour: '2-digit', minute: '2-digit' })}
+                        sortedGifts.slice(0, visibleCount).map((g, index) => {
+                            const displayId = index + 1;
+                            return (
+                                <div key={g.id} className="bg-background rounded-2xl px-4 py-3 shadow-[0_2px_12px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.2)] grid items-center min-h-[52px] gap-2" style={{ gridTemplateColumns: '24px 1.5fr 1fr auto 60px' }}>
+                                    {/* Col 0: Sequence Number (ID) */}
+                                    <div className="flex items-center">
+                                        <span className="text-[10px] font-bold text-muted-foreground/50 font-mono">
+                                            {String(displayId).padStart(2, '0')}
                                         </span>
                                     </div>
-                                    <div className="text-right shrink-0 ml-4">
+
+                                    {/* Col 1: Guest Name */}
+                                    <div className="min-w-0">
+                                        <span className="font-bold text-foreground font-kantumruy text-sm truncate block">
+                                            {g.guest?.name || <span className="text-muted-foreground/30 italic">មិនស្គាល់</span>}
+                                        </span>
+                                    </div>
+
+                                    {/* Col 2: Amount (Center) */}
+                                    <div className="flex justify-center flex-col items-center">
                                         <span className={cn(
-                                            "inline-block px-3 py-1 rounded-lg text-[11px] font-black tracking-widest border shadow-sm",
-                                            g.currency === "USD" ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/50" : "bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 border-blue-100 dark:border-blue-900/50"
+                                            "px-2 py-0.5 rounded-md text-[11px] font-bold tracking-tight shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none",
+                                            g.currency === "USD"
+                                                ? "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400"
+                                                : "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400"
                                         )}>
                                             {g.currency === "USD" ? "$" : "៛"} {g.amount.toLocaleString()}
                                         </span>
                                     </div>
+
+                                    {/* Col 3: Method */}
+                                    <div className="flex items-center justify-end">
+                                        <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-tight bg-muted px-2 py-1 rounded-lg">
+                                            {g.method || "Cash"}
+                                        </span>
+                                    </div>
+
+                                    {/* Col 4: Time (Last position) */}
+                                    <div className="flex justify-end items-center">
+                                        <span className="text-[11px] font-bold text-muted-foreground font-kantumruy uppercase">
+                                            {new Date(g.createdAt).toLocaleTimeString("km-KH", { hour: '2-digit', minute: '2-digit', hour12: true })}
+                                        </span>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest bg-muted px-2 py-0.5 rounded-md border border-border/50">
-                                        {g.method || "Cash"}
-                                    </span>
-                                </div>
-                            </div>
-                        ))
+                            );
+                        })
+                    )}
+                    {sortedGifts.length > visibleCount && (
+                        <div className="pt-4 flex justify-center">
+                            <Button
+                                variant="outline"
+                                onClick={() => setVisibleCount(prev => prev + 50)}
+                                className="w-full h-12 rounded-2xl border-dashed border-2 border-border text-muted-foreground font-kantumruy font-bold hover:bg-muted/50"
+                            >
+                                <Plus size={16} className="mr-2" /> បង្ហាញបន្ថែម ({sortedGifts.length - visibleCount})
+                            </Button>
+                        </div>
                     )}
                 </div>
 
@@ -340,19 +383,19 @@ export default function GiftPage() {
                         </TableHeader>
                         <TableBody>
                             {/* Column Titles - First Page Only */}
-                            <TableRow className="border-border print:border-gray-200 hover:bg-transparent hidden print:table-row">
-                                <TableHead className="h-14 px-8 text-[10px] print:text-black font-black text-muted-foreground uppercase tracking-widest w-20 border-r border-border print:border-gray-200">ល.រ</TableHead>
-                                <TableHead className="h-14 px-8 text-[10px] print:text-black font-black text-muted-foreground uppercase tracking-widest border-r border-border print:border-gray-200">ឈ្មោះភ្ញៀវ</TableHead>
-                                <TableHead className="h-14 px-8 text-[10px] print:text-black font-black text-muted-foreground uppercase tracking-widest border-r border-border print:border-gray-200">ចំនួនទឹកប្រាក់</TableHead>
-                                <TableHead className="h-14 px-8 text-[10px] print:text-black font-black text-muted-foreground uppercase tracking-widest border-r border-border print:border-gray-200">វិធីសាស្ត្រ</TableHead>
+                            <TableRow className="border-none print:border-gray-200 hover:bg-transparent hidden print:table-row">
+                                <TableHead className="h-14 px-8 text-[10px] print:text-black font-black text-muted-foreground uppercase tracking-widest w-20 border-r border-none print:border-gray-200">ល.រ</TableHead>
+                                <TableHead className="h-14 px-8 text-[10px] print:text-black font-black text-muted-foreground uppercase tracking-widest border-none print:border-gray-200">ឈ្មោះភ្ញៀវ</TableHead>
+                                <TableHead className="h-14 px-8 text-[10px] print:text-black font-black text-muted-foreground uppercase tracking-widest border-none print:border-gray-200">ចំនួនទឹកប្រាក់</TableHead>
+                                <TableHead className="h-14 px-8 text-[10px] print:text-black font-black text-muted-foreground uppercase tracking-widest border-none print:border-gray-200">វិធីសាស្ត្រ</TableHead>
                                 <TableHead className="h-14 px-8 text-[10px] print:text-black font-black text-muted-foreground uppercase tracking-widest text-right">កាលបរិច្ឆេទ</TableHead>
                             </TableRow>
                             {/* Original Web Header Row (Hidden in Print) */}
-                            <TableRow className="border-border print:hidden hover:bg-transparent">
-                                <TableHead className="h-14 px-8 text-[10px] font-black text-muted-foreground uppercase tracking-widest w-20 border-r border-border">ល.រ</TableHead>
-                                <TableHead className="h-14 px-8 text-[10px] font-black text-muted-foreground uppercase tracking-widest border-r border-border">ឈ្មោះភ្ញៀវ</TableHead>
-                                <TableHead className="h-14 px-8 text-[10px] font-black text-muted-foreground uppercase tracking-widest border-r border-border">ចំនួនទឹកប្រាក់</TableHead>
-                                <TableHead className="h-14 px-8 text-[10px] font-black text-muted-foreground uppercase tracking-widest border-r border-border">វិធីសាស្ត្រ</TableHead>
+                            <TableRow className="border-none print:hidden hover:bg-transparent">
+                                <TableHead className="h-14 px-8 text-[10px] font-black text-muted-foreground uppercase tracking-widest w-20">ល.រ</TableHead>
+                                <TableHead className="h-14 px-8 text-[10px] font-black text-muted-foreground uppercase tracking-widest">ឈ្មោះភ្ញៀវ</TableHead>
+                                <TableHead className="h-14 px-8 text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center">ចំនួនទឹកប្រាក់</TableHead>
+                                <TableHead className="h-14 px-8 text-[10px] font-black text-muted-foreground uppercase tracking-widest">វិធីសាស្ត្រ</TableHead>
                                 <TableHead
                                     className="h-14 px-8 text-[10px] font-black text-muted-foreground uppercase tracking-widest text-right cursor-pointer hover:text-foreground transition-colors select-none group"
                                     onClick={toggleSort}
@@ -397,25 +440,25 @@ export default function GiftPage() {
                                         : sortedGifts.length - index;
 
                                     return (
-                                        <TableRow key={g.id} className="border-border print:border-gray-100 hover:bg-muted/50 transition-colors group">
-                                            <TableCell className="px-8 py-5 text-muted-foreground print:text-slate-900 font-bold font-mono text-[10px] border-r border-border print:border-gray-100">
+                                        <TableRow key={g.id} className="border-none print:border-gray-100 hover:bg-muted/50 transition-colors group">
+                                            <TableCell className="px-8 py-5 text-muted-foreground print:text-slate-900 font-bold font-mono text-[10px] print:border-r print:border-gray-100">
                                                 {String(index + 1).padStart(2, '0')}
                                             </TableCell>
-                                            <TableCell className="px-8 py-5 border-r border-border print:border-gray-100">
+                                            <TableCell className="px-8 py-5 print:border-r print:border-gray-100">
                                                 <span className="font-bold text-foreground font-kantumruy">
                                                     {g.guest?.name || <span className="text-muted-foreground/30 italic">មិនស្គាល់</span>}
                                                 </span>
                                             </TableCell>
-                                            <TableCell className="px-8 py-5 border-r border-border print:border-gray-100">
+                                            <TableCell className="px-8 py-5 print:border-r print:border-gray-100 text-center">
                                                 <span className={cn(
-                                                    "px-3 py-1 rounded-full text-[10px] font-black tracking-widest border shadow-sm print:shadow-none print:border-none print:p-0",
-                                                    g.currency === "USD" ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/50 print:bg-transparent print:text-slate-900" : "bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 border-blue-100 dark:border-blue-900/50 print:bg-transparent print:text-slate-900"
+                                                    "px-3 py-1 rounded-full text-[10px] font-black tracking-widest shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none print:shadow-none print:bg-transparent print:text-slate-900",
+                                                    g.currency === "USD" ? "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400" : "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400"
                                                 )}>
                                                     {g.currency === "USD" ? "$" : "៛"} {g.amount.toLocaleString()}
                                                 </span>
                                             </TableCell>
-                                            <TableCell className="px-8 py-5 border-r border-border print:border-gray-100">
-                                                <span className="text-[10px] font-bold text-muted-foreground print:text-slate-900 uppercase tracking-widest bg-muted print:bg-transparent px-3 py-1 rounded-lg border border-border/50">
+                                            <TableCell className="px-8 py-5 print:border-r print:border-gray-100">
+                                                <span className="text-[10px] font-bold text-muted-foreground print:text-slate-900 uppercase tracking-widest bg-muted print:bg-transparent px-3 py-1 rounded-lg">
                                                     {g.method || "Cash"}
                                                 </span>
                                             </TableCell>
@@ -435,6 +478,17 @@ export default function GiftPage() {
                             )}
                         </TableBody>
                     </Table>
+                    {sortedGifts.length > visibleCount && (
+                        <div className="p-6 border-t border-border flex justify-center print:hidden">
+                            <Button
+                                variant="outline"
+                                onClick={() => setVisibleCount(prev => prev + 50)}
+                                className="w-full max-w-xs h-12 rounded-2xl border-dashed border-2 border-border text-muted-foreground font-kantumruy font-bold hover:bg-muted/50"
+                            >
+                                <Plus size={16} className="mr-2" /> បង្ហាញបន្ថែម ({sortedGifts.length - visibleCount})
+                            </Button>
+                        </div>
+                    )}
                 </div>
             </div>
             {/* --- PRINT ONLY FOOTER --- */}
@@ -465,7 +519,7 @@ export default function GiftPage() {
                             <Plus size={28} strokeWidth={3} />
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="w-[94vw] max-w-[480px] rounded-[2.5rem] border-none shadow-2xl p-6 pt-12 bg-card">
+                    <DialogContent className="w-[94vw] max-w-[480px] rounded-3xl border-none shadow-2xl p-4 pt-10 bg-card">
                         <VisuallyHidden.Root>
                             <DialogTitle>កត់ត្រាចំណងដៃថ្មី (Add New Gift - Mobile)</DialogTitle>
                             <DialogDescription>

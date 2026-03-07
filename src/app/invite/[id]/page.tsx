@@ -8,37 +8,42 @@ import KhmerLegacy from "@/components/templates/KhmerLegacy";
 
 // Removed conflicting force-dynamic, letting Next.js auto-detect dynamic from searchParams
 
-async function getWedding(id: string) {
-    const wedding = await prisma.wedding.findUnique({
-        where: { id },
-        include: {
-            activities: {
-                orderBy: { order: 'asc' }
-            },
-            galleryItems: {
-                orderBy: { createdAt: 'desc' },
-                take: 8 // Fetch more for full template
+import { unstable_cache } from "next/cache";
+
+const getWedding = unstable_cache(
+    async (id: string) => {
+        const wedding = await prisma.wedding.findUnique({
+            where: { id },
+            include: {
+                activities: {
+                    orderBy: { order: 'asc' }
+                },
+                galleryItems: {
+                    orderBy: { createdAt: 'desc' },
+                    take: 24
+                }
             }
+        });
+
+        if (!wedding) return null;
+
+        // Parse themeSettings if it's a string
+        let themeSettings = {};
+        if (wedding.themeSettings && typeof wedding.themeSettings === 'string') {
+            try {
+                themeSettings = JSON.parse(wedding.themeSettings);
+            } catch (e) {
+                console.error("Failed to parse themeSettings", e);
+            }
+        } else if (typeof wedding.themeSettings === 'object') {
+            themeSettings = wedding.themeSettings || {};
         }
 
-    });
-
-    if (!wedding) return null;
-
-    // Parse themeSettings if it's a string
-    let themeSettings = {};
-    if (wedding.themeSettings && typeof wedding.themeSettings === 'string') {
-        try {
-            themeSettings = JSON.parse(wedding.themeSettings);
-        } catch (e) {
-            console.error("Failed to parse themeSettings", e);
-        }
-    } else if (typeof wedding.themeSettings === 'object') {
-        themeSettings = wedding.themeSettings || {};
-    }
-
-    return { ...wedding, themeSettings } as unknown as WeddingData;
-}
+        return { ...wedding, themeSettings } as unknown as WeddingData;
+    },
+    ['wedding-invite'],
+    { revalidate: 3600 }
+);
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
     const wedding = await getWedding(params.id);

@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useState } from "react";
 import Link from "next/link";
-import { Mail, ArrowLeft, Loader2 } from "lucide-react";
+import { Mail, ArrowLeft, Loader2, ChevronLeft } from "lucide-react";
 import { m, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
+import dynamic from "next/dynamic";
+const Turnstile = dynamic(() => import("@marsidev/react-turnstile").then(mod => mod.Turnstile), { ssr: false });
 
 const formSchema = z.object({
     email: z.string().email({ message: "សូមបញ្ចូលអ៊ីមែលដែលត្រឹមត្រូវ (Invalid email)" }),
@@ -27,6 +29,7 @@ export default function ForgotPasswordPage() {
     const [error, setError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [turnstileToken, setTurnstileToken] = useState("");
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -42,7 +45,10 @@ export default function ForgotPasswordPage() {
             const res = await fetch("/api/auth/forgot-password", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: values.email }),
+                body: JSON.stringify({
+                    email: values.email,
+                    turnstileToken
+                }),
             });
 
             if (res.ok) {
@@ -64,7 +70,7 @@ export default function ForgotPasswordPage() {
     }
 
     return (
-        <div className="min-h-screen w-full relative flex items-center justify-center overflow-hidden bg-black">
+        <div className="min-h-screen w-full relative flex items-center justify-center bg-black py-10">
             {/* Background Image with Overlay */}
             <div className="absolute inset-0 z-0">
                 <div
@@ -79,9 +85,17 @@ export default function ForgotPasswordPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
-                className="relative z-10 w-full max-w-md p-6"
+                className="relative z-10 w-full max-w-md p-4 md:p-6"
             >
-                <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+                <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
+                    {/* Back Button */}
+                    <Link
+                        href="/login"
+                        className="absolute left-6 top-6 text-white/40 hover:text-white transition-colors group flex items-center gap-1 text-[10px] font-black uppercase tracking-widest z-20"
+                    >
+                        <ChevronLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" /> ត្រឡប់
+                    </Link>
+
                     {/* Header */}
                     <div className="text-center mb-8">
                         <Link href="/" className="inline-flex justify-center">
@@ -110,6 +124,14 @@ export default function ForgotPasswordPage() {
                                 )}
                             />
 
+                            <div className="flex justify-center my-4 scale-90 xs:scale-100 origin-center">
+                                <Turnstile
+                                    siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA"}
+                                    onSuccess={setToken => setTurnstileToken(setToken)}
+                                    options={{ theme: 'dark' }}
+                                />
+                            </div>
+
                             <AnimatePresence>
                                 {error && (
                                     <m.div
@@ -133,7 +155,7 @@ export default function ForgotPasswordPage() {
                                 )}
                             </AnimatePresence>
 
-                            <Button type="submit" disabled={isLoading || !!successMessage} className="w-full bg-gradient-to-r from-pink-500 to-rose-600 rounded-xl font-bold uppercase tracking-wide h-11 border border-white/10 hover:shadow-lg hover:shadow-pink-500/20 transition-all mt-6 text-white text-sm">
+                            <Button type="submit" disabled={isLoading || !!successMessage || !turnstileToken} className="w-full bg-gradient-to-r from-pink-500 to-rose-600 rounded-xl font-bold uppercase tracking-wide h-11 border border-white/10 hover:shadow-lg hover:shadow-pink-500/20 transition-all mt-6 text-white text-sm">
                                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "ផ្ញើតំណភ្ជាប់"}
                             </Button>
                         </form>
@@ -156,10 +178,6 @@ export default function ForgotPasswordPage() {
                         </Link>
                     </div>
 
-                    {/* Bottom Branding */}
-                    <div className="text-center mt-6 opacity-30">
-                        <MoneaLogo size="sm" variant="dark" className="justify-center grayscale" />
-                    </div>
                 </div>
             </m.div>
         </div>

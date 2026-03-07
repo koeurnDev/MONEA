@@ -2,13 +2,24 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useState, useEffect } from "react";
 import { m, useScroll, useTransform } from 'framer-motion';
 import { Star, ArrowRight } from "lucide-react";
 
 export function Hero() {
     const { scrollY } = useScroll();
-    const y = useTransform(scrollY, [0, 1000], [0, 200]);
-    const opacity = useTransform(scrollY, [0, 500], [1, 0.2]);
+    const yParallax = useTransform(scrollY, [0, 1000], [0, 200]);
+    const yMobileParallax = useTransform(scrollY, [0, 500], [0, 50]);
+    const opacityParallax = useTransform(scrollY, [0, 500], [1, 0.2]);
+
+    // Use a state to check if we are on mobile to disable parallax
+    const [isMobile, setIsMobile] = useState(false);
+    useEffect(() => {
+        setIsMobile(window.innerWidth < 768);
+    }, []);
+
+    const y = isMobile ? yMobileParallax : yParallax;
+    const opacity = isMobile ? 0.6 : opacityParallax;
 
     return (
         <section className="relative min-h-[100dvh] w-full flex items-center justify-center overflow-hidden bg-white dark:bg-black pb-20 pt-32">
@@ -19,7 +30,7 @@ export function Hero() {
                     alt="Wedding Tunnel"
                     fill
                     sizes="100vw"
-                    className="object-cover opacity-20 dark:opacity-40 scale-[1.15] will-change-transform"
+                    className="object-cover opacity-20 dark:opacity-40 scale-[1.1] will-change-transform"
                     priority
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-white via-white/70 to-white/90 dark:from-black dark:via-black/70 dark:to-black/90" />
@@ -33,9 +44,9 @@ export function Hero() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.2 }}
                 >
-                    <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/40 dark:bg-black/40 backdrop-blur-md border border-slate-200 dark:border-white/10 mb-10 group cursor-default">
+                    <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/60 dark:bg-black/60 sm:backdrop-blur-md border border-slate-200 dark:border-white/10 mb-10 group cursor-default">
                         <Star className="w-4 h-4 text-emerald-600 dark:text-emerald-400 fill-emerald-600 dark:fill-emerald-400 group-hover:rotate-180 transition-transform duration-700" />
-                        <span className="text-slate-800 dark:text-white/80 text-[11px] md:text-sm font-kantumruy font-medium tracking-widest uppercase mt-0.5">
+                        <span className="text-slate-800 dark:text-white/80 text-[10px] sm:text-sm font-kantumruy font-medium tracking-widest uppercase mt-0.5 whitespace-nowrap">
                             MONEA Digital : ជំនាន់ថ្មីនៃសិរីមង្គល
                         </span>
                     </div>
@@ -45,12 +56,12 @@ export function Hero() {
                     initial={{ opacity: 0, scale: 0.95, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                    className="flex flex-row flex-wrap items-center justify-center gap-x-2 md:gap-x-4 mb-8 drop-shadow-2xl overflow-visible px-4"
+                    className="flex flex-col md:flex-row flex-wrap items-center justify-center gap-y-1 md:gap-x-4 mb-10 drop-shadow-2xl overflow-visible px-4"
                 >
-                    <span className="text-4xl md:text-[5rem] lg:text-[7rem] font-bold font-kantumruy text-slate-900 dark:text-white leading-normal tracking-tight drop-shadow-sm dark:drop-shadow-[0_4px_30px_rgba(0,0,0,0.8)] overflow-visible">
+                    <span className="text-2xl xs:text-3xl sm:text-4xl md:text-[5rem] lg:text-[7rem] font-bold font-kantumruy text-slate-900 dark:text-white leading-tight md:leading-normal tracking-tight drop-shadow-sm dark:drop-shadow-[0_4px_30px_rgba(0,0,0,0.8)] overflow-visible">
                         សិរីមង្គល
                     </span>
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 dark:from-pink-200 dark:via-white dark:to-pink-200 font-bold font-kantumruy text-3xl md:text-[4rem] lg:text-[6rem] leading-normal tracking-normal drop-shadow-sm dark:drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)] overflow-visible">
+                    <span className="text-lg xs:text-xl sm:text-2xl md:text-[4rem] lg:text-[6rem] text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 dark:from-pink-200 dark:via-white dark:to-pink-200 font-bold font-kantumruy leading-tight md:leading-normal tracking-normal drop-shadow-sm dark:drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)] overflow-visible">
                         ក្នុងដៃរបស់អ្នក
                     </span>
                 </m.h1>
@@ -59,7 +70,7 @@ export function Hero() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.5 }}
-                    className="text-slate-700 dark:text-white/90 text-lg md:text-xl font-kantumruy max-w-2xl mx-auto mb-14 mt-4 leading-[1.8] font-medium px-4 md:px-0 drop-shadow-sm"
+                    className="text-slate-700 dark:text-white/90 text-[15px] sm:text-lg md:text-xl font-kantumruy max-w-2xl mx-auto mb-14 leading-[1.8] font-medium px-4 md:px-0 drop-shadow-sm"
                 >
                     បង្កើតធៀបអញ្ជើញឌីជីថលដ៏ប្រណីត គ្រប់គ្រងបញ្ជីឈ្មោះភ្ញៀវ និងទទួលពរជ័យ ព្រមទាំងចំណងដៃ ក្នុងវេទិកាតែមួយប្រកបដោយសុវត្ថិភាព។
                 </m.p>
@@ -68,15 +79,15 @@ export function Hero() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.6 }}
-                    className="flex flex-col sm:flex-row items-center justify-center gap-6 w-full px-6 md:px-0"
+                    className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 w-full px-6 md:px-0"
                 >
-                    <Link href="/register" className="group relative flex h-16 w-full sm:w-[280px] items-center justify-center overflow-hidden rounded-full bg-slate-900 dark:bg-white text-white dark:text-black transition-all duration-300 hover:scale-105 shadow-xl dark:shadow-[0_0_30px_rgba(255,255,255,0.15)] hover:shadow-2xl dark:hover:shadow-[0_0_40px_rgba(255,255,255,0.3)]">
+                    <Link href="/register" className="group relative flex h-14 md:h-16 px-10 md:px-16 items-center justify-center overflow-hidden rounded-full bg-slate-900 dark:bg-white text-white dark:text-black transition-all duration-300 hover:scale-105 shadow-xl dark:shadow-[0_0_30px_rgba(255,255,255,0.15)] hover:shadow-2xl dark:hover:shadow-[0_0_40px_rgba(255,255,255,0.3)]">
                         <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-pink-500 to-rose-500 dark:from-pink-100 dark:to-white opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                        <span className="font-kantumruy text-lg font-bold relative z-10 pt-1">ចាប់ផ្តើមបង្កើតឥឡូវនេះ</span>
-                        <ArrowRight className="ml-3 w-5 h-5 group-hover:translate-x-2 transition-transform duration-300 relative z-10" />
+                        <span className="font-kantumruy text-sm sm:text-base md:text-lg font-bold relative z-10 pt-1 flex items-center justify-center">ចុះឈ្មោះឥឡូវនេះ</span>
+                        <ArrowRight className="ml-3 w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-2 transition-transform duration-300 relative z-10" />
                     </Link>
-                    <Link href="#templates" className="flex h-16 w-full sm:w-[200px] items-center justify-center rounded-full border border-slate-200 dark:border-white/20 bg-white/40 dark:bg-black/40 backdrop-blur-md text-slate-800 dark:text-white/80 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/10 font-kantumruy text-lg transition-all duration-300 shadow-sm">
-                        <span className="pt-1">មើលពុម្ពគំរូ</span>
+                    <Link href="#templates" className="flex h-14 md:h-16 px-10 md:px-14 items-center justify-center rounded-full border border-slate-200 dark:border-white/20 bg-white/60 dark:bg-black/60 sm:backdrop-blur-md text-slate-800 dark:text-white/80 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/10 font-kantumruy text-sm md:text-lg transition-all duration-300 shadow-sm">
+                        <span className="pt-1 flex items-center justify-center">មើលពុម្ពគំរូ</span>
                     </Link>
                 </m.div>
             </div>

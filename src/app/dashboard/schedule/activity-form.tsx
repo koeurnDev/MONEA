@@ -62,7 +62,7 @@ export function ActivityForm({ onSuccess, initialData }: { onSuccess: () => void
                             <FormItem className="w-1/3">
                                 <FormLabel>ម៉ោង</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="07:00 ព្រឹក" {...field} />
+                                    <Input placeholder="07:00 ព្រឹក" {...field} className="h-11 rounded-xl bg-muted border-none shadow-sm focus-visible:ring-red-500" />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -75,7 +75,7 @@ export function ActivityForm({ onSuccess, initialData }: { onSuccess: () => void
                             <FormItem className="w-2/3">
                                 <FormLabel>ចំណងជើងសកម្មភាព</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="ពិធីហែជំនូន" {...field} />
+                                    <Input placeholder="ពិធីហែជំនូន" {...field} className="h-11 rounded-xl bg-muted border-none shadow-sm focus-visible:ring-red-500" />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -90,13 +90,13 @@ export function ActivityForm({ onSuccess, initialData }: { onSuccess: () => void
                         <FormItem>
                             <FormLabel>ការពិពណ៌នា (ស្របចិត្ត)</FormLabel>
                             <FormControl>
-                                <Textarea placeholder="ព័ត៌មានលម្អិតអំពីសកម្មភាពនេះ..." {...field} />
+                                <Textarea placeholder="ព័ត៌មានលម្អិតអំពីសកម្មភាពនេះ..." {...field} className="rounded-xl bg-muted border-none shadow-sm min-h-[100px] focus-visible:ring-red-500" />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
-                <Button type="submit" disabled={loading} className="w-full h-12 text-lg">
+                <Button type="submit" disabled={loading} className="w-full h-12 text-lg rounded-xl bg-red-600 hover:bg-red-700 shadow-md font-bold font-kantumruy">
                     {loading ? "កំពុងរក្សាទុក..." : initialData ? "កែប្រែសកម្មភាព" : "បន្ថែមសកម្មភាព"}
                 </Button>
             </form>

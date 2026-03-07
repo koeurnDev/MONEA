@@ -32,7 +32,10 @@ export default function VIPPremiumKhmer({ wedding, guestName }: { wedding: Weddi
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
     useEffect(() => {
-        setSparkles([...Array(12)].map((_, i) => ({
+        const isMob = window.innerWidth < 768;
+        setIsMobile(isMob);
+
+        setSparkles([...Array(isMob ? 4 : 12)].map((_, i) => ({
             id: i,
             delay: Math.random() * 5,
             size: Math.random() * 2 + 1,
@@ -59,30 +62,34 @@ export default function VIPPremiumKhmer({ wedding, guestName }: { wedding: Weddi
     const { scrollY, scrollYProgress } = useScroll();
 
     // Cinematic Parallax Effects
-    const heroScale = useTransform(scrollYProgress, [0, 0.2], [1.05, 1.15]);
-    const heroOpacity = useTransform(scrollYProgress, [0, 0.3], [1, 0.3]);
-    const overlayOpacity = useTransform(scrollYProgress, [0, 0.3], [0.3, 0.8]);
-    const textY = useTransform(scrollY, [0, 500], [0, 150]);
-    const textOpacity = useTransform(scrollY, [0, 300], [1, 0]);
+    const heroScaleParallax = useTransform(scrollYProgress, [0, 0.2], [1.05, 1.15]);
+    const heroOpacityParallax = useTransform(scrollYProgress, [0, 0.3], [1, 0.3]);
+    const overlayOpacityParallax = useTransform(scrollYProgress, [0, 0.3], [0.3, 0.8]);
+    const textYParallax = useTransform(scrollY, [0, 500], [0, 150]);
+    const textOpacityParallax = useTransform(scrollY, [0, 300], [1, 0]);
 
-    // Audio Logic
+    const [isMobile, setIsMobile] = useState(false);
+    useEffect(() => {
+        setIsMobile(window.innerWidth < 768);
+    }, []);
+
+    const heroScale = isMobile ? 1.05 : heroScaleParallax;
+    const heroOpacity = isMobile ? 0.6 : heroOpacityParallax;
+    const overlayOpacity = isMobile ? 0.4 : overlayOpacityParallax;
+    const textY = isMobile ? 0 : textYParallax;
+    const textOpacity = isMobile ? 1 : textOpacityParallax;
+
+    // Audio Logic - Optimized for Mobile (No heavy intervals)
     useEffect(() => {
         if (!musicUrl || !audioRef.current) return;
+
         if (isPlaying) {
-            audioRef.current.volume = 0;
-            audioRef.current.play().then(() => {
-                let vol = 0;
-                const interval = setInterval(() => {
-                    if (vol < 0.6) { vol += 0.05; if (audioRef.current) audioRef.current.volume = vol; }
-                    else { clearInterval(interval); }
-                }, 100);
-            }).catch(() => { });
+            audioRef.current.volume = 0.6;
+            audioRef.current.play().catch(() => {
+                setIsPlaying(false);
+            });
         } else {
-            let vol = audioRef.current.volume;
-            const interval = setInterval(() => {
-                if (vol > 0.05) { vol -= 0.05; if (audioRef.current) audioRef.current.volume = vol; }
-                else { if (audioRef.current) audioRef.current.pause(); clearInterval(interval); }
-            }, 50);
+            audioRef.current.pause();
         }
     }, [isPlaying, musicUrl]);
 
@@ -103,12 +110,19 @@ export default function VIPPremiumKhmer({ wedding, guestName }: { wedding: Weddi
                 .font-khmer-moul { font-family: var(--font-moul), serif; }
                 
                 .vip-glass {
-                    background: rgba(20, 20, 20, 0.4);
-                    backdrop-filter: blur(8px);
-                    -webkit-backdrop-filter: blur(8px);
+                    background: rgba(18, 18, 18, 0.7);
                     border: 1px solid rgba(212, 175, 55, 0.15);
-                    box-shadow: 0 30px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
-                    will-change: transform, backdrop-filter;
+                    box-shadow: 0 30px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+                    will-change: transform;
+                }
+
+                @media (min-width: 768px) {
+                    .vip-glass {
+                        background: rgba(20, 20, 20, 0.4);
+                        backdrop-filter: blur(8px);
+                        -webkit-backdrop-filter: blur(8px);
+                        will-change: transform, backdrop-filter;
+                    }
                 }
                 
                 .gold-text-gradient {
@@ -148,7 +162,7 @@ export default function VIPPremiumKhmer({ wedding, guestName }: { wedding: Weddi
             )}
 
             {/* VIP HERO SECTION */}
-            <section id="hero" className="relative h-screen w-full flex flex-col justify-end p-8 md:p-16 z-10 overflow-hidden">
+            <section id="hero" className="relative min-h-screen w-full flex flex-col justify-end p-4 md:p-16 z-10 overflow-hidden py-20">
                 <m.div
                     style={{ opacity: heroOpacity, scale: heroScale }}
                     className="absolute inset-0 z-0 cursor-move active:cursor-grabbing"
@@ -172,7 +186,7 @@ export default function VIPPremiumKhmer({ wedding, guestName }: { wedding: Weddi
                             />
                         </div>
                     ) : (
-                        heroImage.startsWith('http') || heroImage.startsWith('/') ? (
+                        heroImage.startsWith('/') ? (
                             <img
                                 src={heroImage}
                                 alt="Cover"
@@ -224,7 +238,7 @@ export default function VIPPremiumKhmer({ wedding, guestName }: { wedding: Weddi
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-                        className="vip-glass px-10 py-12 md:px-16 md:py-16 rounded-[2rem] w-full"
+                        className="vip-glass px-6 py-10 md:px-16 md:py-16 rounded-[2rem] w-full"
                     >
                         {guestName && (
                             <div className="mb-8 space-y-3">
@@ -232,16 +246,16 @@ export default function VIPPremiumKhmer({ wedding, guestName }: { wedding: Weddi
                                     initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 1, delay: 0.5 }}
                                     className="h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37] to-transparent mx-auto"
                                 />
-                                <p className="text-[9px] uppercase tracking-[0.6em] text-[#D4AF37]/80 font-bold">VIP Guest</p>
-                                <p className="font-khmer-moul text-xl md:text-2xl text-white drop-shadow-lg">គោរពអញ្ជើញ {guestName}</p>
+                                <p className="text-[10px] uppercase tracking-[0.6em] text-[#D4AF37]/80 font-bold">VIP Guest</p>
+                                <p className="font-khmer-moul text-lg md:text-2xl text-white drop-shadow-lg">គោរពអញ្ជើញ {guestName}</p>
                             </div>
                         )}
 
-                        <p className="font-vip-serif italic text-2xl md:text-3xl text-[#D4AF37]/80 mb-6 font-light">
+                        <p className="font-vip-serif italic text-xl md:text-3xl text-[#D4AF37]/80 mb-6 font-light">
                             {wedding.eventType === 'anniversary' ? 'To the celebration of our Anniversary' : 'To witness the union of'}
                         </p>
 
-                        <h1 className="font-vip-heading text-4xl md:text-8xl leading-none tracking-widest uppercase mb-4 drop-shadow-[0_0_20px_rgba(212,175,55,0.3)]">
+                        <h1 className="font-vip-heading text-xl xs:text-2xl sm:text-3xl md:text-8xl leading-none tracking-widest uppercase mb-4 drop-shadow-[0_0_20px_rgba(212,175,55,0.3)]">
                             <span className="block mb-1 md:mb-2 text-white">{wedding.groomName}</span>
                             <span className="block text-lg md:text-3xl my-3 md:my-6 font-vip-serif italic text-[#D4AF37] lowercase">and</span>
                             <span className="block text-white">{wedding.brideName}</span>
@@ -249,7 +263,7 @@ export default function VIPPremiumKhmer({ wedding, guestName }: { wedding: Weddi
 
                         <div className="mt-6 md:mt-12 flex items-center justify-center gap-4 md:gap-6">
                             <m.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 1, delay: 1 }} className="h-[1px] bg-[#D4AF37]/40 w-10 md:w-20 origin-left" />
-                            <span className="text-[8px] md:text-xs uppercase tracking-[0.3em] md:tracking-[0.5em] text-[#D4AF37] font-bold">
+                            <span className="text-[10px] md:text-xs uppercase tracking-[0.3em] md:tracking-[0.5em] text-[#D4AF37] font-bold">
                                 {new Date(wedding.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                             </span>
                             <m.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 1, delay: 1 }} className="h-[1px] bg-[#D4AF37]/40 w-10 md:w-20 origin-right" />
@@ -266,7 +280,7 @@ export default function VIPPremiumKhmer({ wedding, guestName }: { wedding: Weddi
                     <RevealSection>
                         <div className="space-y-6">
                             <span className="text-[10px] tracking-[0.5em] uppercase text-[#D4AF37] font-bold">The Royal Beginning</span>
-                            <h2 className="font-vip-heading text-4xl md:text-6xl text-white leading-tight">
+                            <h2 className="font-vip-heading text-2xl xs:text-3xl md:text-6xl text-white leading-tight">
                                 A Love Written in <br /><span className="gold-text-gradient">The Stars</span>
                             </h2>
                         </div>
@@ -296,19 +310,19 @@ export default function VIPPremiumKhmer({ wedding, guestName }: { wedding: Weddi
                     </div>
                 </RevealSection>
 
-                <div className="max-w-6xl mx-auto grid grid-cols-3 gap-3 md:gap-12">
+                <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-12">
                     {[
-                        { icon: Calendar, label: "DATE", value: new Date(wedding.date).toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric' }) },
+                        { icon: Calendar, label: "DATE", value: new Date(wedding.date).toLocaleDateString('km-KH', { weekday: 'short', month: 'short', day: 'numeric' }) },
                         { icon: Clock, label: "TIME", value: "07AM-10PM" },
-                        { icon: MapPin, label: "LOCATION", value: wedding.location }
+                        { icon: MapPin, label: "LOCATION", value: wedding.location || "Phnom Penh" }
                     ].map((item, i) => (
                         <RevealSection key={i} delay={i * 0.15}>
                             <div className="vip-glass p-4 md:p-10 rounded-2xl md:rounded-[2rem] text-center group hover:-translate-y-2 transition-transform duration-500 h-full flex flex-col items-center justify-center">
                                 <div className="mx-auto w-8 h-8 md:w-16 md:h-16 rounded-full border border-[#D4AF37]/30 flex items-center justify-center text-[#D4AF37] mb-3 md:mb-8 bg-[#D4AF37]/5 group-hover:bg-[#D4AF37]/20 transition-colors duration-500">
                                     <item.icon size={14} className="group-hover:scale-110 transition-transform duration-500 md:w-6 md:h-6" />
                                 </div>
-                                <span className="block text-[6px] md:text-[10px] tracking-[0.2em] md:tracking-[0.4em] font-bold text-gray-500 mb-2 md:mb-4">{item.label}</span>
-                                <p className="font-vip-heading text-[8px] md:text-xl text-white truncate w-full">{item.value}</p>
+                                <span className="block text-[8px] md:text-[10px] tracking-[0.2em] md:tracking-[0.4em] font-bold text-gray-500 mb-2 md:mb-4">{item.label}</span>
+                                <p className="font-vip-heading text-sm md:text-xl text-white truncate w-full">{item.value}</p>
                             </div>
                         </RevealSection>
                     ))}
@@ -333,13 +347,13 @@ export default function VIPPremiumKhmer({ wedding, guestName }: { wedding: Weddi
                         <h2 className="font-vip-heading text-4xl mt-4 text-white">របៀបវារៈកម្មវិធី</h2>
                     </div>
                 </RevealSection>
-                <div className="grid grid-cols-2 gap-3 md:gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                     {(wedding.activities || []).map((item, idx) => (
                         <RevealSection key={idx} delay={idx * 0.1}>
                             <div className="vip-glass p-4 md:p-8 rounded-2xl md:rounded-3xl flex flex-col justify-center h-full group hover:border-[#D4AF37]/50 transition-colors">
                                 <span className="font-vip-serif text-lg md:text-3xl text-[#D4AF37] mb-2 md:mb-4 group-hover:scale-105 origin-left transition-transform">{item.time}</span>
-                                <h3 className="font-khmer-moul text-[10px] md:text-xl text-white mb-1 md:mb-2 leading-relaxed">{item.title}</h3>
-                                <p className="text-gray-400 font-light text-[8px] md:text-sm leading-relaxed line-clamp-2 md:line-clamp-none">{item.description}</p>
+                                <h3 className="font-khmer-moul text-xs md:text-xl text-white mb-1 md:mb-2 leading-relaxed">{item.title}</h3>
+                                <p className="text-gray-400 font-light text-[10px] md:text-sm leading-relaxed line-clamp-2 md:line-clamp-none">{item.description}</p>
                             </div>
                         </RevealSection>
                     ))}
@@ -378,10 +392,10 @@ export default function VIPPremiumKhmer({ wedding, guestName }: { wedding: Weddi
                         <a
                             href={wedding.themeSettings?.mapLink || "#"}
                             target="_blank"
-                            className="inline-flex items-center gap-6 px-12 py-5 vip-glass hover:bg-[#D4AF37] border-[#D4AF37]/50 hover:border-[#D4AF37] text-white hover:text-black transition-all duration-500 group rounded-full"
+                            className="inline-flex items-center gap-4 md:gap-6 px-8 md:px-12 py-3.5 md:py-5 vip-glass hover:bg-[#D4AF37] border-[#D4AF37]/50 hover:border-[#D4AF37] text-white hover:text-black transition-all duration-500 group rounded-full"
                         >
-                            <span className="uppercase tracking-[0.3em] text-xs font-bold">Get VIP Directions</span>
-                            <ArrowRight className="group-hover:translate-x-2 transition-transform" size={18} />
+                            <span className="uppercase tracking-[0.2em] md:tracking-[0.3em] text-[10px] md:text-xs font-bold">Get VIP Directions</span>
+                            <ArrowRight className="group-hover:translate-x-2 transition-transform w-4 h-4 md:w-[18px] md:h-[18px]" />
                         </a>
                     </RevealSection>
 

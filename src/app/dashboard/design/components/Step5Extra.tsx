@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DebouncedInput } from "@/components/ui/debounced-input";
+import { DebouncedTextarea } from "@/components/ui/debounced-textarea";
 import { Switch } from "@/components/ui/switch";
 import ImageUpload from "@/components/ui/image-upload-widget";
 import { Palette, Heart, CreditCard, Type, Clock, Sparkles, Loader2, Save, X, RotateCcw, Trash2, Plus, BookOpen, MessageSquare, Eye, Facebook, Send } from "lucide-react";
@@ -31,7 +32,7 @@ interface Step5ExtraProps {
 }
 
 const AccordionItem = ({ icon: Icon, title, subtitle, children, isOpen, onClick }: any) => (
-    <div className="border border-border rounded-2xl overflow-hidden bg-card shadow-sm hover:shadow-md transition-all">
+    <div className="rounded-2xl overflow-hidden bg-card shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-all">
         <button
             onClick={onClick}
             className="w-full flex items-center justify-between p-4 text-left hover:bg-muted/50 transition-colors"
@@ -58,7 +59,7 @@ const AccordionItem = ({ icon: Icon, title, subtitle, children, isOpen, onClick 
                     exit={{ height: 0, opacity: 0 }}
                     className="overflow-hidden"
                 >
-                    <div className="p-4 pt-0 border-t border-border">
+                    <div className="p-4 pt-0">
                         {children}
                     </div>
                 </m.div>
@@ -91,7 +92,7 @@ const Step5Extra: React.FC<Step5ExtraProps> = ({
 }) => {
     return (
         <div className="space-y-4 pb-10 font-khmer">
-            <div className="bg-muted/50 border border-border p-4 rounded-xl mb-4">
+            <div className="bg-muted/40 p-4 rounded-xl mb-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)] dark:shadow-none">
                 <h3 className="text-sm font-bold text-foreground font-kantumruy mb-1">ជំហានទី៥៖ ព័ត៌មានបន្ថែម (Extra Settings)</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">រៀបចំពណ៌ចម្បង, ព័ត៌មានគ្រួសារមាតាបិតា, ប្រវត្តិស្នេហា, បណ្ដាញសង្គមរាង និងគណនីធនាគារ (កាត់ចំណងដៃ)។</p>
             </div>
@@ -118,10 +119,10 @@ const Step5Extra: React.FC<Step5ExtraProps> = ({
                                         style={{ backgroundColor: color }}
                                     />
                                 ))}
-                                <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-border">
+                                <div className="relative w-10 h-10 rounded-full overflow-hidden shadow-inner">
                                     <DebouncedInput
                                         type="color"
-                                        className="absolute -top-2 -left-2 w-16 h-16 cursor-pointer"
+                                        className="absolute -top-2 -left-2 w-16 h-16 cursor-pointer border-none"
                                         value={wedding.themeSettings?.primaryColor || "#8E5A5A"}
                                         onDebouncedChange={(val) => updateTheme('primaryColor', val as string)}
                                     />
@@ -145,21 +146,21 @@ const Step5Extra: React.FC<Step5ExtraProps> = ({
                                 <h4 className="text-[11px] font-bold text-foreground uppercase">ខាងកូនប្រុស</h4>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <Input placeholder="ឈ្មោះឪពុក" className="h-11 rounded-xl bg-muted border-border" value={wedding.themeSettings?.parents?.groomFather || ""} onChange={(e) => updateParent('groomFather', e.target.value)} />
-                                <Input placeholder="ឈ្មោះម្តាយ" className="h-11 rounded-xl bg-muted border-border" value={wedding.themeSettings?.parents?.groomMother || ""} onChange={(e) => updateParent('groomMother', e.target.value)} />
+                                <DebouncedInput placeholder="ឈ្មោះឪពុក" className="h-11 rounded-xl bg-muted border-none shadow-sm" value={wedding.themeSettings?.parents?.groomFather || ""} onDebouncedChange={(val) => updateParent('groomFather', val as string)} />
+                                <DebouncedInput placeholder="ឈ្មោះម្តាយ" className="h-11 rounded-xl bg-muted border-none shadow-sm" value={wedding.themeSettings?.parents?.groomMother || ""} onDebouncedChange={(val) => updateParent('groomMother', val as string)} />
                             </div>
-                            <Input placeholder="លេខទូរស័ព្ទ (សម្រាប់ភ្ញៀវទាក់ទង)" className="h-11 rounded-xl bg-muted border-border" value={wedding.themeSettings?.parents?.groomPhone || ""} onChange={(e) => updateParent('groomPhone', e.target.value)} />
+                            <DebouncedInput placeholder="លេខទូរស័ព្ទ (សម្រាប់ភ្ញៀវទាក់ទង)" className="h-11 rounded-xl bg-muted border-none shadow-sm" value={wedding.themeSettings?.parents?.groomPhone || ""} onDebouncedChange={(val) => updateParent('groomPhone', val as string)} />
                         </div>
-                        <div className="space-y-4 pt-2 border-t border-border">
+                        <div className="space-y-4 pt-2 shadow-inner bg-muted/20 p-4 rounded-xl">
                             <div className="flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-teal-500"></span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-red-600"></span>
                                 <h4 className="text-[11px] font-bold text-foreground uppercase">ខាងកូនស្រី</h4>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <Input placeholder="ឈ្មោះឪពុក" className="h-11 rounded-xl bg-muted border-border" value={wedding.themeSettings?.parents?.brideFather || ""} onChange={(e) => updateParent('brideFather', e.target.value)} />
-                                <Input placeholder="ឈ្មោះម្តាយ" className="h-11 rounded-xl bg-muted border-border" value={wedding.themeSettings?.parents?.brideMother || ""} onChange={(e) => updateParent('brideMother', e.target.value)} />
+                                <DebouncedInput placeholder="ឈ្មោះឪពុក" className="h-11 rounded-xl bg-background border-none shadow-sm" value={wedding.themeSettings?.parents?.brideFather || ""} onDebouncedChange={(val) => updateParent('brideFather', val as string)} />
+                                <DebouncedInput placeholder="ឈ្មោះម្តាយ" className="h-11 rounded-xl bg-background border-none shadow-sm" value={wedding.themeSettings?.parents?.brideMother || ""} onDebouncedChange={(val) => updateParent('brideMother', val as string)} />
                             </div>
-                            <Input placeholder="លេខទូរស័ព្ទ (សម្រាប់ភ្ញៀវទាក់ទង)" className="h-11 rounded-xl bg-muted border-border" value={wedding.themeSettings?.parents?.bridePhone || ""} onChange={(e) => updateParent('bridePhone', e.target.value)} />
+                            <DebouncedInput placeholder="លេខទូរស័ព្ទ (សម្រាប់ភ្ញៀវទាក់ទង)" className="h-11 rounded-xl bg-background border-none shadow-sm" value={wedding.themeSettings?.parents?.bridePhone || ""} onDebouncedChange={(val) => updateParent('bridePhone', val as string)} />
                         </div>
                     </div>
                 </AccordionItem>
@@ -174,38 +175,38 @@ const Step5Extra: React.FC<Step5ExtraProps> = ({
                     <div className="space-y-4 pt-2">
                         <div>
                             <Label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2 block">សារថ្លែងអំណរគុណ (Acknowledgment)</Label>
-                            <textarea
-                                className="w-full p-3 text-sm border border-border rounded-lg bg-muted text-foreground min-h-[60px] focus:ring-1 focus:ring-primary outline-none"
+                            <DebouncedTextarea
+                                className="min-h-[60px]"
                                 value={wedding.themeSettings?.acknowledgment || ""}
-                                onChange={(e) => updateTheme('acknowledgment', e.target.value)}
+                                onDebouncedChange={(val) => updateTheme('acknowledgment', val)}
                                 placeholder="បើកសេចក្តី រឺ បិទដោយអរគុណភ្ញៀវ..."
                             />
                         </div>
                         <div>
                             <Label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2 block">សារស្វាគមន៍ (Welcome Message)</Label>
-                            <textarea
-                                className="w-full p-3 text-sm border border-border rounded-lg bg-muted text-foreground min-h-[60px] focus:ring-1 focus:ring-primary outline-none"
+                            <DebouncedTextarea
+                                className="min-h-[60px]"
                                 value={wedding.themeSettings?.welcomeMessage || ""}
-                                onChange={(e) => updateTheme('welcomeMessage', e.target.value)}
+                                onDebouncedChange={(val) => updateTheme('welcomeMessage', val)}
                                 placeholder="សូមស្វាគមន៍មកកាន់ពាក្យអាពាហ៍ពិពាហ៍របស់យើង..."
                             />
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <Label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2 block">រឿងកូនប្រុស (Groom's Story)</Label>
-                                <textarea
-                                    className="w-full p-3 text-sm border border-border rounded-lg bg-muted text-foreground min-h-[80px] focus:ring-1 focus:ring-primary outline-none"
+                                <DebouncedTextarea
+                                    className="min-h-[80px]"
                                     value={wedding.themeSettings?.groomStory || ""}
-                                    onChange={(e) => updateTheme('groomStory', e.target.value)}
+                                    onDebouncedChange={(val) => updateTheme('groomStory', val)}
                                     placeholder="រៀបរាប់ពីប្រវត្តិកូនប្រុស..."
                                 />
                             </div>
                             <div>
                                 <Label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2 block">រឿងកូនស្រី (Bride's Story)</Label>
-                                <textarea
-                                    className="w-full p-3 text-sm border border-border rounded-lg bg-muted text-foreground min-h-[80px] focus:ring-1 focus:ring-primary outline-none"
+                                <DebouncedTextarea
+                                    className="min-h-[80px]"
                                     value={wedding.themeSettings?.brideStory || ""}
-                                    onChange={(e) => updateTheme('brideStory', e.target.value)}
+                                    onDebouncedChange={(val) => updateTheme('brideStory', val)}
                                     placeholder="រៀបរាប់ពីប្រវត្តិកូនស្រី..."
                                 />
                             </div>
@@ -251,10 +252,10 @@ const Step5Extra: React.FC<Step5ExtraProps> = ({
                 >
                     <div className="space-y-6 pt-2">
                         <div className="space-y-4">
-                            <h4 className="text-[11px] font-bold text-foreground uppercase border-b border-border pb-2">បិទ/បើកផ្នែកផ្សេងៗ</h4>
+                            <h4 className="text-[11px] font-bold text-foreground uppercase pb-2">បិទ/បើកផ្នែកផ្សេងៗ</h4>
                             <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
                                 {['showStory', 'showGallery', 'showTimeline', 'showGuestbook'].map((key) => (
-                                    <div key={key} className="flex items-center justify-between p-3 bg-muted rounded-lg border border-border">
+                                    <div key={key} className="flex items-center justify-between p-3 bg-muted rounded-lg shadow-sm">
                                         <Label className="text-xs font-bold leading-none cursor-pointer" htmlFor={key}>
                                             {key.replace('show', 'បង្ហាញ ')}
                                         </Label>
@@ -271,10 +272,10 @@ const Step5Extra: React.FC<Step5ExtraProps> = ({
                             </div>
                         </div>
 
-                        <div className="space-y-4 pt-2">
-                            <h4 className="text-[11px] font-bold text-foreground uppercase border-b border-border pb-2">ប្រភេទអក្សរ (Font Family)</h4>
+                        <div className="space-y-4 pt-4">
+                            <h4 className="text-[11px] font-bold text-foreground uppercase pb-2">ប្រភេទអក្សរ (Font Family)</h4>
                             <select
-                                className="w-full h-11 border border-border rounded-lg px-3 bg-muted text-xs text-foreground font-sans focus:ring-1 focus:ring-primary outline-none"
+                                className="w-full h-11 border-none rounded-lg px-3 bg-muted text-xs text-foreground font-sans focus:ring-1 focus:ring-red-500 outline-none shadow-sm"
                                 value={wedding.themeSettings?.fontStyle || 'default'}
                                 onChange={(e) => updateTheme('fontStyle', e.target.value)}
                             >
@@ -297,7 +298,7 @@ const Step5Extra: React.FC<Step5ExtraProps> = ({
                 >
                     <div className="space-y-4 pt-2">
                         {wedding.themeSettings?.bankAccounts?.map((acc: any, idx: number) => (
-                            <div key={idx} className="bg-muted/50 p-4 rounded-xl border border-border relative group">
+                            <div key={idx} className="bg-muted/40 p-4 rounded-xl shadow-sm relative group">
                                 <button
                                     onClick={() => {
                                         const newAccs = wedding.themeSettings?.bankAccounts?.filter((_, i) => i !== idx);
@@ -309,7 +310,7 @@ const Step5Extra: React.FC<Step5ExtraProps> = ({
                                 </button>
                                 <div className="grid grid-cols-2 gap-3 mb-3">
                                     <select
-                                        className="w-full h-10 border border-border rounded-lg px-2 bg-background text-xs text-foreground"
+                                        className="w-full h-10 border-none rounded-lg px-2 bg-background text-xs text-foreground shadow-sm"
                                         value={acc.bankName}
                                         onChange={(e) => {
                                             const newAccs = [...(wedding.themeSettings?.bankAccounts || [])];
@@ -322,24 +323,24 @@ const Step5Extra: React.FC<Step5ExtraProps> = ({
                                         <option value="Wing Bank">Wing Bank</option>
                                         <option value="Other">Other</option>
                                     </select>
-                                    <Input
+                                    <DebouncedInput
                                         placeholder="ឈ្មោះគណនី"
                                         className="h-10 text-xs rounded-lg"
                                         value={acc.accountName}
-                                        onChange={(e) => {
+                                        onDebouncedChange={(val) => {
                                             const newAccs = [...(wedding.themeSettings?.bankAccounts || [])];
-                                            newAccs[idx] = { ...newAccs[idx], accountName: e.target.value };
+                                            newAccs[idx] = { ...newAccs[idx], accountName: val as string };
                                             updateTheme('bankAccounts', newAccs);
                                         }}
                                     />
                                 </div>
-                                <Input
+                                <DebouncedInput
                                     placeholder="លេខគណនី"
                                     className="h-10 text-xs rounded-lg mb-3"
                                     value={acc.accountNumber}
-                                    onChange={(e) => {
+                                    onDebouncedChange={(val) => {
                                         const newAccs = [...(wedding.themeSettings?.bankAccounts || [])];
-                                        newAccs[idx] = { ...newAccs[idx], accountNumber: e.target.value };
+                                        newAccs[idx] = { ...newAccs[idx], accountNumber: val as string };
                                         updateTheme('bankAccounts', newAccs);
                                     }}
                                 />
@@ -386,11 +387,11 @@ const Step5Extra: React.FC<Step5ExtraProps> = ({
                         <div className="grid grid-cols-1 gap-4">
                             <div className="space-y-1.5">
                                 <Label className="text-[10px] text-muted-foreground font-bold uppercase ml-1">ចំណងជើងធំ (Main Title)</Label>
-                                <Input className="h-11 rounded-xl bg-muted border-border" value={wedding.themeSettings?.customLabels?.invite_title || ""} onChange={(e) => updateLabel('invite_title', e.target.value)} />
+                                <DebouncedInput className="h-11 rounded-xl bg-muted border-none shadow-sm" value={wedding.themeSettings?.customLabels?.invite_title || ""} onDebouncedChange={(val) => updateLabel('invite_title', val as string)} />
                             </div>
                             <div className="space-y-1.5">
                                 <Label className="text-[10px] text-muted-foreground font-bold uppercase ml-1">ចំណងជើងវិចិត្រសាល (Gallery)</Label>
-                                <Input className="h-11 rounded-xl bg-muted border-border" value={wedding.themeSettings?.customLabels?.gallery_title || ""} onChange={(e) => updateLabel('gallery_title', e.target.value)} />
+                                <DebouncedInput className="h-11 rounded-xl bg-muted border-none shadow-sm" value={wedding.themeSettings?.customLabels?.gallery_title || ""} onDebouncedChange={(val) => updateLabel('gallery_title', val as string)} />
                             </div>
                         </div>
                     </div>
@@ -408,14 +409,14 @@ const Step5Extra: React.FC<Step5ExtraProps> = ({
                     }}
                 >
                     <div className="space-y-4 pt-4">
-                        <div className="bg-muted p-4 rounded-xl border border-border space-y-3">
+                        <div className="bg-muted/40 p-4 rounded-xl space-y-3 shadow-inner">
                             <Label className="text-[10px] text-muted-foreground font-bold uppercase block">រក្សាទុក Version ថ្មី (Create Snapshot)</Label>
                             <div className="flex gap-2">
                                 <Input
                                     placeholder="ឈ្មោះ Version (ឧ. មុនដូរពណ៌...)"
                                     value={newVersionTitle}
                                     onChange={(e) => setNewVersionTitle(e.target.value)}
-                                    className="h-10 text-xs rounded-lg"
+                                    className="h-10 text-xs rounded-lg border-none shadow-sm"
                                 />
                                 <Button
                                     onClick={handleSaveVersion}
@@ -441,7 +442,7 @@ const Step5Extra: React.FC<Step5ExtraProps> = ({
                             ) : (
                                 <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 scrollbar-hide">
                                     {templateVersions.map((ver) => (
-                                        <div key={ver.id} className="bg-card p-3 rounded-xl border border-border flex items-center justify-between group hover:border-primary/50 transition-all shadow-sm">
+                                        <div key={ver.id} className="bg-card p-3 rounded-xl flex items-center justify-between group hover:shadow-md transition-all shadow-sm">
                                             <div className="min-w-0">
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-xs font-black text-foreground font-kantumruy truncate">{ver.versionName}</span>

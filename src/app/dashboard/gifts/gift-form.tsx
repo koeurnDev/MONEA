@@ -337,13 +337,13 @@ export function GiftForm({ onSuccess, onDone, defaultCreate = false }: { onSucce
         <Form {...form}>
             {/* Receipt Modal */}
             <Dialog open={showReceipt} onOpenChange={(open) => !open && closeReceipt()}>
-                <DialogContent className="sm:max-w-md bg-card text-center p-8 flex flex-col items-center justify-center space-y-4">
+                <DialogContent className="sm:max-w-md bg-card text-center p-5 md:p-8 flex flex-col items-center justify-center space-y-4">
                     <DialogTitle className="sr-only">Submission Successful</DialogTitle>
                     <DialogDescription className="sr-only">
                         Details of the successfully recorded gift.
                     </DialogDescription>
-                    <div className="rounded-full bg-emerald-500/10 p-3">
-                        <Check className="w-8 h-8 text-emerald-600" />
+                    <div className="rounded-full bg-emerald-500/10 p-2 md:p-3">
+                        <Check className="w-6 h-6 md:w-8 md:h-8 text-emerald-600" />
                     </div>
                     <div className="space-y-1">
                         <h2 className="text-xl font-bold text-foreground">បានទទួលជោគជ័យ</h2>
@@ -356,7 +356,7 @@ export function GiftForm({ onSuccess, onDone, defaultCreate = false }: { onSucce
                             <h3 className="text-2xl font-bold text-foreground mb-4 font-kantumruy">{receiptData.name}</h3>
 
                             <div className="flex items-baseline justify-center gap-1">
-                                <span className="text-4xl font-extrabold text-blue-600">
+                                <span className="text-3xl md:text-4xl font-extrabold text-blue-600">
                                     {receiptData.currency === "USD" ? "$" : ""}
                                     {parseFloat(receiptData.amount).toLocaleString()}
                                     {receiptData.currency === "KHR" ? "ល" : ""}
@@ -371,7 +371,7 @@ export function GiftForm({ onSuccess, onDone, defaultCreate = false }: { onSucce
 
                     <Button
                         onClick={closeReceipt}
-                        className="w-full h-12 text-lg bg-blue-600 hover:bg-blue-700 font-bold"
+                        className="w-full h-11 md:h-12 text-lg bg-blue-600 hover:bg-blue-700 font-bold"
                         autoFocus
                     >
                         បិទ & បន្តទៅអ្នកបន្ទាប់
@@ -438,7 +438,7 @@ export function GiftForm({ onSuccess, onDone, defaultCreate = false }: { onSucce
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-muted/20 border border-border/50 rounded-[1.5rem] p-4 md:p-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-muted/20 border border-border/50 rounded-[1.5rem] p-3 md:p-5">
                         <FormField
                             control={form.control}
                             name="guestName"
@@ -459,7 +459,7 @@ export function GiftForm({ onSuccess, onDone, defaultCreate = false }: { onSucce
                                                     field.ref(e);
                                                     nameInputRef.current = e;
                                                 }}
-                                                className="h-11 md:h-12 pl-10 text-base rounded-xl font-kantumruy border-border/60 bg-background/50 backdrop-blur-sm shadow-sm focus-visible:ring-blue-500/20 transition-all font-medium"
+                                                className="h-9 md:h-12 pl-10 text-base rounded-xl font-kantumruy border-border/60 bg-background/50 backdrop-blur-sm shadow-sm focus-visible:ring-blue-500/20 transition-all font-medium"
                                                 autoFocus={true}
                                                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                                                 autoComplete="off"
@@ -507,7 +507,7 @@ export function GiftForm({ onSuccess, onDone, defaultCreate = false }: { onSucce
                                 <FormItem>
                                     <FormLabel className="text-xs font-bold text-muted-foreground font-kantumruy ml-1">មកពីណា? (ឧទាហរណ៍៖ កំពត...)</FormLabel>
                                     <FormControl>
-                                        <Input {...field} className="h-11 md:h-12 text-sm rounded-xl border-border/60 bg-background/50 backdrop-blur-sm font-kantumruy shadow-sm focus-visible:ring-blue-500/20" />
+                                        <Input {...field} className="h-9 md:h-12 text-sm rounded-xl border-border/60 bg-background/50 backdrop-blur-sm font-kantumruy shadow-sm focus-visible:ring-blue-500/20" />
                                     </FormControl>
                                     <FormMessage className="font-kantumruy text-[10px]" />
                                 </FormItem>
@@ -528,7 +528,7 @@ export function GiftForm({ onSuccess, onDone, defaultCreate = false }: { onSucce
                         </div>
                     </div>
 
-                    <div className="bg-muted/20 border border-border/50 rounded-[1.5rem] p-4 md:p-5 space-y-4">
+                    <div className="bg-muted/20 border border-border/50 rounded-[1.5rem] p-3 md:p-5 space-y-4">
                         <div className="grid grid-cols-5 gap-4">
                             <div className="col-span-3">
                                 <FormField
@@ -544,7 +544,7 @@ export function GiftForm({ onSuccess, onDone, defaultCreate = false }: { onSucce
                                                         step="0.01"
                                                         placeholder="0.00"
                                                         {...field}
-                                                        className="h-12 md:h-14 text-xl md:text-2xl font-black rounded-xl border-border/60 bg-background/50 backdrop-blur-sm shadow-sm pl-4 pr-12 text-foreground focus-visible:ring-emerald-500/20 group-focus-within:border-emerald-500/50"
+                                                        className="h-11 md:h-14 text-lg md:text-2xl font-black rounded-xl border-border/60 bg-background/50 backdrop-blur-sm shadow-sm pl-4 pr-12 text-foreground focus-visible:ring-emerald-500/20 group-focus-within:border-emerald-500/50"
                                                         onKeyDown={(e) => {
                                                             if (e.key === "Enter") {
                                                                 e.preventDefault();
@@ -571,7 +571,7 @@ export function GiftForm({ onSuccess, onDone, defaultCreate = false }: { onSucce
                                         <FormItem>
                                             <FormLabel className="text-xs font-bold text-muted-foreground font-kantumruy ml-1">រូបិយប័ណ្ណ</FormLabel>
                                             <FormControl>
-                                                <div className="flex gap-1.5 bg-background/50 p-1 rounded-xl border border-border/60 backdrop-blur-sm h-12 md:h-14">
+                                                <div className="flex gap-1.5 bg-background/50 p-1 rounded-xl border border-border/60 backdrop-blur-sm h-11 md:h-14">
                                                     <Button
                                                         type="button"
                                                         variant="ghost"
@@ -615,7 +615,7 @@ export function GiftForm({ onSuccess, onDone, defaultCreate = false }: { onSucce
                                     <FormLabel className="text-xs font-bold text-muted-foreground font-kantumruy ml-1">បានទទួលតាមរយៈ</FormLabel>
                                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                                         <FormControl>
-                                            <SelectTrigger className="h-11 md:h-12 rounded-xl text-sm font-bold bg-background/50 backdrop-blur-sm border-border/60 shadow-sm text-foreground font-kantumruy focus:ring-blue-500/20 transition-all">
+                                            <SelectTrigger className="h-9 md:h-12 rounded-xl text-sm font-bold bg-background/50 backdrop-blur-sm border-border/60 shadow-sm text-foreground font-kantumruy focus:ring-blue-500/20 transition-all">
                                                 <SelectValue />
                                             </SelectTrigger>
                                         </FormControl>
@@ -638,7 +638,7 @@ export function GiftForm({ onSuccess, onDone, defaultCreate = false }: { onSucce
                         type="button"
                         disabled={loading}
                         onClick={(e) => handleSubmit(e, true)}
-                        className={`flex-1 h-12 md:h-14 rounded-2xl font-black font-kantumruy text-base md:text-lg transition-all border-none active:scale-[0.98] ${offlineMode
+                        className={`flex-1 h-11 md:h-14 rounded-2xl font-black font-kantumruy text-base md:text-lg transition-all border-none active:scale-[0.98] ${offlineMode
                             ? 'bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 shadow-[0_10px_30px_-10px_rgba(249,115,22,0.5)]'
                             : 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 shadow-[0_10px_30px_-10px_rgba(220,38,38,0.5)]'
                             } text-white`}
@@ -659,7 +659,7 @@ export function GiftForm({ onSuccess, onDone, defaultCreate = false }: { onSucce
                         disabled={loading}
                         variant="outline"
                         onClick={(e) => handleSubmit(e, false)}
-                        className="flex-1 sm:flex-none h-12 md:h-14 px-8 rounded-2xl font-black font-kantumruy border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all text-sm md:text-base border-2"
+                        className="flex-1 sm:flex-none h-11 md:h-14 px-8 rounded-2xl font-black font-kantumruy border-border/60 text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all text-sm md:text-base border-2"
                     >
                         {loading ? "..." : "រក្សាទុក & បិទផ្ទាំង"}
                     </Button>

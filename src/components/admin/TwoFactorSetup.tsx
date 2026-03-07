@@ -22,15 +22,24 @@ export function TwoFactorSetup({ open, onOpenChange, onSuccess }: TwoFactorSetup
     const [error, setError] = useState("");
     const [copied, setCopied] = useState(false);
     const [downloaded, setDownloaded] = useState(false);
+    const [password, setPassword] = useState("");
 
     const fetchSetupData = async () => {
         setLoading(true);
         setError("");
         try {
-            const res = await fetch("/api/auth/2fa/setup", { method: "POST" });
+            const res = await fetch("/api/auth/2fa/setup", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ password })
+            });
             const data = await res.json();
-            if (data.error) throw new Error(data.error);
+            if (data.error) {
+                const msg = data.details ? `${data.error}: ${data.details}` : data.error;
+                throw new Error(msg);
+            }
             setSetupData(data);
+            setStep(1); // Move to QR step on success
         } catch (err: any) {
             setError(err.message || "Failed to load setup data");
         } finally {
@@ -40,10 +49,11 @@ export function TwoFactorSetup({ open, onOpenChange, onSuccess }: TwoFactorSetup
 
     useEffect(() => {
         if (open) {
-            setStep(1);
+            setStep(0); // Start with password verification
             setVerificationCode("");
+            setPassword("");
             setError("");
-            fetchSetupData();
+            setSetupData(null);
         }
     }, [open]);
 
@@ -106,7 +116,7 @@ export function TwoFactorSetup({ open, onOpenChange, onSuccess }: TwoFactorSetup
                             រៀបចំប្រព័ន្ធការពារ ២ ជាន់ (2FA)
                         </DialogTitle>
                         <DialogDescription className="text-slate-400 font-kantumruy text-base mt-2">
-                            បង្កើនសុវត្ថិភាពខ្ពស់បំផុតសម្រាប់គណនី Super Admin របស់អ្នក។
+                            បង្កើនសុវត្ថិភាពខ្ពស់បំផុតសម្រាប់គណនីរបស់អ្នក។
                         </DialogDescription>
                     </DialogHeader>
                 </div>
@@ -117,6 +127,53 @@ export function TwoFactorSetup({ open, onOpenChange, onSuccess }: TwoFactorSetup
                             <RefreshCw className="w-10 h-10 animate-spin text-red-600" />
                             <p className="font-kantumruy text-slate-500">កំពុងរៀបចំទិន្នន័យសុវត្ថិភាព...</p>
                         </div>
+                    ) : step === 0 ? (
+                        <form
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                fetchSetupData();
+                            }}
+                            className="space-y-6 py-4"
+                        >
+                            <div className="space-y-3">
+                                <Label className="text-sm font-bold text-slate-900 font-kantumruy">សូមបញ្ជាក់ពាក្យសម្ងាត់របស់អ្នក ដើម្បីបន្ត៖</Label>
+                                {/* Accessibility: Hidden username field */}
+                                <input type="text" name="username" defaultValue={""} autoComplete="username" className="hidden" aria-hidden="true" />
+                                <div className="relative group">
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-red-500 transition-colors">
+                                        <Lock size={18} />
+                                    </div>
+                                    <Input
+                                        type="password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        placeholder="បញ្ចូលពាក្យសម្ងាត់"
+                                        className="pl-12 h-14 rounded-2xl bg-slate-50 border-slate-200 focus-visible:ring-red-600/20 text-lg"
+                                        autoFocus
+                                        autoComplete="current-password"
+                                    />
+                                </div>
+                                <p className="text-xs text-slate-500 font-kantumruy italic">
+                                    * នេះគឺជាការតម្រូវផ្នែកសុវត្ថិភាព មុននឹងបង្ហាញលេខកូដសម្ងាត់ 2FA។
+                                </p>
+                            </div>
+
+                            {error && (
+                                <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 text-red-600 text-xs font-bold animate-shake">
+                                    <AlertCircle size={14} />
+                                    {error}
+                                </div>
+                            )}
+
+                            <Button
+                                type="submit"
+                                disabled={!password || loading}
+                                className="w-full bg-slate-900 text-white hover:bg-black rounded-xl h-14 font-black text-base font-kantumruy transition-all shadow-lg active:scale-[0.98]"
+                            >
+                                {loading ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : null}
+                                បន្តទៅមុខទៀត
+                            </Button>
+                        </form>
                     ) : setupData ? (
                         <div className="space-y-8">
                             {/* Step 1 Content */}
@@ -184,10 +241,18 @@ export function TwoFactorSetup({ open, onOpenChange, onSuccess }: TwoFactorSetup
                                         <Label className="text-xs font-bold text-slate-500 font-kantumruy">បញ្ចូលលេខកូដ ៦ខ្ទង់ ពីទូរស័ព្ទរបស់អ្នក៖</Label>
                                         <Input
                                             value={verificationCode}
-                                            onChange={(e) => setVerificationCode(e.target.value)}
+                                            onChange={(e) => {
+                                                const raw = e.target.value;
+                                                const val = raw.replace(/[០-៩]/g, (d) =>
+                                                    (d.charCodeAt(0) - 6112).toString()
+                                                ).replace(/[^0-9]/g, "");
+                                                console.log("[2FA] Typing:", val); // Log on client to see what's being captured
+                                                setVerificationCode(val);
+                                            }}
                                             placeholder="000000"
-                                            className="h-14 text-center text-2xl font-black tracking-[0.5em] rounded-2xl bg-slate-50 border-slate-200 focus-visible:ring-red-600/20"
+                                            className="h-14 text-center text-3xl font-black rounded-2xl bg-white border-2 border-slate-200 focus:border-red-500 focus-visible:ring-red-600/20 text-blue-600 placeholder:text-slate-300"
                                             maxLength={6}
+                                            inputMode="numeric"
                                         />
                                     </div>
                                     {error && (

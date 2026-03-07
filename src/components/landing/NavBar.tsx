@@ -54,21 +54,18 @@ export function NavBar() {
                 <div className={cn(
                     "max-w-6xl mx-auto flex items-center justify-between rounded-full transition-all duration-300",
                     (isScrolled && !isMenuOpen)
-                        ? "bg-white/80 dark:bg-black/80 backdrop-blur-xl border border-slate-200 dark:border-white/10 py-3 px-6 shadow-2xl shadow-black/5 dark:shadow-black/50"
-                        : "bg-transparent border-transparent py-2 px-6",
-                    isMenuOpen && "!bg-transparent !backdrop-blur-none border-transparent shadow-none"
+                        ? "bg-white/80 dark:bg-black/80 backdrop-blur-xl py-3 px-6 shadow-[0_8px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_40px_rgba(0,0,0,0.4)]"
+                        : "bg-transparent py-2 px-6",
+                    isMenuOpen && "!bg-transparent !backdrop-blur-none shadow-none"
                 )}>
                     {/* Logo Section */}
                     <Link href="/" onClick={() => setIsMenuOpen(false)} className="relative z-50 flex items-center shrink-0">
                         <MoneaLogo
-                            showText={!isScrolled || isMenuOpen}
+                            showText={true}
                             size={isScrolled && !isMenuOpen ? "sm" : "md"}
-                            variant={isMenuOpen ? (theme === "dark" ? "dark" : "light") : "dark"}
+                            variant="system"
                             className="transition-all duration-300"
                         />
-                        {isScrolled && !isMenuOpen && (
-                            <span className="ml-3 font-kantumruy font-bold text-slate-900 dark:text-white tracking-[0.2em] transform translate-y-[1px]">MONEA</span>
-                        )}
                     </Link>
 
                     {/* Desktop Nav - Centered */}
@@ -105,7 +102,7 @@ export function NavBar() {
                                 "group relative inline-flex h-10 items-center justify-center overflow-hidden rounded-full px-6 font-medium transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(255,192,203,0.3)]",
                                 isScrolled
                                     ? "bg-slate-900 text-white dark:bg-white dark:text-black"
-                                    : "bg-slate-900 text-white dark:bg-white dark:text-black border border-slate-800 dark:border-transparent"
+                                    : "bg-slate-900 text-white dark:bg-white dark:text-black"
                             )}>
                                 <span className="absolute inset-0 w-full h-full bg-gradient-to-tr from-pink-500 to-rose-500 dark:from-pink-200 dark:to-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
                                 <span className={cn(
@@ -138,7 +135,7 @@ export function NavBar() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-3xl flex items-center justify-center"
+                        className="fixed inset-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-3xl flex flex-col items-center justify-start overflow-y-auto pt-32 pb-12"
                     >
                         <div className="flex flex-col gap-8 text-center w-full max-w-sm px-6">
                             {navItems.map((item, idx) => (
@@ -149,14 +146,14 @@ export function NavBar() {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: idx * 0.1 }}
                                     onClick={(e) => handleNavClick(e, item.href)}
-                                    className="text-3xl font-kantumruy text-slate-800 dark:text-white/80 hover:text-pink-600 dark:hover:text-white hover:scale-105 transition-all"
+                                    className="text-xl md:text-3xl font-kantumruy text-slate-800 dark:text-white/80 hover:text-pink-600 dark:hover:text-white hover:scale-105 transition-all"
                                 >
                                     {item.name}
                                 </m.a>
                             ))}
-                            <div className="mt-8 flex flex-col gap-4">
-                                <Link href="/login" onClick={() => setIsMenuOpen(false)} className="text-lg text-slate-900 dark:text-white font-kantumruy border border-slate-200 dark:border-white/20 hover:bg-slate-100 dark:hover:bg-white/10 py-4 rounded-2xl transition-all shadow-sm">ចូលប្រើប្រាស់</Link>
-                                <Link href="/register" onClick={() => setIsMenuOpen(false)} className="text-lg bg-pink-600 text-white border border-transparent font-kantumruy font-bold py-4 rounded-2xl hover:scale-105 transition-all shadow-[0_4px_20px_rgba(219,39,119,0.3)] dark:shadow-[0_0_30px_rgba(219,39,119,0.4)]">ចុះឈ្មោះឥឡូវនេះ</Link>
+                            <div className="mt-8 flex flex-col gap-3">
+                                <Link href="/login" onClick={() => setIsMenuOpen(false)} className="text-base text-slate-900 dark:text-white font-kantumruy border border-slate-200 dark:border-white/20 hover:bg-slate-100 dark:hover:bg-white/10 py-3 rounded-2xl transition-all shadow-sm">ចូលប្រើប្រាស់</Link>
+                                <Link href="/register" onClick={() => setIsMenuOpen(false)} className="text-base bg-pink-600 text-white border border-transparent font-kantumruy font-bold py-3 rounded-2xl hover:scale-105 transition-all shadow-[0_4px_20px_rgba(219,39,119,0.3)] dark:shadow-[0_0_30px_rgba(219,39,119,0.4)]">ចុះឈ្មោះឥឡូវនេះ</Link>
                             </div>
                             <div className="mt-4 flex flex-col items-center justify-center gap-3">
                                 <span className="text-slate-500 dark:text-white/50 text-xs font-kantumruy">ផ្លាស់ប្តូររូបរាង</span>

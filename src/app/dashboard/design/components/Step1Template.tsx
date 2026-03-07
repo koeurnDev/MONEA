@@ -20,9 +20,9 @@ const TEMPLATES = [
 const Step1Template: React.FC<Step1TemplateProps> = ({ wedding, updateEventType, updateTemplate }) => {
     return (
         <div className="space-y-4">
-            <div className="bg-muted/50 border border-border p-4 rounded-xl">
+            <div className="bg-muted/40 p-4 rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.03)] dark:shadow-none">
                 <h3 className="text-sm font-bold text-foreground font-kantumruy mb-1">ជំហានទី១៖ ជ្រើសរើសប្រភេទកម្មវិធី និងម៉ូដធៀប</h3>
-                <p className="text-xs text-muted-foreground">សូមជ្រើសរើសប្រភេទកម្មវិធីរបស់អ្នក (មង្គលការ ឬ ខួប) រួចរើសយកម៉ូដដែលអ្នកពេញចិត្ត។</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">សូមជ្រើសរើសប្រភេទកម្មវិធីរបស់អ្នក (មង្គលការ ឬ ខួប) រួចរើសយកម៉ូដដែលអ្នកពេញចិត្ត។</p>
             </div>
 
             <div className="grid grid-cols-2 gap-2 text-[10px] font-bold">
@@ -30,7 +30,7 @@ const Step1Template: React.FC<Step1TemplateProps> = ({ wedding, updateEventType,
                     onClick={() => updateEventType('wedding')}
                     className={clsx(
                         "px-4 py-2 rounded-lg transition-all",
-                        wedding.eventType === 'wedding' ? "bg-background text-pink-600 shadow-sm border border-border" : "text-muted-foreground hover:text-foreground"
+                        wedding.eventType === 'wedding' ? "bg-background text-red-600 shadow-md" : "text-muted-foreground hover:text-foreground"
                     )}
                 >
                     ពិធីមង្គលការ (Wedding)
@@ -39,7 +39,7 @@ const Step1Template: React.FC<Step1TemplateProps> = ({ wedding, updateEventType,
                     onClick={() => updateEventType('anniversary')}
                     className={clsx(
                         "px-4 py-2 rounded-lg transition-all",
-                        wedding.eventType === 'anniversary' ? "bg-background text-pink-600 shadow-sm border border-border" : "text-muted-foreground hover:text-foreground"
+                        wedding.eventType === 'anniversary' ? "bg-background text-red-600 shadow-md" : "text-muted-foreground hover:text-foreground"
                     )}
                 >
                     ពិធីខួប (Anniversary)
@@ -57,10 +57,10 @@ const Step1Template: React.FC<Step1TemplateProps> = ({ wedding, updateEventType,
                             transition={{ delay: idx * 0.05 }}
                             onClick={() => updateTemplate(tmpl.id)}
                             className={clsx(
-                                "cursor-pointer rounded-xl p-1.5 transition-all duration-300 relative overflow-hidden group border shadow-sm hover:shadow-md",
+                                "cursor-pointer rounded-xl p-1.5 transition-all duration-300 relative overflow-hidden group shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)]",
                                 (wedding.templateId === tmpl.id || (!wedding.templateId && tmpl.id === 'vip-premium-khmer'))
-                                    ? "border-pink-500 bg-primary/5 ring-2 ring-pink-500/10"
-                                    : "border-transparent bg-muted/50 hover:bg-background hover:border-primary/20"
+                                    ? "bg-red-50 dark:bg-red-950/20 shadow-red-100/50 dark:shadow-none"
+                                    : "bg-muted/40 hover:bg-background"
                             )}
                         >
                             <div className={`aspect-[2/3] ${tmpl.bgClass} rounded-lg mb-2 overflow-hidden shadow-inner flex flex-col items-center justify-center transition-transform duration-500 group-hover:scale-105 relative`}>
@@ -80,7 +80,7 @@ const Step1Template: React.FC<Step1TemplateProps> = ({ wedding, updateEventType,
                                 </div>
                             </div>
                             {(wedding.templateId === tmpl.id || (!wedding.templateId && tmpl.id === 'vip-premium-khmer')) && (
-                                <div className="absolute top-2 right-2 bg-pink-500 text-white rounded-full p-0.5 shadow-sm">
+                                <div className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-0.5 shadow-md">
                                     <Check size={8} strokeWidth={3} />
                                 </div>
                             )}

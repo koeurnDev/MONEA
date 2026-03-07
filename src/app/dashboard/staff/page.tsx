@@ -140,7 +140,7 @@ export default function StaffManagementPage() {
 
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
-                        <Button className="h-11 px-8 bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-lg shadow-red-100 dark:shadow-none transition-all font-kantumruy font-bold">
+                        <Button className="h-11 px-8 bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-md transition-all font-kantumruy font-bold">
                             <Plus className="mr-2 h-4 w-4" /> បន្ថែមបុគ្គលិក
                         </Button>
                     </DialogTrigger>
@@ -158,7 +158,7 @@ export default function StaffManagementPage() {
                                     placeholder="ឧ. ហេង ប៊ុណ្ណា"
                                     value={newStaffName}
                                     onChange={(e) => setNewStaffName(e.target.value)}
-                                    className="h-12 rounded-xl bg-muted/30 border-border focus:bg-background transition-all font-kantumruy font-bold text-foreground"
+                                    className="h-12 rounded-xl bg-muted border-none shadow-sm focus:bg-background transition-all font-kantumruy font-bold text-foreground"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -167,7 +167,7 @@ export default function StaffManagementPage() {
                                     placeholder="staff@example.com"
                                     value={newStaffEmail}
                                     onChange={(e) => setNewStaffEmail(e.target.value)}
-                                    className="h-12 rounded-xl bg-muted/30 border-border focus:bg-background transition-all font-kantumruy font-bold text-foreground"
+                                    className="h-12 rounded-xl bg-muted border-none shadow-sm focus:bg-background transition-all font-kantumruy font-bold text-foreground"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -177,11 +177,11 @@ export default function StaffManagementPage() {
                                     placeholder="••••••••"
                                     value={newStaffPassword}
                                     onChange={(e) => setNewStaffPassword(e.target.value)}
-                                    className="h-12 rounded-xl bg-muted/30 border-border focus:bg-background transition-all font-kantumruy font-bold text-foreground"
+                                    className="h-12 rounded-xl bg-muted border-none shadow-sm focus:bg-background transition-all font-kantumruy font-bold text-foreground"
                                 />
                             </div>
 
-                            <div className="p-4 bg-muted/30 border border-border rounded-2xl flex items-start gap-4">
+                            <div className="p-4 bg-muted/30 rounded-2xl flex items-start gap-4">
                                 <Shield className="w-5 h-5 text-muted-foreground/40 mt-0.5 shrink-0" />
                                 <div className="text-[11px] text-muted-foreground font-kantumruy leading-relaxed">
                                     <p className="font-black text-foreground uppercase tracking-widest mb-1">ព័ត៌មានសុវត្ថិភាព</p>
@@ -192,7 +192,7 @@ export default function StaffManagementPage() {
                             <Button
                                 onClick={handleCreateStaff}
                                 disabled={createLoading || !newStaffName || !newStaffEmail || !newStaffPassword}
-                                className="w-full h-12 text-sm font-black uppercase tracking-widest font-kantumruy rounded-xl bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-100 mt-4"
+                                className="w-full h-12 text-sm font-black uppercase tracking-widest font-kantumruy rounded-xl bg-red-600 hover:bg-red-700 text-white shadow-md mt-4"
                             >
                                 {createLoading ? "Loading..." : "យល់ព្រមបង្កើត"}
                             </Button>
@@ -207,7 +207,7 @@ export default function StaffManagementPage() {
                                     សម្រាប់ {qrStaff?.name} Only
                                 </DialogDescription>
                             </DialogHeader>
-                            <div className="flex justify-center p-6 bg-white rounded-2xl border-2 border-dashed border-border/10">
+                            <div className="flex justify-center p-6 bg-white rounded-3xl shadow-inner">
                                 {qrStaff?.accessToken && (
                                     <div className="p-2 bg-white rounded-lg">
                                         <QRCode
@@ -228,11 +228,11 @@ export default function StaffManagementPage() {
 
 
             {/* Content Area */}
-            <div className="bg-card rounded-[2rem] border border-border shadow-sm shadow-slate-200/50 dark:shadow-none overflow-hidden">
+            <div className="bg-card rounded-[2rem] shadow-[0_4px_24px_rgba(0,0,0,0.07)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.2)] overflow-hidden">
                 <div className="overflow-x-auto">
                     <Table>
-                        <TableHeader className="bg-muted/50">
-                            <TableRow className="border-border hover:bg-transparent">
+                        <TableHeader className="bg-muted/40">
+                            <TableRow className="border-none hover:bg-transparent">
                                 <TableHead className="h-14 px-8 text-sm font-bold text-muted-foreground uppercase tracking-tight">ឈ្មោះ</TableHead>
                                 <TableHead className="h-14 px-8 text-sm font-bold text-muted-foreground uppercase tracking-tight">តួនាទី</TableHead>
                                 <TableHead className="h-14 px-8 text-sm font-bold text-muted-foreground uppercase tracking-tight">Email / PIN</TableHead>
@@ -249,8 +249,8 @@ export default function StaffManagementPage() {
                             ) : staffList.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={4} className="p-12">
-                                        <div className="max-w-md mx-auto bg-muted/50 border-2 border-dashed border-border rounded-[2.5rem] p-10 text-center group hover:border-red-200 transition-all">
-                                            <div className="w-20 h-20 bg-background border border-border shadow-sm rounded-full flex items-center justify-center text-muted-foreground/30 mx-auto mb-6 group-hover:scale-110 transition-transform duration-500">
+                                        <div className="max-w-md mx-auto bg-muted/30 rounded-[2.5rem] p-10 text-center group hover:bg-muted/50 transition-all">
+                                            <div className="w-20 h-20 bg-background shadow-sm rounded-full flex items-center justify-center text-muted-foreground/30 mx-auto mb-6 group-hover:scale-110 transition-transform duration-500">
                                                 <UserCog className="w-10 h-10" />
                                             </div>
                                             <h3 className="text-xl font-black text-foreground mb-2 font-kantumruy">មិនទាន់មានបុគ្គលិក</h3>
@@ -258,7 +258,7 @@ export default function StaffManagementPage() {
 
                                             <Button
                                                 onClick={() => setIsDialogOpen(true)}
-                                                className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-12 px-10 font-bold shadow-lg shadow-red-100 dark:shadow-none transition-all font-kantumruy"
+                                                className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-12 px-10 font-bold shadow-md transition-all font-kantumruy"
                                             >
                                                 បន្ថែមឥឡូវនេះ
                                             </Button>
@@ -267,17 +267,17 @@ export default function StaffManagementPage() {
                                 </TableRow>
                             ) : (
                                 staffList.map((staff) => (
-                                    <TableRow key={staff.id} className="border-border hover:bg-muted/10 transition-colors group">
+                                    <TableRow key={staff.id} className="border-none hover:bg-muted/10 transition-colors group">
                                         <TableCell className="px-8 py-5">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground font-black text-sm group-hover:bg-red-50 dark:group-hover:bg-red-950/20 group-hover:text-red-600 transition-colors border border-border">
+                                                <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground font-black text-sm group-hover:bg-red-50 dark:group-hover:bg-red-950/20 group-hover:text-red-600 transition-colors shadow-sm">
                                                     {staff.name.charAt(0).toUpperCase()}
                                                 </div>
                                                 <span className="font-black text-foreground font-kantumruy">{staff.name}</span>
                                             </div>
                                         </TableCell>
                                         <TableCell className="px-8 py-5">
-                                            <span className="bg-muted text-muted-foreground px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-tight border border-border">
+                                            <span className="bg-muted text-muted-foreground px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-tight shadow-sm">
                                                 {staff.role}
                                             </span>
                                         </TableCell>
@@ -318,7 +318,7 @@ export default function StaffManagementPage() {
                                                 >
                                                     <QrIcon size={16} />
                                                 </Button>
-                                                <div className="w-px h-4 bg-border mx-1" />
+                                                <div className="w-px h-4 bg-muted-foreground/10 mx-1" />
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"

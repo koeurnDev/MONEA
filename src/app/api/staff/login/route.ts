@@ -10,7 +10,7 @@ import { CryptoUtils } from "@/lib/crypto";
 const rateLimit = new Map<string, { count: number, lastAttempt: number }>();
 
 export async function POST(req: Request) {
-    const { authenticator } = await import("otplib") as any;
+    const otplib = await import("otplib") as any;
     try {
         const ip = req.headers.get("x-forwarded-for") || "unknown";
         const userAgent = req.headers.get("user-agent") || "unknown";
@@ -93,7 +93,12 @@ export async function POST(req: Request) {
         // 2. 2FA Check
         if (staffMember.twoFactorEnabled && staffMember.twoFactorSecret) {
             if (!twoFactorToken) return NextResponse.json({ require2FA: true }, { status: 428 });
-            let is2faValid = authenticator.verify({ token: twoFactorToken, secret: staffMember.twoFactorSecret });
+            const verifyResult = await otplib.verify({
+                token: twoFactorToken,
+                secret: staffMember.twoFactorSecret,
+                epochTolerance: 2
+            });
+            let is2faValid = verifyResult && verifyResult.valid;
 
             if (!is2faValid && staffMember.twoFactorRecoveryCodes) {
                 const codes = JSON.parse(staffMember.twoFactorRecoveryCodes) as string[];

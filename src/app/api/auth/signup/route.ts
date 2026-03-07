@@ -24,7 +24,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
         }
 
-        const { email, password, turnstileToken } = body;
+        const { name, email, password, turnstileToken } = body;
 
         if (!email || !password) {
             return NextResponse.json({ error: "Email and password required" }, { status: 400 });
@@ -75,6 +75,7 @@ export async function POST(req: Request) {
         const user = await prisma.user.create({
             data: {
                 email,
+                name: name || null,
                 password: hashedPassword,
                 role: ROLES.EVENT_MANAGER, // First user is Admin (Event Manager)
             },

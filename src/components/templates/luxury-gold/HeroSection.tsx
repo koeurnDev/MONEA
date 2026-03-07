@@ -1,3 +1,4 @@
+"use client";
 import React from 'react';
 import { m, useScroll, useTransform } from 'framer-motion';
 import { CldImage } from 'next-cloudinary';
@@ -11,7 +12,14 @@ interface HeroSectionProps {
 
 export default function HeroSection({ wedding, labels, addToCalendarUrl }: HeroSectionProps) {
     const { scrollYProgress } = useScroll();
-    const opacityHero = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
+    const opacityParallax = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
+
+    const [isMobile, setIsMobile] = React.useState(false);
+    React.useEffect(() => {
+        setIsMobile(window.innerWidth < 768);
+    }, []);
+
+    const opacityHero = isMobile ? 1 : opacityParallax;
 
     const fadeInUp = {
         initial: { opacity: 0, y: 40 },

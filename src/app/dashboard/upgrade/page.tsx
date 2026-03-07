@@ -6,10 +6,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Check, Crown, Zap, Sparkles, ShieldCheck } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { m } from 'framer-motion';
+import dynamic from "next/dynamic";
+const Turnstile = dynamic(() => import("@marsidev/react-turnstile").then(mod => mod.Turnstile), { ssr: false });
 
 export default function UpgradePage() {
     const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
     const [showPayment, setShowPayment] = useState(false);
+    const [turnstileToken, setTurnstileToken] = useState("");
     const [payToast, setPayToast] = useState<{ type: "success" | "error"; msg: string } | null>(null);
 
     const plans = [
@@ -20,7 +23,7 @@ export default function UpgradePage() {
             description: "សម្រាប់ការសាកល្បងបន្ទាប់ពីបង្កើត",
             features: ["១ ព្រឹត្តិការណ៍", "ពុម្ពគំរូស្តង់ដារ", "បញ្ជីភ្ញៀវ ៥០ នាក់", "រក្សាទុកបាន ២ សប្តាហ៍"],
             disabled: true,
-            theme: "bg-card border-border shadow-sm opacity-60",
+            theme: "bg-card shadow-sm opacity-60 border-none",
             buttonStyle: "bg-muted text-muted-foreground cursor-not-allowed",
             label: "កញ្ចប់បច្ចុប្បន្ន"
         },
@@ -32,8 +35,8 @@ export default function UpgradePage() {
             features: ["គ្រប់ពុម្ពគំរូទាំងអស់", "បញ្ជីភ្ញៀវ (មិនកំណត់)", "កត់ត្រាចំណងដៃ & សារ", "រក្សទុកបានរហូត"],
             recommended: true,
             icon: Zap,
-            theme: "bg-card border-red-200/50 dark:border-red-900/50 shadow-xl shadow-red-500/5 ring-1 ring-red-500/10",
-            buttonStyle: "bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-100/50 dark:shadow-none",
+            theme: "bg-card shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-none border-none ring-1 ring-red-500/10",
+            buttonStyle: "bg-red-600 hover:bg-red-700 text-white shadow-md active:scale-95",
             label: "ដំឡើងឥឡូវនេះ"
         },
         {
@@ -43,8 +46,8 @@ export default function UpgradePage() {
             description: "សម្រាប់ពិធីធំ និងសេវាកម្មពេញលេញ",
             features: ["ដក Logo MONEA ចេញ", "ជំនួយការផ្ទាល់ ២៤/៧", "ទាញយករបាយការណ៍ PDF/Excel", "មុខងារប្តូរពណ៌តាមចិត្ត"],
             icon: Crown,
-            theme: "bg-card border-border shadow-2xl shadow-slate-200/50 dark:shadow-none",
-            buttonStyle: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-slate-200 dark:shadow-none",
+            theme: "bg-card shadow-[0_8px_40px_rgba(0,0,0,0.08)] dark:shadow-none border-none",
+            buttonStyle: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-md active:scale-95",
             label: "ជ្រើសរើស Premium"
         }
     ];
@@ -58,7 +61,10 @@ export default function UpgradePage() {
         const res = await fetch("/api/payment/confirm", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ packageType: selectedPlan })
+            body: JSON.stringify({
+                packageType: selectedPlan,
+                turnstileToken
+            })
         });
 
         if (res.ok) {
@@ -90,7 +96,7 @@ export default function UpgradePage() {
                     <m.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="inline-flex items-center gap-2 bg-card px-4 py-1.5 rounded-full border border-border shadow-sm mb-4"
+                        className="inline-flex items-center gap-2 bg-card px-4 py-1.5 rounded-full shadow-sm mb-4 border-none"
                     >
                         <Sparkles className="w-3 h-3 text-red-600" />
                         <span className="text-[10px] font-black text-red-600 uppercase tracking-[0.2em] font-kantumruy">ដំឡើងគម្រោងរបស់អ្នក</span>
@@ -122,7 +128,7 @@ export default function UpgradePage() {
                             transition={{ delay: index * 0.1 + 0.3 }}
                         >
                             <Card className={cn(
-                                "relative flex flex-col h-full rounded-[2.5rem] border transition-all duration-500 group overflow-hidden",
+                                "relative flex flex-col h-full rounded-[2.5rem] transition-all duration-500 group overflow-hidden border-none",
                                 plan.theme,
                                 plan.id === 'PREMIUM' ? 'p-1' : 'p-2'
                             )}>
@@ -131,7 +137,7 @@ export default function UpgradePage() {
                                 )}
 
                                 {plan.recommended && (
-                                    <div className="absolute top-6 right-8 bg-red-600 text-white text-[9px] font-black px-4 py-1.5 rounded-full uppercase tracking-[0.2em] shadow-lg shadow-red-200 dark:shadow-none">
+                                    <div className="absolute top-6 right-8 bg-red-600 text-white text-[9px] font-black px-4 py-1.5 rounded-full uppercase tracking-[0.2em] shadow-md">
                                         Popular
                                     </div>
                                 )}
@@ -155,7 +161,7 @@ export default function UpgradePage() {
                                 </CardHeader>
 
                                 <CardContent className="flex-1 px-10 pb-10">
-                                    <div className="w-full h-px bg-border mb-10" />
+                                    <div className="w-full h-px bg-border/5 mb-10" />
                                     <ul className="space-y-5">
                                         {plan.features.map((f, i) => (
                                             <li key={i} className="flex items-start gap-4">
@@ -208,18 +214,18 @@ export default function UpgradePage() {
                     </div>
 
                     <div className="p-10 flex flex-col items-center">
-                        <div className="w-64 h-64 bg-card p-6 rounded-[2rem] shadow-2xl shadow-slate-200 dark:shadow-none border border-border relative group transition-transform duration-500 hover:scale-105">
+                        <div className="w-64 h-64 bg-card p-6 rounded-[2rem] shadow-[0_8px_40px_rgba(0,0,0,0.12)] dark:shadow-none relative group transition-transform duration-500 hover:scale-105 border-none">
                             {/* Mock QR Content */}
-                            <div className="w-full h-full border-2 border-dashed border-border rounded-2xl flex flex-col items-center justify-center space-y-4">
-                                <div className="text-5xl font-black text-slate-900 tracking-tighter">ABA</div>
+                            <div className="w-full h-full bg-slate-50/50 dark:bg-slate-900/50 rounded-2xl flex flex-col items-center justify-center space-y-4 shadow-inner">
+                                <div className="text-5xl font-black text-slate-900 dark:text-slate-100 tracking-tighter">ABA</div>
                                 <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">MONEA PAY</div>
                                 <div className="w-12 h-1 bg-red-600 rounded-full shadow-[0_0_10px_rgba(220,38,38,0.5)]" />
                             </div>
                         </div>
 
                         <div className="mt-10 space-y-4 w-full">
-                            <div className="flex items-start gap-4 p-5 bg-muted rounded-2xl border border-border">
-                                <div className="w-10 h-10 bg-background rounded-xl shadow-sm flex items-center justify-center shrink-0 border border-border">
+                            <div className="flex items-start gap-4 p-5 bg-muted rounded-2xl border-none shadow-sm">
+                                <div className="w-10 h-10 bg-background rounded-xl shadow-sm flex items-center justify-center shrink-0 border-none">
                                     <Sparkles className="w-5 h-5 text-red-600" />
                                 </div>
                                 <div className="text-left">
@@ -227,10 +233,18 @@ export default function UpgradePage() {
                                     <p className="text-xs text-muted-foreground font-medium font-kantumruy mt-1 leading-relaxed">គណនីរបស់អ្នកនឹងទទួលបានមុខងារថ្មីៗភ្លាមៗ បន្ទាប់ពីការបង់ប្រាក់បានជោគជ័យ។</p>
                                 </div>
                             </div>
+
+                            <div className="mt-6 scale-90 origin-center">
+                                <Turnstile
+                                    siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA"}
+                                    onSuccess={setTurnstileToken}
+                                    options={{ theme: 'dark' }}
+                                />
+                            </div>
                         </div>
 
                         <div className="mt-10 w-full space-y-4">
-                            <Button size="lg" className="w-full h-16 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-black font-kantumruy text-lg shadow-xl shadow-red-100 dark:shadow-none transition-all active:scale-95" onClick={confirmPayment}>
+                            <Button size="lg" disabled={!turnstileToken} className="w-full h-16 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-black font-kantumruy text-lg shadow-md transition-all active:scale-95 border-none" onClick={confirmPayment}>
                                 ខ្ញុំបានបង់ប្រាក់រួចរាល់ហើយ
                             </Button>
                             <Button variant="ghost" className="w-full text-muted-foreground font-bold font-kantumruy hover:text-foreground" onClick={() => setShowPayment(false)}>

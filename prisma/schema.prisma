@@ -53,11 +53,26 @@ model Wedding {
   logs             Log[]
   supportTickets   SupportTicket[]
   templateVersions WeddingTemplateVersion[]
+  analytics        InvitationAnalytics[]
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @default(now()) @updatedAt
 
   @@index([userId])
   @@index([status])
+}
+
+model InvitationAnalytics {
+  id              String   @id @default(cuid())
+  weddingId       String
+  wedding         Wedding  @relation(fields: [weddingId], references: [id])
+  type            String   // VIEW, MAP_CLICK, SAVE_DATE
+  ipHash          String?  // Deduplication
+  userAgent       String?
+  deviceType      String?  // MOBILE, DESKTOP
+  createdAt       DateTime @default(now())
+
+  @@index([weddingId])
+  @@index([createdAt])
 }
 
 model Activity {
@@ -85,6 +100,11 @@ model Guest {
   hasArrived Boolean   @default(false)
   arrivedAt  DateTime?
   views      Int       @default(0)
+  rsvpStatus  String?   @default("PENDING") // PENDING, CONFIRMED, DECLINED
+  adultsCount Int       @default(1)
+  childrenCount Int?    @default(0)
+  rsvpNotes   String?
+  rsvpAt      DateTime?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @default(now()) @updatedAt
 

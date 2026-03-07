@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import * as XLSX from "xlsx";
+// Dynamic loading for XLSX to save bundle size
+const loadXLSX = () => import("xlsx");
 import { Button } from "@/components/ui/button";
 import { Upload, FileSpreadsheet, Download } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
     Dialog,
     DialogContent,
@@ -13,7 +15,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 
-export function GuestImport({ onSuccess }: { onSuccess: () => void }) {
+export function GuestImport({ onSuccess, className }: { onSuccess: () => void, className?: string }) {
     const [loading, setLoading] = useState(false);
     const [open, setOpen] = useState(false);
 
@@ -25,6 +27,7 @@ export function GuestImport({ onSuccess }: { onSuccess: () => void }) {
         const reader = new FileReader();
 
         reader.onload = async (evt) => {
+            const XLSX = await loadXLSX();
             const bstr = evt.target?.result;
             const wb = XLSX.read(bstr, { type: "binary" });
             const wsname = wb.SheetNames[0];
@@ -62,7 +65,8 @@ export function GuestImport({ onSuccess }: { onSuccess: () => void }) {
         reader.readAsBinaryString(file);
     };
 
-    const downloadTemplate = () => {
+    const downloadTemplate = async () => {
+        const XLSX = await loadXLSX();
         const headers = ["នាម និង គោតមនាម", "អញ្ជើញមកពី"];
         const sampleData = [
             ["សុក តារា", "មិត្តភក្តិខាងកូនកំលោះ"],
@@ -81,9 +85,12 @@ export function GuestImport({ onSuccess }: { onSuccess: () => void }) {
             <DialogTrigger asChild>
                 <Button
                     variant="outline"
-                    className="h-11 px-6 border-border text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl font-kantumruy font-bold transition-all"
+                    className={cn(
+                        "h-9 px-3 border-border text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl font-kantumruy font-bold transition-all text-[11px]",
+                        className
+                    )}
                 >
-                    <FileSpreadsheet className="mr-2 h-4 w-4 text-emerald-600" /> នាំចូល Excel (Import)
+                    <FileSpreadsheet className="mr-1.5 h-3.5 w-3.5 text-emerald-600 shrink-0" /> នាំចូល
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px] rounded-[2rem] border-none shadow-2xl bg-card">
