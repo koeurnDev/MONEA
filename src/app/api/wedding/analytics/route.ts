@@ -6,7 +6,11 @@ import crypto from "crypto";
 export async function POST(req: Request) {
     try {
         const { weddingId, type } = await req.json();
+
+        console.log(`[Analytics] POST body: weddingId=${weddingId}, type=${type}`);
+
         if (!weddingId || !type) {
+            console.warn(`[Analytics] 400: Missing required fields. Body: ${JSON.stringify({ weddingId, type })}`);
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
         }
 
