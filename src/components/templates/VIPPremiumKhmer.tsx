@@ -288,7 +288,7 @@ export default function VIPPremiumKhmer({ wedding, guestName }: { wedding: Weddi
 
                     <RevealSection delay={0.2}>
                         <p className="max-w-3xl mx-auto font-vip-serif text-2xl md:text-3xl text-gray-400 leading-relaxed italic font-light">
-                            "{wedding.themeSettings?.groomStory || "Two souls intertwined in the fabric of destiny, embarking on a journey of a lifetime."}"
+                            &quot;{wedding.themeSettings?.groomStory || "Two souls intertwined in the fabric of destiny, embarking on a journey of a lifetime."}&quot;
                         </p>
                     </RevealSection>
                 </div>
@@ -388,7 +388,7 @@ export default function VIPPremiumKhmer({ wedding, guestName }: { wedding: Weddi
                 <div className="relative z-10 text-center px-6">
                     <RevealSection>
                         <p className="font-vip-serif font-light text-3xl text-[#D4AF37] mb-6 tracking-wide italic">An unforgettable evening awaits</p>
-                        <h2 className="font-vip-heading text-5xl md:text-7xl mb-12 text-white">Let's Celebrate <br /><span className="gold-text-gradient">Together</span></h2>
+                        <h2 className="font-vip-heading text-5xl md:text-7xl mb-12 text-white">Let&apos;s Celebrate <br /><span className="gold-text-gradient">Together</span></h2>
                         <a
                             href={wedding.themeSettings?.mapLink || "#"}
                             target="_blank"

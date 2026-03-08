@@ -167,7 +167,7 @@ export default function GuestbookSection({ wedding, guestName, primaryColor, onN
                                 </div>
                             </div>
                             <div className="relative">
-                                <span className="absolute -left-2 -top-2 text-4xl text-white/5 font-serif">"</span>
+                                <span className="absolute -left-2 -top-2 text-4xl text-white/5 font-serif">&quot;</span>
                                 <p className="text-white/80 text-sm leading-relaxed font-kantumruy relative z-10 pl-2">
                                     {wish.message}
                                 </p>
