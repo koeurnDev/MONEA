@@ -52,6 +52,7 @@ export async function middleware(request: NextRequest) {
     const userAgentLower = userAgent.toLowerCase();
     if (BLOCKED_BOTS.some(bot => userAgentLower.includes(bot))) {
         console.warn(`[Security] Blocked bot User-Agent: ${userAgent} from IP: ${ip}`);
+        console.log(`[Middleware Debug] Path: ${request.nextUrl.pathname}, Method: ${request.method}, IP: ${ip}, Bot detected`);
         sendTelegramAlert(`🛑 *Scraper Blocked*\nIP: \`${ip}\`\nUser-Agent: \`${userAgent}\`\nPath: \`${request.nextUrl.pathname}\``);
         return NextResponse.json({ error: "Automated access is not allowed." }, { status: 403 });
     }
@@ -76,6 +77,7 @@ export async function middleware(request: NextRequest) {
             limitInfo.count++;
             if (limitInfo.count > maxRequests) {
                 console.warn(`[Security] Rate Limit exceeded for IP: ${ip} on path: ${request.nextUrl.pathname}`);
+                console.log(`[Middleware Debug] RATE LIMIT hit for IP: ${ip}, Path: ${request.nextUrl.pathname}, IsSensitive: ${isSensitive}`);
                 return NextResponse.json(
                     { error: "Too many requests. Please try again later.", retryAfter: Math.ceil((limitInfo.resetTime - now) / 1000) },
                     { status: 429 }
@@ -113,6 +115,7 @@ export async function middleware(request: NextRequest) {
             const originHost = new URL(origin).host;
             if (originHost !== host) {
                 console.warn(`[Security] CSRF Blocked: Origin ${originHost} does not match Host ${host}`);
+                console.log(`[Middleware Debug] CSRF BLOCKED. Method: ${request.method}, Path: ${request.nextUrl.pathname}, Origin: ${origin}, Host: ${host}`);
                 return NextResponse.json({ error: "Invalid Origin" }, { status: 403 });
             }
         }

@@ -20,6 +20,8 @@ const giftSchema = z.object({
 export async function GET(req: Request) {
     try {
         const user = await getServerUser();
+        console.log(`[Gifts API Debug] GET. UserRole: ${user?.role}`);
+
         if (!user) return errorResponse("Unauthorized", 401);
 
         const { searchParams } = new URL(req.url);
@@ -33,7 +35,10 @@ export async function GET(req: Request) {
             if (wedding) weddingId = wedding.id;
         }
 
-        if (!weddingId) return NextResponse.json([]);
+        if (!weddingId) {
+            console.log(`[Gifts API Debug] GET. No weddingId found for user ${user.userId}`);
+            return NextResponse.json([]);
+        }
 
         const gifts = await prisma.gift.findMany({
             where: { weddingId },
@@ -50,35 +55,46 @@ export async function GET(req: Request) {
             } : gift.guest
         }));
 
+        console.log(`[Gifts API Debug] GET Success. Count: ${gifts.length}`);
         return NextResponse.json({ gifts: decryptedGifts, role: user.role });
-    } catch (e) {
-        return errorResponse("Failed to fetch gifts");
+    } catch (error: any) {
+        console.error(`[Gifts API Debug] GET CRASH: ${error.message}`, error);
+        return errorResponse("Failed to fetch gifts", 500, error.message);
     }
 }
 
 export async function POST(req: Request) {
-    const user = await getServerUser();
-    if (!user) return errorResponse("Unauthorized", 401);
-
-    const { data, error } = await validateRequest(req, giftSchema);
-    if (error) return error;
-
-    const sanitizedData = sanitizeObject<z.infer<typeof giftSchema>>(data);
-
     try {
+        const user = await getServerUser();
+        console.log(`[Gifts API Debug] POST. UserRole: ${user?.role}`);
+
+        if (!user) return errorResponse("Unauthorized", 401);
+
+        const { data, error } = await validateRequest(req, giftSchema);
+        if (error) {
+            console.warn(`[Gifts API Debug] POST Validation Error:`, error);
+            return error;
+        }
+
+        const sanitizedData = sanitizeObject<z.infer<typeof giftSchema>>(data);
+
         let wedding;
         if (user.type === "staff") {
             wedding = await prisma.wedding.findUnique({ where: { id: user.weddingId! } });
         } else {
             wedding = await prisma.wedding.findFirst({ where: { userId: user.userId } });
             if (!wedding) {
+                console.log(`[Gifts API Debug] POST. Auto-creating wedding for user ${user.userId}`);
                 wedding = await prisma.wedding.create({
                     data: { userId: user.userId, groomName: "Groom", brideName: "Bride", date: new Date() }
                 });
             }
         }
 
-        if (!wedding) return errorResponse("Wedding not found", 404);
+        if (!wedding) {
+            console.error(`[Gifts API Debug] POST. Wedding not found for user ${user.userId}`);
+            return errorResponse("Wedding not found", 404);
+        }
 
         let finalGuestId = null;
         let displayName = sanitizedData.guestName || "Unknown Guest";
@@ -111,8 +127,10 @@ export async function POST(req: Request) {
 
         await createLog(wedding.id, "GIFT", `Recorded gift: ${gift.amount} ${gift.currency} from ${displayName}`, user.email || user.role);
 
+        console.log(`[Gifts API Debug] POST Success. GiftId: ${gift.id}`);
         return NextResponse.json(gift);
-    } catch (e) {
-        return errorResponse("Failed to record gift");
+    } catch (error: any) {
+        console.error(`[Gifts API Debug] POST CRASH: ${error.message}`, error);
+        return errorResponse("Failed to record gift", 500, error.message);
     }
 }
