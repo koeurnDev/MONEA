@@ -9,7 +9,10 @@ export async function GET(req: Request) {
         const { searchParams } = new URL(req.url);
         const weddingId = searchParams.get("weddingId");
 
+        console.log(`[Analytics Stats] GET params: weddingId=${weddingId}, url=${req.url}`);
+
         if (!weddingId) {
+            console.warn(`[Analytics Stats] 400: Missing weddingId. URL: ${req.url}`);
             return NextResponse.json({ error: "Missing weddingId" }, { status: 400 });
         }
 
