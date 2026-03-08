@@ -19,6 +19,8 @@ const guestSchema = z.object({
 export async function GET() {
     try {
         const user = await getServerUser();
+        console.log(`[Guests API Debug] GET. UserRole: ${user?.role}`);
+
         if (!user) return errorResponse("Unauthorized", 401);
 
         let weddingId = null;
@@ -29,7 +31,10 @@ export async function GET() {
             if (wedding) weddingId = wedding.id;
         }
 
-        if (!weddingId) return NextResponse.json([]);
+        if (!weddingId) {
+            console.log(`[Guests API Debug] GET. No weddingId found for user ${user.userId}`);
+            return NextResponse.json([]);
+        }
 
         const guests = await prisma.guest.findMany({
             where: { weddingId },
@@ -41,24 +46,32 @@ export async function GET() {
             phone: guest.phone ? decrypt(guest.phone) : guest.phone
         }));
 
+        console.log(`[Guests API Debug] GET Success. Count: ${guests.length}`);
         return NextResponse.json(decryptedGuests);
-    } catch (e) {
-        return errorResponse("Failed to fetch guests");
+    } catch (error: any) {
+        console.error(`[Guests API Debug] GET CRASH: ${error.message}`, error);
+        return errorResponse("Failed to fetch guests", 500, error.message);
     }
 }
 
 export async function POST(req: Request) {
-    const user = await getServerUser();
-    if (!user) return errorResponse("Unauthorized", 401);
-
-    const { data, error } = await validateRequest(req, guestSchema);
-    if (error) return error;
-
-    const sanitizedData = sanitizeObject<z.infer<typeof guestSchema>>(data);
-
     try {
+        const user = await getServerUser();
+        console.log(`[Guests API Debug] POST. UserRole: ${user?.role}`);
+
+        if (!user) return errorResponse("Unauthorized", 401);
+
+        const { data, error } = await validateRequest(req, guestSchema);
+        if (error) {
+            console.warn(`[Guests API Debug] POST Validation Error:`, error);
+            return error;
+        }
+
+        const sanitizedData = sanitizeObject<z.infer<typeof guestSchema>>(data);
+
         let wedding = await prisma.wedding.findFirst({ where: { userId: user.userId } });
         if (!wedding) {
+            console.log(`[Guests API Debug] POST. Auto-creating wedding for user ${user.userId}`);
             wedding = await prisma.wedding.create({
                 data: {
                     userId: user.userId,
@@ -80,20 +93,28 @@ export async function POST(req: Request) {
         await createLog(wedding.id, "CREATE", `Added guest: ${guest.name}`, user.email || user.role);
 
         if (guest.phone) guest.phone = decrypt(guest.phone);
+
+        console.log(`[Guests API Debug] POST Success. GuestId: ${guest.id}`);
         return NextResponse.json(guest);
-    } catch (e) {
-        return errorResponse("Failed to create guest");
+    } catch (error: any) {
+        console.error(`[Guests API Debug] POST CRASH: ${error.message}`, error);
+        return errorResponse("Failed to create guest", 500, error.message);
     }
 }
 
 export async function PATCH(req: Request) {
-    const user = await getServerUser();
-    if (!user) return errorResponse("Unauthorized", 401);
-
-    const { data, error } = await validateRequest(req, guestSchema.partial().extend({ id: z.string() }));
-    if (error) return error;
-
     try {
+        const user = await getServerUser();
+        console.log(`[Guests API Debug] PATCH. UserRole: ${user?.role}`);
+
+        if (!user) return errorResponse("Unauthorized", 401);
+
+        const { data, error } = await validateRequest(req, guestSchema.partial().extend({ id: z.string() }));
+        if (error) {
+            console.warn(`[Guests API Debug] PATCH Validation Error:`, error);
+            return error;
+        }
+
         const { id, ...updateFields } = data!;
 
         // SECURITY: Ownership Check (IDOR Prevention)
@@ -121,22 +142,27 @@ export async function PATCH(req: Request) {
         await createLog(guest.weddingId, "UPDATE", `Updated guest: ${guest.name}`, user.email || user.role);
 
         if (guest.phone) guest.phone = decrypt(guest.phone);
+
+        console.log(`[Guests API Debug] PATCH Success. GuestId: ${guest.id}`);
         return NextResponse.json(guest);
-    } catch (e) {
-        return errorResponse("Failed to update guest");
+    } catch (error: any) {
+        console.error(`[Guests API Debug] PATCH CRASH: ${error.message}`, error);
+        return errorResponse("Failed to update guest", 500, error.message);
     }
 }
 
 export async function DELETE(req: Request) {
-    const user = await getServerUser();
-    if (!user) return errorResponse("Unauthorized", 401);
-
-    const { searchParams } = new URL(req.url);
-    const id = searchParams.get("id");
-
-    if (!id) return errorResponse("ID required", 400);
-
     try {
+        const user = await getServerUser();
+        console.log(`[Guests API Debug] DELETE. UserRole: ${user?.role}`);
+
+        if (!user) return errorResponse("Unauthorized", 401);
+
+        const { searchParams } = new URL(req.url);
+        const id = searchParams.get("id");
+
+        if (!id) return errorResponse("ID required", 400);
+
         const guest = await prisma.guest.findUnique({ where: { id } });
         if (!guest) return errorResponse("Guest not found", 404);
 
@@ -157,8 +183,10 @@ export async function DELETE(req: Request) {
         await prisma.guest.delete({ where: { id } });
         await createLog(guest.weddingId, "DELETE", `Deleted guest: ${guest.name}`, user.email || user.role);
 
+        console.log(`[Guests API Debug] DELETE Success. GuestId: ${id}`);
         return NextResponse.json({ success: true });
-    } catch (e) {
-        return errorResponse("Failed to delete guest");
+    } catch (error: any) {
+        console.error(`[Guests API Debug] DELETE CRASH: ${error.message}`, error);
+        return errorResponse("Failed to delete guest", 500, error.message);
     }
 }

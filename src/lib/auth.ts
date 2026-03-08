@@ -60,70 +60,77 @@ export type AuthUser = {
  * Memoized to avoid redundant database queries per request
  */
 export const getServerUser = cache(async (): Promise<AuthUser | null> => {
-    const cookieStore = cookies();
-    const token = cookieStore.get("token")?.value;
-    const staffToken = cookieStore.get("staff_token")?.value;
+    try {
+        const cookieStore = cookies();
+        const token = cookieStore.get("token")?.value;
+        const staffToken = cookieStore.get("staff_token")?.value;
 
-    if (token) {
-        const decoded = verifyToken(token) as any;
-        if (decoded && typeof decoded === "object") {
-            const userId = decoded.userId || decoded.sub || decoded.id;
+        console.log(`[Auth Debug] getServerUser attempt. token=${!!token}, staffToken=${!!staffToken}`);
 
-            // SECURITY: Check Session Revocation
-            const user = await prisma.user.findUnique({
-                where: { id: userId },
-                select: { sessionsRevokedAt: true, role: true, email: true, name: true }
-            });
+        if (token) {
+            const decoded = verifyToken(token) as any;
+            if (decoded && typeof decoded === "object") {
+                const userId = decoded.userId || decoded.sub || decoded.id;
 
-            if (!user) return null;
-            if (user.sessionsRevokedAt && decoded.iat * 1000 < user.sessionsRevokedAt.getTime()) {
-                console.warn(`[Security] Admin session revoked for user: ${userId}`);
-                return null;
-            }
-
-            const role = (user.role?.toUpperCase() || decoded.role?.toUpperCase() || ROLES.EVENT_MANAGER) as AuthUser["role"];
-            return {
-                userId,
-                role,
-                email: user.email,
-                name: user.name || undefined,
-                type: "admin"
-            };
-        }
-    }
-
-    if (staffToken) {
-        const decoded = verifyToken(staffToken) as any;
-        if (decoded && typeof decoded === "object" && (decoded.staffId || decoded.weddingId)) {
-            const staffId = decoded.staffId;
-            const weddingId = decoded.weddingId;
-
-            let staffName = "Staff";
-
-            // SECURITY: Check Session Revocation for Staff
-            if (staffId) {
-                const staff = await prisma.staff.findUnique({
-                    where: { id: staffId },
-                    select: { sessionsRevokedAt: true, name: true }
+                // SECURITY: Check Session Revocation
+                const user = await prisma.user.findUnique({
+                    where: { id: userId },
+                    select: { sessionsRevokedAt: true, role: true, email: true, name: true }
                 });
 
-                if (!staff) return null;
-                if (staff.sessionsRevokedAt && decoded.iat * 1000 < staff.sessionsRevokedAt.getTime()) {
-                    console.warn(`[Security] Staff session revoked for staff: ${staffId}`);
+                if (!user) return null;
+                if (user.sessionsRevokedAt && decoded.iat * 1000 < user.sessionsRevokedAt.getTime()) {
+                    console.warn(`[Security] Admin session revoked for user: ${userId}`);
                     return null;
                 }
-                staffName = staff.name || "Staff";
+
+                const role = (user.role?.toUpperCase() || decoded.role?.toUpperCase() || ROLES.EVENT_MANAGER) as AuthUser["role"];
+                return {
+                    userId,
+                    role,
+                    email: user.email,
+                    name: user.name || undefined,
+                    type: "admin"
+                };
             }
-
-            return {
-                userId: staffId || weddingId,
-                weddingId: weddingId,
-                role: ROLES.EVENT_STAFF,
-                name: staffName,
-                type: "staff"
-            };
         }
-    }
 
-    return null;
+        if (staffToken) {
+            const decoded = verifyToken(staffToken) as any;
+            if (decoded && typeof decoded === "object" && (decoded.staffId || decoded.weddingId)) {
+                const staffId = decoded.staffId;
+                const weddingId = decoded.weddingId;
+
+                let staffName = "Staff";
+
+                // SECURITY: Check Session Revocation for Staff
+                if (staffId) {
+                    const staff = await prisma.staff.findUnique({
+                        where: { id: staffId },
+                        select: { sessionsRevokedAt: true, name: true }
+                    });
+
+                    if (!staff) return null;
+                    if (staff.sessionsRevokedAt && decoded.iat * 1000 < staff.sessionsRevokedAt.getTime()) {
+                        console.warn(`[Security] Staff session revoked for staff: ${staffId}`);
+                        return null;
+                    }
+                    staffName = staff.name || "Staff";
+                }
+
+                return {
+                    userId: staffId || weddingId,
+                    weddingId: weddingId,
+                    role: ROLES.EVENT_STAFF,
+                    name: staffName,
+                    type: "staff"
+                };
+            }
+        }
+
+        return null;
+    } catch (error: any) {
+        console.error(`[Auth Debug] CRITICAL CRASH in getServerUser: ${error.message}`, error);
+        return null;
+    }
 });
