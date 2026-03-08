@@ -48,7 +48,10 @@ export async function POST(req: Request) {
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             });
             const turnstileResult = await verifyRes.json();
+            console.log(`[Auth Signin] Turnstile verification: success=${turnstileResult.success}, ip=${ip}`);
+
             if (!turnstileResult.success) {
+                console.warn(`[Auth Signin] 400: Turnstile verification failed. Result: ${JSON.stringify(turnstileResult)}`);
                 return NextResponse.json({ error: "ការផ្ទៀងផ្ទាត់ CAPTCHA បរាជ័យ។ (CAPTCHA verification failed)" }, { status: 400 });
             }
         }
