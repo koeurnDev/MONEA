@@ -407,7 +407,7 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                                     </p>
                                     <div className="flex items-center justify-start gap-2 md:gap-4">
                                         <Clock size={12} className="text-gray-300 md:w-4 md:h-4" />
-                                        <p className="font-playfair text-[10px] md:text-2xl font-bold text-gray-600 uppercase">FIVE O'CLOCK IN THE EVENING</p>
+                                        <p className="font-playfair text-[10px] md:text-2xl font-bold text-gray-600 uppercase">FIVE O&apos;CLOCK IN THE EVENING</p>
                                     </div>
                                 </div>
                             </div>
@@ -723,12 +723,12 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-20 mb-32 px-6 relative">
                                 <div className="absolute left-1/2 top-0 bottom-0 w-[1px] bg-gold/10 -translate-x-1/2 hidden md:block" />
                                 <div className="space-y-4 font-khmer-content text-[15px] font-bold text-gray-600 leading-relaxed">
-                                    <p className="text-gold/60 text-[11px] uppercase tracking-[0.4em] mb-4 font-black">GROOM'S PARENTS</p>
+                                    <p className="text-gold/60 text-[11px] uppercase tracking-[0.4em] mb-4 font-black">GROOM&apos;S PARENTS</p>
                                     <p>លោក {wedding.themeSettings?.parents?.groomFather || "មាតាបិតាខាងប្រុស"}</p>
                                     <p>អ្នកស្រី {wedding.themeSettings?.parents?.groomMother || ""}</p>
                                 </div>
                                 <div className="space-y-4 font-khmer-content text-[15px] font-bold text-gray-600 leading-relaxed">
-                                    <p className="text-gold/60 text-[11px] uppercase tracking-[0.4em] mb-4 font-black">BRIDE'S PARENTS</p>
+                                    <p className="text-gold/60 text-[11px] uppercase tracking-[0.4em] mb-4 font-black">BRIDE&apos;S PARENTS</p>
                                     <p>លោក {wedding.themeSettings?.parents?.brideFather || "មាតាបិតាខាងស្រី"}</p>
                                     <p>អ្នកស្រី {wedding.themeSettings?.parents?.brideMother || ""}</p>
                                 </div>

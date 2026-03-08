@@ -88,7 +88,7 @@ export default function LoveStorySection({ galleryImages = [], storyImages = [],
                         viewport={{ once: true }}
                         className="flex-1 text-center md:text-right font-kantumruy text-white text-lg md:text-xl leading-relaxed max-w-sm drop-shadow-md"
                     >
-                        "{eventType === 'anniversary' ? "រាល់ឆ្នាំដែលកន្លងផុតទៅ ធ្វើឲ្យខ្ញុំកាន់តែស្រលាញ់អ្នកខ្លាំងជាងមុន។" : "រឿងរ៉ាវស្នេហាគ្រប់យ៉ាងសុទ្ធតែស្រស់ស្អាត ប៉ុន្តែរឿងរ៉ាវរបស់យើងគឺជារឿងដែលខ្ញុំពេញចិត្តបំផុត។"}"
+                        &quot;{eventType === 'anniversary' ? "រាល់ឆ្នាំដែលកន្លងផុតទៅ ធ្វើឲ្យខ្ញុំកាន់តែស្រលាញ់អ្នកខ្លាំងជាងមុន។" : "រឿងរ៉ាវស្នេហាគ្រប់យ៉ាងសុទ្ធតែស្រស់ស្អាត ប៉ុន្តែរឿងរ៉ាវរបស់យើងគឺជារឿងដែលខ្ញុំពេញចិត្តបំផុត។"}&quot;
                     </m.div>
 
                     {/* Row 2: The Destination (Center) */}
@@ -105,8 +105,8 @@ export default function LoveStorySection({ galleryImages = [], storyImages = [],
                         viewport={{ once: true }}
                         className="flex-1 text-center md:text-left font-kantumruy text-white text-lg md:text-xl leading-relaxed max-w-sm drop-shadow-md"
                     >
-                        "{eventType === 'anniversary' ? "អរគុណដែលបាននៅក្បែរខ្ញុំ និងកសាងសុភមង្គលជាមួយគ្នា។" : "ចាប់ពីពេលនេះតទៅ ខ្ញុំសន្យានឹងធ្វើជាផ្ទះ ជាក្តីសុខ និងជាកន្លែងដែលអ្នកអាចពឹងផ្អែកបានជារៀងរហូត។"}"
-                        "{eventType === 'anniversary' ? "អរគុណដែលបាននៅក្បែរខ្ញុំ និងកសាងសុភមង្គលជាមួយគ្នា។" : "ចាប់ពីពេលនេះតទៅ ខ្ញុំសន្យានឹងធ្វើជាផ្ទះ ជាក្តីសុខ និងជាកន្លែងដែលអ្នកអាចពឹងពាក់បានជារៀងរហូត។"}"
+                        &quot;{eventType === 'anniversary' ? "អរគុណដែលបាននៅក្បែរខ្ញុំ និងកសាងសុភមង្គលជាមួយគ្នា។" : "ចាប់ពីពេលនេះតទៅ ខ្ញុំសន្យានឹងធ្វើជាផ្ទះ ជាក្តីសុខ និងជាកន្លែងដែលអ្នកអាចពឹងផ្អែកបានជារៀងរហូត។"}&quot;
+                        &quot;{eventType === 'anniversary' ? "អរគុណដែលបាននៅក្បែរខ្ញុំ និងកសាងសុភមង្គលជាមួយគ្នា។" : "ចាប់ពីពេលនេះតទៅ ខ្ញុំសន្យានឹងធ្វើជាផ្ទះ ជាក្តីសុខ និងជាកន្លែងដែលអ្នកអាចពឹងពាក់បានជារៀងរហូត។"}&quot;
                     </m.div>
                 </div>
 
