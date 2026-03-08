@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getServerUser } from "@/lib/auth";
 
 export const dynamic = 'force-dynamic';
 
@@ -12,9 +13,18 @@ export async function GET() {
         dbStatus = `Failed: ${e.message}`;
     }
 
+    let userStatus = "Checking...";
+    try {
+        const user = await getServerUser();
+        userStatus = user ? `Found (Role: ${user.role})` : "Not Logged In";
+    } catch (e: any) {
+        userStatus = `CRASH: ${e.message}`;
+    }
+
     return NextResponse.json({
         status: "ok",
         db: dbStatus,
+        user: userStatus,
         time: new Date().toISOString()
     });
 }
