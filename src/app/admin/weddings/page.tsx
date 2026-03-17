@@ -133,13 +133,13 @@ export default function AdminWeddingsPage() {
                     EVENT MANAGEMENT
                 </div>
                 <h1 className="text-3xl font-black text-foreground tracking-tight font-kantumruy">គ្រប់គ្រងមង្គលការ</h1>
-                <p className="text-muted-foreground font-medium font-kantumruy text-sm">មើល កែប្រែគម្រោង និងគ្រប់គ្រងស្ថានភាពមង្គលការទាំងអស់ក្នុងប្រព័ន្ធ MONEA ។</p>
+                <p className="text-muted-foreground font-medium font-kantumruy text-base opacity-70">មើល កែប្រែគម្រោង និងគ្រប់គ្រងស្ថានភាពមង្គលការទាំងអស់ក្នុងប្រព័ន្ធ MONEA ។</p>
             </div>
 
-            <div className="bg-card rounded-3xl border border-border overflow-hidden shadow-sm shadow-black/5">
+            <div className="bg-card rounded-[2rem] border-none overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.06)] dark:shadow-[0_4px_32px_rgba(0,0,0,0.2)]">
                 <Table>
                     <TableHeader className="bg-muted/30">
-                        <TableRow className="border-border hover:bg-transparent">
+                        <TableRow className="border-none hover:bg-transparent">
                             <TableHead className="text-muted-foreground font-bold uppercase text-xs tracking-tight py-6 px-8">អ្នកប្រើប្រាស់</TableHead>
                             <TableHead className="text-muted-foreground font-bold uppercase text-xs tracking-tight">ឈ្មោះប្តីប្រពន្ធ</TableHead>
                             <TableHead className="text-muted-foreground font-bold uppercase text-xs tracking-tight">កញ្ចប់សេវាកម្ម</TableHead>
@@ -165,7 +165,7 @@ export default function AdminWeddingsPage() {
                             <TableRow><TableCell colSpan={6} className="text-center py-20 text-muted-foreground font-bold uppercase tracking-widest text-xs">មិនមានទិន្នន័យឡើយ</TableCell></TableRow>
                         ) : (
                             weddings.slice(0, visibleCount).map((w) => (
-                                <TableRow key={w.id} className="border-border/50 hover:bg-muted/30 group transition-colors">
+                                <TableRow key={w.id} className="border-none hover:bg-muted/30 group transition-colors">
                                     <TableCell className="font-medium text-muted-foreground px-8 font-mono text-xs">{w.user?.email || "N/A"}</TableCell>
                                     <TableCell className="text-foreground font-bold font-kantumruy">{w.groomName} & {w.brideName}</TableCell>
                                     <TableCell>
@@ -182,7 +182,7 @@ export default function AdminWeddingsPage() {
                                         "text-xs font-mono",
                                         w.expiresAt && new Date(w.expiresAt) < new Date() ? "text-red-500 font-bold" : "text-muted-foreground"
                                     )}>
-                                        {w.expiresAt ? new Date(w.expiresAt).toLocaleDateString() : 'N/A'}
+                                        {w.expiresAt ? new Date(w.expiresAt).toLocaleDateString('km-KH', { timeZone: 'Asia/Phnom_Penh' }) : 'N/A'}
                                     </TableCell>
                                     <TableCell>
                                         <span className={cn(
@@ -210,7 +210,7 @@ export default function AdminWeddingsPage() {
                 </Table>
 
                 {weddings.length > visibleCount && (
-                    <div className="p-8 border-t border-border bg-muted/20 flex justify-center">
+                    <div className="p-8 border-t border-transparent bg-muted/20 flex justify-center">
                         <Button
                             variant="outline"
                             className="rounded-xl font-bold font-kantumruy"

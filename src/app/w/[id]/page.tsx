@@ -2,16 +2,21 @@ import { prisma } from "@/lib/prisma";
 import { Suspense } from "react";
 import { WeddingDataView } from "./_components/WeddingDataView";
 import { WeddingSkeleton } from "./_components/WeddingSkeleton";
+import { unstable_cache } from "next/cache";
 
 // Enable ISR with 60 seconds revalidation for optimal edge caching and TTFB
 export const revalidate = 60;
 
-async function getWeddingMetadataOnly(id: string) {
-    return await prisma.wedding.findUnique({
-        where: { id },
-        select: { groomName: true, brideName: true, date: true, eventType: true, themeSettings: true }
-    });
-}
+const getWeddingMetadataOnly = unstable_cache(
+    async (id: string) => {
+        return await prisma.wedding.findUnique({
+            where: { id },
+            select: { groomName: true, brideName: true, date: true, eventType: true, themeSettings: true }
+        });
+    },
+    ['wedding-metadata'],
+    { revalidate: 3600, tags: ['wedding-metadata'] }
+);
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
     const wedding = await getWeddingMetadataOnly(params.id);
@@ -23,7 +28,7 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
     }
 
     const title = `${wedding.groomName} & ${wedding.brideName} - Wedding Invitation`;
-    const description = `Join us in celebrating our special day on ${new Date(wedding.date).toLocaleDateString()}.`;
+    const description = `សូមគោរពអញ្ជើញចូលរួមក្នុងកម្មវិធីមង្គលការរបស់ ${wedding.groomName} និង ${wedding.brideName} នៅថ្ងៃទី ${new Date(wedding.date).toLocaleDateString('km-KH', { timeZone: 'Asia/Phnom_Penh' })}. Join us in celebrating our special day.`;
     const imageUrl = (wedding.themeSettings as any)?.shareImage || (wedding.themeSettings as any)?.heroImage || '/og-default.jpg';
 
     // Dynamic OG Image Integration
@@ -37,6 +42,9 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
         openGraph: {
             title: title,
             description: description,
+            url: `${baseUrl}/w/${params.id}`,
+            siteName: 'MONEA - Professional E-Invitations',
+            locale: 'km_KH',
             images: [
                 {
                     url: ogImageUrl,
@@ -52,6 +60,10 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
             title: title,
             description: description,
             images: [ogImageUrl],
+            creator: '@monea',
+        },
+        alternates: {
+            canonical: `${baseUrl}/w/${params.id}`,
         },
     };
 }

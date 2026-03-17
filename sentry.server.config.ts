@@ -1,0 +1,11 @@
+import * as Sentry from "@sentry/nextjs";
+
+if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+    tracesSampleRate: 1.0,
+    debug: false,
+  });
+} else {
+  console.warn("[Sentry] NEXT_PUBLIC_SENTRY_DSN is not set. Sentry initialization skipped.");
+}

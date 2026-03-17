@@ -220,7 +220,7 @@ export default function AdminDashboardPage() {
                                                 </div>
                                             </div>
                                             <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                                                {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                {new Date(log.createdAt).toLocaleTimeString('km-KH', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Phnom_Penh' })}
                                             </span>
                                         </div>
                                     ))}

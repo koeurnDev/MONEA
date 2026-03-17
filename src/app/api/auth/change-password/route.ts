@@ -1,31 +1,16 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcryptjs";
-import { cookies } from "next/headers";
-import { jwtVerify } from "jose";
-
-const prisma = new PrismaClient();
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "fallback_secret");
+import { prisma } from "@/lib/prisma";
+import { getServerUser } from "@/lib/auth";
+import { CryptoUtils } from "@/lib/crypto";
 
 export async function POST(req: Request) {
     try {
-        // 1. Authenticate User
-        const cookieStore = cookies();
-        const token = cookieStore.get("auth_token")?.value;
-
-        if (!token) {
+        // 1. Authenticate User (Standardized)
+        const user = await getServerUser();
+        if (!user || user.type !== "admin") {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        let payload;
-        try {
-            const { payload: verifiedPayload } = await jwtVerify(token, JWT_SECRET);
-            payload = verifiedPayload;
-        } catch (err) {
-            return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-        }
-
-        const userId = payload.userId as string;
         const { currentPassword, newPassword } = await req.json();
 
         if (!currentPassword || !newPassword) {
@@ -36,36 +21,41 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "លេខសម្ងាត់ថ្មីត្រូវមានយ៉ាងតិច ៨ ខ្ទង់" }, { status: 400 });
         }
 
-        // 2. Fetch User
-        const user = await prisma.user.findUnique({
-            where: { id: userId }
+        // 2. Fetch User & Verify Current Password
+        const dbUser = await prisma.user.findUnique({
+            where: { id: user.userId },
+            select: { id: true, password: true, email: true }
         });
 
-        if (!user) {
+        if (!dbUser) {
             return NextResponse.json({ error: "រកមិនឃើញគណនីរបស់អ្នកទេ" }, { status: 404 });
         }
 
-        // 3. Verify Current Password
-        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!dbUser.password) {
+            return NextResponse.json({ error: "គណនីនេះពុំមានលេខសម្ងាត់" }, { status: 400 });
+        }
+
+        // 3. Verify Current Password using CryptoUtils (Peppered)
+        const isMatch = await CryptoUtils.compare(currentPassword, dbUser.password);
         if (!isMatch) {
             await prisma.securityLog.create({
                 data: {
                     event: "PASSWORD_CHANGE_FAILED",
                     ip: req.headers.get("x-forwarded-for") || "unknown",
-                    email: user.email,
+                    email: dbUser.email,
                     details: "Incorrect current password"
                 }
             });
             return NextResponse.json({ error: "លេខសម្ងាត់ចាស់មិនត្រឹមត្រូវទេ" }, { status: 400 });
         }
 
-        // 4. Update Password
-        const hashedPassword = await bcrypt.hash(newPassword, 12);
+        // 4. Update Password with Pepper
+        const hashedPassword = await CryptoUtils.hash(newPassword);
         await prisma.user.update({
-            where: { id: userId },
+            where: { id: user.userId },
             data: {
                 password: hashedPassword,
-                sessionsRevokedAt: new Date() // Revoke other sessions for security
+                sessionsRevokedAt: new Date()
             }
         });
 
@@ -74,7 +64,7 @@ export async function POST(req: Request) {
             data: {
                 event: "PASSWORD_CHANGE_SUCCESS",
                 ip: req.headers.get("x-forwarded-for") || "unknown",
-                email: user.email,
+                email: dbUser.email,
                 details: "User changed password successfully"
             }
         });
@@ -83,9 +73,6 @@ export async function POST(req: Request) {
 
     } catch (error: any) {
         console.error("Change Password Error:", error);
-        return NextResponse.json({
-            error: "មានបញ្ហាបច្ចេកទេស",
-            details: error.message
-        }, { status: 500 });
+        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }

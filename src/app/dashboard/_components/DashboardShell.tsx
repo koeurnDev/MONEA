@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { DashboardSidebar } from "./DashboardSidebar";
@@ -52,20 +52,44 @@ export function DashboardShell({ children, isStaff, isAdmin, initialUser }: Dash
         revalidateOnFocus: false,
         dedupingInterval: 60000, // 60 seconds deduping for less CPU/Network noise
     });
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
-    const [mounted, setMounted] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+    const [isLogoutModalOpen, setIsLogoutModalOpen] = React.useState(false);
+    const [mounted, setMounted] = React.useState(false);
     const pathname = usePathname();
 
-    useEffect(() => {
+    React.useEffect(() => {
         setMounted(true);
     }, []);
 
-    useEffect(() => {
+    const router = useRouter();
+
+    React.useEffect(() => {
         if (error?.status === 401) {
-            handleLogout();
+            console.log(`[DashboardShell Debug] 401 detected. initialUser present: ${!!initialUser}`);
+            if (initialUser) {
+                console.warn("[DashboardShell] SWR returned 401, but ignoring because initialUser is present.");
+            } else {
+                console.log("[DashboardShell Debug] Redirecting to login because no initialUser.");
+                handleLogout();
+            }
         }
-    }, [error]);
+    }, [error, initialUser]);
+
+    // REDIRECTION LOGIC: Force new users to create their first wedding
+    React.useEffect(() => {
+        if (!mounted || !user || isStaff || isAdmin === false) return; // Admin/Owner only check
+
+        const weddingCount = user._count?.weddings ?? 0;
+        const isCreating = pathname === "/dashboard/create";
+        const isAccount = pathname === "/dashboard/account";
+        const isSupport = pathname === "/dashboard/support";
+
+        if (weddingCount === 0 && !isCreating && !isAccount && !isSupport) {
+            router.push("/dashboard/create");
+        } else if (weddingCount > 0 && isCreating) {
+            router.push("/dashboard");
+        }
+    }, [mounted, user, pathname, isStaff, isAdmin, router]);
 
     const isDesignPage = pathname?.includes("/dashboard/design");
     const isLivePage = pathname?.includes("/dashboard/gifts/live");
@@ -80,7 +104,7 @@ export function DashboardShell({ children, isStaff, isAdmin, initialUser }: Dash
     };
 
     // Memoize the Sidebar to prevent re-renders when 'user' state changes
-    const memoizedSidebar = useMemo(() => (
+    const memoizedSidebar = React.useMemo(() => (
         <DashboardSidebar isStaff={isStaff} isAdmin={isAdmin} />
     ), [isStaff, isAdmin]);
 
@@ -89,7 +113,7 @@ export function DashboardShell({ children, isStaff, isAdmin, initialUser }: Dash
     }
 
     return (
-        <div className="flex min-h-screen w-full bg-background font-sans text-foreground">
+        <div className="flex min-h-screen w-full bg-background font-sans text-foreground print:!bg-white print:!text-black">
             {/* Desktop Sidebar */}
             <aside className="w-[280px] bg-card hidden md:flex flex-col fixed h-full z-20 shadow-[4px_0_40px_rgba(0,0,0,0.04)] dark:shadow-none print:hidden border-none accelerate-gpu">
                 {memoizedSidebar}
@@ -141,7 +165,9 @@ export function DashboardShell({ children, isStaff, isAdmin, initialUser }: Dash
                                             </span>
                                         </div>
                                         <Avatar className="w-10 h-10 rounded-2xl bg-muted/30 group-hover:bg-red-600/5 transition-all shadow-sm border-none">
-                                            <AvatarImage src={user?.image || ""} alt="User" />
+                                            {user?.image ? (
+                                                <AvatarImage src={user.image} alt="User" />
+                                            ) : null}
                                             <AvatarFallback className="bg-transparent text-muted-foreground group-hover:text-red-600">
                                                 <User className="w-5 h-5" />
                                             </AvatarFallback>

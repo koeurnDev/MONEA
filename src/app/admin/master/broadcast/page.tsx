@@ -184,7 +184,7 @@ export default function MasterBroadcastPage() {
                                                     <p className="text-xs text-slate-500 font-medium mt-1">{b.message}</p>
                                                     <div className="flex items-center gap-4 mt-3">
                                                         <span className="text-[10px] text-slate-300 font-bold uppercase tracking-widest flex items-center gap-1">
-                                                            <Calendar size={10} /> {new Date(b.createdAt).toLocaleDateString()}
+                                                            <Calendar size={10} /> {new Date(b.createdAt).toLocaleDateString('km-KH', { timeZone: 'Asia/Phnom_Penh' })}
                                                         </span>
                                                         <span className={cn(
                                                             "text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md border",

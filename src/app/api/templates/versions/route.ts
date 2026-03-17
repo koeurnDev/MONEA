@@ -69,7 +69,7 @@ export async function POST(req: Request) {
                 versionName,
                 description,
                 templateId: wedding.templateId,
-                themeData: wedding.themeSettings || "{}",
+                themeData: (wedding.themeSettings as any) || {},
                 createdBy: user.name || user.userId
             }
         });
@@ -151,7 +151,7 @@ export async function PATCH(req: Request) {
             where: { id: version.weddingId },
             data: {
                 templateId: version.templateId,
-                themeSettings: version.themeData,
+                themeSettings: version.themeData as any,
                 updatedAt: new Date()
             }
         });

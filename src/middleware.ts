@@ -1,142 +1,314 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { jwtVerify } from "jose";
-import { ROLES } from "./lib/constants";
+import { jwtVerify, type JWTPayload } from "jose";
+import { getIP } from "./lib/utils";
 import { sendTelegramAlert } from "./lib/telegram";
+import { 
+    COOKIE_NAMES, 
+    AUTH_URLS, 
+    JWT_CONFIG, 
+    BLOCKED_BOTS, 
+    SECURITY_HEADERS,
+    ROLES,
+    ROLE_LABELS
+} from "./lib/constants";
+import { isTokenRevoked, generateFingerprint } from "./lib/auth";
+import { isValidCSRFToken } from "./lib/csrf";
+import * as Sentry from "@sentry/nextjs";
 
-const SECRET = process.env.JWT_SECRET || "super-secret-key-change-in-prod";
+const SECRET = process.env.JWT_SECRET || (process.env.NODE_ENV === "development" ? "monea-dev-secret-do-not-use-in-prod-1234567890" : "");
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
 
-// Security Guard: Alert if defaults are used in production
-if (process.env.NODE_ENV === "production") {
-    if (SECRET === "super-secret-key-change-in-prod") {
-        console.error(" [CRITICAL] JWT_SECRET is using the default value in production!");
-    }
-    if (!ENCRYPTION_KEY) {
-        console.error(" [CRITICAL] ENCRYPTION_KEY is missing in production!");
+// Security Guard: Fail fast if secrets are missing or weak
+if (!SECRET || (process.env.NODE_ENV === "production" && SECRET.length < 32)) {
+    if (process.env.NODE_ENV === "production") {
+        throw new Error("[CRITICAL] JWT_SECRET is missing or too weak (min 32 chars required for HS256).");
+    } else {
+        console.warn("[Security] JWT_SECRET is missing or weak. Using fallback for development.");
     }
 }
+if (process.env.NODE_ENV === "production" && !ENCRYPTION_KEY) {
+    throw new Error("[CRITICAL] ENCRYPTION_KEY is missing in production!");
+}
 
-// Simple In-Memory Rate Limiter Map
-const rateLimitMap = new Map<string, { count: number, resetTime: number }>();
-const RATE_LIMIT_REQUESTS = 60; // Max requests per minute
-const STRICT_RATE_LIMIT = 5; // Stricter limit for sensitive write ops
-const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute window in ms
-const BLOCKED_BOTS = ["python-requests", "curl", "wget", "headlesschrome", "puppeteer", "playwright", "phantomjs", "scrapy", "urllib"];
+const ENCODED_SECRET = new TextEncoder().encode(SECRET);
 
-const SENSITIVE_WRITE_PATHS = [
-    "/api/guestbook",
-    "/api/auth/signin",
-    "/api/auth/signup",
-    "/api/support/ticket",
-    "/api/staff/login",
-    "/api/guests/view"
-];
+// --- Helpers ---
 
 /**
- * Generates a simple non-cryptographic hash for fingerprinting
+ * Validates the Origin and Referer against the Host to prevent CSRF on mutable requests.
+ * Standardizes on Host check to prevent cross-origin/cross-site mutable operations.
  */
-async function generateFingerprint(userAgent: string, ip: string) {
-    const data = new TextEncoder().encode(`${userAgent}|${ip}`);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 32);
-}
+async function validateCSRF(request: NextRequest): Promise<boolean> {
+    const origin = request.headers.get("origin");
+    const referer = request.headers.get("referer");
+    const host = request.headers.get("host");
 
-export async function middleware(request: NextRequest) {
-    try {
-        const userAgent = request.headers.get("user-agent") || "unknown";
-        const ip = request.ip || request.headers.get("x-forwarded-for")?.split(",")[0] || "unknown";
-        const path = request.nextUrl.pathname;
+    if (!host) {
+        console.error("[Security] CSRF Blocked: Missing Host header.");
+        return false;
+    }
 
-        console.log(`[Middleware Debug] Request: ${request.method} ${path} from ${ip}`);
-
-        // ANTI-SCRAPING: Block common bots
-        const userAgentLower = userAgent.toLowerCase();
-        if (BLOCKED_BOTS.some(bot => userAgentLower.includes(bot))) {
-            console.warn(`[Security] Blocked bot: ${userAgent}`);
-            return NextResponse.json({ error: "Automated access is not allowed." }, { status: 403 });
+    // Mutable methods (POST, PUT, DELETE, PATCH) REQUIRE strict validation.
+    if (["POST", "PUT", "DELETE", "PATCH"].includes(request.method)) {
+        // 1. Strict Origin/Referer check
+        if (!origin && !referer) {
+            console.warn(`[Security] CSRF Blocked: Sensitive ${request.method} missing both Origin and Referer. Path: ${request.nextUrl.pathname}`);
+            return false;
         }
 
-        // 0. Rate Limiting for API routes
-        if (path.startsWith("/api")) {
-            const now = Date.now();
-            const isSensitive = request.method !== "GET" && SENSITIVE_WRITE_PATHS.some(p => path.startsWith(p));
-            const limitKey = isSensitive ? `${ip}:${path}` : ip;
-            const maxRequests = isSensitive ? STRICT_RATE_LIMIT : RATE_LIMIT_REQUESTS;
-
-            const limitInfo = rateLimitMap.get(limitKey);
-            if (!limitInfo || now > limitInfo.resetTime) {
-                rateLimitMap.set(limitKey, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
-            } else {
-                limitInfo.count++;
-                if (limitInfo.count > maxRequests) {
-                    console.warn(`[Security] Rate Limit hit: ${ip} on ${path}`);
-                    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
-                }
-            }
-        }
-
-        // 1. Token validation
-        const token = request.cookies.get("token")?.value;
-        const staffToken = request.cookies.get("staff_token")?.value;
-        const secret = new TextEncoder().encode(SECRET);
-
-        let response: NextResponse = NextResponse.next();
-
-        // Protected Routes (Dashboard)
-        if (path.startsWith("/dashboard")) {
-            // Staff Exception
-            if (path.startsWith("/dashboard/gifts") && staffToken) {
-                try {
-                    await jwtVerify(staffToken, secret);
-                    return response;
-                } catch (e) { }
-            }
-
-            if (!token) {
-                console.log(`[Middleware Debug] Redirecting to /login from ${path} (No Token)`);
-                return NextResponse.redirect(new URL("/login", request.url));
-            }
+        if (origin) {
             try {
-                await jwtVerify(token, secret);
-            } catch (error) {
-                console.log(`[Middleware Debug] Redirecting to /login from ${path} (Invalid Token)`);
-                const res = NextResponse.redirect(new URL("/login", request.url));
-                res.cookies.delete("token");
-                return res;
-            }
-        }
-
-        // Admin Routes
-        else if (path.startsWith("/admin")) {
-            if (!token) return NextResponse.redirect(new URL("/login", request.url));
-            try {
-                const { payload } = await jwtVerify(token, secret);
-                if (payload.role !== ROLES.PLATFORM_OWNER && (path.startsWith("/admin/governance") || path.startsWith("/admin/master"))) {
-                    return NextResponse.redirect(new URL("/dashboard", request.url));
+                const originUrl = new URL(origin);
+                const isLocal = originUrl.hostname === "localhost" || originUrl.hostname === "127.0.0.1";
+                
+                if (originUrl.host !== host && !(process.env.NODE_ENV === "development" && isLocal)) {
+                    console.warn(`[Security] CSRF Blocked: Origin host mismatch (${originUrl.host} vs ${host})`);
+                    return false;
                 }
             } catch (e) {
-                return NextResponse.redirect(new URL("/login", request.url));
+                return false;
+            }
+        } else if (referer) {
+            try {
+                const refererUrl = new URL(referer);
+                const isLocal = refererUrl.hostname === "localhost" || refererUrl.hostname === "127.0.0.1";
+
+                if (refererUrl.host !== host && !(process.env.NODE_ENV === "development" && isLocal)) {
+                    console.warn(`[Security] CSRF Blocked: Referer host mismatch (${refererUrl.host} vs ${host})`);
+                    return false;
+                }
+            } catch (e) {
+                return false;
             }
         }
 
-        // Apply Security Headers
-        const securityHeaders = {
-            "X-Content-Type-Options": "nosniff",
-            "X-Frame-Options": "DENY",
-            "Referrer-Policy": "strict-origin-when-cross-origin",
-        };
+        // 2. Anti-Forgery Token Validation (X-CSRF-Token)
+        const csrfToken = request.headers.get("x-csrf-token");
+        if (csrfToken && !(await isValidCSRFToken(csrfToken))) {
+            console.warn(`[Security] CSRF Blocked: Invalid CSRF Token from ${request.headers.get("x-real-ip") || "unknown"}`);
+            return false;
+        }
+    }
 
-        Object.entries(securityHeaders).forEach(([key, value]) => {
+    return true;
+}
+
+/**
+ * Validates a JWT token against the encoded secret, checks for expiration,
+ * and optionally validates the browser fingerprint for anti-replay protection.
+ */
+async function verifyJWT(token: string, fingerprint: string, options?: { audience?: string | string[]; issuer?: string; checkFingerprint?: boolean }): Promise<JWTPayload> {
+    try {
+        const { payload } = await jwtVerify(token, ENCODED_SECRET, options);
+        
+        // 1. Explicit expiration check
+        if (payload.exp && Date.now() / 1000 > payload.exp) {
+            console.warn("[Auth Middleware] Token expired");
+            throw new Error("JWT has expired");
+        }
+
+        // 2. Anti-replay fingerprint check
+        if (options?.checkFingerprint && payload.fingerprint) {
+            if (payload.fingerprint !== fingerprint) {
+                console.warn(`[Auth Middleware] Fingerprint mismatch. Token: ${payload.fingerprint}, Request: ${fingerprint}`);
+                throw new Error("JWT fingerprint mismatch");
+            }
+        }
+
+        // 3. JTI Revocation Check
+        if (payload.jti) {
+            const isRevoked = await isTokenRevoked(payload.jti);
+            if (isRevoked) {
+                console.warn(`[Auth Middleware] Token revoked: ${payload.jti}`);
+                throw new Error("JWT has been revoked");
+            }
+        }
+        
+        return payload;
+    } catch (e: any) {
+        if (process.env.NODE_ENV === "development") {
+            console.error(`[Auth Middleware] JWT Verification Failed: ${e.message}`, {
+                expectedAudience: options?.audience,
+                expectedIssuer: options?.issuer,
+                fingerprintCheck: options?.checkFingerprint
+            });
+        }
+        throw e;
+    }
+}
+
+/**
+ * Creates a redirect response to the login page and clears the auth cookie with hardened flags.
+ */
+function redirectToLogin(request: NextRequest): NextResponse {
+    const res = NextResponse.redirect(new URL(AUTH_URLS.LOGIN, request.url));
+    const isProd = process.env.NODE_ENV === "production";
+    const host = request.headers.get("host") || "";
+    const isLocal = host.includes("localhost") || host.includes("127.0.0.1");
+    
+    res.cookies.delete({ 
+        name: COOKIE_NAMES.TOKEN, 
+        path: "/",
+        httpOnly: true,
+        secure: isProd && !isLocal,
+        sameSite: isProd ? "strict" : "lax",
+        maxAge: 0, // Force immediate expiry
+    });
+    return res;
+}
+
+/**
+ * Centralized error responder for middleware failures.
+ * Logs, alerts, and returns a fail-secure 500 response.
+ */
+async function handleMiddlewareError(error: Error, request: NextRequest, ip: string): Promise<NextResponse> {
+    const path = request.nextUrl.pathname;
+    
+    console.error(`[Middleware Error] CRITICAL: ${error.message} (Path: ${path}, IP: ${ip})`);
+    
+    try {
+        await sendTelegramAlert(
+            `<b>CRITICAL: Middleware Failure</b>\n` +
+            `<b>Error:</b> ${error.message}\n` +
+            `<b>Path:</b> ${path}\n` +
+            `<b>IP:</b> ${ip}\n` +
+            `<b>Time:</b> ${new Date().toISOString()}`
+        );
+    } catch (alertError) {
+        console.error("[Middleware Error] Failed to send alert:", alertError);
+    }
+
+    const errorResponse = new NextResponse(
+        JSON.stringify({ 
+            error: "Internal Server Error", 
+            message: "Security framework operational failure. Administrators have been notified." 
+        }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+    Object.entries(SECURITY_HEADERS).forEach(([k, v]) => errorResponse.headers.set(k, v));
+    return errorResponse;
+}
+
+// --- Middleware Implementation ---
+
+export async function middleware(request: NextRequest): Promise<NextResponse> {
+    const userAgent = request.headers.get("user-agent")?.toLowerCase() || "unknown";
+    const ip = getIP(request);
+    
+    try {
+        const path = request.nextUrl.pathname;
+        const method = request.method;
+
+        // 1. Bot Protection (Early return)
+        if (userAgent && BLOCKED_BOTS.some(bot => userAgent.includes(bot.toLowerCase()))) {
+            const botResponse = new NextResponse(null, { status: 403 });
+            Object.entries(SECURITY_HEADERS).forEach(([k, v]) => botResponse.headers.set(k, v));
+            return botResponse;
+        }
+
+        // 2. CSRF Protection (Mutable methods)
+        if (!(await validateCSRF(request))) {
+            console.warn(`[Security] CSRF Blocked: Host/Origin mismatch. Path: ${path}, IP: ${ip}`);
+            Sentry.captureMessage(`[Security] CSRF Violation Blocked`, {
+                level: "warning",
+                extra: { path, ip, method, origin: request.headers.get("origin") }
+            });
+            const csrfResponse = new NextResponse(JSON.stringify({ error: "Invalid request origin or cross-site request detected." }), { status: 403, headers: { "Content-Type": "application/json" } });
+            Object.entries(SECURITY_HEADERS).forEach(([k, v]) => csrfResponse.headers.set(k, v));
+            return csrfResponse;
+        }
+
+        // Precompute fingerprint once per request for all downstream auth checks
+        const fingerprint = await generateFingerprint({ headers: request.headers, ip });
+
+        // 3. Rate Limiting
+        if (path.startsWith("/api")) {
+            const isLocal = ip === "127.0.0.1" || ip === "::1" || ip === "unknown" || request.nextUrl.hostname === "localhost";
+            if (process.env.NODE_ENV !== "development" || !isLocal) {
+                const { standardLimiter, getIP: getLimiterIP } = await import("@/lib/ratelimit");
+                const ipForLimiter = getLimiterIP(request as any);
+                const { success, limit, remaining, reset } = await standardLimiter.limit(ipForLimiter);
+                
+                if (!success) {
+                    console.warn(`[Rate Limit] Exceeded for ${ip} on ${path}`);
+                    Sentry.captureMessage(`[Rate Limit] Exceeded`, {
+                        level: "info",
+                        extra: { ip, path, limit, remaining }
+                    });
+                    return NextResponse.json({ error: "Too many requests" }, { 
+                        status: 429,
+                        headers: {
+                            "X-RateLimit-Limit": limit.toString(),
+                            "X-RateLimit-Remaining": remaining.toString(),
+                            "X-RateLimit-Reset": reset.toString()
+                        }
+                    });
+                }
+            }
+        }
+
+        // 4. Authentication
+        const token = request.cookies.get(COOKIE_NAMES.TOKEN)?.value;
+        const staffToken = request.cookies.get(COOKIE_NAMES.STAFF_TOKEN)?.value;
+        
+        if (process.env.NODE_ENV === "development") {
+            console.log(`[Middleware Debug] Path: ${path}, Token Present: ${!!token}, Staff Token Present: ${!!staffToken}`);
+        }
+
+        const response: NextResponse = NextResponse.next();
+
+        if (path.startsWith("/dashboard")) {
+            if (path.startsWith("/dashboard/gifts") && staffToken) {
+                try {
+                    await verifyJWT(staffToken, fingerprint, { 
+                        audience: JWT_CONFIG.AUDIENCE.STAFF, 
+                        issuer: JWT_CONFIG.ISSUER,
+                        checkFingerprint: true 
+                    });
+                    return response;
+                } catch (e: any) {}
+            }
+
+            if (!token) return redirectToLogin(request);
+
+            try {
+                await verifyJWT(token, fingerprint, { 
+                    audience: [JWT_CONFIG.AUDIENCE.USER, JWT_CONFIG.AUDIENCE.ADMIN], 
+                    issuer: JWT_CONFIG.ISSUER,
+                    checkFingerprint: true 
+                });
+            } catch (error: any) {
+                return redirectToLogin(request);
+            }
+        }
+
+        else if (path.startsWith("/admin")) {
+            if (!token) return redirectToLogin(request);
+            try {
+                const payload = await verifyJWT(token, fingerprint, { 
+                    audience: JWT_CONFIG.AUDIENCE.ADMIN, 
+                    issuer: JWT_CONFIG.ISSUER,
+                    checkFingerprint: true 
+                });
+                
+                if (payload.role !== ROLES.PLATFORM_OWNER && 
+                   (path.startsWith("/admin/governance") || path.startsWith("/admin/master"))) {
+                    return NextResponse.redirect(new URL(AUTH_URLS.DASHBOARD, request.url));
+                }
+            } catch (e) {
+                return redirectToLogin(request);
+            }
+        }
+
+        // 5. Global Security Headers
+        Object.entries(SECURITY_HEADERS).forEach(([key, value]) => {
             response.headers.set(key, value);
         });
 
         return response;
     } catch (error: any) {
-        console.error(`[Middleware Debug] CRITICAL CRASH: ${error.message}`, error);
-        // On middleware crash, allow request to proceed but log the error
-        return NextResponse.next();
+        return handleMiddlewareError(error, request, ip);
     }
 }
 

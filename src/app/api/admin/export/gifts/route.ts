@@ -28,9 +28,15 @@ export async function GET(req: Request) {
         // Verify ownership/access
         if (user.role !== ROLES.PLATFORM_OWNER) {
             const wedding = await prisma.wedding.findFirst({
-                where: { id: weddingId, userId: user.userId }
+                where: { id: weddingId, userId: user.userId },
+                select: { id: true, userId: true, packageType: true }
             });
             if (!wedding) return new NextResponse("Unauthorized access to this wedding", { status: 403 });
+
+            // SECURITY: Enforce Premium/Pro for Export
+            if (wedding.packageType !== "PREMIUM" && wedding.packageType !== "PRO") {
+                return new NextResponse("Export feature requires a PRO or PREMIUM package", { status: 403 });
+            }
         }
 
         const gifts = await prisma.gift.findMany({

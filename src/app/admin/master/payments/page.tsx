@@ -83,7 +83,7 @@ export default function MasterPaymentsPage() {
                                 <Clock size={32} />
                             </div>
                             <h3 className="text-xl font-black text-slate-900 mb-2 font-kantumruy">គ្មានសំណើបង់ប្រាក់នៅឡើយទេ</h3>
-                            <p className="text-slate-500 font-medium font-kantumruy italic">"Everything is up to date."</p>
+                            <p className="text-slate-500 font-medium font-kantumruy italic">&quot;Everything is up to date.&quot;</p>
                         </Card>
                     ) : (
                         weddings.map((w) => (
@@ -110,7 +110,7 @@ export default function MasterPaymentsPage() {
                                             <div className="grid grid-cols-2 gap-8">
                                                 <div>
                                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Registration Date</p>
-                                                    <p className="text-xs font-bold text-slate-900">{new Date(w.createdAt).toLocaleDateString()}</p>
+                                                    <p className="text-xs font-bold text-slate-900">{new Date(w.createdAt).toLocaleDateString('km-KH', { timeZone: 'Asia/Phnom_Penh' })}</p>
                                                 </div>
                                                 <div>
                                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Wedding ID</p>

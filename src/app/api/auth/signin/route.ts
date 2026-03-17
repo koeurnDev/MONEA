@@ -2,11 +2,12 @@ export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { signToken, generateFingerprint } from "@/lib/auth";
+import { signToken, generateFingerprint, isSecureCookie } from "@/lib/auth";
 import { ROLES } from "@/lib/constants";
 // Dynamic require moved inside POST for safety
 import { sendTelegramAlert } from "@/lib/telegram";
 import { CryptoUtils } from "@/lib/crypto";
+import { authLimiter, getIP } from "@/lib/ratelimit";
 
 // No explicit GET handler to avoid 405 conflicts. Next.js handles disallowed methods natively.
 
@@ -19,6 +20,25 @@ export async function OPTIONS(req: Request) {
 }
 
 export async function POST(req: Request) {
+    // 1. Rate Limiting Check (Auth Tier)
+    const ip = getIP(req);
+    const { success, limit, reset, remaining } = await authLimiter.limit(ip);
+    
+    if (!success) {
+        console.warn(`[RateLimit] Auth threshold exceeded for IP: ${ip}`);
+        return NextResponse.json(
+            { error: "Too many login attempts. Please try again later." },
+            { 
+                status: 429,
+                headers: {
+                    "X-RateLimit-Limit": limit.toString(),
+                    "X-RateLimit-Remaining": remaining.toString(),
+                    "X-RateLimit-Reset": reset.toString(),
+                }
+            }
+        );
+    }
+
     try {
         let body;
         try {
@@ -108,30 +128,59 @@ export async function POST(req: Request) {
         };
 
         // 1. Check USER
-        const user = await prisma.user.findUnique({
-            where: { email },
-            select: {
-                id: true,
-                email: true,
-                password: true,
-                lockedUntil: true,
-                failedAttempts: true,
-                role: true,
-                twoFactorEnabled: true,
-                twoFactorSecret: true,
-                twoFactorRecoveryCodes: true
-            }
-        });
+        let user;
+        try {
+            user = await prisma.user.findUnique({
+                where: { email },
+                select: {
+                    id: true,
+                    email: true,
+                    password: true,
+                    lockedUntil: true,
+                    failedAttempts: true,
+                    role: true,
+                    twoFactorEnabled: true,
+                    twoFactorSecret: true,
+                    twoFactorRecoveryCodes: true,
+                    deletedAt: true
+                }
+            });
+        } catch (e) {
+            user = await prisma.user.findUnique({
+                where: { email },
+                select: {
+                    id: true,
+                    email: true,
+                    password: true,
+                    lockedUntil: true,
+                    failedAttempts: true,
+                    role: true,
+                    twoFactorEnabled: true,
+                    twoFactorSecret: true,
+                    twoFactorRecoveryCodes: true
+                }
+            });
+        }
         if (user && user.lockedUntil && user.lockedUntil > new Date()) {
-            return NextResponse.json({ error: `គណនីចាក់សោរបណ្តោះអាសន្ន (Locked until ${user.lockedUntil.toLocaleTimeString()})` }, { status: 423 });
+            return NextResponse.json({ error: `គណនីចាក់សោរបណ្តោះអាសន្ន (Locked until ${user.lockedUntil.toLocaleTimeString('km-KH', { timeZone: 'Asia/Phnom_Penh' })})` }, { status: 423 });
+        }
+
+        if (user && (user as any).deletedAt) {
+            return NextResponse.json({ 
+                error: "គណនីនេះត្រូវបានលុបបណ្ដោះអាសន្ន។", 
+                details: "គណនីរបស់អ្នកស្ថិតក្នុងអំឡុងពេល ៣០ ថ្ងៃនៃការលុប។ សូមទាក់ទងមកកាន់ពួកយើងបើលោកអ្នកចង់យកវាត្រឡប់មកវិញ។" 
+            }, { status: 403 });
         }
 
         if (user) {
             // 1. Try Peppered Password Comparison
-            let isPasswordValid = await CryptoUtils.compare(password, user.password);
+            let isPasswordValid = false;
+            if (user.password) {
+                isPasswordValid = await CryptoUtils.compare(password, user.password);
+            }
 
             // 2. Fallback to Legacy Bcrypt (No Pepper) for existing users
-            if (!isPasswordValid) {
+            if (!isPasswordValid && user.password) {
                 isPasswordValid = await bcrypt.compare(password, user.password);
                 if (isPasswordValid) {
                     // Lazy Migration: Update to peppered hash
@@ -189,19 +238,23 @@ export async function POST(req: Request) {
                         `🌐 *IP:* ${ip}\n` +
                         `📍 *Location:* ${geoIp || "Unknown"}\n` +
                         `📱 *Device:* ${userAgent?.substring(0, 50)}...\n` +
-                        `⏰ *Time:* ${new Date().toLocaleString('km-KH')}`
+                        `⏰ *Time:* ${new Date().toLocaleString('km-KH', { timeZone: 'Asia/Phnom_Penh' })}`
                     ).catch(err => console.error("Failed to send login alert:", err));
                 }
 
-                const fingerprint = generateFingerprint({ headers: req.headers, ip });
-                const token = signToken({ userId: user.id, email: user.email, role }, { fingerprint });
+                const fingerprint = await generateFingerprint({ headers: req.headers, ip });
+                const token = await signToken({ userId: user.id, email: user.email, role }, { fingerprint });
                 const response = NextResponse.json({ success: true, user: { id: user.id, email: user.email, role } });
+                const cookieSecure = isSecureCookie(req);
+                const host = req.headers.get("host") || "";
+                console.log(`[Auth Debug] Signin Success - User: ${user.email}, Role: ${role}, Host: ${host}, IP: ${ip}, Secure: ${cookieSecure}, Env: ${process.env.NODE_ENV}`);
+
                 response.cookies.set("token", token, {
                     httpOnly: true,
-                    secure: process.env.NODE_ENV === "production",
+                    secure: cookieSecure,
                     maxAge: 60 * 60 * 24 * 7,
                     path: "/",
-                    sameSite: "lax"
+                    sameSite: process.env.NODE_ENV === "development" ? "lax" : "strict"
                 });
                 return response;
             } else {
@@ -212,13 +265,27 @@ export async function POST(req: Request) {
         // 2. Check STAFF
         const staff = await prisma.staff.findUnique({
             where: { email },
-            include: { wedding: true },
-            // We can't use select + include at the same level in Prisma 5 easily for Staff, 
-            // but we can at least be explicit about what we need if we used select.
-            // For now, given the complexity of the include, we'll keep it but ensure secrets are handled.
+            include: { 
+                wedding: {
+                    include: {
+                        user: {
+                            select: { deletedAt: true }
+                        }
+                    }
+                } 
+            },
         });
+
+        // SECURITY: Check if Wedding Owner (User) is suspended
+        if (staff && staff.wedding?.user?.deletedAt) {
+            return NextResponse.json({ 
+                error: "គណនីមង្គលការនេះត្រូវបានផ្អាកជាបណ្ដោះអាសន្ន។",
+                details: "សូមទាក់ទងម្ចាស់គណនីមង្គលការរបស់អ្នក។"
+            }, { status: 403 });
+        }
+
         if (staff && staff.lockedUntil && staff.lockedUntil > new Date()) {
-            return NextResponse.json({ error: `គណនីចាក់សោរបណ្តោះអាសន្ន (Locked until ${staff.lockedUntil.toLocaleTimeString()})` }, { status: 423 });
+            return NextResponse.json({ error: `គណនីចាក់សោរបណ្តោះអាសន្ន (Locked until ${staff.lockedUntil.toLocaleTimeString('km-KH', { timeZone: 'Asia/Phnom_Penh' })})` }, { status: 423 });
         }
 
         if (staff && staff.password) {
@@ -226,7 +293,7 @@ export async function POST(req: Request) {
             let isPasswordValid = await CryptoUtils.compare(password, staff.password);
 
             // 2. Fallback to Legacy Bcrypt (No Pepper)
-            if (!isPasswordValid) {
+            if (!isPasswordValid && staff.password) {
                 isPasswordValid = await bcrypt.compare(password, staff.password);
                 if (isPasswordValid) {
                     // Lazy Migration
@@ -277,15 +344,18 @@ export async function POST(req: Request) {
 
                 await prisma.securityLog.create({ data: { event: "LOGIN_SUCCESS", ip, geoIp, userAgent, email, details: "Staff authentication successful" } });
 
-                const fingerprint = generateFingerprint({ headers: req.headers, ip });
-                const token = signToken({ staffId: staff.id, weddingId: staff.weddingId, role: ROLES.EVENT_STAFF, name: staff.name }, { fingerprint, expiresIn: "12h" });
+                const fingerprint = await generateFingerprint({ headers: req.headers, ip });
+                const cookieSecure = isSecureCookie(req);
+                console.log(`[Auth Staff Signin] Setting staff cookie. secure=${cookieSecure}, host=${req.headers.get("host")}`);
+
+                const token = await signToken({ staffId: staff.id, weddingId: staff.weddingId, role: ROLES.EVENT_STAFF, name: staff.name }, { fingerprint, expiresIn: "12h" });
                 const response = NextResponse.json({ success: true, user: { id: staff.id, email: staff.email, role: ROLES.EVENT_STAFF } });
                 response.cookies.set("staff_token", token, {
                     httpOnly: true,
-                    secure: process.env.NODE_ENV === "production",
+                    secure: cookieSecure,
                     maxAge: 60 * 60 * 12,
                     path: "/",
-                    sameSite: "lax"
+                    sameSite: process.env.NODE_ENV === "development" ? "lax" : "strict"
                 });
                 return response;
             } else {
@@ -297,11 +367,10 @@ export async function POST(req: Request) {
         return await handleFailure(null, "User");
 
     } catch (error: any) {
-        console.error("Login Error:", error);
+        console.error("[Auth Signin] Error:", error);
         return NextResponse.json({
             error: "Internal Server Error",
-            details: error?.message || String(error),
-            stack: error?.stack
+            message: "An unexpected error occurred during authentication."
         }, { status: 500 });
     }
 }

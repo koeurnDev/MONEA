@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import * as React from "react";
 import { AnimatePresence, m } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
@@ -10,10 +10,10 @@ interface GallerySlideshowProps {
 }
 
 export const GallerySlideshow = ({ images }: GallerySlideshowProps) => {
-    const [index, setIndex] = useState(0);
-    const [isLoading, setIsLoading] = useState(true);
+    const [index, setIndex] = React.useState(0);
+    const [isLoading, setIsLoading] = React.useState(true);
 
-    useEffect(() => {
+    React.useEffect(() => {
         const timer = setInterval(() => {
             setIndex((prev) => (prev + 1) % images.length);
         }, 4000); // Change every 4 seconds

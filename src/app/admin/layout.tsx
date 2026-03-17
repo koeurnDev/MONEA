@@ -9,6 +9,7 @@ import { m, AnimatePresence } from 'framer-motion';
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import { ToastProvider } from "@/components/ui/Toast";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -122,95 +123,97 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
 
     return (
-        <div className="flex min-h-screen w-full bg-background text-foreground font-kantumruy">
-            <ConfirmModal
-                open={logoutConfirm}
-                onClose={() => setLogoutConfirm(false)}
-                onConfirm={confirmLogout}
-                loading={logoutLoading}
-                title="ចាកចេញពីប្រព័ន្ធ"
-                description="តើអ្នកប្រាកដថាចង់ចាកចេញពី SuperAdmin? អ្នកនឹងត្រូវវិលត្រឡប់ទៅកាន់ទំព័រចូល (Login) ។"
-                confirmLabel="ចាកចេញ"
-                cancelLabel="បន្ត"
-                variant="warning"
-            />
-            {/* Desktop Sidebar */}
-            <aside className="w-[280px] border-r border-border hidden md:flex flex-col fixed h-full z-40 bg-card">
-                <SidebarContent />
-            </aside>
+        <ToastProvider>
+            <div className="flex min-h-screen w-full bg-background text-foreground font-kantumruy">
+                <ConfirmModal
+                    open={logoutConfirm}
+                    onClose={() => setLogoutConfirm(false)}
+                    onConfirm={confirmLogout}
+                    loading={logoutLoading}
+                    title="ចាកចេញពីប្រព័ន្ធ"
+                    description="តើអ្នកប្រាកដថាចង់ចាកចេញពី SuperAdmin? អ្នកនឹងត្រូវវិលត្រឡប់ទៅកាន់ទំព័រចូល (Login) ។"
+                    confirmLabel="ចាកចេញ"
+                    cancelLabel="បន្ត"
+                    variant="warning"
+                />
+                {/* Desktop Sidebar */}
+                <aside className="w-[280px] border-r border-border hidden md:flex flex-col fixed h-full z-40 bg-card">
+                    <SidebarContent />
+                </aside>
 
-            {/* Mobile Sidebar Overlay */}
-            <AnimatePresence>
-                {isMobileMenuOpen && (
-                    <div className="fixed inset-0 z-50 md:hidden flex">
-                        <m.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                        />
-                        <m.aside
-                            initial={{ x: "-100%" }}
-                            animate={{ x: 0 }}
-                            exit={{ x: "-100%" }}
-                            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                            className="relative w-[280px] flex flex-col h-full z-10 shadow-2xl"
-                        >
-                            <SidebarContent />
-                        </m.aside>
-                    </div>
-                )}
-            </AnimatePresence>
-
-            {/* Main Content Area */}
-            <main className="flex-1 flex flex-col md:ml-[280px] min-h-screen relative">
-                {/* Header */}
-                <header className={cn(
-                    "h-20 sticky top-0 z-30 flex items-center px-6 md:px-10 justify-between transition-all duration-300",
-                    scrolled ? "bg-card/80 backdrop-blur-md border-b border-border shadow-sm" : "bg-transparent"
-                )}>
-                    <div className="flex items-center gap-4">
-                        <button
-                            onClick={() => setIsMobileMenuOpen(true)}
-                            className="p-2 text-muted-foreground hover:bg-accent rounded-xl md:hidden"
-                        >
-                            <Menu size={20} />
-                        </button>
-
-                        <div className="hidden md:flex flex-col">
-                            <h2 className="text-xl font-bold text-foreground tracking-tight">
-                                {navItems.find(i => pathname === i.href)?.label || "ទិដ្ឋភាពទូទៅ"}
-                            </h2>
-                            <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest leading-none mt-1.5">
-                                Admin Dashboard Portal
-                            </p>
+                {/* Mobile Sidebar Overlay */}
+                <AnimatePresence>
+                    {isMobileMenuOpen && (
+                        <div className="fixed inset-0 z-50 md:hidden flex">
+                            <m.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                            />
+                            <m.aside
+                                initial={{ x: "-100%" }}
+                                animate={{ x: 0 }}
+                                exit={{ x: "-100%" }}
+                                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                                className="relative w-[280px] flex flex-col h-full z-10 shadow-2xl"
+                            >
+                                <SidebarContent />
+                            </m.aside>
                         </div>
-                    </div>
+                    )}
+                </AnimatePresence>
 
-                    <div className="flex items-center gap-4">
-                        <ThemeToggle />
-                        <button className="p-2.5 bg-muted border border-border rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
-                            <Bell size={18} />
-                        </button>
+                {/* Main Content Area */}
+                <main className="flex-1 flex flex-col md:ml-[280px] min-h-screen relative">
+                    {/* Header */}
+                    <header className={cn(
+                        "h-20 sticky top-0 z-30 flex items-center px-6 md:px-10 justify-between transition-all duration-300",
+                        scrolled ? "bg-card/80 backdrop-blur-md border-b border-border shadow-sm" : "bg-transparent"
+                    )}>
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={() => setIsMobileMenuOpen(true)}
+                                className="p-2 text-muted-foreground hover:bg-accent rounded-xl md:hidden"
+                            >
+                                <Menu size={20} />
+                            </button>
 
-                        <div className="flex items-center gap-3 pl-4 border-l border-border">
-                            <div className="hidden sm:flex flex-col items-end">
-                                <span className="text-sm font-bold text-foreground">Administrator</span>
-                                <span className="text-xs text-red-600 dark:text-red-400 font-bold tracking-widest uppercase">MONEA Platform</span>
-                            </div>
-                            <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground border border-border">
-                                <Shield size={20} />
+                            <div className="hidden md:flex flex-col">
+                                <h2 className="text-xl font-bold text-foreground tracking-tight">
+                                    {navItems.find(i => pathname === i.href)?.label || "ទិដ្ឋភាពទូទៅ"}
+                                </h2>
+                                <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest leading-none mt-1.5">
+                                    Admin Dashboard Portal
+                                </p>
                             </div>
                         </div>
-                    </div>
-                </header>
 
-                <div className="p-6 md:p-10">
-                    {children}
-                </div>
-            </main>
-        </div>
+                        <div className="flex items-center gap-4">
+                            <ThemeToggle />
+                            <button className="p-2.5 bg-muted border border-border rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
+                                <Bell size={18} />
+                            </button>
+
+                            <div className="flex items-center gap-3 pl-4 border-l border-border">
+                                <div className="hidden sm:flex flex-col items-end">
+                                    <span className="text-sm font-bold text-foreground">Administrator</span>
+                                    <span className="text-xs text-red-600 dark:text-red-400 font-bold tracking-widest uppercase">MONEA Platform</span>
+                                </div>
+                                <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground border border-border">
+                                    <Shield size={20} />
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+
+                    <div className="p-6 md:p-10">
+                        {children}
+                    </div>
+                </main>
+            </div>
+        </ToastProvider>
     )
 }
 

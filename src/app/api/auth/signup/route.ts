@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ROLES } from "@/lib/constants";
 import { CryptoUtils } from "@/lib/crypto";
+import { authLimiter, getIP } from "@/lib/ratelimit";
 
 // No explicit GET handler to avoid 405 conflicts.
 
@@ -16,6 +17,25 @@ export async function OPTIONS(req: Request) {
 }
 
 export async function POST(req: Request) {
+    // 1. Rate Limiting Check (Auth Tier)
+    const ip = getIP(req);
+    const { success, limit, reset, remaining } = await authLimiter.limit(ip);
+    
+    if (!success) {
+        console.warn(`[RateLimit] Auth threshold exceeded for IP: ${ip}`);
+        return NextResponse.json(
+            { error: "Too many attempts. Please try again later." },
+            { 
+                status: 429,
+                headers: {
+                    "X-RateLimit-Limit": limit.toString(),
+                    "X-RateLimit-Remaining": remaining.toString(),
+                    "X-RateLimit-Reset": reset.toString(),
+                }
+            }
+        );
+    }
+
     try {
         let body;
         try {
@@ -86,11 +106,10 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ success: true, userId: user.id });
     } catch (error: any) {
-        console.error("Registration Error:", error);
+        console.error("[Auth Signup] Registration Error:", error);
         return NextResponse.json({
             error: "Internal Server Error",
-            details: error?.message || String(error),
-            stack: error?.stack
+            message: "An unexpected error occurred during account creation."
         }, { status: 500 });
     }
 }

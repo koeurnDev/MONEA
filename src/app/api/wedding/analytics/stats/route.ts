@@ -1,19 +1,36 @@
+export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { headers } from "next/headers";
+import { getServerUser } from "@/lib/auth";
+import { errorResponse } from "@/lib/api-utils";
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300; // Cache for 5 minutes
 
 export async function GET(req: Request) {
     try {
+        const user = await getServerUser();
+        if (!user) return errorResponse("Unauthorized", 401);
+
         const { searchParams } = new URL(req.url);
         const weddingId = searchParams.get("weddingId");
 
-        console.log(`[Analytics Stats] GET params: weddingId=${weddingId}, url=${req.url}`);
-
         if (!weddingId) {
-            console.warn(`[Analytics Stats] 400: Missing weddingId. URL: ${req.url}`);
-            return NextResponse.json({ error: "Missing weddingId" }, { status: 400 });
+            return errorResponse("Missing weddingId", 400);
+        }
+
+        // Authorization: Ensure user owns this wedding or is staff for it
+        if (user.role === "STAFF") {
+            if ((user as any).weddingId !== weddingId) {
+                return errorResponse("Forbidden: You do not have access to this wedding", 403);
+            }
+        } else {
+            const wedding = await prisma.wedding.findUnique({
+                where: { id: weddingId },
+                select: { userId: true }
+            });
+            if (!wedding || wedding.userId !== user.userId) {
+                return errorResponse("Forbidden: You do not own this wedding", 403);
+            }
         }
 
         // Aggregate stats in fewer roundtrips
@@ -21,67 +38,71 @@ export async function GET(req: Request) {
             (prisma as any).invitationAnalytics.groupBy({
                 by: ['type'],
                 where: { weddingId },
-                _count: true
+                _count: { _all: true }
             }),
             (prisma as any).invitationAnalytics.groupBy({
                 by: ['deviceType'],
                 where: { weddingId, type: "VIEW" },
-                _count: true
+                _count: { _all: true }
             })
         ]);
 
         const rawTypeStats = stats[0].status === 'fulfilled' ? (stats[0].value as any[]) : [];
         const rawDeviceStats = stats[1].status === 'fulfilled' ? (stats[1].value as any[]) : [];
 
-        const getCount = (type: string) => rawTypeStats.find(s => s.type === type)?._count || 0;
+        const getCount = (type: string) => {
+            const stat = rawTypeStats.find(s => s.type === type);
+            if (!stat) return 0;
+            return typeof stat._count === 'object' ? (stat._count._all || 0) : (stat._count || 0);
+        };
 
         const totalViews = getCount("VIEW");
         const mapClicks = getCount("MAP_CLICK");
         const saveDateClicks = getCount("SAVE_DATE");
+        const rsvpOpens = getCount("RSVP_OPEN");
+        const rsvpSubmits = getCount("RSVP_SUBMIT");
 
         // Get daily trend for views (last 21 days)
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setHours(0, 0, 0, 0);
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 21);
 
-        const dailyTrend = await (prisma as any).invitationAnalytics.findMany({
-            where: {
-                weddingId,
-                type: "VIEW",
-                createdAt: { gte: sevenDaysAgo }
-            },
-            select: { createdAt: true },
-            orderBy: { createdAt: 'asc' }
-        }).catch(() => []);
+        // Efficiently group by day using raw SQL for performance
+        const dailyTrendRaw: { day: Date, count: bigint }[] = await prisma.$queryRaw`
+            SELECT DATE_TRUNC('day', "createdAt") as day, COUNT(*) as count
+            FROM "InvitationAnalytics"
+            WHERE "weddingId" = ${weddingId} 
+              AND "type" = 'VIEW'::"AnalyticsType"
+              AND "createdAt" >= ${sevenDaysAgo}
+            GROUP BY day
+            ORDER BY day ASC
+        `;
 
-        // Group by day manually
         const trendMap = new Map();
-
-        // Initialize last 7 days with 0
-        for (let i = 6; i >= 0; i--) {
+        // Initialize last 21 days with 0 to ensure continuity in chart
+        for (let i = 20; i >= 0; i--) {
             const d = new Date();
             d.setDate(d.getDate() - i);
             trendMap.set(d.toISOString().split('T')[0], 0);
         }
 
-        dailyTrend.forEach((item: any) => {
-            const day = item.createdAt.toISOString().split('T')[0];
-            if (trendMap.has(day) || dailyTrend.length < 100) { // Keep focus on recent or include all if low volume
-                trendMap.set(day, (trendMap.get(day) || 0) + 1);
-            }
+        dailyTrendRaw.forEach((item) => {
+            const dayStr = item.day.toISOString().split('T')[0];
+            trendMap.set(dayStr, Number(item.count));
         });
 
         const formattedTrend = Array.from(trendMap.entries())
-            .map(([date, count]) => ({ date, count }))
-            .sort((a, b) => a.date.localeCompare(b.date));
+            .map(([date, count]) => ({ date, count }));
 
         return NextResponse.json({
             totalViews,
             mapClicks,
             saveDateClicks,
+            rsvpOpens,
+            rsvpSubmits,
             deviceStats: (rawDeviceStats as any[]).map((s: any) => ({
                 type: s.deviceType || 'UNKNOWN',
-                count: s._count || (s._count === 0 ? 0 : 0)
+                count: typeof s._count === 'object' ? (s._count._all || 0) : (s._count || 0)
             })),
             dailyTrend: formattedTrend
         });

@@ -1,12 +1,19 @@
 import bcrypt from "bcryptjs";
 
-const PEPPER = process.env.SECURITY_PEPPER;
+function getPepper(): string {
+    const pepper = process.env.SECURITY_PEPPER;
+    if (process.env.NODE_ENV === "production" && (!pepper || pepper === "monea-default-pepper-ch4ng3-me")) {
+        throw new Error("[CRITICAL] SECURITY_PEPPER is missing or using default in production!");
+    }
+    if (!pepper) {
+        console.warn("[Security] SECURITY_PEPPER is missing. Using insecure fallback for development.");
+        return "monea-dev-fallback-pepper";
+    }
+    return pepper;
+}
 
 function applyPepper(plainText: string): string {
-    if (process.env.NODE_ENV === "production" && !PEPPER) {
-        throw new Error("[CRITICAL] SECURITY_PEPPER is missing in production. Security breach prevented.");
-    }
-    return plainText + (PEPPER || "monea-default-pepper-ch4ng3-me");
+    return plainText + getPepper();
 }
 
 export const CryptoUtils = {

@@ -1,6 +1,6 @@
 "use client";
-import React, { useRef, useMemo, memo } from 'react';
-import { m, useScroll, useTransform, useSpring } from 'framer-motion';
+import * as React from 'react';
+import { useScroll, useTransform, useSpring, m } from 'framer-motion';
 import { Camera, Heart, Sparkles, Film } from 'lucide-react';
 import { CldImage } from 'next-cloudinary';
 import Image from 'next/image';
@@ -16,7 +16,7 @@ interface CinematicStoryGalleryProps {
     theme?: 'dark' | 'light';
 }
 
-const KenBurnsImage = memo(({ src }: { src: string }) => (
+const KenBurnsImage = React.memo(({ src }: { src: string }) => (
     <div className="relative w-full h-full overflow-hidden">
         <m.div
             initial={{ scale: 1, x: "-2%", y: "-2%" }}
@@ -25,9 +25,9 @@ const KenBurnsImage = memo(({ src }: { src: string }) => (
             className="w-[102%] h-[102%] relative will-change-transform"
         >
             {src.startsWith('/') ? (
-                <Image src={src} fill className="object-cover" alt="" sizes="100vw" />
+                <Image src={src} fill className="object-cover" alt="" sizes="100vw" loading="eager" />
             ) : (
-                <CldImage src={src} fill className="object-cover" alt="Statement" sizes="100vw" />
+                <CldImage src={src} fill className="object-cover" alt="Statement" sizes="100vw" loading="eager" />
             )}
         </m.div>
         <div className="absolute inset-0 bg-black/20" />
@@ -35,31 +35,39 @@ const KenBurnsImage = memo(({ src }: { src: string }) => (
 ));
 KenBurnsImage.displayName = 'KenBurnsImage';
 
-const ParallaxImage = memo(({ src, speed, className = "" }: { src: string; speed: number; className?: string }) => {
-    const ref = useRef(null);
+const ParallaxImage = React.memo(({ src, speed, className = "" }: { src: string; speed: number; className?: string }) => {
+    const ref = React.useRef(null);
+    const [mounted, setMounted] = React.useState(false);
+
+    React.useEffect(() => {
+        setMounted(true);
+    }, []);
+
     const { scrollYProgress } = useScroll({
         target: ref,
         offset: ["start end", "end start"]
     });
+
     const yParallax = useTransform(scrollYProgress, [0, 1], [0, speed * 200]);
-    const y = typeof window !== 'undefined' && window.innerWidth < 768 ? 0 : yParallax;
+
+    // Safety check for hydration
+    const y = (mounted && typeof window !== 'undefined' && window.innerWidth >= 768) ? yParallax : 0;
 
     return (
         <m.div ref={ref} style={{ y }} className={`relative rounded-2xl overflow-hidden shadow-2xl will-change-transform ${className}`}>
             {src.startsWith('/') ? (
-                <Image src={src} fill className="object-cover" alt="" sizes="(max-width: 768px) 50vw, 33vw" />
+                <Image src={src} fill className="object-cover" alt="" sizes="(max-width: 768px) 50vw, 33vw" loading="eager" />
             ) : (
-                <CldImage src={src} fill className="object-cover" alt="Gallery" sizes="(max-width: 768px) 50vw, 33vw" />
+                <CldImage src={src} fill className="object-cover" alt="Gallery" sizes="(max-width: 768px) 50vw, 33vw" loading="eager" />
             )}
         </m.div>
     );
 });
 ParallaxImage.displayName = 'ParallaxImage';
-KenBurnsImage.displayName = 'KenBurnsImage';
 
-const CinematicStoryGallery = memo(({ items, labels, theme = 'light' }: CinematicStoryGalleryProps) => {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const horizontalRef = useRef<HTMLDivElement>(null);
+const CinematicStoryGallery = React.memo(({ items, labels, theme = 'light' }: CinematicStoryGalleryProps) => {
+    const containerRef = React.useRef<HTMLDivElement>(null);
+    const horizontalRef = React.useRef<HTMLDivElement>(null);
 
     const { scrollYProgress: horizontalScrollProgress } = useScroll({
         target: horizontalRef,
@@ -80,7 +88,7 @@ const CinematicStoryGallery = memo(({ items, labels, theme = 'light' }: Cinemati
     });
 
     // Filter for images and ensure we have enough items
-    const safeItems = useMemo(() => {
+    const safeItems = React.useMemo(() => {
         const imageItems = (items || []).filter(i => i?.type === 'IMAGE');
         // If no images at all, fallback to a default
         if (imageItems.length === 0) return Array(24).fill({ url: '/images/couple.jpg', type: 'IMAGE' });
@@ -171,9 +179,9 @@ const CinematicStoryGallery = memo(({ items, labels, theme = 'light' }: Cinemati
                     className="flex-1 h-full relative grayscale hover:grayscale-0 transition-all duration-1000"
                 >
                     {safeItems[5].url.startsWith('/') ? (
-                        <img src={safeItems[5].url} className="w-full h-full object-cover" alt="" loading="lazy" />
+                        <Image src={safeItems[5].url} fill className="object-cover" alt="" sizes="50vw" loading="eager" />
                     ) : (
-                        <CldImage src={safeItems[5].url} fill className="object-cover" alt="Intimacy 1" sizes="50vw" />
+                        <CldImage src={safeItems[5].url} fill className="object-cover" alt="Intimacy 1" sizes="50vw" loading="eager" />
                     )}
                     <div className="absolute inset-0 bg-rose-900/10" />
                 </m.div>
@@ -184,9 +192,9 @@ const CinematicStoryGallery = memo(({ items, labels, theme = 'light' }: Cinemati
                     className="flex-1 h-full relative grayscale hover:grayscale-0 transition-all duration-1000"
                 >
                     {safeItems[6].url.startsWith('/') ? (
-                        <img src={safeItems[6].url} className="w-full h-full object-cover" alt="" loading="lazy" />
+                        <Image src={safeItems[6].url} fill className="object-cover" alt="" sizes="50vw" loading="eager" />
                     ) : (
-                        <CldImage src={safeItems[6].url} fill className="object-cover" alt="Intimacy 2" sizes="50vw" />
+                        <CldImage src={safeItems[6].url} fill className="object-cover" alt="Intimacy 2" sizes="50vw" loading="eager" />
                     )}
                     <div className="absolute inset-0 bg-rose-900/10" />
                 </m.div>
@@ -203,9 +211,9 @@ const CinematicStoryGallery = memo(({ items, labels, theme = 'light' }: Cinemati
                         {[safeItems[10], safeItems[11], safeItems[12], safeItems[13]].map((item, i) => (
                             <div key={i} className="flex-shrink-0 w-[80vw] h-[50vh] sm:w-[60vw] sm:h-[60vh] md:w-[45vw] md:h-[70vh] rounded-3xl overflow-hidden shadow-2xl relative">
                                 {item.url.startsWith('/') ? (
-                                    <Image src={item.url} fill className="object-cover" alt="" sizes="50vw" />
+                                    <Image src={item.url} fill className="object-cover" alt="" sizes="50vw" loading="eager" />
                                 ) : (
-                                    <CldImage src={item.url} fill className="object-cover" alt="Journey" sizes="50vw" loading="lazy" />
+                                    <CldImage src={item.url} fill className="object-cover" alt="Journey" sizes="50vw" loading="eager" />
                                 )}
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                                 <div className="absolute bottom-8 left-8 text-white">
@@ -226,30 +234,30 @@ const CinematicStoryGallery = memo(({ items, labels, theme = 'light' }: Cinemati
                     <div className="grid grid-cols-2 md:grid-cols-12 md:grid-rows-6 gap-3 md:gap-4 h-auto md:h-[120vh]">
                         <m.div whileHover={{ scale: 0.98 }} className="col-span-2 md:col-span-8 md:row-span-4 rounded-lg overflow-hidden border border-white/20 p-2 relative aspect-[4/3] md:aspect-auto">
                             {safeItems[14].url.startsWith('/') ? (
-                                <Image src={safeItems[14].url} fill className="object-cover rounded shadow-lg" alt="" sizes="50vw" />
+                                <Image src={safeItems[14].url} fill className="object-cover rounded shadow-lg" alt="" sizes="50vw" loading="eager" />
                             ) : (
-                                <CldImage src={safeItems[14].url} fill className="object-cover rounded shadow-lg" alt="Collage 1" sizes="50vw" />
+                                <CldImage src={safeItems[14].url} fill className="object-cover rounded shadow-lg" alt="Collage 1" sizes="50vw" loading="eager" />
                             )}
                         </m.div>
                         <m.div whileHover={{ scale: 1.02 }} className="col-span-1 md:col-span-4 md:row-span-2 rounded-lg overflow-hidden border border-amber-400/30 p-2 relative aspect-square md:aspect-auto">
                             {safeItems[15].url.startsWith('/') ? (
-                                <Image src={safeItems[15].url} fill className="object-cover rounded shadow-lg" alt="" sizes="25vw" />
+                                <Image src={safeItems[15].url} fill className="object-cover rounded shadow-lg" alt="" sizes="25vw" loading="eager" />
                             ) : (
-                                <CldImage src={safeItems[15].url} fill className="object-cover rounded shadow-lg" alt="Collage 2" sizes="25vw" />
+                                <CldImage src={safeItems[15].url} fill className="object-cover rounded shadow-lg" alt="Collage 2" sizes="25vw" loading="eager" />
                             )}
                         </m.div>
                         <m.div whileHover={{ scale: 1.05 }} className="col-span-1 md:col-span-4 md:row-span-3 rounded-lg overflow-hidden border border-white/20 p-2 relative aspect-square md:aspect-auto">
                             {safeItems[16].url.startsWith('/') ? (
-                                <Image src={safeItems[16].url} fill className="object-cover rounded shadow-lg" alt="" sizes="25vw" />
+                                <Image src={safeItems[16].url} fill className="object-cover rounded shadow-lg" alt="" sizes="25vw" loading="eager" />
                             ) : (
-                                <CldImage src={safeItems[16].url} fill className="object-cover rounded shadow-lg" alt="Collage 3" sizes="25vw" />
+                                <CldImage src={safeItems[16].url} fill className="object-cover rounded shadow-lg" alt="Collage 3" sizes="25vw" loading="eager" />
                             )}
                         </m.div>
                         <m.div whileHover={{ scale: 0.95 }} className="col-span-1 md:col-span-4 md:row-span-2 rounded-lg overflow-hidden border border-white/20 p-2 relative aspect-square md:aspect-auto">
                             {safeItems[17].url.startsWith('/') ? (
-                                <Image src={safeItems[17].url} fill className="object-cover rounded shadow-lg" alt="" sizes="25vw" />
+                                <Image src={safeItems[17].url} fill className="object-cover rounded shadow-lg" alt="" sizes="25vw" loading="eager" />
                             ) : (
-                                <CldImage src={safeItems[17].url} fill className="object-cover rounded shadow-lg" alt="Collage 4" sizes="25vw" />
+                                <CldImage src={safeItems[17].url} fill className="object-cover rounded shadow-lg" alt="Collage 4" sizes="25vw" loading="eager" />
                             )}
                         </m.div>
                         <m.div whileHover={{ scale: 1.02 }} className="col-span-1 md:col-span-4 md:row-span-1 rounded-lg overflow-hidden border border-amber-400/30 p-2 relative aspect-square md:aspect-auto">
@@ -294,7 +302,7 @@ const CinematicStoryGallery = memo(({ items, labels, theme = 'light' }: Cinemati
                                 {Array(6).fill(0).map((_, j) => <div key={j} className="w-2 h-4 bg-white/10 rounded-sm" />)}
                             </div>
                             {item.url.startsWith('/') ? (
-                                <img src={item.url} className="w-full h-full object-cover brightness-75 sepia-[0.3]" alt="" loading="lazy" />
+                                <Image src={item.url} fill className="object-cover brightness-75 sepia-[0.3]" alt="" sizes="33vw" />
                             ) : (
                                 <CldImage src={item.url} fill className="object-cover brightness-75 sepia-[0.3]" alt="Film" sizes="33vw" />
                             )}

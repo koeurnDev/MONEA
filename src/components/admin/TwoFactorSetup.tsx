@@ -89,7 +89,13 @@ export function TwoFactorSetup({ open, onOpenChange, onSuccess }: TwoFactorSetup
 
     const handleDownload = () => {
         if (!setupData) return;
-        const content = `MONEA RECOVERY CODES\n\nGenerated: ${new Date().toLocaleDateString()}\n\nKeep these codes in a safe place. Each code can be used once.\n\n${setupData.recoveryCodes.join("\n")}`;
+        const formattedDate = new Date().toLocaleDateString('en-GB', { 
+            day: '2-digit', 
+            month: 'long', 
+            year: 'numeric',
+            timeZone: 'Asia/Phnom_Penh'
+        });
+        const content = `MONEA RECOVERY CODES\n\nGenerated: ${formattedDate}\n\nKeep these codes in a safe place. Each code can be used once.\n\n${setupData.recoveryCodes.join("\n")}`;
         const blob = new Blob([content], { type: "text/plain" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");

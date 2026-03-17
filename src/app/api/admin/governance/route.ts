@@ -60,7 +60,7 @@ export async function POST(req: Request) {
         const userAgent = req.headers.get("user-agent") || "unknown";
         await SystemGovernance.logAction(
             user.userId,
-            user.name || "Admin",
+            (user as any).name || "Admin",
             GOVERNANCE_ACTIONS.PUBLISH,
             { versionName, versionId: snapshot.id },
             ip,
@@ -83,7 +83,7 @@ export async function PATCH(req: Request) {
         const body = await req.json();
         const { versionId } = body;
 
-        const result = await SystemGovernance.rollback(versionId, user.userId, user.name || "Admin");
+        const result = await SystemGovernance.rollback(versionId, user.userId, (user as any).name || "Admin");
 
         return NextResponse.json({ success: true, config: result });
     } catch (error) {

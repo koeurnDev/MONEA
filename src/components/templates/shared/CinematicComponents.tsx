@@ -1,12 +1,14 @@
 "use client";
-import React, { memo } from 'react';
+import * as React from 'react';
 import { m } from 'framer-motion';
+import { cn } from "@/lib/utils";
+
 
 /**
  * Premium Heading with Gold Gradient
  * Benchmarked against Eternal Cinematic (ModernFullTemplate)
  */
-export const PremiumHeading = memo(({ children, className = "", variant = "gold" }: { children: React.ReactNode, className?: string, variant?: "gold" | "white" | "floral" }) => {
+export const PremiumHeading = React.memo(({ children, className = "", variant = "gold" }: { children: React.ReactNode, className?: string, variant?: "gold" | "white" | "floral" }) => {
     const gradients = {
         gold: "bg-gradient-to-b from-[#FFF5E1] via-[#D4AF37] to-[#8a6e1c]",
         white: "bg-gradient-to-b from-white via-white to-white/60",
@@ -31,13 +33,14 @@ PremiumHeading.displayName = 'PremiumHeading';
  * Staggered Reveal Wrapper
  * Benchmarked against Eternal Cinematic (ModernFullTemplate)
  */
-export const RevealSection = memo(({ children, delay = 0, className = "" }: { children: React.ReactNode, delay?: number, className?: string }) => (
+export const RevealSection = React.memo(({ children, delay = 0, className = "", onClick }: { children: React.ReactNode, delay?: number, className?: string, onClick?: () => void }) => (
     <m.div
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-100px" }}
         transition={{ duration: 0.8, delay, ease: [0.21, 1, 0.36, 1] }}
         className={`w-full ${className}`}
+        onClick={onClick}
     >
         {children}
     </m.div>
@@ -48,7 +51,7 @@ RevealSection.displayName = 'RevealSection';
  * Luxury Wrapper (Transparent/Cinematic) with Hover Accents
  * Benchmarked against Eternal Cinematic (ModernFullTemplate)
  */
-export const LuxurySection = memo(({ children, id, className = "", innerClassName = "", variant = "dark" }: { children: React.ReactNode, id?: string, className?: string, innerClassName?: string, variant?: "dark" | "glass" | "floral" }) => {
+export const LuxurySection = React.memo(({ children, id, className = "", innerClassName = "", variant = "dark" }: { children: React.ReactNode, id?: string, className?: string, innerClassName?: string, variant?: "dark" | "glass" | "floral" }) => {
     const backgrounds = {
         dark: "bg-black/30 border-white/10 shadow-3xl",
         glass: "bg-white/40 border-white/40 shadow-xl",
@@ -112,6 +115,9 @@ export const useImagePan = (initialX: string = '50%', initialY: string = '50%', 
             let newX = startPos.current.x + deltaX;
             let newY = startPos.current.y + deltaY;
 
+            if (isNaN(newX)) newX = 50;
+            if (isNaN(newY)) newY = 50;
+
             newX = Math.max(0, Math.min(100, newX));
             newY = Math.max(0, Math.min(100, newY));
 
@@ -150,8 +156,46 @@ export const useImagePan = (initialX: string = '50%', initialY: string = '50%', 
         startMouse.current = { x: mouseX, y: mouseY };
         const curX = parseInt(localX?.replace('%', '') || '50');
         const curY = parseInt(localY?.replace('%', '') || '50');
-        startPos.current = { x: isNaN(curX) ? 50 : curX, y: isNaN(curY) ? 50 : curY };
+        const safeX = isNaN(curX) ? 50 : curX;
+        const safeY = isNaN(curY) ? 50 : curY;
+        startPos.current = { x: safeX, y: safeY };
     };
 
     return { isDragging, localX, localY, onStart };
 };
+
+/**
+ * Cinematic Text with Translation Protection
+ */
+export const CinematicText = React.memo(({ text, className = "" }: { text: string, className?: string }) => (
+    <span translate="no" className={cn("inline-block notranslate", className)}>
+        {text}
+    </span>
+));
+CinematicText.displayName = 'CinematicText';
+
+/**
+ * Premium Placeholder for empty image slots
+ * Ensures "visual order" even when photos aren't uploaded yet.
+ */
+export const CinematicPlaceholder = React.memo(({ label = "Memory" }: { label?: string }) => (
+    <div className="w-full h-full bg-[#fdfaf3] flex flex-col items-center justify-center p-4 relative overflow-hidden group/placeholder">
+        {/* Subtle Gold Texture/Gradient */}
+        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
+        
+        <div className="relative z-10 flex flex-col items-center space-y-3 opacity-20 group-hover/placeholder:opacity-30 transition-opacity duration-700">
+            <div className="w-12 h-12 rounded-full border-2 border-gold flex items-center justify-center">
+                 <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-gold" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+                    <circle cx="12" cy="13" r="3" />
+                </svg>
+            </div>
+            <span className="font-kantumruy text-[10px] md:text-xs uppercase tracking-[0.2em] font-bold text-gold">{label}</span>
+        </div>
+
+        {/* Cinematic Particles (Simulated) */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(212,175,55,0.02)_0%,_transparent_70%)]" />
+    </div>
+));
+CinematicPlaceholder.displayName = 'CinematicPlaceholder';

@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
 import { errorResponse } from "@/lib/api-utils";
 import { verifyTurnstile } from "@/lib/turnstile";
+import { revalidateTag } from "next/cache";
+import { ROLES } from "@/lib/constants";
 
 export async function POST(req: Request) {
     const user = await getServerUser();
@@ -20,14 +22,35 @@ export async function POST(req: Request) {
         if (!isHuman) return errorResponse("CAPTCHA verification failed", 400);
 
         let wedding;
-        if (user.role === "STAFF") {
+        if (user.role === ROLES.PLATFORM_OWNER || user.role === ROLES.EVENT_STAFF) {
             wedding = await prisma.wedding.findUnique({ where: { id: (user as any).weddingId } });
         } else {
-            wedding = await prisma.wedding.findFirst({ where: { userId: user.userId } });
+            wedding = await prisma.wedding.findFirst({ 
+                where: { userId: user.userId },
+                orderBy: { createdAt: 'desc' }
+            });
         }
+
         if (!wedding) {
-            console.error("Payment Error: Wedding not found for userId", user.userId);
-            return NextResponse.json({ error: "រកមិនឃើញទិន្នន័យមង្គលការ (Wedding Not Found)" }, { status: 404 });
+            console.log("Payment Info: No wedding found for userId", user.id, ". Creating one...");
+            wedding = await prisma.wedding.create({
+                data: {
+                    userId: user.id,
+                    groomName: "Groom",
+                    brideName: "Bride",
+                    date: new Date(),
+                    location: "",
+                    status: "ACTIVE",
+                    packageType: "FREE"
+                }
+            });
+        }
+
+        // DUPLICATE/SPAM PROTECTION: Check if already pending verification
+        if (wedding.paymentStatus === "AWAITING_VERIFICATION") {
+            return NextResponse.json({ 
+                error: "សម្នើសុំដំឡើងរបស់អ្នកកំពុងស្ថិតក្នុងការពិនិត្យ។ (Already awaiting verification)" 
+            }, { status: 429 });
         }
 
         // Logic for expiration
@@ -37,7 +60,6 @@ export async function POST(req: Request) {
             date.setDate(date.getDate() + 30); // 30 days
             expiresAt = date;
         } else if (packageType === "PREMIUM") {
-            // Null means forever, or set to 100 years
             const date = new Date();
             date.setFullYear(date.getFullYear() + 100);
             expiresAt = date;
@@ -47,13 +69,18 @@ export async function POST(req: Request) {
             where: { id: wedding.id },
             data: {
                 packageType,
-                paymentStatus: "PAID",
+                paymentStatus: "AWAITING_VERIFICATION", // Require admin review
                 expiresAt,
-                status: "ACTIVE" // improved UX: auto-activate if not active
+                status: "ACTIVE"
             }
         });
 
-        console.log("Payment Success: Updated wedding", wedding.id, "to", packageType);
+        const ip = req.headers.get("x-real-ip") || req.headers.get("x-forwarded-for") || "unknown";
+        const ua = req.headers.get("user-agent") || "unknown";
+        console.warn(`[Payment] Upgrade requested for wedding ${wedding.id} to ${packageType} by User ${user.id}. IP: ${ip}, UA: ${ua}`);
+
+        // Purge Next.js Cache for the public invitation
+        revalidateTag(`wedding-${wedding.id}`);
 
         return NextResponse.json({ success: true, wedding: updated });
 

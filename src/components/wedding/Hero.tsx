@@ -1,5 +1,7 @@
 "use client";
-import { m } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
+
+import * as React from "react";
 
 interface HeroProps {
     groomName: string;
@@ -8,6 +10,12 @@ interface HeroProps {
 }
 
 export default function Hero({ groomName, brideName, weddingDate }: HeroProps) {
+    const [mounted, setMounted] = React.useState(false);
+
+    React.useEffect(() => {
+        setMounted(true);
+    }, []);
+
     return (
         <section className="relative h-screen flex flex-col items-center justify-center text-white overflow-hidden">
             {/* Background Image Placeholder - In real app, this should come from DB or default */}
@@ -40,7 +48,13 @@ export default function Hero({ groomName, brideName, weddingDate }: HeroProps) {
 
                 <div className="inline-block border-t border-b border-pink-500/50 py-2 px-8">
                     <p className="uppercase tracking-[0.3em] text-xs sm:text-sm text-gray-300 font-siemreap">
-                        {new Date(weddingDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                        {mounted ? new Date(weddingDate).toLocaleDateString('en-US', { 
+                            weekday: 'long', 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric',
+                            timeZone: 'Asia/Phnom_Penh'
+                        }) : '...'}
                     </p>
                 </div>
             </m.div>

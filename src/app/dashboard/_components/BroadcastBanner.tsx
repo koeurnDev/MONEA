@@ -1,37 +1,48 @@
 "use client";
-import { useEffect, useState } from "react";
+import * as React from "react";
 import { Megaphone, X, ExternalLink } from "lucide-react";
 import { m, AnimatePresence } from 'framer-motion';
 import { cn } from "@/lib/utils";
 
 export function BroadcastBanner({ isAuthenticated = true }: { isAuthenticated?: boolean }) {
-    const [broadcasts, setBroadcasts] = useState<any[]>([]);
-    const [dismissed, setDismissed] = useState<string[]>([]);
+    const [broadcasts, setBroadcasts] = React.useState<any[]>([]);
+    const [dismissed, setDismissed] = React.useState<string[]>([]);
 
-    useEffect(() => {
-        if (!isAuthenticated || broadcasts.length > 0) return;
+    const [mounted, setMounted] = React.useState(false);
+
+    React.useEffect(() => {
+        setMounted(true);
+        if (!isAuthenticated) return;
+
+        let isMounted = true;
+        // Simple cache to prevent double-fetching on rapid mounts
+        if ((window as any)._broadcastFetched) return;
 
         fetch("/api/broadcast")
             .then(async res => {
-                if (res.status === 401) return [];
-                if (!res.ok) return [];
+                if (res.status === 401) return;
+                if (!res.ok) return;
                 try {
                     const data = await res.json();
                     const active = Array.isArray(data) ? data.filter((b: any) => b.active) : [];
-                    setBroadcasts(active);
+                    if (isMounted) {
+                        setBroadcasts(active);
+                        (window as any)._broadcastFetched = true;
+                    }
                 } catch (e) {
-                    return [];
                 }
             })
             .catch(() => { });
-    }, [isAuthenticated, broadcasts.length]);
+
+        return () => { isMounted = false; };
+    }, [isAuthenticated]);
 
     const activeBroadcasts = broadcasts.filter(b => !dismissed.includes(b.id));
 
     if (activeBroadcasts.length === 0) return null;
 
-    // Detect mobile for zero-animation mode
-    const isMobile = typeof window !== 'undefined' && (window.innerWidth < 768 || navigator.maxTouchPoints > 0);
+    // Detect mobile for zero-animation mode - guarded by mount
+    const isMobile = mounted ? (typeof window !== "undefined" && (window.innerWidth < 768 || navigator.maxTouchPoints > 0)) : false;
 
     return (
         <div className="space-y-2 mb-6">
@@ -39,8 +50,8 @@ export function BroadcastBanner({ isAuthenticated = true }: { isAuthenticated?: 
                 {activeBroadcasts.map((b) => (
                     <m.div
                         key={b.id}
-                        initial={isMobile ? false : { opacity: 0, scale: 0.95 }}
-                        animate={isMobile ? false : { opacity: 1, scale: 1 }}
+                        initial={(!mounted || isMobile) ? false : { opacity: 0, scale: 0.95 }}
+                        animate={(!mounted || isMobile) ? false : { opacity: 1, scale: 1 }}
                         className={cn(
                             "relative overflow-hidden rounded-2xl border p-4 shadow-sm transition-colors",
                             b.type === 'WARNING' ? 'bg-amber-50 border-amber-100 text-amber-900 dark:bg-amber-950/30 dark:border-amber-900/50 dark:text-amber-200' :

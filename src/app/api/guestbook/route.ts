@@ -3,7 +3,9 @@ import { NextResponse } from 'next/server';
 import { prisma } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
 import { sanitizeObject } from "@/lib/sanitize";
-import { errorResponse } from "@/lib/api-utils";
+import { errorResponse, validateRequest } from "@/lib/api-utils";
+import { guestbookSchema } from "@/lib/validations/guestbook";
+import { publicLimiter, getIP } from "@/lib/ratelimit";
 
 // GET: Fetch all wishes for a specific wedding
 export async function GET(req: Request) {
@@ -43,17 +45,23 @@ export async function GET(req: Request) {
 
 // POST: Add a new wish
 export async function POST(req: Request) {
+    // Rate Limiting (Public Tier)
+    const ip = getIP(req);
+    const { success } = await publicLimiter.limit(ip);
+    if (!success) return errorResponse("Too many requests. Please slow down.", 429);
+
     try {
-        const body = await req.json();
-        const { guestName, message, weddingId } = sanitizeObject<any>(body);
+        const { data, error } = await validateRequest(req, guestbookSchema);
+        if (error) return error;
 
-        if (!guestName || !message || !weddingId) {
-            return errorResponse('Missing required fields', 400);
+        const { guestName, message, weddingId, website } = sanitizeObject<any>(data!);
+        
+        // Honeypot detection
+        if (website) {
+            console.warn(`[BOT_DETECTION] Honeypot triggered by ${ip}. Payload:`, { guestName, message, website });
+            // Silently return success to the bot to avoid detection of our protection
+            return NextResponse.json({ id: "dummy", createdAt: new Date() });
         }
-
-        // SPAM Protection: Character limits
-        if (guestName.length > 50) return errorResponse("Name too long (Max 50)", 400);
-        if (message.length > 500) return errorResponse("Message too long (Max 500)", 400);
 
         // Verify Wedding existence
         const wedding = await prisma.wedding.findUnique({ where: { id: weddingId } });

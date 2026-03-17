@@ -59,7 +59,7 @@ export async function POST(req: Request) {
 
         await SystemGovernance.logAction(
             user.userId,
-            user.name || "Admin",
+            (user as any).name || "Admin",
             GOVERNANCE_ACTIONS.CONFIG_UPDATE,
             { maintenanceMode, allowNewSignups, globalCheckIn },
             ip,

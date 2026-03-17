@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
+import { mutate } from "swr";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -73,10 +74,17 @@ export default function CreateWeddingPage() {
             });
 
             if (res.ok) {
+                await mutate("/api/auth/me");
                 router.push("/dashboard");
                 router.refresh();
             } else {
-                console.error("Failed to create wedding");
+                const errorData = await res.json().catch(() => ({}));
+                console.error(`Failed to create wedding: Status ${res.status}`, errorData);
+                
+                if (errorData.error === "Wedding already exists") {
+                    await mutate("/api/auth/me");
+                    router.push("/dashboard");
+                }
             }
         } catch (error) {
             console.error(error);

@@ -2,8 +2,10 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
+import { Scissors, Heart, Camera, Utensils, Music, Flower2, Users, Clock, GlassWater, Landmark } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
     Form,
     FormControl,
@@ -20,7 +22,20 @@ const formSchema = z.object({
     title: z.string().min(1, "សូមបញ្ចូលចំណងជើងសកម្មភាព"),
     time: z.string().min(1, "សូមបញ្ចូលពេលវេលា"),
     description: z.string().optional(),
+    icon: z.string().optional(),
 });
+
+const KHMER_ICONS = [
+    { id: "scissors", icon: Scissors, label: "កាត់សក់" },
+    { id: "heart", icon: Heart, label: "សំពះផ្ទឹម" },
+    { id: "flower", icon: Flower2, label: "សូត្រមន្ត" },
+    { id: "users", icon: Users, label: "ហែជំនូន" },
+    { id: "utensils", icon: Utensils, label: "អាហារ" },
+    { id: "camera", icon: Camera, label: "ថតរូប" },
+    { id: "music", icon: Music, label: "តន្ត្រី" },
+    { id: "glass", icon: GlassWater, label: "ទទួលភ្ញៀវ" },
+    { id: "landmark", icon: Landmark, label: "ផ្ទះកូនស្រី" },
+];
 
 export function ActivityForm({ onSuccess, initialData }: { onSuccess: () => void, initialData?: any }) {
     const [loading, setLoading] = useState(false);
@@ -30,6 +45,7 @@ export function ActivityForm({ onSuccess, initialData }: { onSuccess: () => void
             title: initialData?.title || "",
             time: initialData?.time || "",
             description: initialData?.description || "",
+            icon: initialData?.icon || "heart",
         },
     });
 
@@ -82,6 +98,37 @@ export function ActivityForm({ onSuccess, initialData }: { onSuccess: () => void
                         )}
                     />
                 </div>
+
+                <FormField
+                    control={form.control}
+                    name="icon"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>ជ្រើសរើសរូបតំណាង (Icons)</FormLabel>
+                            <FormControl>
+                                <div className="grid grid-cols-5 sm:grid-cols-9 gap-3">
+                                    {KHMER_ICONS.map((item) => (
+                                        <button
+                                            key={item.id}
+                                            type="button"
+                                            onClick={() => field.onChange(item.id)}
+                                            title={item.label}
+                                            className={cn(
+                                                "w-10 h-10 flex items-center justify-center rounded-xl border-2 transition-all",
+                                                field.value === item.id 
+                                                    ? "bg-red-50 border-red-500 text-red-600 shadow-sm" 
+                                                    : "bg-muted/50 border-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
+                                            )}
+                                        >
+                                            <item.icon size={18} />
+                                        </button>
+                                    ))}
+                                </div>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
 
                 <FormField
                     control={form.control}

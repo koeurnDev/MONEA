@@ -1,45 +1,63 @@
 "use client";
-
-import { CldUploadWidget, CldImage } from "next-cloudinary";
-import { useEffect, useState } from "react";
+import * as React from "react";
+import { CldImage } from "next-cloudinary";
 import { Button } from "@/components/ui/button";
-import { ImagePlus, Trash, Loader2 } from "lucide-react";
+import { motion as m, AnimatePresence } from "framer-motion";
+import { ImagePlus, Trash, Loader2, Scissors } from "lucide-react";
 import { useCloudinaryUpload } from "@/hooks/use-cloudinary-upload";
+import ImageCropperModal from "./image-cropper-modal";
 
 interface ImageUploadProps {
     value: string;
-    onChange: (value: string) => void;
+    onChange: (url: string, publicId?: string) => void;
     onRemove: () => void;
     disabled?: boolean;
+    folder?: string;
+    label?: string;
 }
 
 export default function ImageUploadWidget({
     value,
     onChange,
     onRemove,
-    disabled
+    disabled,
+    folder
 }: ImageUploadProps) {
-    const [isMounted, setIsMounted] = useState(false);
-    const [isDragging, setIsDragging] = useState(false);
+    const [isMounted, setIsMounted] = React.useState(false);
+    const [isDragging, setIsDragging] = React.useState(false);
+    const [isCropModalOpen, setIsCropModalOpen] = React.useState(false);
+    const [selectedFileUrl, setSelectedFileUrl] = React.useState<string | null>(null);
+    const [aspectRatio, setAspectRatio] = React.useState<number>(1);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+
     const { uploading, progress, uploadFile } = useCloudinaryUpload({
-        onSuccess: (url) => onChange(url),
+        onSuccess: (url, publicId) => onChange?.(url, publicId),
         onError: (error) => console.error("Upload error:", error),
-        resourceType: "image"
+        resourceType: "image",
+        folder
     });
 
-    useEffect(() => {
+    React.useEffect(() => {
         setIsMounted(true);
     }, []);
-
-    const onUploadSuccess = (result: any) => {
-        onChange(result.info.secure_url);
-    };
 
     const onError = (error: any) => {
         console.error("Cloudinary Upload Error:", error);
     };
 
-    const handleDirectUpload = async (file: File) => {
+    const handleFileSelect = (file: File) => {
+        if (!file.type.startsWith('image/')) return;
+        
+        const reader = new FileReader();
+        reader.onload = () => {
+            setSelectedFileUrl(reader.result as string);
+            setIsCropModalOpen(true);
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleCropComplete = async (croppedBlob: Blob) => {
+        const file = new File([croppedBlob], "cropped_image.jpg", { type: "image/jpeg" });
         await uploadFile(file);
     };
 
@@ -60,7 +78,7 @@ export default function ImageUploadWidget({
 
         const file = e.dataTransfer.files?.[0];
         if (file && file.type.startsWith('image/')) {
-            handleDirectUpload(file);
+            handleFileSelect(file);
         }
     };
 
@@ -68,120 +86,149 @@ export default function ImageUploadWidget({
 
     return (
         <div className="w-full">
-            <div
+            <m.div
                 onDragOver={onDragOver}
                 onDragLeave={onDragLeave}
                 onDrop={onDrop}
+                animate={{
+                    borderColor: isDragging ? "rgb(212, 175, 55)" : "rgba(229, 231, 235, 0.2)",
+                    backgroundColor: isDragging ? "rgba(212, 175, 55, 0.05)" : "rgba(24, 24, 27, 0.4)",
+                    scale: isDragging ? 1.02 : 1,
+                }}
                 className={`
-                    relative border-2 border-dashed rounded-xl p-4 transition-all duration-200
-                    ${isDragging ? 'border-red-500 bg-red-50 scale-[1.01]' : 'border-gray-200 bg-gray-50/50'}
+                    relative border-2 border-dashed rounded-2xl p-6 transition-all duration-300 backdrop-blur-md
                     ${uploading ? 'opacity-80' : ''}
                     ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
+                    shadow-[0_8px_32px_rgba(0,0,0,0.2)]
                 `}
             >
-                <div className="flex flex-col items-center justify-center min-h-[160px]">
+                <div className="flex flex-col items-center justify-center min-h-[220px] py-4">
                     {value ? (
-                        <div className="relative w-full aspect-video rounded-lg overflow-hidden border border-gray-100 shadow-sm group">
+                        <m.div 
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="relative w-full aspect-video rounded-xl overflow-hidden border border-white/10 shadow-2xl group max-w-[300px]"
+                        >
                             <CldImage
                                 fill
-                                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                className="object-cover transition-transform duration-700 group-hover:scale-110"
                                 alt="Uploaded Image"
                                 src={value}
-                                sizes="(max-width: 768px) 100vw, 400px"
+                                sizes="(max-width: 768px) 100vw, 300px"
                             />
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center">
                                 <Button
                                     type="button"
                                     disabled={disabled || uploading}
-                                    onClick={() => onRemove()}
+                                    onClick={() => onRemove?.()}
                                     variant="destructive"
                                     size="sm"
-                                    className="rounded-full"
+                                    className="rounded-full px-6 shadow-lg bg-red-500/80 hover:bg-red-500 backdrop-blur-md border border-white/10"
                                 >
                                     <Trash className="h-4 w-4 mr-2" />
                                     លុបចេញ
                                 </Button>
                             </div>
-                        </div>
+                        </m.div>
                     ) : (
-                        <div className="flex flex-col items-center justify-center w-full py-6 text-center">
+                        <div className="flex flex-col items-center justify-center w-full text-center">
                             {uploading ? (
-                                <div className="space-y-4 w-full max-w-[240px]">
-                                    <Loader2 className="h-10 w-10 animate-spin text-red-900 mx-auto" />
-                                    <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
-                                        <div
-                                            className="h-full bg-red-900 transition-all duration-300"
-                                            style={{ width: `${progress}%` }}
+                                <div className="space-y-6 w-full max-w-[240px]">
+                                    <div className="relative">
+                                        <Loader2 className="h-10 w-10 animate-spin text-gold mx-auto" />
+                                        <m.div 
+                                            animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
+                                            transition={{ repeat: Infinity, duration: 2 }}
+                                            className="absolute inset-0 bg-gold/20 blur-xl rounded-full"
                                         />
                                     </div>
-                                    <p className="text-sm font-bold text-red-900 leading-none">
-                                        កំពុងបញ្ជូន {progress}%
-                                    </p>
+                                    <div className="space-y-2">
+                                        <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
+                                            <m.div
+                                                className="h-full bg-gradient-to-r from-gold/50 via-gold to-gold/50 shadow-[0_0_10px_rgba(212,175,55,0.5)]"
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${progress}%` }}
+                                                transition={{ duration: 0.3 }}
+                                            />
+                                        </div>
+                                        <div className="flex justify-between items-center px-1">
+                                            <p className="text-[8px] font-black uppercase tracking-widest text-gold/60">Uploading</p>
+                                            <p className="text-[10px] font-black text-gold">{progress}%</p>
+                                        </div>
+                                    </div>
                                 </div>
                             ) : (
-                                <>
-                                    <div className="w-14 h-14 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center mb-4 text-gray-400">
-                                        <ImagePlus className="h-7 w-7" />
-                                    </div>
-                                    <p className="text-sm font-bold text-gray-600 mb-1">អូសរូបភាពមកទីនេះ</p>
-                                    <p className="text-xs text-gray-400 mb-6">Drag & Drop images here</p>
-
-                                    <CldUploadWidget
-                                        onSuccess={onUploadSuccess}
-                                        onError={onError}
-                                        signatureEndpoint="/api/cloudinary/sign"
-                                        uploadPreset="wedding_upload"
-                                        options={{
-                                            maxFiles: 1,
-                                            sources: ['local', 'google_drive', 'facebook'],
-                                            clientAllowedFormats: ['png', 'jpeg', 'jpg', 'webp'],
-                                            maxImageFileSize: 10000000,
-                                            cropping: true,
-                                            styles: {
-                                                palette: {
-                                                    window: "#FFFFFF",
-                                                    windowBorder: "#90A0B3",
-                                                    tabIcon: "#D4AF37",
-                                                    menuIcons: "#5A616A",
-                                                    textDark: "#000000",
-                                                    textLight: "#FFFFFF",
-                                                    link: "#D4AF37",
-                                                    action: "#D4AF37",
-                                                    inactiveTabIcon: "#0E2F5A",
-                                                    error: "#F44235",
-                                                    inProgress: "#D4AF37",
-                                                    complete: "#20B832",
-                                                    sourceBg: "#E4EBF1"
-                                                },
-                                                zIndex: 99999
-                                            }
-                                        }}
+                                <m.div 
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="flex flex-col items-center w-full"
+                                >
+                                    <m.div 
+                                        animate={isDragging ? { scale: 1.1, rotate: 5, color: "#D4AF37" } : {}}
+                                        className="w-14 h-14 bg-white/5 rounded-2xl shadow-inner border border-white/10 flex items-center justify-center mb-4 text-white/20"
                                     >
-                                        {({ open, isLoading }) => (
-                                            <Button
-                                                type="button"
-                                                disabled={disabled || isLoading}
-                                                variant="outline"
-                                                onClick={() => open()}
-                                                className="rounded-full px-8 bg-white border-gray-200 hover:bg-gray-50 text-gray-700 shadow-sm"
-                                            >
-                                                រើសរូបភាព (Browse)
-                                            </Button>
-                                        )}
-                                    </CldUploadWidget>
-                                </>
+                                        <ImagePlus className="h-6 w-6" />
+                                    </m.div>
+                                    
+                                    <div className="space-y-1 mb-6">
+                                        <p className="text-sm font-bold text-white/90 tracking-tight">អូសរូបភាពមកទីនេះ</p>
+                                        <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-black">Drag & Drop images here</p>
+                                    </div>
+
+                                    <input 
+                                        type="file" 
+                                        accept="image/*"
+                                        className="hidden" 
+                                        ref={fileInputRef}
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) handleFileSelect(file);
+                                        }}
+                                    />
+
+                                    <m.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                                        <Button
+                                            type="button"
+                                            disabled={disabled || uploading}
+                                            variant="outline"
+                                            onClick={() => fileInputRef.current?.click()}
+                                            className="rounded-full px-8 h-10 bg-white text-black border-none hover:bg-gold hover:text-white transition-all duration-300 font-bold text-xs shadow-lg"
+                                        >
+                                            រើសរូបភាព (Browse)
+                                        </Button>
+                                    </m.div>
+                                </m.div>
                             )}
                         </div>
                     )}
                 </div>
-            </div>
-            {isDragging && !uploading && (
-                <div className="mt-2 text-center">
-                    <p className="text-xs font-bold text-red-600 animate-bounce">
-                        លែងដៃដើម្បីដាក់រូបភាព! (Release to upload)
-                    </p>
-                </div>
-            )}
+            </m.div>
+            
+            <AnimatePresence>
+                {isDragging && !uploading && (
+                    <m.div 
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="mt-3 text-center"
+                    >
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gold animate-pulse">
+                            Release to upload
+                        </p>
+                    </m.div>
+                )}
+            </AnimatePresence>
+
+            <ImageCropperModal
+                isOpen={isCropModalOpen}
+                onClose={() => {
+                    setIsCropModalOpen(false);
+                    setSelectedFileUrl(null);
+                }}
+                imageSrc={selectedFileUrl}
+                onCropComplete={handleCropComplete}
+                aspectRatio={aspectRatio}
+            />
         </div>
     );
 }

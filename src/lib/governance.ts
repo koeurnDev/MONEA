@@ -14,8 +14,8 @@ export class SystemGovernance {
         try {
             await prisma.governanceLog.create({
                 data: {
-                    action,
-                    details: JSON.stringify(details),
+                    action: action as any,
+                    details: details as any,
                     actorId,
                     actorName,
                     ip,
@@ -38,7 +38,7 @@ export class SystemGovernance {
             const snapshot = await prisma.systemVersion.create({
                 data: {
                     versionName,
-                    configData: JSON.stringify(currentConfig),
+                    configData: currentConfig as any,
                     description,
                     createdBy: actorId,
                 },
@@ -59,8 +59,8 @@ export class SystemGovernance {
 
             if (!version) throw new Error("Version not found");
 
-            const configData = JSON.parse(version.configData);
-            delete configData.updatedAt; // Don't overwrite updatedAt with old value
+            const configData = (version.configData as any) || {};
+            delete (configData as any).updatedAt; // Don't overwrite updatedAt with old value
 
             const updatedConfig = await prisma.systemConfig.update({
                 where: { id: "GLOBAL" },

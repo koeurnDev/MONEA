@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import { m } from "framer-motion";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import * as React from "react";
 
 interface MoneaLogoProps {
     className?: string;
@@ -15,11 +15,11 @@ interface MoneaLogoProps {
 
 export function MoneaLogo({ className, showText = false, size = "md", variant = "system", performance = true }: MoneaLogoProps) {
     const { resolvedTheme } = useTheme();
-    const [mounted, setMounted] = useState(false);
+    const [mounted, setMounted] = React.useState(false);
 
-    useEffect(() => setMounted(true), []);
+    React.useEffect(() => setMounted(true), []);
 
-    // Determine the color based on variant or resolved system theme
+    // Determine the color based on variant or resolved system theme.
     const activeColor = variant === "dark"
         ? "text-white"
         : variant === "light"
@@ -34,7 +34,7 @@ export function MoneaLogo({ className, showText = false, size = "md", variant = 
                 <span className={cn(
                     "font-kantumruy font-extrabold tracking-widest uppercase transition-colors duration-300",
                     activeColor,
-                    size === "sm" ? "text-sm" : size === "md" ? "text-lg" : "text-2xl"
+                    size === "sm" ? "text-sm" : size === "md" ? "text-lg" : size === "xl" ? "text-4xl" : size === "2xl" ? "text-5xl" : "text-2xl"
                 )}>
                     MONEA
                 </span>

@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, m } from "framer-motion";
-import { useState, useEffect } from "react";
+import * as React from "react";
 
 interface EnvelopeProps {
     onOpen: () => void;
@@ -9,7 +9,7 @@ interface EnvelopeProps {
 }
 
 export const Envelope = ({ onOpen, guestName = "ភ្ញៀវកិត្តិយស" }: EnvelopeProps) => {
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = React.useState(false);
 
     const handleOpen = () => {
         setIsOpen(true);

@@ -1,26 +1,67 @@
-import type { Metadata } from "next";
+import * as React from "react";
+// Full rebuild trigger v2
+import type { Metadata, Viewport } from "next";
 import { Kantumruy_Pro, Moul, Great_Vibes } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import PageTransition from "@/components/layout/PageTransition";
 import SmoothScroll from "@/components/layout/SmoothScroll";
 
-const kantumruy = Kantumruy_Pro({ weight: ["400", "700"], subsets: ["khmer", "latin"], variable: "--font-kantumruy" });
-const moul = Moul({ weight: "400", subsets: ["khmer"], variable: "--font-moul" });
-const greatVibes = Great_Vibes({ weight: "400", subsets: ["latin"], variable: "--font-great-vibes" });
+const kantumruy = Kantumruy_Pro({ 
+  weight: ["400", "700"], 
+  subsets: ["khmer", "latin"], 
+  variable: "--font-kantumruy", 
+  display: 'swap',
+  preload: true 
+});
+const moul = Moul({ 
+  weight: "400", 
+  subsets: ["khmer"], 
+  variable: "--font-moul", 
+  display: 'swap',
+  preload: false 
+});
+const greatVibes = Great_Vibes({ 
+  weight: "400", 
+  subsets: ["latin"], 
+  variable: "--font-great-vibes", 
+  display: 'swap',
+  preload: false 
+});
 
 export const metadata: Metadata = {
-  title: "MONEA - មនោសញ្ចេតនានៃក្តីស្រឡាញ់",
-  description: "MONEA Wedding Digital - បង្កើតធៀបអញ្ជើញឌីជីថលដ៏ប្រណីត និងគ្រប់គ្រងមង្គលការរបស់អ្នក។",
+  title: "MONEA - បង្កើតធៀបអញ្ជើញមង្គលការឌីជីថលដ៏ប្រណីត",
+  description: "MONEA Wedding Digital - បង្កើតធៀបអញ្ជើញឌីជីថលដ៏ប្រណីត និងគ្រប់គ្រងមង្គលការរបស់អ្នកជាមួយបច្ចេកវិទ្យាចុងក្រោយ។",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://monea.com'),
   icons: {
-    icon: [
-      { url: "/favicon.png", type: "image/png" },
-    ],
+    icon: "/favicon.png",
     shortcut: "/favicon.png",
-    apple: "/favicon.png",
+    apple: "/icons/icon-192x192.png",
+  },
+  openGraph: {
+    title: "MONEA - មនោសញ្ចេតនានៃក្តីស្រឡាញ់",
+    description: "បង្កើនភាពប្រណីតនៃពិធីមង្គលការរបស់អ្នកជាមួយធៀបអញ្ជើញឌីជីថលបែបបច្ចេកវិទ្យា។",
+    url: "/",
+    siteName: 'MONEA Digital Wedding',
+    images: [
+      {
+        url: '/og-main.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'MONEA Premium Invitations',
+      },
+    ],
+    locale: 'km_KH',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'MONEA - Professional E-Invitations',
+    description: 'Transform your wedding invitations into a digital masterpiece.',
+    images: ['/og-main.jpg'],
+    creator: '@monea',
   },
   manifest: "/manifest.json",
-  themeColor: "#000000",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -28,11 +69,16 @@ export const metadata: Metadata = {
   }
 };
 
+export const viewport: Viewport = {
+  themeColor: "#D4AF37",
+};
+
 import { AnimationProvider } from "@/components/providers/AnimationProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { SWRProvider } from "@/components/providers/SWRProvider";
 import { LoadingProvider } from "@/components/providers/LoadingProvider";
 import { LoadingBar } from "@/components/ui/LoadingBar";
+import Script from "next/script";
 
 export default function RootLayout({
   children,
@@ -43,6 +89,13 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://res.cloudinary.com" />
+        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+        <link rel="preconnect" href="https://challenges.cloudflare.com" />
+        <link rel="dns-prefetch" href="https://challenges.cloudflare.com" />
         <link rel="icon" href="/favicon.png" type="image/png" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -69,15 +122,32 @@ export default function RootLayout({
               <AnimationProvider>
                 <LoadingBar />
                 {children}
-                <script
+                <Script
+                  id="sw-registration"
+                  strategy="afterInteractive"
                   dangerouslySetInnerHTML={{
                     __html: `
                       if ('serviceWorker' in navigator) {
-                        window.addEventListener('load', function() {
-                          navigator.serviceWorker.register('/sw.js').catch(function(err) {
-                            console.error('ServiceWorker registration failed: ', err);
-                          });
-                        });
+                        const registerSW = () => {
+                          if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                              for(let registration of registrations) {
+                                registration.unregister();
+                                console.log('[SW] Unregistered existing service worker for localhost');
+                              }
+                            });
+                          } else {
+                            navigator.serviceWorker.register('/sw.js').catch(function(err) {
+                              console.error('ServiceWorker registration failed: ', err);
+                            });
+                          }
+                        };
+
+                        if (document.readyState === 'complete') {
+                          setTimeout(registerSW, 2000); // Defer until after load
+                        } else {
+                          window.addEventListener('load', () => setTimeout(registerSW, 2000));
+                        }
                       }
                     `,
                   }}

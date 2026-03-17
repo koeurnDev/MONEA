@@ -2,11 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { Metadata } from 'next';
 import { notFound } from "next/navigation";
 import { WeddingData } from "@/components/templates/types";
-import VIPPremiumKhmer from "@/components/templates/VIPPremiumKhmer";
-import KhmerLegacy from "@/components/templates/KhmerLegacy";
-
-
-// Removed conflicting force-dynamic, letting Next.js auto-detect dynamic from searchParams
+import dynamic from 'next/dynamic';
+const KhmerLegacy = dynamic(() => import("@/components/templates/KhmerLegacy"), { ssr: false });
 
 import { unstable_cache } from "next/cache";
 
@@ -14,13 +11,36 @@ const getWedding = unstable_cache(
     async (id: string) => {
         const wedding = await prisma.wedding.findUnique({
             where: { id },
-            include: {
+            select: {
+                id: true,
+                groomName: true,
+                brideName: true,
+                location: true,
+                date: true,
+                eventType: true,
+                templateId: true,
+                themeSettings: true,
+                status: true,
+                createdAt: true,
                 activities: {
-                    orderBy: { order: 'asc' }
+                    orderBy: { order: 'asc' },
+                    select: {
+                        id: true,
+                        title: true,
+                        time: true,
+                        description: true,
+                        order: true,
+                        icon: true
+                    }
                 },
                 galleryItems: {
                     orderBy: { createdAt: 'desc' },
-                    take: 24
+                    take: 24,
+                    select: {
+                        url: true,
+                        type: true,
+                        caption: true
+                    }
                 }
             }
         });
@@ -50,7 +70,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
     if (!wedding) return { title: 'Wedding Not Found' };
 
     const title = `${wedding.groomName} & ${wedding.brideName} | អាពាហ៍ពិពាហ៍`;
-    const description = `យើងខ្ញុំមានកិត្តិយសសូមគោរពអញ្ជើញលោកអ្នកចូលរួមក្នុងកម្មវិធីមង្គលការរបស់យើងនៅថ្ងៃទី ${new Date(wedding.date).toLocaleDateString('km-KH')}.`;
+    const description = `យើងខ្ញុំមានកិត្តិយសសូមគោរពអញ្ជើញលោកអ្នកចូលរួមក្នុងកម្មវិធីមង្គលការរបស់យើងនៅថ្ងៃទី ${new Date(wedding.date).toLocaleDateString('km-KH', { timeZone: 'Asia/Phnom_Penh' })}.`;
 
     // Better image handling
     let imageUrl = '/images/share-cover.jpg';
@@ -92,6 +112,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 
 // Client-side tracker component
 import { GuestViewTracker } from "@/components/analytics/GuestViewTracker";
+import { SafeBoundary } from "@/components/ui/SafeBoundary";
 
 export default async function InvitationPage({ params, searchParams }: { params: { id: string }, searchParams: { to?: string, g?: string } }) {
     const wedding = await getWedding(params.id);
@@ -102,26 +123,14 @@ export default async function InvitationPage({ params, searchParams }: { params:
         return notFound();
     }
 
-    // Select the template component logic
-    const renderTemplate = () => {
-        const id = wedding.templateId || "vip-premium-khmer";
-        const weddingData = (wedding as unknown) as WeddingData;
+    const weddingData = (wedding as unknown) as WeddingData;
 
-        return (
-            <>
-                <GuestViewTracker weddingId={wedding.id} guestId={guestId} guestName={guestName} />
-                {(() => {
-                    switch (id) {
-                        case "khmer-legacy":
-                            return <KhmerLegacy wedding={weddingData} guestName={guestName} />;
-                        case "vip-premium-khmer":
-                        default:
-                            return <VIPPremiumKhmer wedding={weddingData} guestName={guestName} />;
-                    }
-                })()}
-            </>
-        );
-    };
-
-    return renderTemplate();
+    return (
+        <>
+            <GuestViewTracker weddingId={wedding.id} guestId={guestId} guestName={guestName} />
+            <SafeBoundary name="Wedding Template (Khmer Legacy)" isSilent={true}>
+                <KhmerLegacy wedding={weddingData} guestName={guestName} />
+            </SafeBoundary>
+        </>
+    );
 }

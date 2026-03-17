@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, memo, useMemo } from "react";
+import * as React from "react";
 import Link from "next/link";
 import { m } from 'framer-motion';
 import { usePathname, useRouter } from "next/navigation";
@@ -17,7 +17,7 @@ interface DashboardSidebarProps {
 }
 
 // Memoized Link Component to prevent re-renders of the entire sidebar
-const NavLink = memo(({ item, isActive, onClick, onNavClick }: { item: any, isActive: boolean, onClick?: () => void, onNavClick: () => void }) => {
+const NavLink = React.memo(({ item, isActive, onClick, onNavClick }: { item: any, isActive: boolean, onClick?: () => void, onNavClick: () => void }) => {
     return (
         <Link
             href={item.href}
@@ -27,10 +27,10 @@ const NavLink = memo(({ item, isActive, onClick, onNavClick }: { item: any, isAc
             }}
             className={`flex items-center gap-3 w-full px-4 h-10 text-[13px] font-kantumruy font-medium rounded-lg transition-all duration-75 accelerate-gpu ${isActive
                 ? "bg-red-50/80 dark:bg-red-950/30 text-red-600 dark:text-red-400"
-                : "text-muted-foreground hover:text-red-600 hover:bg-zinc-100/50 dark:hover:bg-white/5"
+                : "text-zinc-600 dark:text-zinc-400 hover:text-red-600 hover:bg-zinc-100/50 dark:hover:bg-white/5"
                 }`}
         >
-            <item.icon className={`h-4 w-4 transition-colors ${isActive ? "text-red-600 dark:text-red-400" : "text-muted-foreground/50"}`} />
+            <item.icon className={`h-4 w-4 transition-colors ${isActive ? "text-red-600 dark:text-red-400" : "text-zinc-400 dark:text-zinc-500"}`} />
             <span className="text-left">{item.label}</span>
             {item.badge && (
                 <span className="text-[8px] font-black bg-primary text-primary-foreground px-1.5 py-0.5 rounded-md opacity-80">
@@ -43,11 +43,11 @@ const NavLink = memo(({ item, isActive, onClick, onNavClick }: { item: any, isAc
 
 NavLink.displayName = "NavLink";
 
-export const DashboardSidebar = memo(function DashboardSidebar({ onCloseMobile, isStaff = false, isAdmin = false }: DashboardSidebarProps) {
+export const DashboardSidebar = React.memo(function DashboardSidebar({ onCloseMobile, isStaff = false, isAdmin = false }: DashboardSidebarProps) {
     const pathname = usePathname();
     const router = useRouter();
     const { startLoading } = useLoading();
-    const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+    const [isLogoutModalOpen, setIsLogoutModalOpen] = React.useState(false);
 
     const handleLogout = async () => {
         try {
@@ -58,21 +58,21 @@ export const DashboardSidebar = memo(function DashboardSidebar({ onCloseMobile, 
         window.location.href = "/login";
     };
 
-    const mainNav = useMemo(() => [
+    const mainNav = React.useMemo(() => [
         { href: "/dashboard/gifts", label: "ចំណងដៃ", icon: Gift, hidden: !isStaff },
         { href: "/dashboard", label: "ទំព័រដើម", icon: Home, hidden: isStaff },
         { href: "/dashboard/guests", label: "ភ្ញៀវ", icon: Users, hidden: isStaff },
         { href: "/dashboard/gifts", label: "ចំណងដៃ", icon: Gift, hidden: isStaff },
     ], [isStaff]);
 
-    const weddingNav = useMemo(() => [
+    const weddingNav = React.useMemo(() => [
         { href: "/dashboard/design", label: "រចនា & ការកំណត់", icon: Palette, hidden: isStaff },
         { href: "/dashboard/schedule", label: "កាលវិភាគកម្មវិធី", icon: Clock, hidden: isStaff },
         { href: "/dashboard/notes", label: "កំណត់ត្រា", icon: BookOpen, hidden: isStaff },
         { href: "/dashboard/staff", label: "បុគ្គលិក", icon: UserCog, hidden: isStaff },
     ], [isStaff]);
 
-    const adminNav = useMemo(() => [
+    const adminNav = React.useMemo(() => [
         { href: "/dashboard/reports", label: "របាយការណ៍", icon: FileText, hidden: isStaff },
         { href: "/dashboard/support", label: "ជំនួយ & ការគាំទ្រ", icon: HelpCircle, hidden: isStaff },
         { href: "/dashboard/upgrade", label: "ដំឡើងកញ្ចប់", icon: Crown, hidden: isStaff },
@@ -91,7 +91,7 @@ export const DashboardSidebar = memo(function DashboardSidebar({ onCloseMobile, 
 
             <nav className="flex-1 px-3 py-2 space-y-4 overflow-y-auto scrollbar-none relative">
                 <div className="space-y-1">
-                    <p className="px-4 text-[10px] font-black font-kantumruy text-muted-foreground uppercase tracking-widest mb-3">ទូទៅ</p>
+                    <p className="px-4 text-[10px] font-black font-kantumruy text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-3">ទូទៅ</p>
                     {mainNav.map(item => !item.hidden && (
                         <NavLink key={item.href} item={item} isActive={pathname === item.href} onClick={onCloseMobile} onNavClick={startLoading} />
                     ))}
@@ -99,7 +99,7 @@ export const DashboardSidebar = memo(function DashboardSidebar({ onCloseMobile, 
 
                 {!isStaff && (
                     <div className="space-y-1">
-                        <p className="px-4 text-[10px] font-black font-kantumruy text-muted-foreground uppercase tracking-widest mb-3">រៀបចំពិធី</p>
+                        <p className="px-4 text-[10px] font-black font-kantumruy text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-3">រៀបចំពិធី</p>
                         {weddingNav.map(item => !item.hidden && (
                             <NavLink key={item.href} item={item} isActive={pathname === item.href} onClick={onCloseMobile} onNavClick={startLoading} />
                         ))}
@@ -108,7 +108,7 @@ export const DashboardSidebar = memo(function DashboardSidebar({ onCloseMobile, 
 
                 {!isStaff && (
                     <div className="space-y-1">
-                        <p className="px-4 text-[10px] font-black font-kantumruy text-muted-foreground uppercase tracking-widest mb-3">ផ្សេងៗ</p>
+                        <p className="px-4 text-[10px] font-black font-kantumruy text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-3">ផ្សេងៗ</p>
                         {adminNav.map(item => !item.hidden && (
                             <NavLink key={item.href} item={item} isActive={pathname === item.href} onClick={onCloseMobile} onNavClick={startLoading} />
                         ))}
@@ -119,7 +119,7 @@ export const DashboardSidebar = memo(function DashboardSidebar({ onCloseMobile, 
             <div className="p-4 relative">
                 <Button
                     variant="ghost"
-                    className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground hover:bg-accent h-10 rounded-xl transition-all"
+                    className="w-full justify-start gap-3 text-zinc-600 dark:text-zinc-400 hover:text-foreground hover:bg-accent h-10 rounded-xl transition-all"
                     onClick={() => setIsLogoutModalOpen(true)}
                 >
                     <LogOut className="h-4 w-4" />

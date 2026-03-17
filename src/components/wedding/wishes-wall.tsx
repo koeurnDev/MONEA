@@ -1,7 +1,7 @@
 "use client";
 
-import { m } from "framer-motion";
-import { useEffect, useState } from "react";
+import { AnimatePresence, m } from "framer-motion";
+import * as React from "react";
 
 interface WishesWallProps {
     weddingId: string;
@@ -14,10 +14,10 @@ interface Wish {
 }
 
 export const WishesWall = ({ weddingId }: WishesWallProps) => {
-    const [wishes, setWishes] = useState<Wish[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [wishes, setWishes] = React.useState<Wish[]>([]);
+    const [loading, setLoading] = React.useState(true);
 
-    useEffect(() => {
+    React.useEffect(() => {
         const fetchWishes = async () => {
             try {
                 const res = await fetch(`/api/guestbook?weddingId=${weddingId}`);

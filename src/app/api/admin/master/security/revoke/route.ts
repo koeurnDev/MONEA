@@ -20,7 +20,7 @@ export async function POST(req: Request) {
         const ip = req.headers.get("x-forwarded-for") || "unknown";
         await SystemGovernance.logAction(
             user.userId,
-            user.name || user.email || "Admin",
+            (user as any).name || user.email || "Admin",
             GOVERNANCE_ACTIONS.REVOKE_SESSIONS,
             { revokedCount: res.count, target: "STAFF" },
             ip,

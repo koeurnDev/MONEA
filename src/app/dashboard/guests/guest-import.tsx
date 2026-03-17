@@ -37,8 +37,8 @@ export function GuestImport({ onSuccess, className }: { onSuccess: () => void, c
             // Map keys to expected format (Name, Phone, Group)
             // Assumes generic column matching or first row headers
             const formattedGuests = data.map((row: any) => ({
-                name: row["នាម និង គោតមនាម"] || row.Name || row.name || row["ឈ្មោះ"] || "Unknown",
-                group: row["អញ្ជើញមកពី"] || row.Group || row.group || row["ក្រុម"] || "Friend",
+                name: row["ឈ្មោះភ្ញៀវ"] || row["ឈ្មោះ"] || row["នាម និង គោតមនាម"] || row["Guest Name"] || row.Name || row.name || "Unknown",
+                group: row["មកពីណា / ទីតាំង"] || row["មកពីណា"] || row["ទីតាំង"] || row["អញ្ជើញមកពី"] || row["Location/Group"] || row.Group || row.group || "Friend",
             }));
 
             if (formattedGuests.length > 0) {
@@ -52,7 +52,9 @@ export function GuestImport({ onSuccess, className }: { onSuccess: () => void, c
                         onSuccess();
                     } else {
                         const errorData = await res.json();
-                        alert(`Import failed: ${errorData.error || 'Unknown error'}`);
+                        const fullError = errorData.message || errorData.error || 'Unknown error';
+                        alert(`Import failed: ${fullError}`);
+                        console.error("Full Import Error:", errorData);
                     }
                 } catch (error) {
                     console.error("Import error:", error);
@@ -67,10 +69,10 @@ export function GuestImport({ onSuccess, className }: { onSuccess: () => void, c
 
     const downloadTemplate = async () => {
         const XLSX = await loadXLSX();
-        const headers = ["នាម និង គោតមនាម", "អញ្ជើញមកពី"];
+        const headers = ["ឈ្មោះភ្ញៀវ", "មកពីណា / ទីតាំង"];
         const sampleData = [
-            ["សុក តារា", "មិត្តភក្តិខាងកូនកំលោះ"],
-            ["កែវ មុន្នី", "ក្រុមគ្រួសារខាងកូនស្រី"]
+            ["សុក តារា", "កំពត"],
+            ["កែវ មុន្នី", "ព្រៃវែង"]
         ];
 
         const worksheet = XLSX.utils.aoa_to_sheet([headers, ...sampleData]);
@@ -99,7 +101,10 @@ export function GuestImport({ onSuccess, className }: { onSuccess: () => void, c
                         នាំចូលបញ្ជីភ្ញៀវ
                     </DialogTitle>
                     <DialogDescription className="font-kantumruy font-medium text-muted-foreground text-base mt-2">
-                        សូមជ្រើររើសឯកសារ Excel (.xlsx) ដែលមានជួរឈរ៖ <strong className="text-foreground font-bold bg-muted px-2 py-0.5 rounded">នាម និង គោតមនាម, អញ្ជើញមកពី</strong> ឬ <strong className="text-foreground font-bold bg-muted px-2 py-0.5 rounded">Name, Group</strong> ។
+                        សូមជ្រើររើសឯកសារ Excel (.xlsx) ដែលមានជួរឈរ៖ <strong className="text-foreground font-bold bg-muted px-2 py-0.5 rounded">ឈ្មោះភ្ញៀវ</strong> និង <strong className="text-foreground font-bold bg-muted px-2 py-0.5 rounded">មកពីណា / ទីតាំង</strong> ។
+                        <span className="block mt-2 text-sm text-amber-600 font-bold">
+                            * លេខរៀង (No.) នឹងត្រូវបានរៀបចំដោយស្វ័យប្រវត្តិដោយប្រព័ន្ធ។
+                        </span>
                         <span className="block mt-4">
                             <Button
                                 variant="link"

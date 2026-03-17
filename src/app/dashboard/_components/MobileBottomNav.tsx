@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { Home, Users, Clock, Menu, Gift } from "lucide-react";
 import { cn } from "@/lib/utils";

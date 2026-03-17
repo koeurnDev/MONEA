@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 
 export default function MasterSupportPage() {
     const [tickets, setTickets] = useState<any[]>([]);
@@ -80,19 +80,19 @@ export default function MasterSupportPage() {
                         <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground animate-pulse">Syncing Database...</p>
                     </div>
                 ) : tickets.length === 0 ? (
-                    <motion.div
+                    <m.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         className="py-32 text-center bg-card/30 backdrop-blur-md rounded-[3rem] border border-dashed border-border"
                     >
                         <LifeBuoy className="mx-auto text-muted-foreground/20 mb-4" size={48} />
                         <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground">No active tickets found</p>
-                    </motion.div>
+                    </m.div>
                 ) : (
                     <div className="grid gap-8">
                         <AnimatePresence>
                             {tickets.map((t, idx) => (
-                                <motion.div
+                                <m.div
                                     key={t.id}
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
@@ -118,7 +118,7 @@ export default function MasterSupportPage() {
                                                         </div>
                                                         <div className="h-4 w-[1px] bg-border/50 mx-2 hidden md:block" />
                                                         <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-                                                            <Clock size={12} /> {new Date(t.createdAt).toLocaleString()}
+                                                            <Clock size={12} /> {new Date(t.createdAt).toLocaleString('km-KH', { timeZone: 'Asia/Phnom_Penh' })}
                                                         </div>
                                                     </div>
 
@@ -171,7 +171,7 @@ export default function MasterSupportPage() {
                                             </div>
                                         </CardContent>
                                     </Card>
-                                </motion.div>
+                                </m.div>
                             ))}
                         </AnimatePresence>
                     </div>

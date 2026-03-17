@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     if (!user) return errorResponse("Unauthorized", 401);
 
     const body = await req.json();
-    const { title, time, description } = sanitizeObject<any>(body);
+    const { title, time, description, icon } = sanitizeObject<any>(body);
 
     if (!title || !time) {
         return errorResponse("Title and Time are required", 400);
@@ -64,6 +64,7 @@ export async function POST(req: Request) {
             title,
             time,
             description,
+            icon,
             order: newOrder,
             weddingId: wedding.id,
         },

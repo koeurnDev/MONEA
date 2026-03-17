@@ -15,11 +15,11 @@ const getCachedStats = (weddingId: string) => unstable_cache(
             prisma.gift.aggregate({
                 _sum: { amount: true },
                 where: { currency: "USD", weddingId },
-            }),
+            }).then(res => res._sum.amount || 0),
             prisma.gift.aggregate({
                 _sum: { amount: true },
                 where: { currency: "KHR", weddingId },
-            })
+            }).then(res => res._sum.amount || 0)
         ]);
     },
     [`dashboard-stats-${weddingId}`],
@@ -27,15 +27,12 @@ const getCachedStats = (weddingId: string) => unstable_cache(
 )();
 
 export async function DashboardDataView({ weddingId }: { weddingId: string }) {
-    const [guestCount, guestsOpened, confirmedGuests, gsUSD, gsKHR] = await getCachedStats(weddingId);
-
-    const giftSumUSD = gsUSD;
-    const giftSumKHR = gsKHR;
+    const [guestCount, guestsOpened, confirmedGuests, giftSumUSD, giftSumKHR] = await getCachedStats(weddingId);
 
     const statsData = [
         { label: "ភ្ញៀវ", value: guestCount, sub: "នាក់", icon: Users, color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50/50 dark:bg-blue-950/20" },
-        { label: "សាច់ប្រាក់ $", value: `$${(giftSumUSD._sum.amount || 0).toLocaleString()}`, sub: "USD", icon: DollarSign, color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50/50 dark:bg-emerald-950/20" },
-        { label: "សាច់ប្រាក់ ៛", value: `${(giftSumKHR._sum.amount || 0).toLocaleString()}`, sub: "KHR", icon: () => <span className="font-bold text-base">៛</span>, color: "text-indigo-600 dark:text-indigo-400", bg: "bg-indigo-50/50 dark:bg-indigo-950/20" }
+        { label: "សាច់ប្រាក់ $", value: `$${(giftSumUSD).toLocaleString()}`, sub: "USD", icon: DollarSign, color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50/50 dark:bg-emerald-950/20" },
+        { label: "សាច់ប្រាក់ ៛", value: `${(giftSumKHR).toLocaleString()}`, sub: "KHR", icon: () => <span className="font-bold text-base">៛</span>, color: "text-indigo-600 dark:text-indigo-400", bg: "bg-indigo-50/50 dark:bg-indigo-950/20" }
     ];
 
     return (

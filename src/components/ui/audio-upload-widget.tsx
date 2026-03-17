@@ -1,60 +1,43 @@
 "use client";
-
-import { CldUploadWidget } from "next-cloudinary";
-import { useEffect, useState } from "react";
+import * as React from "react";
+import { CldImage } from "next-cloudinary";
 import { Button } from "@/components/ui/button";
 import { Music, Trash, Loader2, FileAudio } from "lucide-react";
 import { useCloudinaryUpload } from "@/hooks/use-cloudinary-upload";
 
 interface AudioUploadProps {
     value: string;
-    onChange: (value: string) => void;
+    onChange: (url: string, publicId?: string) => void;
     onRemove: () => void;
     disabled?: boolean;
+    folder?: string;
 }
 
 export default function AudioUploadWidget({
     value,
     onChange,
     onRemove,
-    disabled
+    disabled,
+    folder
 }: AudioUploadProps) {
-    const [isMounted, setIsMounted] = useState(false);
-
-    // Use the shared hook which handles the entire upload process
-    // Note: The CldUploadWidget below is a backup/alternative, 
-    // but the hook provides the direct upload capability for future drag-and-drop
-    // or custom button implementations if we want to bypass the widget UI.
-    // However, CldUploadWidget manages its own state. 
-    // Ideally, we should unify this, but CldUploadWidget is robust.
-    // The previous implementation used CldUploadWidget primarily.
-    // The "uploading" state in the previous code was only for the CldUploadWidget loading state?
-    // Wait, the previous code had CldUploadWidget AND a "Direct Upload" logic?
-    // Actually, looking at the previous file, it ONLY used CldUploadWidget.
-    // It didn't have the drag-and-drop logic like ImageUploadWidget.
-    // So for Audio, we might just want to keep CldUploadWidget for now, 
-    // OR implementing drag-and-drop using our new hook.
-
-    // Let's IMPROVE AudioUploadWidget by adding the same drag-and-drop capability!
+    const [isMounted, setIsMounted] = React.useState(false);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
 
     const { uploading, progress, uploadFile } = useCloudinaryUpload({
-        onSuccess: (url) => onChange(url),
+        onSuccess: (url, publicId) => onChange?.(url, publicId),
         onError: (error) => {
             console.error("Upload error:", error);
             alert(`Upload failed: ${error.statusText || error.message || "Unknown error"}`);
         },
-        resourceType: "video" // Cloudinary treats audio as video usually
+        resourceType: "auto", // Cloudinary will auto-detect if it's audio/video
+        folder
     });
 
-    const [isDragging, setIsDragging] = useState(false);
+    const [isDragging, setIsDragging] = React.useState(false);
 
-    useEffect(() => {
+    React.useEffect(() => {
         setIsMounted(true);
     }, []);
-
-    const onUploadSuccess = (result: any) => {
-        onChange(result.info.secure_url);
-    };
 
     const onError = (error: any) => {
         console.error("Cloudinary Upload Error:", error);
@@ -110,8 +93,14 @@ export default function AudioUploadWidget({
                                 </div>
                             </div>
 
-                            <audio controls className="w-full">
-                                <source src={value} type="audio/mpeg" />
+                            <audio 
+                                key={value} 
+                                controls 
+                                src={value} 
+                                className="w-full" 
+                                preload="metadata" 
+                                crossOrigin="anonymous"
+                            >
                                 Your browser does not support the audio element.
                             </audio>
 
@@ -119,7 +108,7 @@ export default function AudioUploadWidget({
                                 <Button
                                     type="button"
                                     disabled={disabled}
-                                    onClick={() => onRemove()}
+                                    onClick={() => onRemove?.()}
                                     variant="destructive"
                                     size="sm"
                                     className="rounded-lg"
@@ -149,57 +138,30 @@ export default function AudioUploadWidget({
                                     <div className="w-14 h-14 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center mb-4 text-gray-400">
                                         <FileAudio className="h-7 w-7" />
                                     </div>
-                                    <p className="text-sm font-bold text-gray-600 mb-1">ដាក់បញ្ចូលភ្លេង (Upload MP3)</p>
-                                    <p className="text-xs text-gray-400 mb-4">Drag & Drop audio or browse</p>
+                                    <p className="text-sm font-bold text-gray-600 mb-1 md:block hidden">ដាក់បញ្ចូលភ្លេង (Upload MP3)</p>
+                                    <p className="text-sm font-bold text-gray-600 mb-1 md:hidden">រើសឯកសារភ្លេង</p>
+                                    <p className="text-xs text-gray-400 mb-4 md:block hidden">Drag & Drop audio or browse</p>
 
-                                    <CldUploadWidget
-                                        onSuccess={onUploadSuccess}
-                                        onError={onError}
-                                        signatureEndpoint="/api/cloudinary/sign"
-                                        uploadPreset="wedding_upload"
-                                        options={{
-                                            maxFiles: 1,
-                                            sources: ['local', 'google_drive', 'facebook'],
-                                            clientAllowedFormats: ['mp3', 'wav', 'ogg'],
-                                            maxFileSize: 50000000, // 50MB
-                                            styles: {
-                                                palette: {
-                                                    window: "#FFFFFF",
-                                                    windowBorder: "#90A0B3",
-                                                    tabIcon: "#D4AF37",
-                                                    menuIcons: "#5A616A",
-                                                    textDark: "#000000",
-                                                    textLight: "#FFFFFF",
-                                                    link: "#D4AF37",
-                                                    action: "#D4AF37",
-                                                    inactiveTabIcon: "#0E2F5A",
-                                                    error: "#F44235",
-                                                    inProgress: "#D4AF37",
-                                                    complete: "#20B832",
-                                                    sourceBg: "#E4EBF1"
-                                                }
-                                            }
+                                    <input 
+                                        type="file" 
+                                        accept="audio/*"
+                                        className="hidden" 
+                                        ref={fileInputRef}
+                                        onChange={(e) => {
+                                            const file = e.target.files?.[0];
+                                            if (file) uploadFile(file);
                                         }}
+                                    />
+
+                                    <Button
+                                        type="button"
+                                        disabled={disabled || uploading}
+                                        variant="outline"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="rounded-full px-8 bg-white border-gray-200 hover:bg-gray-50 text-gray-700 shadow-sm"
                                     >
-                                        {({ open, isLoading }) => (
-                                            <Button
-                                                type="button"
-                                                disabled={disabled || isLoading}
-                                                variant="outline"
-                                                onClick={() => open()}
-                                                className="rounded-full px-8 bg-white border-gray-200 hover:bg-gray-50 text-gray-700 shadow-sm"
-                                            >
-                                                {isLoading ? (
-                                                    <>
-                                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                        កំពុងដំណើរការ...
-                                                    </>
-                                                ) : (
-                                                    "រើសឯកសារ (Browse)"
-                                                )}
-                                            </Button>
-                                        )}
-                                    </CldUploadWidget>
+                                        រើសឯកសារ (Browse)
+                                    </Button>
                                 </>
                             )}
                         </div>

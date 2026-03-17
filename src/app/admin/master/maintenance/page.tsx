@@ -144,7 +144,7 @@ export default function MasterMaintenancePage() {
                                         <div className={cn("w-3 h-3 rounded-full animate-pulse", stats.health === "HEALTHY" ? "bg-green-400" : "bg-orange-400")} />
                                         <span className="text-xs font-black uppercase tracking-widest">Global: {stats.health}</span>
                                     </div>
-                                    <span className="text-[9px] text-white/30 font-mono italic">TS: {new Date(stats.timestamp).toLocaleTimeString()}</span>
+                                    <span className="text-[9px] text-white/30 font-mono italic">TS: {new Date(stats.timestamp).toLocaleTimeString('km-KH', { timeZone: 'Asia/Phnom_Penh' })}</span>
                                 </div>
                             </Card>
 

@@ -1,6 +1,4 @@
-"use client";
-
-import React from "react";
+import * as React from "react";
 import { m } from 'framer-motion';
 import { Clock, Heart, GlassWater, Music, Utensils, PartyPopper, Camera } from "lucide-react";
 

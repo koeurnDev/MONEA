@@ -6,187 +6,176 @@ import { encrypt, decrypt } from "@/lib/encryption";
 import { errorResponse, validateRequest } from "@/lib/api-utils";
 import { createLog } from "@/lib/audit-utils";
 import { sanitizeObject } from "@/lib/sanitize";
-import * as z from "zod";
+import { z } from "zod";
+import { guestSchema } from "@/lib/validations/guest";
+import { standardLimiter, getIP } from "@/lib/ratelimit";
+import { ROLES } from "@/lib/constants";
 
-
-const guestSchema = z.object({
-    name: z.string().min(1, "Name is required"),
-    phone: z.string().optional().nullable(),
-    group: z.string().optional().nullable(),
-    source: z.string().optional().nullable(),
-});
-
-export async function GET() {
+export async function GET(req: Request) {
     try {
         const user = await getServerUser();
-        console.log(`[Guests API Debug] GET. UserRole: ${user?.role}`);
-
         if (!user) return errorResponse("Unauthorized", 401);
 
+        const ip = getIP(req);
+        const { success } = await standardLimiter.limit(ip);
+        if (!success) return errorResponse("Too many requests", 429);
+
         let weddingId = null;
-        if (user.type === "staff") {
-            weddingId = user.weddingId!;
+        if (user.role === ROLES.PLATFORM_OWNER || user.role === ROLES.EVENT_STAFF) {
+            weddingId = user.weddingId;
         } else {
-            const wedding = await prisma.wedding.findFirst({ where: { userId: user.userId } });
+            const wedding = await prisma.wedding.findFirst({ where: { userId: user.id } });
             if (wedding) weddingId = wedding.id;
         }
 
-        if (!weddingId) {
-            console.log(`[Guests API Debug] GET. No weddingId found for user ${user.userId}`);
-            return NextResponse.json([]);
-        }
+        if (!weddingId) return NextResponse.json([]);
 
-        const guests = await prisma.guest.findMany({
-            where: { weddingId },
-            orderBy: { createdAt: "desc" }
+        // Raw SQL for durability
+        const guests = await prisma.$queryRaw<any[]>`
+            SELECT id, "weddingId", name, "group", source, "guestCode", "sequenceNumber", "createdAt", "updatedAt"
+            FROM "Guest"
+            WHERE "weddingId" = ${weddingId}
+            ORDER BY "createdAt" DESC
+        `;
+
+        const decryptedGuests = guests.map(guest => {
+            const { phone, ...guestData } = guest;
+            return {
+                ...guestData,
+                // Prioritize 'source' for address, fallback to 'group'
+                source: guest.source && guest.source !== 'GIFT_ENTRY' ? guest.source : (guest.group || null),
+                phone: phone ? decrypt(phone) : null
+            };
         });
 
-        const decryptedGuests = guests.map(guest => ({
-            ...guest,
-            phone: guest.phone ? decrypt(guest.phone) : guest.phone
-        }));
-
-        console.log(`[Guests API Debug] GET Success. Count: ${guests.length}`);
         return NextResponse.json(decryptedGuests);
     } catch (error: any) {
-        console.error(`[Guests API Debug] GET CRASH: ${error.message}`, error);
-        return errorResponse("Failed to fetch guests", 500, error.message);
+        console.error(`[Guests API] GET Error: ${error.message}`);
+        return errorResponse("Failed to fetch guests", 500);
     }
 }
 
 export async function POST(req: Request) {
     try {
         const user = await getServerUser();
-        console.log(`[Guests API Debug] POST. UserRole: ${user?.role}`);
-
         if (!user) return errorResponse("Unauthorized", 401);
 
+        const ip = getIP(req);
+        const { success } = await standardLimiter.limit(ip);
+        if (!success) return errorResponse("Too many requests", 429);
+
         const { data, error } = await validateRequest(req, guestSchema);
-        if (error) {
-            console.warn(`[Guests API Debug] POST Validation Error:`, error);
-            return error;
-        }
+        if (error) return error;
 
-        const sanitizedData = sanitizeObject<z.infer<typeof guestSchema>>(data);
+        const sanitizedData = sanitizeObject<any>(data);
 
-        let wedding = await prisma.wedding.findFirst({ where: { userId: user.userId } });
+        let wedding = await prisma.wedding.findFirst({ where: { userId: user.id } });
         if (!wedding) {
-            console.log(`[Guests API Debug] POST. Auto-creating wedding for user ${user.userId}`);
             wedding = await prisma.wedding.create({
                 data: {
-                    userId: user.userId,
-                    groomName: "Groom",
-                    brideName: "Bride",
-                    date: new Date(),
+                    userId: user.id, groomName: "Groom", brideName: "Bride",
+                    date: new Date(), packageType: "FREE"
                 }
             });
         }
 
-        const guest = await prisma.guest.create({
-            data: {
-                ...sanitizedData,
-                phone: sanitizedData.phone ? encrypt(sanitizedData.phone) : null,
-                weddingId: wedding.id
-            }
-        });
+        // Generate Guest Code using Raw SQL
+        const countResult = await prisma.$queryRaw<any[]>`SELECT COUNT(*)::int as count FROM "Guest" WHERE "weddingId" = ${wedding.id}`;
+        const count = Number(countResult[0]?.count || 0);
+        const guestCode = `G${String(count + 1).padStart(3, '0')}`;
+        
+        const guestId = crypto.randomUUID();
+        const encryptedPhone = sanitizedData.phone ? encrypt(sanitizedData.phone) : null;
+
+        // Calculate next sequence number for this wedding
+        const seqResult = await prisma.$queryRaw<any[]>`SELECT COUNT(*)::int as count FROM "Guest" WHERE "weddingId" = ${wedding.id}`;
+        const sequenceNumber = Number(seqResult[0]?.count || 0) + 1;
+
+        await prisma.$executeRaw`
+            INSERT INTO "Guest" ("id", "weddingId", "name", "group", "source", "guestCode", "sequenceNumber", "updatedAt", "createdAt", "phone")
+            VALUES (${guestId}, ${wedding.id}, ${sanitizedData.name}, ${sanitizedData.group || sanitizedData.source || "None"}, ${sanitizedData.source || "GIFT_ENTRY"}, ${guestCode}, ${sequenceNumber}, NOW(), NOW(), ${encryptedPhone})
+        `;
+
+        const rawGuests = await prisma.$queryRaw<any[]>`SELECT id, "weddingId", name, "group", source, "guestCode", "sequenceNumber", "phone" FROM "Guest" WHERE id = ${guestId} LIMIT 1`;
+        const guest = rawGuests[0];
 
         await createLog(wedding.id, "CREATE", `Added guest: ${guest.name}`, user.email || user.role);
-
         if (guest.phone) guest.phone = decrypt(guest.phone);
 
-        console.log(`[Guests API Debug] POST Success. GuestId: ${guest.id}`);
         return NextResponse.json(guest);
     } catch (error: any) {
-        console.error(`[Guests API Debug] POST CRASH: ${error.message}`, error);
-        return errorResponse("Failed to create guest", 500, error.message);
+        console.error(`[Guests API] POST Error: ${error.message}`);
+        return errorResponse("Failed to create guest", 500);
     }
 }
 
 export async function PATCH(req: Request) {
     try {
         const user = await getServerUser();
-        console.log(`[Guests API Debug] PATCH. UserRole: ${user?.role}`);
-
         if (!user) return errorResponse("Unauthorized", 401);
 
         const { data, error } = await validateRequest(req, guestSchema.partial().extend({ id: z.string() }));
-        if (error) {
-            console.warn(`[Guests API Debug] PATCH Validation Error:`, error);
-            return error;
-        }
+        if (error) return error;
 
         const { id, ...updateFields } = data!;
+        const sanitizedFields = sanitizeObject<any>(updateFields);
 
-        // SECURITY: Ownership Check (IDOR Prevention)
         const existingGuest = await prisma.guest.findUnique({ where: { id } });
         if (!existingGuest) return errorResponse("Guest not found", 404);
 
         let weddingId = null;
-        if (user.type === "staff") {
-            weddingId = user.weddingId!;
+        if (user.role === ROLES.PLATFORM_OWNER || user.role === ROLES.EVENT_STAFF) {
+            weddingId = user.weddingId;
         } else {
-            const wedding = await prisma.wedding.findFirst({ where: { userId: user.userId } });
+            const wedding = await prisma.wedding.findFirst({ where: { userId: user.id } });
             if (wedding) weddingId = wedding.id;
         }
 
-        if (existingGuest.weddingId !== weddingId) {
-            console.error(`[Security] IDOR attempt by user ${user.userId} on guest ${id}`);
-            return errorResponse("Access denied", 403);
-        }
+        if (existingGuest.weddingId !== weddingId) return errorResponse("Access denied", 403);
 
         const guest = await prisma.guest.update({
             where: { id },
-            data: updateFields
+            data: sanitizedFields
         });
 
         await createLog(guest.weddingId, "UPDATE", `Updated guest: ${guest.name}`, user.email || user.role);
-
         if (guest.phone) guest.phone = decrypt(guest.phone);
 
-        console.log(`[Guests API Debug] PATCH Success. GuestId: ${guest.id}`);
         return NextResponse.json(guest);
     } catch (error: any) {
-        console.error(`[Guests API Debug] PATCH CRASH: ${error.message}`, error);
-        return errorResponse("Failed to update guest", 500, error.message);
+        console.error(`[Guests API] PATCH Error: ${error.message}`);
+        return errorResponse("Failed to update guest", 500);
     }
 }
 
 export async function DELETE(req: Request) {
     try {
         const user = await getServerUser();
-        console.log(`[Guests API Debug] DELETE. UserRole: ${user?.role}`);
-
         if (!user) return errorResponse("Unauthorized", 401);
 
         const { searchParams } = new URL(req.url);
         const id = searchParams.get("id");
-
         if (!id) return errorResponse("ID required", 400);
 
         const guest = await prisma.guest.findUnique({ where: { id } });
         if (!guest) return errorResponse("Guest not found", 404);
 
-        // SECURITY: Ownership Check (IDOR Prevention)
         let weddingId = null;
-        if (user.type === "staff") {
-            weddingId = user.weddingId!;
+        if (user.role === ROLES.PLATFORM_OWNER || user.role === ROLES.EVENT_STAFF) {
+            weddingId = user.weddingId;
         } else {
-            const wedding = await prisma.wedding.findFirst({ where: { userId: user.userId } });
+            const wedding = await prisma.wedding.findFirst({ where: { userId: user.id } });
             if (wedding) weddingId = wedding.id;
         }
 
-        if (guest.weddingId !== weddingId) {
-            console.error(`[Security] IDOR attempt by user ${user.userId} to delete guest ${id}`);
-            return errorResponse("Access denied", 403);
-        }
+        if (guest.weddingId !== weddingId) return errorResponse("Access denied", 403);
 
         await prisma.guest.delete({ where: { id } });
         await createLog(guest.weddingId, "DELETE", `Deleted guest: ${guest.name}`, user.email || user.role);
 
-        console.log(`[Guests API Debug] DELETE Success. GuestId: ${id}`);
         return NextResponse.json({ success: true });
     } catch (error: any) {
-        console.error(`[Guests API Debug] DELETE CRASH: ${error.message}`, error);
-        return errorResponse("Failed to delete guest", 500, error.message);
+        console.error(`[Guests API] DELETE Error: ${error.message}`);
+        return errorResponse("Failed to delete guest", 500);
     }
 }

@@ -3,10 +3,11 @@ import { useState, useMemo } from "react";
 import useSWR from "swr";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, Users, DollarSign, Gift, MessageSquare, CheckCircle, Activity, Printer } from "lucide-react";
+import { Users, DollarSign, Gift, MessageSquare, CheckCircle, Activity, Printer } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
 import { CardSkeleton, TableSkeleton } from "../_components/SkeletonComponents";
+import { LazyMotion, domMax, m } from "framer-motion";
 
 export default function ReportsPage() {
     // SWR hooks for real-time data fetching (polls every 5 seconds)
@@ -22,10 +23,10 @@ export default function ReportsPage() {
         return [];
     }).catch(() => []);
 
-    const { data: guests = [], isLoading: loadingGuests } = useSWR("/api/guests", safeFetcher, { refreshInterval: 5000 });
-    const { data: gifts = [], isLoading: loadingGifts } = useSWR("/api/gifts", safeFetcher, { refreshInterval: 5000 });
-    const { data: logs = [], isLoading: loadingLogs } = useSWR("/api/logs", safeFetcher, { refreshInterval: 5000 });
-    const { data: wishes = [], isLoading: loadingWishes } = useSWR("/api/guestbook", safeFetcher, { refreshInterval: 5000 });
+    const { data: guests = [], isLoading: loadingGuests } = useSWR("/api/guests", safeFetcher, { refreshInterval: 30000 });
+    const { data: gifts = [], isLoading: loadingGifts } = useSWR("/api/gifts", safeFetcher, { refreshInterval: 30000 });
+    const { data: logs = [], isLoading: loadingLogs } = useSWR("/api/logs", safeFetcher, { refreshInterval: 30000 });
+    const { data: wishes = [], isLoading: loadingWishes } = useSWR("/api/guestbook", safeFetcher, { refreshInterval: 30000 });
     const { data: wedding = null } = useSWR("/api/wedding", (url) => fetch(url).then(res => res.json()).catch(() => null), { refreshInterval: 60000 });
 
     const loading = loadingGuests || loadingGifts || loadingLogs || loadingWishes;
@@ -58,57 +59,6 @@ export default function ReportsPage() {
     }, [guests, gifts, wishes]);
 
 
-    const exportFinancialReport = async () => {
-        const XLSX = await import("xlsx");
-        const safeGifts = Array.isArray(gifts) ? gifts : [];
-
-        const headers = ["ឈ្មោះភ្ញៀវ", "ទីតាំង", "ចំនួន", "រូបិយប័ណ្ណ", "វិធីសាស្ត្រ", "កាលបរិច្ឆេទ", "ម៉ោង"];
-        const rows = safeGifts.map((g: any) => [
-            g.guest?.name || "Anonymous",
-            g.guest?.source || g.guest?.group || "",
-            g.amount,
-            g.currency,
-            g.method || "Cash",
-            new Date(g.createdAt).toLocaleDateString('km-KH'),
-            new Date(g.createdAt).toLocaleTimeString('km-KH', { hour: '2-digit', minute: '2-digit', hour12: false })
-        ]);
-
-        const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-        worksheet["!cols"] = [
-            { wpx: 200 }, // Name
-            { wpx: 150 }, // Source
-            { wpx: 100 }, // Amount
-            { wpx: 80 },  // Currency
-            { wpx: 100 }, // Method
-            { wpx: 120 }, // Date
-            { wpx: 80 }   // Time
-        ];
-
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "របាយការណ៍ចំណងដៃ");
-        XLSX.writeFile(workbook, `financial_report_${new Date().toISOString().split('T')[0]}.xlsx`);
-    };
-
-    const exportGuestList = async () => {
-        const XLSX = await import("xlsx");
-        const safeGuests = Array.isArray(guests) ? guests : [];
-
-        const headers = ["ឈ្មោះភ្ញៀវ", "មកពីណា / ក្រុម"];
-        const rows = safeGuests.map((g: any) => [
-            g.name || "",
-            g.source || g.group || "មិនទាន់បញ្ជាក់"
-        ]);
-
-        const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-        worksheet["!cols"] = [
-            { wpx: 250 }, // Name
-            { wpx: 200 }  // Group
-        ];
-
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "បញ្ជីឈ្មោះភ្ញៀវ");
-        XLSX.writeFile(workbook, `guest_list_${new Date().toISOString().split('T')[0]}.xlsx`);
-    };
 
     const handlePrint = () => {
         const originalTitle = document.title;
@@ -122,7 +72,10 @@ export default function ReportsPage() {
             <style dangerouslySetInnerHTML={{
                 __html: `
                 @media print {
-                    @page { margin: 0; }
+                    @page { 
+                        margin: 1.5cm 1.5cm 1.5cm 2.5cm;
+                        size: A4 portrait;
+                    }
                     body { 
                         padding: 0 1.5cm 1.5cm 1.5cm;
                         -webkit-print-color-adjust: exact;
@@ -131,49 +84,96 @@ export default function ReportsPage() {
                         background: white !important;
                         color: black !important;
                     }
+                    
+                    /* NUCLEAR RESET: Force Light Mode for EVERYTHING in print */
+                    html, body, #__next, main, div, section, p, span, table, tr, td, th {
+                        color-scheme: light !important;
+                        background-color: white !important;
+                        background: white !important;
+                        color: black !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
+
+                    /* Reset all theme variables to Light Mode values specifically for print */
+                    :root, .dark, [data-theme='dark'], body.dark {
+                        --background: 0 0% 100% !important;
+                        --foreground: 0 0% 3.9% !important;
+                        --border: 0 0% 89.8% !important;
+                        --muted: 0 0% 96.1% !important;
+                        --muted-foreground: 0 0% 45.1% !important;
+                        --card: 255 255% 255% !important;
+                    }
+
+                    .print-hidden, .fab-container, nav, aside, footer:not(.print-footer) {
+                        display: none !important;
+                    }
+                    
                     .print-break-after { page-break-after: always; }
                     .print-no-break { page-break-inside: avoid; }
                     
-                    /* Force light colors for theme-aware components during print */
-                    .bg-card, .bg-muted, .bg-background {
-                        background-color: white !important;
-                        color: black !important;
-                        border-color: #e5e7eb !important; /* light gray border */
-                    }
-                    .text-foreground, .text-muted-foreground {
-                        color: black !important;
-                    }
-                    .text-muted-foreground {
-                        color: #4b5563 !important; /* gray-600 */
-                    }
-                    .border, .border-border {
-                        border-color: #e5e7eb !important;
-                    }
-                    .shadow-sm, .shadow-md, .shadow-xl {
-                        shadow: none !important;
-                        box-shadow: none !important;
-                        border: 1px solid #e5e7eb !important;
-                    }
+                    table { border-collapse: collapse !important; width: 100% !important; border: 1.5pt solid #cbd5e1 !important; border-top: 2pt solid #fda4af !important; }
+                    th, td { border: 1px solid #cbd5e1 !important; }
+                    
+                    /* Specific fixes for text clipping */
+                    .khmer-symbol { display: inline-block; padding-left: 4px; }
                 }
             ` }} />
 
             {/* --- PRINT ONLY HEADER --- */}
-            <div className="hidden print:block mb-8 text-center pt-[2cm]">
-                <div className="flex justify-center mb-8">
-                    <MoneaLogo showText size="xl" />
-                </div>
-                <div className="space-y-2">
-                    <h1 className="text-3xl font-black font-kantumruy tracking-tight">របាយការណ៍សរុប និងសកម្មភាពមង្គលការ</h1>
-                    {wedding?.groomName && wedding?.brideName && (
-                        <p className="text-lg font-bold font-kantumruy text-gray-600">
-                            អាពាហ៍ពិពាហ៍ {wedding.groomName} និង {wedding.brideName}
-                        </p>
-                    )}
-                </div>
-                <div className="w-32 h-1 bg-red-600 mx-auto mt-6 rounded-full opacity-20" />
+            <div className="hidden print:block text-center pt-8 mb-2">
+                <h1 className="text-3xl font-black tracking-[0.25em] text-rose-600 font-sans">MONEA</h1>
+                <div className="h-0.5 w-12 bg-rose-200 mx-auto mt-3 opacity-50" />
             </div>
 
-            {/* Header Area (Hidden in Print) */}
+            <div className="hidden print:block mb-10 text-center pt-4">
+                <h1 className="text-3xl font-black text-slate-900 mb-2 font-kantumruy uppercase tracking-tight">របាយការណ៍សរុប និងសកម្មភាពមង្គលការ</h1>
+                <p className="text-xl text-slate-500 font-bold font-kantumruy">អាពាហ៍ពិពាហ៍ {wedding?.groomName || '...'} និង {wedding?.brideName || '...'}</p>
+                <p className="text-lg text-slate-400 font-bold font-kantumruy mt-2 italic shadow-sm bg-zinc-50/50 py-2 rounded-full inline-block px-8 border border-zinc-100/50">របាយការណ៍ផ្លូវការសម្រាប់អ្នករៀបចំ</p>
+            </div>
+
+            {/* --- PRINT ONLY SUMMARY SECTION --- */}
+            <div className="hidden print:grid grid-cols-2 gap-6 mb-12 print-no-break">
+                <div className="border-2 border-slate-100 rounded-[2.5rem] p-8 bg-blue-50/20 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full -mr-16 -mt-16" />
+                    <p className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] mb-4">ស្ថិតិវត្តមានភ្ញៀវ</p>
+                    <div className="flex items-baseline gap-2">
+                        <span className="text-3xl font-black text-slate-900 font-kantumruy leading-none">{stats.checkInCount} / {stats.totalGuests}</span>
+                        <span className="text-sm font-bold text-slate-400 font-kantumruy">នាក់</span>
+                    </div>
+                    <p className="text-[10px] font-bold text-slate-400 mt-2 font-kantumruy italic opacity-70">ភ្ញៀវដែលបានចូលរួមក្នុងកម្មវិធី</p>
+                </div>
+
+                <div className="border-2 border-slate-100 rounded-[2.5rem] p-8 bg-pink-50/20 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/5 rounded-full -mr-16 -mt-16" />
+                    <p className="text-[10px] font-black text-pink-600 uppercase tracking-[0.2em] mb-4">ពាក្យជូនពរសរុប</p>
+                    <div className="flex items-baseline gap-2">
+                        <span className="text-3xl font-black text-slate-900 font-kantumruy leading-none">{stats.wishesCount}</span>
+                        <span className="text-sm font-bold text-slate-400 font-kantumruy">ពាក្យជូនពរ</span>
+                    </div>
+                    <p className="text-[10px] font-bold text-slate-400 mt-2 font-kantumruy italic opacity-70">សំណេរពីភ្ញៀវកិត្តិយស</p>
+                </div>
+
+                <div className="border-2 border-slate-100 rounded-[2.5rem] p-8 bg-emerald-50/20 relative overflow-hidden col-span-2">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full -mr-32 -mt-32" />
+                    <p className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] mb-6 text-center">សរុបសាច់ប្រាក់ចំណងដៃ</p>
+                    <div className="flex items-center justify-around gap-12 py-2">
+                        <div className="text-center">
+                            <span className="text-[10px] font-black text-slate-400 block mb-2 uppercase tracking-widest font-sans">USD</span>
+                            <span className="text-3xl font-black text-slate-900 font-kantumruy tracking-tight">${stats.totalGiftsUsd.toLocaleString()}</span>
+                        </div>
+                        <div className="h-12 w-px bg-slate-200" />
+                        <div className="text-center">
+                            <span className="text-[10px] font-black text-slate-400 block mb-2 uppercase tracking-widest font-sans">KHR</span>
+                            <div className="flex items-center justify-center">
+                                <span className="text-3xl font-black text-slate-900 font-kantumruy tracking-tight" style={{ overflow: 'visible' }}>{stats.totalGiftsKhr.toLocaleString()}</span>
+                                <span className="text-2xl font-black text-slate-900 khmer-symbol">៛</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 print:hidden">
                 <div className="space-y-1">
                     <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-red-600 mb-1">
@@ -184,23 +184,13 @@ export default function ReportsPage() {
                         របាយការណ៍ & ស្ថិតិ
                     </h2>
                     <p className="text-muted-foreground font-medium font-kantumruy text-sm">
-                        តាមដាន និងវិភាគទិន្នន័យមង្គលការរបស់អ្នកក្នុងពេលជាក់ស្តែង។
+                        តាមដាន និងវិភាគទ្និន្ន័យមង្គលការរបស់អ្នកក្នុងពេលជាក់ស្តែង។
                     </p>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <Button
-                        variant="outline"
-                        onClick={handlePrint}
-                        className="h-11 px-6 bg-background/50 border-none shadow-sm text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl font-kantumruy font-bold transition-all"
-                    >
-                        <Printer className="mr-2 h-4 w-4 text-muted-foreground" /> PDF Report
-                    </Button>
                 </div>
             </div>
 
-            {/* Stats Overview */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 grid-cols-2">
+            {/* Stats Overview (Hidden in print as we have the summary above) */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 grid-cols-2 print:hidden">
                 {loading ? (
                     <>
                         <CardSkeleton />
@@ -213,9 +203,9 @@ export default function ReportsPage() {
                         { label: "ភ្ញៀវសរុប", value: stats.totalGuests, sub: "Check-in: " + stats.checkInCount, icon: Users, color: "text-blue-600", bg: "bg-blue-50/50 dark:bg-blue-950/20" },
                         { label: "សាច់ប្រាក់ដុល្លារ", value: "$" + stats.totalGiftsUsd.toLocaleString(), sub: "សរុបចំនួន " + stats.giftsCount + " នាក់", icon: DollarSign, color: "text-emerald-600", bg: "bg-emerald-50/50 dark:bg-emerald-950/20" },
                         { label: "សាច់ប្រាក់រៀល", value: stats.totalGiftsKhr.toLocaleString() + " ៛", sub: "សរុបចំនួន " + stats.giftsCount + " នាក់", icon: Gift, color: "text-amber-600", bg: "bg-amber-50/50 dark:bg-amber-950/20" },
-                        { label: "ពាក្យជូនពរ", value: stats.wishesCount, sub: "ពីភ្ញៀវកិត្តិយស", icon: MessageSquare, color: "text-pink-600", bg: "bg-pink-50/50 dark:bg-pink-950/20" },
+                        { label: "ពាក្យជូនពរ", value: stats.wishesCount, sub: "ពីភ្ញៀវកិត្តិយស", icon: MessageSquare, color: "text-pink-600", bg: "bg-pink-500/10" },
                     ].map((stat, i) => (
-                        <Card key={i} className="border-none shadow-[0_4px_20px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.2)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all rounded-[2rem] overflow-hidden group relative bg-card">
+                        <Card key={i} className="border-none shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.2)] hover:shadow-[0_8px_40px_rgba(0,0,0,0.08)] transition-all rounded-[2rem] overflow-hidden group relative bg-card">
                             <CardContent className="p-8 pt-10">
                                 <div className={`p-4 rounded-2xl ${stat.bg} ${stat.color} w-fit mb-6 transition-transform group-hover:scale-110 duration-500`}>
                                     <stat.icon className="h-6 w-6" />
@@ -247,11 +237,14 @@ export default function ReportsPage() {
                 </div>
 
                 {/* Left Side: Activity Log */}
-                <Card className="lg:col-span-7 border-none shadow-[0_4px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.2)] rounded-[2rem] bg-card overflow-hidden">
-                    <CardHeader className="p-8 pb-4 bg-muted/20 flex flex-row items-center justify-between">
-                        <CardTitle className="text-lg font-bold text-foreground font-kantumruy">សកម្មភាពចុងក្រោយ</CardTitle>
-                        <div className="px-3 py-1 rounded-full bg-background/50 text-[10px] font-bold text-muted-foreground uppercase tracking-widest shadow-sm">
-                            Live updates
+                <Card className="lg:col-span-7 border-none shadow-[0_8px_40px_rgba(0,0,0,0.06)] dark:shadow-[0_4px_32px_rgba(0,0,0,0.2)] rounded-[2.5rem] bg-card overflow-hidden print:border print:border-slate-100 print:shadow-none print-no-break">
+                    <CardHeader className="p-10 pb-6 bg-muted/30 border-b border-border/5 flex flex-row items-center justify-between">
+                        <div className="flex flex-col gap-1">
+                            <CardTitle className="text-xl font-black text-foreground font-kantumruy">សកម្មភាពចុងក្រោយ</CardTitle>
+                            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest opacity-60">Real-time Activity Stream</p>
+                        </div>
+                        <div className="px-4 py-1.5 rounded-full bg-emerald-500/10 text-emerald-600 text-[10px] font-black uppercase tracking-widest animate-pulse">
+                            Live
                         </div>
                     </CardHeader>
                     <CardContent className="p-0">
@@ -260,31 +253,34 @@ export default function ReportsPage() {
                                 <span className="text-xs font-bold font-kantumruy uppercase tracking-widest">មិនទាន់មានសកម្មភាពទេ</span>
                             </div>
                         ) : (
-                            <div className="divide-y divide-border/5">
+                            <div className="divide-y divide-border/10">
                                 {logs.map((log: any) => (
-                                    <div key={log.id} className="p-6 px-8 hover:bg-muted/50 transition-colors flex gap-6 items-start group">
+                                    <div key={log.id} className="p-8 px-10 hover:bg-muted/30 transition-all flex gap-8 items-start group relative">
                                         <div className={cn(
-                                            "w-10 h-10 rounded-xl flex items-center justify-center transition-all shadow-sm",
-                                            log.action === 'GIFT' ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600' :
-                                                log.action === 'CHECK_IN' ? 'bg-blue-50 dark:bg-blue-950/20 text-blue-600' :
-                                                    log.action === 'WISH' ? 'bg-pink-50 dark:bg-pink-950/20 text-pink-600' : 'bg-muted text-muted-foreground'
+                                            "w-12 h-12 rounded-2xl flex items-center justify-center transition-all shadow-sm group-hover:scale-110 duration-300 shrink-0",
+                                            log.action === 'GIFT' ? 'bg-emerald-500/10 text-emerald-600' :
+                                                log.action === 'CHECK_IN' ? 'bg-blue-500/10 text-blue-600' :
+                                                    log.action === 'WISH' ? 'bg-pink-500/10 text-pink-600' : 'bg-muted text-muted-foreground'
                                         )}>
-                                            {log.action === 'GIFT' ? <Gift size={18} /> :
-                                                log.action === 'CHECK_IN' ? <Users size={18} /> :
-                                                    log.action === 'WISH' ? <MessageSquare size={18} /> : <CheckCircle size={18} />}
+                                            {log.action === 'GIFT' ? <Gift size={22} className="stroke-[2.5]" /> :
+                                                log.action === 'CHECK_IN' ? <Users size={22} className="stroke-[2.5]" /> :
+                                                    log.action === 'WISH' ? <MessageSquare size={22} className="stroke-[2.5]" /> : <CheckCircle size={22} />}
                                         </div>
-                                        <div className="flex-1">
-                                            <p className="font-bold text-foreground font-kantumruy leading-relaxed">{log.description}</p>
-                                            <div className="flex items-center gap-3 mt-1.5">
-                                                <span className="text-[10px] font-bold text-red-600 uppercase tracking-[0.2em]">{log.actorName}</span>
-                                                <div className="w-1 h-1 rounded-full bg-muted-foreground/20" />
-                                                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                                        <div className="flex-1 space-y-2">
+                                            <p className="font-black text-lg text-foreground font-kantumruy leading-normal tracking-tight">{log.description}</p>
+                                            <div className="flex items-center gap-4">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-red-600" />
+                                                    <span className="text-[11px] font-black text-foreground uppercase tracking-wider">{log.actorName}</span>
+                                                </div>
+                                                <div className="w-1 h-1 rounded-full bg-muted-foreground/30" />
+                                                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest bg-muted/50 px-2 py-0.5 rounded-md">
                                                     {(() => {
                                                         const diff = Date.now() - new Date(log.createdAt).getTime();
                                                         if (diff < 60000) return "Just now";
                                                         if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
                                                         if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
-                                                        return new Date(log.createdAt).toLocaleDateString();
+                                                        return new Date(log.createdAt).toLocaleDateString('km-KH', { day: 'numeric', month: 'short' });
                                                     })()}
                                                 </span>
                                             </div>
@@ -298,25 +294,28 @@ export default function ReportsPage() {
 
                 {/* Right Side: Insights & Exports */}
                 <div className="lg:col-span-5 space-y-8">
-                    <Card className="border-none shadow-[0_4px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.2)] rounded-[2rem] bg-card overflow-hidden">
+                    <Card className="border-none shadow-[0_8px_40px_rgba(0,0,0,0.06)] dark:shadow-[0_4px_32px_rgba(0,0,0,0.2)] rounded-[2rem] bg-card overflow-hidden">
                         <CardHeader className="p-8 pb-4 bg-muted/20">
                             <CardTitle className="text-lg font-bold text-foreground font-kantumruy">ស្ថិតិតាមទីតាំង</CardTitle>
                         </CardHeader>
                         <CardContent className="p-8 pb-10">
                             <div className="space-y-8">
                                 {(() => {
-                                    const sourceStats = (guests as any[]).reduce((acc: any, g: any) => {
+                                    const safeGuests = Array.isArray(guests) ? guests : [];
+                                    const safeGifts = Array.isArray(gifts) ? gifts : [];
+
+                                    const sourceStats = safeGuests.reduce((acc: any, g: any) => {
                                         const source = g.source || g.group || "មិនបានបញ្ជាក់";
                                         if (!acc[source]) acc[source] = { guests: 0, usd: 0, khr: 0 };
                                         acc[source].guests += 1;
                                         return acc;
                                     }, {});
 
-                                    (gifts as any[]).forEach((gift: any) => {
+                                    safeGifts.forEach((gift: any) => {
                                         const source = gift.guest?.source || gift.guest?.group || "មិនបានបញ្ជាក់";
                                         if (sourceStats[source]) {
-                                            if (gift.currency === 'USD') sourceStats[source].usd += gift.amount;
-                                            if (gift.currency === 'KHR') sourceStats[source].khr += gift.amount;
+                                            if (gift.currency === 'USD') sourceStats[source].usd += Number(gift.amount || 0);
+                                            if (gift.currency === 'KHR') sourceStats[source].khr += Number(gift.amount || 0);
                                         }
                                     });
 
@@ -356,55 +355,34 @@ export default function ReportsPage() {
                         </CardContent>
                     </Card>
 
-                    {/* Export Actions */}
-                    <div className="grid gap-6">
-                        <Button
-                            onClick={exportFinancialReport}
-                            className="h-14 bg-card border-none hover:bg-muted text-foreground rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-md transition-all group px-6"
-                        >
-                            <div className="flex items-center justify-between w-full">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 flex items-center justify-center">
-                                        <Download className="h-4 w-4" />
-                                    </div>
-                                    <span className="font-bold font-kantumruy text-sm">Excel (ចំណងដៃ)</span>
-                                </div>
-                                <span className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase group-hover:text-emerald-600 transition-colors">Export</span>
-                            </div>
-                        </Button>
-
-                        <Button
-                            onClick={exportGuestList}
-                            variant="outline"
-                            className="h-14 bg-card border-none hover:bg-muted text-foreground rounded-2xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] hover:shadow-md transition-all group px-6"
-                        >
-                            <div className="flex items-center justify-between w-full">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/20 text-blue-600 flex items-center justify-center">
-                                        <Users className="h-4 w-4" />
-                                    </div>
-                                    <span className="font-bold font-kantumruy text-sm">Excel (បញ្ជីភ្ញៀវ)</span>
-                                </div>
-                                <span className="text-[10px] font-bold text-muted-foreground tracking-widest uppercase group-hover:text-blue-600 transition-colors">Export</span>
-                            </div>
-                        </Button>
-                    </div>
                 </div>
             </div>
             {/* --- PRINT ONLY FOOTER --- */}
-            <div className="hidden print:flex flex-col mb-10 pt-6 px-10 mt-12 font-kantumruy font-bold text-sm border-t border-gray-100">
-                <div className="flex justify-between items-start italic opacity-60">
-                    <div className="space-y-1">
-                        <p suppressHydrationWarning className="text-gray-400 uppercase tracking-tight text-[10px]">Date of issue</p>
-                        <p suppressHydrationWarning>{new Date().toLocaleDateString('km-KH')}</p>
+            <div className="hidden print:flex flex-col mb-10 pt-8 px-10 mt-16 font-kantumruy border-t-2 border-slate-100">
+                <div className="flex justify-between items-end">
+                    <div className="space-y-2">
+                        <p suppressHydrationWarning className="text-slate-400 uppercase tracking-[0.15em] text-[10px] font-black">កាលបរិច្ឆេទចេញរបាយការណ៍</p>
+                        <p suppressHydrationWarning className="text-sm font-bold text-slate-900">
+                            {new Date().toLocaleDateString('km-KH', { timeZone: 'Asia/Phnom_Penh', day: 'numeric', month: 'long', year: 'numeric' })}
+                        </p>
                     </div>
-                    <div className="text-right space-y-1">
-                        <p className="text-gray-400 uppercase tracking-tight text-[10px]">Digitally Signed & Verified</p>
-                        <p className="text-base text-gray-900">Monea Platform Official Report</p>
+                    
+                    <div className="text-right space-y-2">
+                        <div className="flex items-center justify-end gap-2 mb-1">
+                            <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                            <p className="text-slate-400 uppercase tracking-[0.15em] text-[10px] font-black">សុពលភាពឯកសារ</p>
+                        </div>
+                        <p className="text-sm font-black text-slate-900">របាយការណ៍ផ្លូវការ - ប្រព័ន្ធ MONEA</p>
                     </div>
                 </div>
-                <div className="mt-20 text-center text-[10px] text-gray-300 uppercase tracking-[0.4em] font-normal">
-                    End of Analytics Report
+                
+                <div className="mt-24 text-center">
+                    <p className="text-[10px] text-zinc-300 uppercase tracking-[0.5em] font-medium font-kantumruy mb-2">
+                        MONEA PLATFORM • OFFICIAL ANALYTICS RECORD
+                    </p>
+                    <p className="text-[9px] text-zinc-300 font-medium font-kantumruy">
+                        ឯកសារនេះត្រូវបានបង្កើតឡើងដោយស្វ័យប្រវត្តិតាមរយៈប្រព័ន្ធ MONEA និងជាកំណត់ត្រាផ្លូវការនៃស្ថិតិមង្គលការ។
+                    </p>
                 </div>
             </div>
             {/* --- END PRINT FOOTER --- */}

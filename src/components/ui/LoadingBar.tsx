@@ -1,15 +1,20 @@
 "use client";
-import { useEffect, useState } from "react";
+import * as React from "react";
 import { usePathname } from "next/navigation";
-import { m, AnimatePresence } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { useLoading } from "@/components/providers/LoadingProvider";
 
 export function LoadingBar() {
-    const pathname = usePathname();
+    let pathname = "";
+    try {
+        pathname = usePathname();
+    } catch (e) {
+        // Silently fail if context is missing during SSR/Error recovery
+    }
     const { isLoading: isGlobalLoading } = useLoading();
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = React.useState(false);
 
-    useEffect(() => {
+    React.useEffect(() => {
         setIsLoading(true);
         const timer = setTimeout(() => {
             setIsLoading(false);

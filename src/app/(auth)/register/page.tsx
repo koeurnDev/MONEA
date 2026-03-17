@@ -1,13 +1,14 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
-import { UserPlus, Mail, Lock, ChevronLeft, ArrowRight } from "lucide-react";
+import { UserPlus, Mail, Lock, ChevronLeft, ArrowRight, Camera } from "lucide-react";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import SSOIcons from "@/components/auth/SSOIcons";
 import {
     Form,
     FormControl,
@@ -99,7 +100,7 @@ export default function RegisterPage() {
             {/* Background Image with Overlay */}
             <div className="absolute inset-0 z-0">
                 <Image
-                    src="https://images.unsplash.com/photo-1511285560982-1356c11d4606?q=80&w=2000&auto=format&fit=crop"
+                    src="https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=2000&auto=format&fit=crop"
                     alt="Background"
                     fill
                     className="object-cover opacity-40"
@@ -122,29 +123,29 @@ export default function RegisterPage() {
                     </Link>
 
                     {/* Header */}
-                    <div className="text-center mb-3">
-                        <Link href="/" className="inline-flex justify-center">
+                    <div className="text-center mb-2">
+                        <Link href="/" className="inline-flex justify-center scale-90 md:scale-100">
                             <MoneaLogo showText size="sm" variant="dark" />
                         </Link>
-                        <h1 className="text-xl md:text-2xl font-bold text-white mb-1 font-kantumruy mt-1.5 md:mt-2">បង្កើតគណនីថ្មី</h1>
-                        <p className="text-white/40 text-[10px] md:text-xs font-kantumruy">ឥតគិតថ្លៃសម្រាប់ការចាប់ផ្តើម។ មិនត្រូវការកាត Credit ទេ។</p>
+                        <h1 className="text-lg md:text-xl font-bold text-white mb-0.5 font-kantumruy mt-1">បង្កើតគណនីថ្មី</h1>
+                        <p className="text-white/40 text-[10px] font-kantumruy">ឥតគិតថ្លៃសម្រាប់ការចាប់ផ្តើម</p>
                     </div>
 
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2.5 md:space-y-3">
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2 md:space-y-2.5">
                             <FormField
                                 control={form.control}
                                 name="name"
                                 render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="text-white/80 text-xs uppercase tracking-wider font-bold ml-1">ឈ្មោះរបស់អ្នក (Full Name)</FormLabel>
+                                    <FormItem className="space-y-1">
+                                        <FormLabel className="text-white/60 text-[10px] uppercase tracking-wider font-bold ml-1">ឈ្មោះរបស់អ្នក</FormLabel>
                                         <div className="relative group">
-                                            <div className="absolute left-3 top-2.5 md:top-3 text-white/40 group-focus-within:text-pink-400 transition-colors">
-                                                <UserPlus className="w-4 h-4 md:w-5 md:h-5" />
+                                            <div className="absolute left-3 top-2 md:top-2.5 text-white/30 group-focus-within:text-pink-400 transition-colors">
+                                                <UserPlus className="w-4 h-4" />
                                             </div>
-                                            <Input placeholder="ឈ្មោះរបស់អ្នក" className="pl-10 bg-white/5 border-white/10 text-white rounded-xl focus:border-pink-500/50 h-9 md:h-11" {...field} />
+                                            <Input placeholder="Full Name" className="pl-10 bg-white/5 border-white/10 text-white rounded-xl focus:border-pink-500/50 h-8 md:h-10 text-sm" {...field} />
                                         </div>
-                                        <FormMessage className="text-red-400 text-xs" />
+                                        <FormMessage className="text-red-400 text-[10px]" />
                                     </FormItem>
                                 )}
                             />
@@ -152,88 +153,96 @@ export default function RegisterPage() {
                                 control={form.control}
                                 name="email"
                                 render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="text-white/80 text-xs uppercase tracking-wider font-bold ml-1">អ៊ីមែល</FormLabel>
+                                    <FormItem className="space-y-1">
+                                        <FormLabel className="text-white/60 text-[10px] uppercase tracking-wider font-bold ml-1">អ៊ីមែល</FormLabel>
                                         <div className="relative group">
-                                            <div className="absolute left-3 top-2.5 md:top-3 text-white/40 group-focus-within:text-pink-400 transition-colors">
-                                                <Mail className="w-4 h-4 md:w-5 md:h-5" />
+                                            <div className="absolute left-3 top-2 md:top-2.5 text-white/30 group-focus-within:text-pink-400 transition-colors">
+                                                <Mail className="w-4 h-4" />
                                             </div>
-                                            <Input placeholder="name@example.com" className="pl-10 bg-white/5 border-white/10 text-white rounded-xl focus:border-pink-500/50 h-9 md:h-11" {...field} />
+                                            <Input placeholder="name@example.com" className="pl-10 bg-white/5 border-white/10 text-white rounded-xl focus:border-pink-500/50 h-8 md:h-10 text-sm" {...field} />
                                         </div>
-                                        <FormMessage className="text-red-400 text-xs" />
+                                        <FormMessage className="text-red-400 text-[10px]" />
                                     </FormItem>
                                 )}
                             />
-                            <FormField
-                                control={form.control}
-                                name="password"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="text-white/80 text-xs uppercase tracking-wider font-bold ml-1">ពាក្យសម្ងាត់</FormLabel>
-                                        <div className="relative group">
-                                            <div className="absolute left-3 top-2.5 md:top-3 text-white/40 group-focus-within:text-pink-400 transition-colors">
-                                                <Lock className="w-4 h-4 md:w-5 md:h-5" />
-                                            </div>
-                                            <Input type="password" placeholder="••••••••" className="pl-10 bg-white/5 border-white/10 text-white rounded-xl focus:border-pink-500/50 h-9 md:h-11" {...field} />
-                                        </div>
-                                        <FormMessage className="text-red-400 text-xs" />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="confirmPassword"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="text-white/80 text-xs uppercase tracking-wider font-bold ml-1">បញ្ជាក់ពាក្យសម្ងាត់</FormLabel>
-                                        <div className="relative group">
-                                            <div className="absolute left-3 top-2.5 md:top-3 text-white/40 group-focus-within:text-pink-400 transition-colors">
-                                                <Lock className="w-4 h-4 md:w-5 md:h-5" />
-                                            </div>
-                                            <Input type="password" placeholder="••••••••" className="pl-10 bg-white/5 border-white/10 text-white rounded-xl focus:border-pink-500/50 h-9 md:h-11" {...field} />
-                                        </div>
-                                        <FormMessage className="text-red-400 text-xs" />
-                                    </FormItem>
-                                )}
-                            />
+                            <div className="grid grid-cols-2 gap-2">
+                                <FormField
+                                    control={form.control}
+                                    name="password"
+                                    render={({ field }) => (
+                                        <FormItem className="space-y-1">
+                                            <FormLabel className="text-white/60 text-[10px] uppercase tracking-wider font-bold ml-1">ពាក្យសម្ងាត់</FormLabel>
+                                            <Input type="password" placeholder="••••••••" className="bg-white/5 border-white/10 text-white rounded-xl focus:border-pink-500/50 h-8 md:h-10 text-sm" {...field} />
+                                            <FormMessage className="text-red-400 text-[10px]" />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="confirmPassword"
+                                    render={({ field }) => (
+                                        <FormItem className="space-y-1">
+                                            <FormLabel className="text-white/60 text-[10px] uppercase tracking-wider font-bold ml-1">បញ្ជាក់</FormLabel>
+                                            <Input type="password" placeholder="••••••••" className="bg-white/5 border-white/10 text-white rounded-xl focus:border-pink-500/50 h-8 md:h-10 text-sm" {...field} />
+                                            <FormMessage className="text-red-400 text-[10px]" />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
 
                             {error && (
-                                <div className="mt-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-200 text-xs text-center font-kantumruy">
+                                <div className="p-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-200 text-[10px] text-center font-kantumruy">
                                     {error}
                                 </div>
                             )}
 
-                            <div className="flex justify-center mt-2 mb-1 scale-[0.85] md:scale-100 origin-center">
-                                <Turnstile
-                                    siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA"}
-                                    onSuccess={(token) => setTurnstileToken(token)}
-                                    options={{
-                                        theme: 'dark',
-                                        size: 'normal',
-                                    }}
-                                />
-                            </div>
-
-                            <Button type="submit" disabled={isLoading || !turnstileToken} className="w-full bg-gradient-to-r from-pink-500 to-rose-600 rounded-xl font-bold uppercase tracking-wide h-10 md:h-11 border border-white/10 hover:shadow-lg hover:shadow-pink-500/20 transition-all mt-4 text-white">
-                                {isLoading ? "កំពុងបង្កើតគណនី..." : "ចុះឈ្មោះ"}
+                            {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ? (
+                                <div className="flex justify-center scale-75 origin-center">
+                                    <Turnstile
+                                        siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+                                        onSuccess={(token) => setTurnstileToken(token)}
+                                        options={{ theme: 'dark', appearance: 'always' }}
+                                    />
+                                </div>
+                            ) : (
+                                <div className="text-[10px] text-red-400 bg-red-400/10 p-2 rounded-lg text-center font-bold">
+                                    Turnstile Key Missing
+                                </div>
+                            )}
+                            <Button type="submit" disabled={isLoading || !turnstileToken} className="w-full bg-gradient-to-r from-pink-500 to-rose-600 rounded-xl font-bold uppercase tracking-wide h-9 md:h-10 border border-white/10 hover:shadow-lg hover:shadow-pink-500/20 transition-all mt-1 text-white text-xs">
+                                {isLoading ? "កំពុងបង្កើត..." : "ចុះឈ្មោះ"}
                             </Button>
                         </form>
                     </Form>
 
-                    <div className="relative mt-5 mb-5">
+                    {/* SSO Section */}
+                    <div className="mt-3">
+                        <div className="relative mb-3">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-white/5"></div>
+                            </div>
+                            <div className="relative flex justify-center text-[9px] uppercase font-black tracking-widest">
+                                <span className="bg-[#1c1c1c] px-3 text-white/20">ឬ</span>
+                            </div>
+                        </div>
+
+                        <SSOIcons />
+                    </div>
+
+                    <div className="relative mt-4 mb-2">
                         <div className="absolute inset-0 flex items-center">
                             <span className="w-full border-t border-white/10" />
                         </div>
-                        <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-[#1c1c1c] px-2 text-white/40 rounded-full">
+                        <div className="relative flex justify-center text-[10px] uppercase">
+                            <span className="bg-[#1c1c1c] px-2 text-white/40 rounded-full font-kantumruy">
                                 មានគណនីរួចហើយ?
                             </span>
                         </div>
                     </div>
 
                     <div className="text-center">
-                        <Link href="/login" className="font-semibold text-white hover:text-pink-400 transition-colors flex items-center justify-center gap-2 text-sm font-kantumruy">
-                            ចូលប្រើប្រាស់គណនី <ArrowRight className="w-4 h-4" />
+                        <Link href="/login" className="font-semibold text-white/60 hover:text-pink-400 transition-colors flex items-center justify-center gap-1.5 text-xs font-kantumruy">
+                            ចូលប្រើប្រាស់គណនី <ArrowRight className="w-3.5 h-3.5" />
                         </Link>
                     </div>
 

@@ -30,9 +30,15 @@ export async function GET(req: Request) {
         // Verify ownership/access
         if (user.role !== ROLES.PLATFORM_OWNER) {
             const wedding = await prisma.wedding.findFirst({
-                where: { id: weddingId, userId: user.userId }
+                where: { id: weddingId, userId: user.userId },
+                select: { id: true, userId: true, packageType: true }
             });
             if (!wedding) return new NextResponse("Unauthorized access to this wedding", { status: 403 });
+
+            // SECURITY: Enforce Premium/Pro for Export
+            if (wedding.packageType !== "PREMIUM" && wedding.packageType !== "PRO") {
+                return new NextResponse("Export feature requires a PRO or PREMIUM package", { status: 403 });
+            }
         }
 
         const guests = await prisma.guest.findMany({
@@ -43,22 +49,19 @@ export async function GET(req: Request) {
         // Generate CSV content
         // BOM for Excel UTF-8 support
         let csvContent = "\uFEFF";
-        csvContent += "ឈ្មោះភ្ញៀវ (Name),លេខទូរស័ព្ទ (Phone),ក្រុម (Group),មកពី (Source),ស្ថានភាពគ្រួសារ (Arrived),កាលបរិច្ឆេទ (Created At)\n";
+        csvContent += "ល.រ,ឈ្មោះភ្ញៀវ,មកពីណា / ទីតាំង\n";
 
-        guests.forEach(guest => {
+        guests.forEach((guest: any, index: number) => {
+            const no = guest.sequenceNumber || (index + 1);
             const name = escapeCSV(guest.name);
-            const phone = guest.phone ? escapeCSV(decrypt(guest.phone)) : "";
-            const group = escapeCSV(guest.group || "");
-            const source = escapeCSV(guest.source || "");
-            const arrived = guest.hasArrived ? "Yes" : "No";
-            const createdAt = guest.createdAt.toISOString();
+            const group = escapeCSV(guest.group || guest.source || "");
 
-            csvContent += `${name},${phone},${group},${source},${arrived},${createdAt}\n`;
+            csvContent += `${no},${name},${group}\n`;
         });
 
         const response = new NextResponse(csvContent);
         response.headers.set("Content-Type", "text/csv; charset=utf-8");
-        response.headers.set("Content-Disposition", `attachment; filename="wedding_guests_${weddingId}.csv"`);
+        response.headers.set("Content-Disposition", `attachment; filename="Monea_GuestList_${weddingId}.csv"`);
 
         return response;
 

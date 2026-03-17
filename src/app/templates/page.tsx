@@ -9,7 +9,6 @@ import { cn } from '@/lib/utils';
 
 // Template Data (Mirrored from Dashboard)
 const TEMPLATES = [
-    { id: "vip-premium-khmer", title: "Eternal", category: 'wedding', bgClass: "bg-black", textClass: "text-[#D4AF37]", image: "/images/bg_staircase.jpg", description: "Ultra-premium cinematic masterpiece with glassmorphism and real gold accents." },
     { id: "khmer-legacy", title: "Legacy", category: 'wedding', bgClass: "bg-stone-50", textClass: "text-stone-600", image: "/images/bg_staircase.jpg", description: "Traditional Khmer elegance meeting modern editorial design standards." },
 ];
 

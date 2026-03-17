@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { m, AnimatePresence, useSpring, useTransform } from 'framer-motion';
@@ -167,25 +168,37 @@ export function HowItWorks() {
 }
 
 function CountUp({ value }: { value: string }) {
-    const numericPart = parseFloat(value.replace(/[^0-9.]/g, '')) || 0;
-    const suffix = value.replace(/[0-9.]/g, '');
-    const spring = useSpring(0, { mass: 1, stiffness: 100, damping: 30 });
-    const display = useTransform(spring, (latest) =>
-        numericPart > 1000 ? (latest / 1000).toFixed(1) : Math.floor(latest)
+    // Robust parsing: Handle Khmer numerals and strip suffixes
+    const englishValue = value.replace(/[០-៩]/g, (d) =>
+        (d.charCodeAt(0) - 6112).toString()
     );
+    const numericPart = parseFloat(englishValue.replace(/[^0-9.]/g, '')) || 0;
+    const suffix = value.replace(/[0-9.]/g, '');
+
+    const spring = useSpring(0, { mass: 1, stiffness: 100, damping: 30 });
+    const display = useTransform(spring, (latest) => {
+        if (isNaN(latest)) return "0";
+        return numericPart > 1000 ? (latest / 1000).toFixed(1) : Math.floor(latest);
+    });
 
     const [current, setCurrent] = useState<string | number>("0");
 
     useEffect(() => {
-        spring.set(numericPart);
+        if (!isNaN(numericPart)) {
+            spring.set(numericPart);
+        }
     }, [numericPart, spring]);
 
     useEffect(() => {
-        return display.on("change", (v) => setCurrent(v));
+        return display.on("change", (v) => {
+            if (v !== undefined && v !== null && !isNaN(Number(v))) {
+                setCurrent(v);
+            }
+        });
     }, [display]);
 
     return (
-        <span>
+        <span translate="no" className="notranslate">
             {current}
             {suffix}
         </span>
@@ -390,7 +403,7 @@ export function Testimonials() {
                                 ))}
                             </div>
                             <p className="text-slate-600 dark:text-white/80 font-kantumruy font-light leading-loose mb-8 text-sm md:text-base">
-                                "{review.text}"
+                                &quot;{review.text}&quot;
                             </p>
                             <div>
                                 <h4 className="text-slate-900 dark:text-white font-bold font-kantumruy">{review.name}</h4>
@@ -482,7 +495,15 @@ export function FinalCTA() {
     return (
         <section className="py-32 relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-pink-900 via-black to-blue-900" />
-            <div className="absolute inset-0 bg-[url('/images/bg_tunnel.jpg')] opacity-20 bg-cover bg-center mix-blend-overlay" />
+            <div className="absolute inset-0 opacity-20 bg-cover bg-center mix-blend-overlay pointer-events-none">
+                <Image 
+                    src="/images/bg_tunnel.jpg" 
+                    alt="Background" 
+                    fill 
+                    className="object-cover"
+                    sizes="100vw"
+                />
+            </div>
             <div className="absolute inset-0 bg-black/60 sm:backdrop-blur-[2px]" />
             <div className="container mx-auto px-6 max-w-4xl relative z-10 text-center flex flex-col items-center">
                 <m.h2

@@ -23,7 +23,10 @@ import Image from "next/image";
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
 import { ROLES } from "@/lib/constants";
 import dynamic from "next/dynamic";
+import { useSWRConfig } from "swr";
+import { khmerToEnglishNumbers } from "@/lib/utils";
 const Turnstile = dynamic(() => import("@marsidev/react-turnstile").then(mod => mod.Turnstile), { ssr: false });
+import SSOIcons from "@/components/auth/SSOIcons";
 
 const loginSchema = z.object({
     email: z.string().email({ message: "សូមបញ្ចូលអ៊ីមែលឱ្យបានត្រឹមត្រូវ" }),
@@ -32,6 +35,7 @@ const loginSchema = z.object({
 
 export default function LoginPage() {
     const router = useRouter();
+    const { mutate } = useSWRConfig();
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [requireCaptcha, setRequireCaptcha] = useState(true);
@@ -73,6 +77,9 @@ export default function LoginPage() {
             }
 
             if (res.ok) {
+                // Clear SWR cache to prevent stale 401 from previous session
+                await mutate("/api/auth/me");
+
                 // Redirect based on Role
                 const role = data.user?.role;
                 if (role === ROLES.EVENT_STAFF) {
@@ -228,9 +235,7 @@ export default function LoginPage() {
                                                 <Input
                                                     value={twoFactorToken}
                                                     onChange={(e) => {
-                                                        const val = e.target.value.replace(/[០-៩]/g, (d) =>
-                                                            (d.charCodeAt(0) - 6112).toString()
-                                                        ).replace(/[^0-9]/g, "");
+                                                        const val = khmerToEnglishNumbers(e.target.value).replace(/[^0-9]/g, "");
                                                         setTwoFactorToken(val);
                                                     }}
                                                     placeholder="000000"
@@ -254,17 +259,22 @@ export default function LoginPage() {
                                 )}
                             </AnimatePresence>
 
-                            <div className="flex justify-center my-2 overflow-hidden scale-90 md:scale-100 origin-center">
-                                <Turnstile
-                                    siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA"}
-                                    onSuccess={(token) => {
-                                        setCaptchaToken(token);
-                                        setError(""); // Clear error when verified
-                                    }}
-                                    options={{ theme: 'dark' }}
-                                />
-                            </div>
-
+                            {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ? (
+                                <div className="flex justify-center my-2 overflow-hidden scale-90 md:scale-100 origin-center">
+                                    <Turnstile
+                                        siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+                                        onSuccess={(token) => {
+                                            setCaptchaToken(token);
+                                            setError("");
+                                        }}
+                                        options={{ theme: 'dark', appearance: 'always' }}
+                                    />
+                                </div>
+                            ) : (
+                                <div className="text-[10px] text-red-400 bg-red-400/10 p-2 rounded-lg text-center font-bold my-2">
+                                    Turnstile Key Missing
+                                </div>
+                            )}
                             <Button type="submit" disabled={isLoading || !captchaToken} className="w-full bg-gradient-to-r from-pink-500 to-rose-600 rounded-xl font-bold uppercase tracking-wide h-10 md:h-11 border border-white/10 hover:shadow-lg hover:shadow-pink-500/20 transition-all mt-1">
                                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : show2FA ? "ផ្ទៀងផ្ទាត់ និងចូល" : "ចូលគណនី"}
                             </Button>
@@ -285,6 +295,28 @@ export default function LoginPage() {
                         )}
                     </AnimatePresence>
 
+                    {/* SSO Section */}
+                    <div className="mt-6">
+                        <div className="relative mb-6">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-white/5"></div>
+                            </div>
+                            <div className="relative flex justify-center text-[10px] uppercase font-black tracking-widest">
+                                <span className="bg-[#1a1a1a] px-3 text-white/20">ឬចូលតាមរយៈ</span>
+                            </div>
+                        </div>
+
+                        <SSOIcons />
+                    </div>
+
+                    <div className="mt-8 text-center">
+                        <p className="text-white/40 text-[10px] font-medium">
+                            មិនទាន់មានគណនី? {" "}
+                            <Link href="/register" className="text-pink-400 hover:text-pink-300 font-bold underline underline-offset-4 decoration-pink-500/30">
+                                ចុះឈ្មោះឥឡូវនេះ
+                            </Link>
+                        </p>
+                    </div>
                 </div>
             </m.div>
         </div>

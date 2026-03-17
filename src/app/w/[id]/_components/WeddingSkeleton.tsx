@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function WeddingSkeleton() {
     return (
-        <div className="min-h-screen bg-[#0A0A0A] flex flex-col relative overflow-hidden">
+        <main className="min-h-screen bg-[#0A0A0A] flex flex-col relative overflow-hidden">
             {/* Hero Skeleton (Cinematic Style) */}
             <div className="relative h-screen w-full flex flex-col justify-end p-6 md:p-16">
                 {/* Background Pulse */}
@@ -34,6 +34,6 @@ export function WeddingSkeleton() {
             <div className="fixed top-6 right-6 z-50">
                 <Skeleton className="w-12 h-12 rounded-full bg-slate-800/50 backdrop-blur-md" />
             </div>
-        </div>
+        </main>
     );
 }

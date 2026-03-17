@@ -1,6 +1,5 @@
 "use client";
-
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import * as React from "react";
 import { usePathname } from "next/navigation";
 
 interface LoadingContextType {
@@ -9,22 +8,22 @@ interface LoadingContextType {
     stopLoading: () => void;
 }
 
-const LoadingContext = createContext<LoadingContextType | undefined>(undefined);
+const LoadingContext = React.createContext<LoadingContextType | undefined>(undefined);
 
 export function LoadingProvider({ children }: { children: React.ReactNode }) {
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = React.useState(false);
     const pathname = usePathname();
 
-    const startLoading = useCallback(() => {
+    const startLoading = React.useCallback(() => {
         setIsLoading(true);
     }, []);
 
-    const stopLoading = useCallback(() => {
+    const stopLoading = React.useCallback(() => {
         setIsLoading(false);
     }, []);
 
     // Stop loading when the pathname changes (navigation complete)
-    useEffect(() => {
+    React.useEffect(() => {
         stopLoading();
     }, [pathname, stopLoading]);
 
@@ -36,7 +35,7 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useLoading() {
-    const context = useContext(LoadingContext);
+    const context = React.useContext(LoadingContext);
     if (context === undefined) {
         throw new Error("useLoading must be used within a LoadingProvider");
     }

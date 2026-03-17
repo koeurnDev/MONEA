@@ -24,12 +24,6 @@ export async function GET() {
         return NextResponse.json(logs);
     } catch (error: any) {
         console.error("Error fetching logs:", error);
-        // Write error to a file for debugging
-        try {
-            const logPath = require('path').join(process.cwd(), 'api-error.log');
-            fs.appendFileSync(logPath, `${new Date().toISOString()} - ${error.message}\n${error.stack}\n---\n`);
-        } catch (e) { }
-
         return NextResponse.json({ error: "Internal Server Error", details: error.message }, { status: 500 });
     }
 }

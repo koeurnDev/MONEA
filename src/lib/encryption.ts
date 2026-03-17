@@ -8,10 +8,13 @@ const RAW_KEY = process.env.ENCRYPTION_KEY;
 let cachedKey: Buffer | null = null;
 function getHashedKey() {
     if (process.env.NODE_ENV === "production" && !RAW_KEY) {
-        throw new Error("[CRITICAL] ENCRYPTION_KEY is missing in production. Data privacy cannot be guaranteed.");
+        throw new Error("[CRITICAL] ENCRYPTION_KEY is missing in production! System cannot start.");
     }
     if (!cachedKey) {
         const keyToHash = RAW_KEY || 'default-hex-key-32-chars-long-placeholder';
+        if (process.env.NODE_ENV === "production" && keyToHash === 'default-hex-key-32-chars-long-placeholder') {
+             throw new Error("[CRITICAL] Using placeholder key in production!");
+        }
         cachedKey = crypto.createHash('sha256').update(keyToHash).digest();
     }
     return cachedKey;

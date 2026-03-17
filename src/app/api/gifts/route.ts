@@ -1,4 +1,3 @@
-export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
@@ -6,22 +5,23 @@ import { decrypt } from "@/lib/encryption";
 import { errorResponse, validateRequest } from "@/lib/api-utils";
 import { createLog } from "@/lib/audit-utils";
 import { sanitizeObject } from "@/lib/sanitize";
-import * as z from "zod";
+import { giftSchema } from "@/lib/validations/gift";
+import { getIP } from "@/lib/utils";
 
-const giftSchema = z.object({
-    amount: z.coerce.number().positive("Amount must be positive"),
-    currency: z.string().min(1),
-    method: z.string().optional(),
-    guestId: z.string().optional().nullable(),
-    guestName: z.string().optional(),
-    source: z.string().optional(),
-});
+// HELPER: Convert Raw SQL Result (Plain Object) to Prisma-compatible format
+const formatGift = (gift: any) => {
+    if (!gift) return null;
+    return {
+        ...gift,
+        amount: gift.amount?.toString() || "0",
+        createdAt: gift.createdAt || new Date().toISOString(),
+        updatedAt: gift.updatedAt || new Date().toISOString()
+    };
+};
 
 export async function GET(req: Request) {
     try {
         const user = await getServerUser();
-        console.log(`[Gifts API Debug] GET. UserRole: ${user?.role}`);
-
         if (!user) return errorResponse("Unauthorized", 401);
 
         const { searchParams } = new URL(req.url);
@@ -35,102 +35,111 @@ export async function GET(req: Request) {
             if (wedding) weddingId = wedding.id;
         }
 
-        if (!weddingId) {
-            console.log(`[Gifts API Debug] GET. No weddingId found for user ${user.userId}`);
-            return NextResponse.json([]);
-        }
+        if (!weddingId) return NextResponse.json({ gifts: [], role: user.role });
 
-        const gifts = await prisma.gift.findMany({
-            where: { weddingId },
-            include: { guest: true },
-            orderBy: { createdAt: "desc" },
-            take: limit ? parseInt(limit) : undefined,
-        });
+        // Raw SQL for durability against stale Prisma Client - Using explicit columns to avoid cached plan errors
+        const gifts = await prisma.$queryRawUnsafe<any[]>(
+            `SELECT g.id, g."weddingId", g."guestId", g.amount, g.currency, g.method, g."sequenceNumber", g."createdAt", g."updatedAt",
+                    (SELECT JSON_BUILD_OBJECT('id', gs.id, 'name', gs.name, 'phone', gs.phone, 'guestCode', gs."guestCode", 'group', gs."group", 'source', gs."source") 
+                     FROM "Guest" gs WHERE gs.id = g."guestId") as guest
+             FROM "Gift" g
+             WHERE g."weddingId" = $1
+             ORDER BY g."createdAt" DESC
+             ${limit ? `LIMIT ${parseInt(limit)}` : ""}`,
+            weddingId
+        );
 
         const decryptedGifts = gifts.map(gift => ({
-            ...gift,
+            ...formatGift(gift),
             guest: gift.guest ? {
                 ...gift.guest,
                 phone: gift.guest.phone ? decrypt(gift.guest.phone) : gift.guest.phone
             } : gift.guest
         }));
 
-        console.log(`[Gifts API Debug] GET Success. Count: ${gifts.length}`);
         return NextResponse.json({ gifts: decryptedGifts, role: user.role });
     } catch (error: any) {
-        console.error(`[Gifts API Debug] GET CRASH: ${error.message}`, error);
-        return errorResponse("Failed to fetch gifts", 500, error.message);
+        console.error(`[Gifts API] GET ERROR:`, error);
+        return errorResponse("Failed to fetch gifts", 500);
     }
 }
 
 export async function POST(req: Request) {
     try {
         const user = await getServerUser();
-        console.log(`[Gifts API Debug] POST. UserRole: ${user?.role}`);
-
         if (!user) return errorResponse("Unauthorized", 401);
 
         const { data, error } = await validateRequest(req, giftSchema);
-        if (error) {
-            console.warn(`[Gifts API Debug] POST Validation Error:`, error);
-            return error;
+        if (error) return error;
+
+        const body = sanitizeObject<any>(data);
+
+        let weddingId = (user as any).weddingId;
+        if (!weddingId) {
+            const wedding = await prisma.wedding.findFirst({ where: { userId: user.userId } });
+            if (wedding) weddingId = wedding.id;
         }
 
-        const sanitizedData = sanitizeObject<z.infer<typeof giftSchema>>(data);
+        if (!weddingId) return errorResponse("Wedding not found", 404);
 
-        let wedding;
-        if (user.type === "staff") {
-            wedding = await prisma.wedding.findUnique({ where: { id: user.weddingId! } });
-        } else {
-            wedding = await prisma.wedding.findFirst({ where: { userId: user.userId } });
-            if (!wedding) {
-                console.log(`[Gifts API Debug] POST. Auto-creating wedding for user ${user.userId}`);
-                wedding = await prisma.wedding.create({
-                    data: { userId: user.userId, groomName: "Groom", brideName: "Bride", date: new Date() }
-                });
+        let guestId = body.guestId === "new" || !body.guestId ? null : body.guestId;
+
+        // IDOR Check: Ensure the guest belongs to this wedding before proceeding
+        if (guestId) {
+            const guestOwnership = await prisma.guest.findFirst({
+                where: { id: guestId, weddingId },
+                select: { id: true }
+            });
+            if (!guestOwnership) return errorResponse("Guest access denied", 403);
+        }
+
+        // Guest logic
+        if (!guestId && body.guestName) {
+            const existingGuest = await prisma.guest.findFirst({
+                where: { weddingId, name: { equals: body.guestName, mode: 'insensitive' } }
+            });
+            if (existingGuest) {
+                guestId = existingGuest.id;
+            } else {
+                // Generate Guest Code
+                const countResult = await prisma.$queryRaw<any[]>`SELECT COUNT(*)::int as count FROM "Guest" WHERE "weddingId" = ${weddingId}`;
+                const count = Number(countResult[0]?.count || 0);
+                const guestCode = `G${String(count + 1).padStart(3, '0')}`;
+                
+                // INSERT GUEST using Raw SQL to bypass stale Prisma Client
+                const newGuestId = crypto.randomUUID();
+                await prisma.$executeRaw`
+                    INSERT INTO "Guest" ("id", "weddingId", "name", "group", "source", "guestCode", "updatedAt", "createdAt")
+                    VALUES (${newGuestId}, ${weddingId}, ${body.guestName}, ${body.source || "None"}, ${body.source || "None"}, ${guestCode}, NOW(), NOW())
+                `;
+                guestId = newGuestId;
             }
         }
 
-        if (!wedding) {
-            console.error(`[Gifts API Debug] POST. Wedding not found for user ${user.userId}`);
-            return errorResponse("Wedding not found", 404);
-        }
+        // Calculate next sequence number for this wedding
+        const giftCountResult = await prisma.$queryRaw<any[]>`SELECT COUNT(*)::int as count FROM "Gift" WHERE "weddingId" = ${weddingId}`;
+        const sequenceNumber = Number(giftCountResult[0]?.count || 0) + 1;
 
-        let finalGuestId = null;
-        let displayName = sanitizedData.guestName || "Unknown Guest";
+        // INSERT GIFT using Raw SQL
+        const fallbackId = crypto.randomUUID();
+        await prisma.$executeRaw`
+            INSERT INTO "Gift" ("id", "weddingId", "guestId", "amount", "currency", "method", "sequenceNumber", "updatedAt", "createdAt") 
+            VALUES (${fallbackId}, ${weddingId}, ${guestId}, ${Number(body.amount)}, ${body.currency}::"Currency", ${body.method || "Cash"}::"PaymentMethod", ${sequenceNumber}, NOW(), NOW())
+        `;
+        
+        const rawGifts = await prisma.$queryRaw<any[]>`SELECT id, "weddingId", "guestId", amount, currency, method, "sequenceNumber", "createdAt", "updatedAt" FROM "Gift" WHERE id = ${fallbackId} LIMIT 1`;
+        const gift = formatGift(rawGifts[0]);
 
-        if (sanitizedData.guestId && sanitizedData.guestId !== "new") {
-            finalGuestId = sanitizedData.guestId;
-            const existingGuest = await prisma.guest.findUnique({ where: { id: finalGuestId } });
-            if (existingGuest) displayName = existingGuest.name;
-        } else if (sanitizedData.guestName) {
-            const newGuest = await prisma.guest.create({
-                data: {
-                    name: sanitizedData.guestName,
-                    source: sanitizedData.source || null,
-                    weddingId: wedding.id
-                }
-            });
-            finalGuestId = newGuest.id;
-        }
+        // Audit Log
+        createLog(weddingId, "GIFT", `បានទទួលចំណងដៃទី #${sequenceNumber} ពី ${body.guestName || 'ភ្ញៀវ'} ចំនួន ${body.amount}${body.currency === 'USD' ? '$' : '៛'}`, user.name || "System", { ip: getIP(req) }).catch(() => {});
 
-        const gift = await prisma.gift.create({
-            data: {
-                amount: sanitizedData.amount,
-                currency: sanitizedData.currency,
-                method: sanitizedData.method,
-                weddingId: wedding.id,
-                guestId: finalGuestId,
-            },
-            include: { guest: true }
-        });
-
-        await createLog(wedding.id, "GIFT", `Recorded gift: ${gift.amount} ${gift.currency} from ${displayName}`, user.email || user.role);
-
-        console.log(`[Gifts API Debug] POST Success. GiftId: ${gift.id}`);
         return NextResponse.json(gift);
     } catch (error: any) {
-        console.error(`[Gifts API Debug] POST CRASH: ${error.message}`, error);
-        return errorResponse("Failed to record gift", 500, error.message);
+        console.error(`[Gifts API] POST ERROR:`, error);
+        try {
+            const fs = require('fs');
+            fs.appendFileSync('d:/MONEA/debug_api.txt', `${new Date().toISOString()} - [Gifts API] POST ERROR: ${error.message}\n${error.stack}\n`);
+        } catch (e) {}
+        return errorResponse("Failed to save gift", 500);
     }
 }

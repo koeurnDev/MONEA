@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import React from "react";
+import * as React from "react";
 
 interface GlassCardProps extends React.HTMLAttributes<HTMLDivElement> {
     children: React.ReactNode;

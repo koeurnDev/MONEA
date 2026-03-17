@@ -4,7 +4,7 @@ import { AlertTriangle, Trash2, RotateCcw, ShieldAlert, LucideIcon, X } from "lu
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { createPortal } from "react-dom";
-import { useEffect, useState } from "react";
+import * as React from "react";
 
 export type ConfirmVariant = "danger" | "warning" | "info";
 
@@ -54,8 +54,8 @@ export function ConfirmModal({
 }: ConfirmModalProps) {
     const cfg = variantConfig[variant];
     const Icon = cfg.icon;
-    const [mounted, setMounted] = useState(false);
-    useEffect(() => { setMounted(true); }, []);
+    const [mounted, setMounted] = React.useState(false);
+    React.useEffect(() => { setMounted(true); }, []);
 
     if (!mounted) return null;
 

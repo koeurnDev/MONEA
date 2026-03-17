@@ -1,7 +1,6 @@
 "use client";
-
+import * as React from "react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { m, AnimatePresence } from 'framer-motion';
 import { Menu, X } from "lucide-react";
@@ -11,10 +10,10 @@ import { useTheme } from "next-themes";
 
 export function NavBar() {
     const { theme } = useTheme();
-    const [isScrolled, setIsScrolled] = useState(false);
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isScrolled, setIsScrolled] = React.useState(false);
+    const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
-    useEffect(() => {
+    React.useEffect(() => {
         const handleScroll = () => setIsScrolled(window.scrollY > 50);
         window.addEventListener("scroll", handleScroll);
         return () => window.removeEventListener("scroll", handleScroll);

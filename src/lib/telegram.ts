@@ -8,9 +8,16 @@ const escapeHtml = (unsafe: string) => {
         .replace(/'/g, "&#039;");
 };
 
+import { SECURITY_CONFIG } from "./config";
+
 export const sendTelegramAlert = async (message: string, header: string = "🚨 <b>MONEA Security Alert</b> 🚨") => {
     const token = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
+
+    // Feature Flag Check
+    if (!SECURITY_CONFIG.enableAlerts || !SECURITY_CONFIG.channels.telegram) {
+        return;
+    }
 
     if (!token || !chatId || token === "your_bot_token_here") {
         console.warn("[Telegram] Bot not configured or using placeholder token.");

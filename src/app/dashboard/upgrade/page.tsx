@@ -1,12 +1,13 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Check, Crown, Zap, Sparkles, ShieldCheck } from "lucide-react";
+import { Check, Crown, Zap, Sparkles, ShieldCheck, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { m } from 'framer-motion';
 import dynamic from "next/dynamic";
+import QRCode from "react-qr-code";
 const Turnstile = dynamic(() => import("@marsidev/react-turnstile").then(mod => mod.Turnstile), { ssr: false });
 
 export default function UpgradePage() {
@@ -14,69 +15,144 @@ export default function UpgradePage() {
     const [showPayment, setShowPayment] = useState(false);
     const [turnstileToken, setTurnstileToken] = useState("");
     const [payToast, setPayToast] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+    const [qrString, setQrString] = useState("");
+    const [loadingQR, setLoadingQR] = useState(false);
+    const [isConfirming, setIsConfirming] = useState(false);
+    const [currentPackage, setCurrentPackage] = useState<string>("FREE");
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+        const fetchWedding = async () => {
+            const res = await fetch("/api/wedding");
+            if (res.ok) {
+                const data = await res.json();
+                if (data.packageType) {
+                    setCurrentPackage(data.packageType);
+                }
+            }
+        };
+        fetchWedding();
+    }, []);
 
     const plans = [
         {
             id: "FREE",
-            name: "ឥតគិតថ្លៃ (Basic)",
+            name: "គម្រោងមូលដ្ឋាន",
             price: "0$",
-            description: "សម្រាប់ការសាកល្បងបន្ទាប់ពីបង្កើត",
-            features: ["១ ព្រឹត្តិការណ៍", "ពុម្ពគំរូស្តង់ដារ", "បញ្ជីភ្ញៀវ ៥០ នាក់", "រក្សាទុកបាន ២ សប្តាហ៍"],
-            disabled: true,
-            theme: "bg-card shadow-sm opacity-60 border-none",
-            buttonStyle: "bg-muted text-muted-foreground cursor-not-allowed",
-            label: "កញ្ចប់បច្ចុប្បន្ន"
+            description: "សាកសមសម្រាប់អ្នកដែលចង់សាកល្បងប្រើប្រាស់ដំបូង",
+            features: [
+                "ចំនួនភ្ញៀវ៖ អាចបញ្ចូលបានត្រឹម ៥០ នាក់",
+                "ពុម្ពគំរូ៖ ប្រើបានតែម៉ូដស្តង់ដារ (Standard)",
+                "ការរក្សាទុក៖ ទិន្នន័យរក្សាទុកបានត្រឹមតែ ២ សប្តាហ៍ប៉ុណ្ណោះ"
+            ],
+            theme: "bg-card shadow-sm border-none",
+            buttonStyle: currentPackage === "FREE" ? "bg-muted text-muted-foreground cursor-not-allowed" : "bg-primary/20 text-primary hover:bg-primary/30",
+            label: currentPackage === "FREE" ? "កញ្ចប់បច្ចុប្បន្ន" : "កញ្ចប់មូលដ្ឋាន",
+            disabled: currentPackage === "FREE" || currentPackage === "PRO" || currentPackage === "PREMIUM"
         },
         {
             id: "PRO",
-            name: "ប្រណីត (Pro)",
+            name: "គម្រោងប្រណីត",
             price: "19$",
-            description: "ពេញនិយមបំផុតសម្រាប់គូស្នេហ៍",
-            features: ["គ្រប់ពុម្ពគំរូទាំងអស់", "បញ្ជីភ្ញៀវ (មិនកំណត់)", "កត់ត្រាចំណងដៃ & សារ", "រក្សទុកបានរហូត"],
+            description: "សាកសមបំផុតសម្រាប់កម្មវិធីមង្គលការទូទៅ",
+            features: [
+                "ចំនួនភ្ញៀវ៖ អាចបញ្ចូលបាន មិនកំណត់ចំនួន",
+                "ពុម្ពគំរូ៖ អាចប្រើប្រាស់បាន គ្រប់ម៉ូដទាំងអស់",
+                "ចំណងដៃ៖ អាចកត់ត្រាចំណងដៃ និងសារជូនពរបាន",
+                "ការរក្សាទុក៖ រក្សាទុកទិន្នន័យជូន រហូតដល់បច្ចុប្បន្ន (Lifetime)"
+            ],
             recommended: true,
             icon: Zap,
-            theme: "bg-card shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-none border-none ring-1 ring-red-500/10",
-            buttonStyle: "bg-red-600 hover:bg-red-700 text-white shadow-md active:scale-95",
-            label: "ដំឡើងឥឡូវនេះ"
+            theme: "bg-card border-none",
+            buttonStyle: currentPackage === "PRO" ? "bg-muted text-muted-foreground cursor-not-allowed" : "bg-red-600 hover:bg-red-700 text-white shadow-md active:scale-95",
+            label: currentPackage === "PRO" ? "កញ្ចប់បច្ចុប្បន្ន" : (currentPackage === "PREMIUM" ? "រួចរាល់" : "ដំឡើងឥឡូវនេះ"),
+            disabled: currentPackage === "PRO" || currentPackage === "PREMIUM"
         },
         {
             id: "PREMIUM",
-            name: "កម្រិតខ្ពស់ (Premium)",
+            name: "គម្រោងកម្រិតខ្ពស់",
             price: "49$",
-            description: "សម្រាប់ពិធីធំ និងសេវាកម្មពេញលេញ",
-            features: ["ដក Logo MONEA ចេញ", "ជំនួយការផ្ទាល់ ២៤/៧", "ទាញយករបាយការណ៍ PDF/Excel", "មុខងារប្តូរពណ៌តាមចិត្ត"],
+            description: "សាកសមសម្រាប់ភាពល្អឥតខ្ចោះ និងសេវាកម្មពេញលេញ",
+            features: [
+                "ដក Logo ចេញ៖ អាច ដក Logo MONEA ចេញ",
+                "ការរចនា៖ ប្តូរពណ៌ឱ្យត្រូវនឹង Theme ការពិត",
+                "របាយការណ៍៖ ទាញយកជាឯកសារ PDF ឬ Excel",
+                "សេវាកម្ម៖ មានការគាំទ្រ និងជំនួយផ្ទាល់ ២៤/៧"
+            ],
             icon: Crown,
-            theme: "bg-card shadow-[0_8px_40px_rgba(0,0,0,0.08)] dark:shadow-none border-none",
-            buttonStyle: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-md active:scale-95",
-            label: "ជ្រើសរើស Premium"
+            theme: "bg-card border-none",
+            buttonStyle: currentPackage === "PREMIUM" ? "bg-muted text-muted-foreground cursor-not-allowed" : "bg-primary text-primary-foreground hover:bg-primary/90 shadow-md active:scale-95",
+            label: currentPackage === "PREMIUM" ? "កញ្ចប់បច្ចុប្បន្ន" : "ជ្រើសរើស Premium",
+            disabled: currentPackage === "PREMIUM"
         }
     ];
 
-    const handleSelect = (planId: string) => {
+    const handleSelect = async (planId: string) => {
+        const plan = plans.find(p => p.id === planId);
+        if (!plan) return;
+
         setSelectedPlan(planId);
         setShowPayment(true);
+        setLoadingQR(true);
+        setQrString("");
+
+        try {
+            const res = await fetch("/api/payment/generate-qr", {
+                method: "POST",
+                body: JSON.stringify({
+                    amount: parseFloat(plan.price.replace('$', '')),
+                    currency: "USD",
+                    merchantName: "MONEA UPGRADE",
+                    orderId: `UPG-${planId}-${Date.now()}`
+                })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setQrString(data.qr);
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoadingQR(false);
+        }
     };
 
     const confirmPayment = async () => {
-        const res = await fetch("/api/payment/confirm", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                packageType: selectedPlan,
-                turnstileToken
-            })
-        });
+        setIsConfirming(true);
+        try {
+            const res = await fetch("/api/payment/confirm", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    packageType: selectedPlan,
+                    turnstileToken
+                })
+            });
 
-        if (res.ok) {
-            setShowPayment(false);
-            setPayToast({ type: "success", msg: "✅ បង់ប្រាក់ជោគជ័យ! កញ្ចប់ត្រូវបានដំឡើង។ 🎉" });
-            setTimeout(() => { setPayToast(null); window.location.reload(); }, 3000);
-        } else {
-            const data = await res.json();
-            setPayToast({ type: "error", msg: `❌ ការបង់ប្រាក់បរាជ័យ៖ ${data.error || "សូមព្យាយាមម្តងទៀត"}` });
-            setTimeout(() => setPayToast(null), 4000);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.wedding?.packageType) {
+                    setCurrentPackage(data.wedding.packageType);
+                }
+                setShowPayment(false);
+                setPayToast({ type: "success", msg: "✅ បង់ប្រាក់ជោគជ័យ! កញ្ចប់ត្រូវបានដំឡើង។ 🎉" });
+                setTimeout(() => { setPayToast(null); window.location.reload(); }, 3000);
+            } else {
+                const data = await res.json();
+                setPayToast({ type: "error", msg: `❌ ការបង់ប្រាក់បរាជ័យ៖ ${data.error || "សូមព្យាយាមម្តងទៀត"}` });
+                setTimeout(() => setPayToast(null), 4000);
+            }
+        } catch (e) {
+            console.error(e);
+            setPayToast({ type: "error", msg: "❌ បញ្ហាបច្ចេកទេស! សូមព្យាយាមម្តងទៀត។" });
+        } finally {
+            setIsConfirming(false);
         }
     };
+
+    if (!mounted) return null;
 
     return (
         <div className="min-h-screen bg-background pb-20 relative overflow-hidden">
@@ -128,7 +204,7 @@ export default function UpgradePage() {
                             transition={{ delay: index * 0.1 + 0.3 }}
                         >
                             <Card className={cn(
-                                "relative flex flex-col h-full rounded-[2.5rem] transition-all duration-500 group overflow-hidden border-none",
+                                "relative flex flex-col h-full rounded-[2.5rem] transition-all duration-500 group overflow-hidden border-none shadow-[0_8px_40px_rgba(0,0,0,0.06)] dark:shadow-[0_4px_32px_rgba(0,0,0,0.2)]",
                                 plan.theme,
                                 plan.id === 'PREMIUM' ? 'p-1' : 'p-2'
                             )}>
@@ -214,13 +290,20 @@ export default function UpgradePage() {
                     </div>
 
                     <div className="p-10 flex flex-col items-center">
-                        <div className="w-64 h-64 bg-card p-6 rounded-[2rem] shadow-[0_8px_40px_rgba(0,0,0,0.12)] dark:shadow-none relative group transition-transform duration-500 hover:scale-105 border-none">
-                            {/* Mock QR Content */}
-                            <div className="w-full h-full bg-slate-50/50 dark:bg-slate-900/50 rounded-2xl flex flex-col items-center justify-center space-y-4 shadow-inner">
-                                <div className="text-5xl font-black text-slate-900 dark:text-slate-100 tracking-tighter">ABA</div>
-                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">MONEA PAY</div>
-                                <div className="w-12 h-1 bg-red-600 rounded-full shadow-[0_0_10px_rgba(220,38,38,0.5)]" />
-                            </div>
+                        <div className="w-64 h-64 bg-white p-6 rounded-[2rem] shadow-[0_8px_40px_rgba(0,0,0,0.12)] relative group transition-transform duration-500 hover:scale-105 border-none flex items-center justify-center">
+                            {loadingQR ? (
+                                <div className="animate-pulse space-y-4 text-center">
+                                    <div className="w-40 h-40 bg-slate-100 rounded-2xl mx-auto" />
+                                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Generating QR...</div>
+                                </div>
+                            ) : qrString ? (
+                                <QRCode value={qrString} size={200} viewBox={`0 0 256 256`} style={{ height: "auto", maxWidth: "100%", width: "100%" }} />
+                            ) : (
+                                <div className="text-center space-y-2">
+                                    <p className="text-xs text-red-500 font-bold">QR Error</p>
+                                    <Button variant="link" size="sm" onClick={() => selectedPlan && handleSelect(selectedPlan)}>Retry</Button>
+                                </div>
+                            )}
                         </div>
 
                         <div className="mt-10 space-y-4 w-full">
@@ -234,20 +317,26 @@ export default function UpgradePage() {
                                 </div>
                             </div>
 
-                            <div className="mt-6 scale-90 origin-center">
-                                <Turnstile
-                                    siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA"}
-                                    onSuccess={setTurnstileToken}
-                                    options={{ theme: 'dark' }}
-                                />
-                            </div>
+                            {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ? (
+                                <div className="mt-6 scale-90 origin-center">
+                                    <Turnstile
+                                        siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+                                        onSuccess={setTurnstileToken}
+                                        options={{ theme: 'dark', appearance: 'always' }}
+                                    />
+                                </div>
+                            ) : (
+                                <div className="mt-6 text-[10px] text-red-500 bg-red-500/10 p-2 rounded-lg text-center font-bold">
+                                    Turnstile Key Missing
+                                </div>
+                            )}
                         </div>
 
                         <div className="mt-10 w-full space-y-4">
-                            <Button size="lg" disabled={!turnstileToken} className="w-full h-16 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-black font-kantumruy text-lg shadow-md transition-all active:scale-95 border-none" onClick={confirmPayment}>
-                                ខ្ញុំបានបង់ប្រាក់រួចរាល់ហើយ
+                            <Button size="lg" disabled={!turnstileToken || isConfirming} className="w-full h-16 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-black font-kantumruy text-lg shadow-md transition-all active:scale-95 border-none" onClick={confirmPayment}>
+                                {isConfirming ? <Loader2 className="w-6 h-6 animate-spin" /> : "ខ្ញុំបានបង់ប្រាក់រួចរាល់ហើយ"}
                             </Button>
-                            <Button variant="ghost" className="w-full text-muted-foreground font-bold font-kantumruy hover:text-foreground" onClick={() => setShowPayment(false)}>
+                            <Button variant="ghost" disabled={isConfirming} className="w-full text-muted-foreground font-bold font-kantumruy hover:text-foreground" onClick={() => setShowPayment(false)}>
                                 បោះបង់ការបង់ប្រាក់
                             </Button>
                         </div>

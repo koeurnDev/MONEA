@@ -1,8 +1,6 @@
 "use client";
 
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
     Form,
@@ -14,370 +12,49 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState, useEffect, useRef } from "react";
-import { Check, ChevronsUpDown, Search, Plus, Activity, Users, User, CreditCard } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
-import Image from "next/image";
-
-const formSchema = z.object({
-    amount: z.string().min(1, "សូមបញ្ចូលចំនួនទឹកប្រាក់"),
-    currency: z.enum(["USD", "KHR"]),
-    method: z.string().optional(),
-    guestId: z.string().optional(),
-    guestName: z.string().optional(),
-    source: z.string().optional(),
-});
+import { Check, Search, Plus, Activity, Users } from "lucide-react";
+import { cn, khmerToEnglishNumbers } from "@/lib/utils";
+import { useGiftForm } from "./hooks/useGiftForm";
+import { ReceiptModal } from "./components/ReceiptModal";
+import { PaymentQrView } from "./components/PaymentQrView";
 
 export function GiftForm({ onSuccess, onDone, defaultCreate = false }: { onSuccess: () => void; onDone: () => void; defaultCreate?: boolean }) {
-    const [loading, setLoading] = useState(false);
-    const [guests, setGuests] = useState<any[]>([]);
-    const [error, setError] = useState<string | null>(null);
-    const [offlineMode, setOfflineMode] = useState(false);
-    const [open, setOpen] = useState(false);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [isCreatingNew, setIsCreatingNew] = useState(false);
-    const [lastSavedValues, setLastSavedValues] = useState<{ currency: "USD" | "KHR"; method: string } | null>(null);
-    const [paymentQrUrl, setPaymentQrUrl] = useState<string | null>(null);
-    const [showQr, setShowQr] = useState(false);
-
-    // Ref for auto-focus
-    const guestTriggerRef = useRef<HTMLButtonElement>(null);
+    const {
+        form,
+        loading,
+        error,
+        offlineMode,
+        offlineQueue,
+        paymentQrUrl,
+        showReceipt,
+        receiptData,
+        searchQuery,
+        setSearchQuery,
+        suggestions,
+        showSuggestions,
+        setShowSuggestions,
+        handleSelectGuest,
+        handleNameChange,
+        handleSubmit,
+        syncOfflineGifts,
+        onSubmit,
+        closeReceipt,
+        filteredGuests,
+    } = useGiftForm({ onSuccess, onDone, defaultCreate });
 
     const nameInputRef = useRef<HTMLInputElement | null>(null);
-    const [suggestions, setSuggestions] = useState<any[]>([]);
-    const [showSuggestions, setShowSuggestions] = useState(false);
-
-    const DRAFT_KEY = 'gift_form_draft';
-    const QUEUE_KEY = 'gift_offline_queue';
-    const PREF_KEY = 'gift_form_prefs';
-
-    useEffect(() => {
-        // Load Guests
-        fetch("/api/guests")
-            .then(res => res.json())
-            .then(data => {
-                if (Array.isArray(data)) {
-                    setGuests(data);
-                } else {
-                    console.error("Guests API Error:", data);
-                    setGuests([]);
-                }
-            })
-            .catch(err => {
-                console.error("Network Error - Using Offline Mode:", err);
-                setGuests([]);
-            });
-
-        // Load QR Code Settings
-        fetch("/api/wedding")
-            .then(res => res.json())
-            .then(data => {
-                if (data?.themeSettings?.paymentQrUrl) {
-                    setPaymentQrUrl(data.themeSettings.paymentQrUrl);
-                }
-            })
-            .catch(err => console.error("Failed to load settings", err));
-
-        // Load Preferences (Last used Currency/Method)
-        const savedPrefs = localStorage.getItem(PREF_KEY);
-        if (savedPrefs) {
-            setLastSavedValues(JSON.parse(savedPrefs));
-        }
-
-        // Load Draft (only if exists, override prefs)
-        const savedDraft = localStorage.getItem(DRAFT_KEY);
-        if (defaultCreate) {
-            setIsCreatingNew(true);
-            form.setValue("guestId", "new");
-        } else if (savedDraft) {
-            try {
-                const draft = JSON.parse(savedDraft);
-                form.reset(draft);
-            } catch (e) {
-                console.error("Failed to parse draft", e);
-            }
-        } else if (savedPrefs) {
-            const prefs = JSON.parse(savedPrefs);
-            form.setValue('currency', prefs.currency);
-            form.setValue('method', prefs.method);
-        }
-    }, [defaultCreate]);
-
-    const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
-        defaultValues: {
-            amount: "",
-            currency: "USD",
-            method: "Cash",
-            guestId: "",
-            guestName: "",
-            source: "",
-        },
-    });
-
-    // Auto-save draft
-    useEffect(() => {
-        const subscription = form.watch((value) => {
-            localStorage.setItem(DRAFT_KEY, JSON.stringify(value));
-        });
-        return () => subscription.unsubscribe();
-    }, [form.watch]);
-
-    function handleSelectGuest(guestId: string) {
-        if (guestId === "new") {
-            setIsCreatingNew(true);
-            form.setValue("guestId", "new");
-            form.setValue("guestName", searchQuery);
-        } else {
-            const guest = guests.find(g => g.id === guestId);
-            if (guest) {
-                // Determine if we should switch to "Creating New" mode with pre-filled data 
-                // OR just link the ID. Use linking for now.
-                setIsCreatingNew(false);
-                form.setValue("guestId", guestId);
-                form.setValue("guestName", guest.name); // Visually show name
-                if (guest.source || guest.group) form.setValue("source", guest.source || guest.group);
-            } else {
-                // Clear
-                setIsCreatingNew(false);
-                form.setValue("guestId", "");
-                form.setValue("guestName", "");
-            }
-        }
-        setOpen(false);
-        setSuggestions([]);
-        setShowSuggestions(false);
-    }
-
-    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        form.setValue("guestName", value);
-
-        // If we are typing, we are effectively "creating new" until we pick an existing one
-        // OR we are searching. 
-        // Logic: Always set guestId to "new" (or empty) when typing manually, 
-        // unless they click a suggestion.
-        if (form.getValues("guestId") !== "new") {
-            form.setValue("guestId", "new");
-        }
-
-        if (value.length > 1) {
-            const matches = guests.filter(g =>
-                (g.name || "").toLowerCase().includes(value.toLowerCase())
-            ).slice(0, 5);
-            setSuggestions(matches);
-            setShowSuggestions(true);
-        } else {
-            setSuggestions([]);
-            setShowSuggestions(false);
-        }
-    };
-
-    // Two modes of submission
-    const handleSubmit = (e: React.FormEvent, keepOpen: boolean = false) => {
-        e.preventDefault();
-        e.stopPropagation(); // Stop propagation to prevent default form submission if called from button click
-
-        form.handleSubmit(async (values) => {
-            await onSubmit(values, keepOpen);
-        })();
-    };
-
-    const [showReceipt, setShowReceipt] = useState(false);
-    const [receiptData, setReceiptData] = useState<{ name: string; amount: string; currency: string; source?: string } | null>(null);
-
-    // ... (existing code)
-
-    const [offlineQueue, setOfflineQueue] = useState<any[]>([]);
-
-    // Check queue on mount
-    useEffect(() => {
-        const queue = JSON.parse(localStorage.getItem(QUEUE_KEY) || "[]");
-        setOfflineQueue(queue);
-    }, []);
-
-    const syncOfflineGifts = async () => {
-        if (offlineQueue.length === 0) return;
-
-        setLoading(true);
-        let currentQueue = [...offlineQueue];
-        const failedQueue: any[] = [];
-        let successCount = 0;
-
-        for (const item of currentQueue) {
-            try {
-                const res = await fetch("/api/gifts", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(item),
-                });
-
-                if (res.ok) {
-                    successCount++;
-                } else {
-                    failedQueue.push(item);
-                }
-            } catch (e) {
-                console.error("Sync failed for item", e);
-                failedQueue.push(item);
-            }
-        }
-
-        localStorage.setItem(QUEUE_KEY, JSON.stringify(failedQueue));
-        setOfflineQueue(failedQueue);
-        setLoading(false);
-
-        if (failedQueue.length === 0) {
-            setOfflineMode(false);
-            setError(null);
-            onSuccess();
-            alert(`បានបញ្ចូលទិន្នន័យបាន ${successCount} ជោគជ័យ! 🎉`);
-        } else {
-            setError(`បានបញ្ចូល ${successCount} កាដូ។ នៅសល់ ${failedQueue.length} ទៀតបរាជ័យ។`);
-        }
-    };
-
-    async function onSubmit(values: z.infer<typeof formSchema>, keepOpen: boolean) {
-        setLoading(true);
-        setError(null);
-        setOfflineMode(false);
-
-        const payload = {
-            ...values,
-            guestId: (values.guestId === "no-guest" || values.guestId === "") && !isCreatingNew ? null : values.guestId,
-            createdAt: new Date().toISOString()
-        };
-
-        try {
-            const res = await fetch("/api/gifts", {
-                method: "POST",
-                body: JSON.stringify(payload),
-            });
-
-            if (!res.ok) {
-                const errorData = await res.json().catch(() => ({}));
-                throw new Error(errorData.error || "Server responded with an error");
-            }
-
-            // Success
-            localStorage.removeItem(DRAFT_KEY);
-
-            // Save preferences
-            const newPrefs = { currency: values.currency, method: values.method || "Cash" };
-            localStorage.setItem(PREF_KEY, JSON.stringify(newPrefs));
-            setLastSavedValues(newPrefs);
-
-            onSuccess(); // Refresh list
-
-            // SHOW RECEIPT & RESET PRIVACY
-            setReceiptData({
-                name: values.guestName || "ភ្ញៀវមិនស្គាល់ឈ្មោះ",
-                amount: values.amount,
-                currency: values.currency,
-                source: values.source
-            });
-            setShowReceipt(true);
-
-            // Always reset the form logic immediately behind the modal
-            form.reset({
-                amount: "", // CLEAR AMOUNT FOR PRIVACY
-                currency: values.currency,
-                method: values.method || "Cash",
-                guestId: "",
-                guestName: "",
-                source: values.source || "", // Keep Source/Group for next entry transparency (requested)
-            });
-            setIsCreatingNew(false);
-            setSearchQuery("");
-
-            if (!keepOpen) {
-                onDone();
-            }
-        } catch (err) {
-            console.error("Submission failed:", err);
-            const currentQueue = JSON.parse(localStorage.getItem(QUEUE_KEY) || "[]");
-            currentQueue.push(payload);
-            localStorage.setItem(QUEUE_KEY, JSON.stringify(currentQueue));
-
-            // Update state to show sync button immediately
-            setOfflineQueue(currentQueue);
-
-            setOfflineMode(true);
-            setError("ដាច់អ៊ីនធឺណិត! កាដូត្រូវបានរក្សាទុកក្នុងទូរស័ព្ទ"); // Connection failed
-        } finally {
-            setLoading(false);
-        }
-    }
-
-    // Close Receipt -> Focus for next input
-    const closeReceipt = () => {
-        setShowReceipt(false);
-        setReceiptData(null);
-        // Focus back on Guest Name for next entry
-        setTimeout(() => {
-            if (defaultCreate) {
-                nameInputRef.current?.focus();
-            } else {
-                guestTriggerRef.current?.focus();
-            }
-        }, 100);
-    };
-
-    // Filter guests based on search
-    const filteredGuests = guests.filter(g =>
-        (g.name || "").toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-    const selectedGuest = guests.find(g => g.id === form.getValues("guestId"));
 
     return (
         <Form {...form}>
-            {/* Receipt Modal */}
-            <Dialog open={showReceipt} onOpenChange={(open) => !open && closeReceipt()}>
-                <DialogContent className="sm:max-w-md bg-card text-center p-5 md:p-8 flex flex-col items-center justify-center space-y-4">
-                    <DialogTitle className="sr-only">Submission Successful</DialogTitle>
-                    <DialogDescription className="sr-only">
-                        Details of the successfully recorded gift.
-                    </DialogDescription>
-                    <div className="rounded-full bg-emerald-500/10 p-2 md:p-3">
-                        <Check className="w-6 h-6 md:w-8 md:h-8 text-emerald-600" />
-                    </div>
-                    <div className="space-y-1">
-                        <h2 className="text-xl font-bold text-foreground">បានទទួលជោគជ័យ</h2>
-                        <p className="text-muted-foreground">កាដូត្រូវបានកត់ត្រាចូលក្នុងប្រព័ន្ធ</p>
-                    </div>
-
-                    {receiptData && (
-                        <div className="w-full bg-muted/30 rounded-xl p-6 border border-border my-4">
-                            <p className="text-sm text-muted-foreground mb-1">ទទួលបានពី</p>
-                            <h3 className="text-2xl font-bold text-foreground mb-4 font-kantumruy">{receiptData.name}</h3>
-
-                            <div className="flex items-baseline justify-center gap-1">
-                                <span className="text-3xl md:text-4xl font-extrabold text-blue-600">
-                                    {receiptData.currency === "USD" ? "$" : ""}
-                                    {parseFloat(receiptData.amount).toLocaleString()}
-                                    {receiptData.currency === "KHR" ? "ល" : ""}
-                                </span>
-                                <span className="text-gray-400 font-medium">{receiptData.currency}</span>
-                            </div>
-                            {receiptData.source && (
-                                <p className="text-sm text-gray-400 mt-2">📍 {receiptData.source}</p>
-                            )}
-                        </div>
-                    )}
-
-                    <Button
-                        onClick={closeReceipt}
-                        className="w-full h-11 md:h-12 text-lg bg-blue-600 hover:bg-blue-700 font-bold"
-                        autoFocus
-                    >
-                        បិទ & បន្តទៅអ្នកបន្ទាប់
-                    </Button>
-                </DialogContent>
-            </Dialog>
+            {/* Extracted Receipt Modal */}
+            <ReceiptModal
+                open={showReceipt}
+                onClose={() => {
+                    closeReceipt();
+                    setTimeout(() => nameInputRef.current?.focus(), 100);
+                }}
+                receiptData={receiptData}
+            />
 
             <form onSubmit={(e) => handleSubmit(e, true)} className="space-y-4">
 
@@ -404,11 +81,11 @@ export function GiftForm({ onSuccess, onDone, defaultCreate = false }: { onSucce
                 {/* ... (rest of the form remains the same, wrapped in fragments if needed but <Form> handles it) ... */}
 
                 {error && (
-                    <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm flex flex-col gap-2">
+                    <div className="bg-rose-50 border border-rose-200 text-rose-600 px-4 py-3 rounded-xl text-sm flex flex-col gap-2">
                         <div className="flex items-center gap-2 font-semibold font-kantumruy">
                             ⚠️ {error}
                         </div>
-                        <p className="text-xs text-red-500 font-kantumruy">
+                        <p className="text-xs text-rose-500 font-kantumruy">
                             ទិន្នន័យមានសុវត្ថិភាពក្នុងទូរស័ព្ទរបស់អ្នក។ សូមពិនិត្យអ៊ីនធឺណិត រួចព្យាយាមម្ដងទៀត។
                         </p>
                         {offlineMode && (
@@ -416,7 +93,7 @@ export function GiftForm({ onSuccess, onDone, defaultCreate = false }: { onSucce
                                 type="button"
                                 variant="outline"
                                 size="sm"
-                                className="self-end border-red-200 hover:bg-red-100 text-red-700 rounded-lg font-bold font-kantumruy"
+                                className="self-end border-rose-200 hover:bg-rose-100 text-rose-700 rounded-lg font-bold font-kantumruy"
                                 onClick={form.handleSubmit((v) => onSubmit(v, false))}
                             >
                                 ↺ ព្យាយាមម្ដងទៀត
@@ -452,6 +129,8 @@ export function GiftForm({ onSuccess, onDone, defaultCreate = false }: { onSucce
                                                 placeholder=" Eg: លោក សុវណ្ណ..."
                                                 {...field}
                                                 onChange={(e) => {
+                                                    const converted = khmerToEnglishNumbers(e.target.value);
+                                                    e.target.value = converted;
                                                     field.onChange(e);
                                                     handleNameChange(e);
                                                 }}
@@ -507,7 +186,14 @@ export function GiftForm({ onSuccess, onDone, defaultCreate = false }: { onSucce
                                 <FormItem>
                                     <FormLabel className="text-xs font-bold text-muted-foreground font-kantumruy ml-1">មកពីណា? (ឧទាហរណ៍៖ កំពត...)</FormLabel>
                                     <FormControl>
-                                        <Input {...field} className="h-9 md:h-12 text-sm rounded-xl border-border/60 bg-background/50 backdrop-blur-sm font-kantumruy shadow-sm focus-visible:ring-blue-500/20" />
+                                        <Input 
+                                            {...field} 
+                                            className="h-9 md:h-12 text-sm rounded-xl border-border/60 bg-background/50 backdrop-blur-sm font-kantumruy shadow-sm focus-visible:ring-blue-500/20" 
+                                            onChange={(e) => {
+                                                const converted = khmerToEnglishNumbers(e.target.value);
+                                                field.onChange(converted);
+                                            }}
+                                        />
                                     </FormControl>
                                     <FormMessage className="font-kantumruy text-[10px]" />
                                 </FormItem>
@@ -540,11 +226,15 @@ export function GiftForm({ onSuccess, onDone, defaultCreate = false }: { onSucce
                                             <FormControl>
                                                 <div className="relative group">
                                                     <Input
-                                                        type="number"
-                                                        step="0.01"
+                                                        type="text"
+                                                        inputMode="decimal"
                                                         placeholder="0.00"
                                                         {...field}
                                                         className="h-11 md:h-14 text-lg md:text-2xl font-black rounded-xl border-border/60 bg-background/50 backdrop-blur-sm shadow-sm pl-4 pr-12 text-foreground focus-visible:ring-emerald-500/20 group-focus-within:border-emerald-500/50"
+                                                        onChange={(e) => {
+                                                            const val = khmerToEnglishNumbers(e.target.value).replace(/[^0-9.]/g, "");
+                                                            field.onChange(val);
+                                                        }}
                                                         onKeyDown={(e) => {
                                                             if (e.key === "Enter") {
                                                                 e.preventDefault();
@@ -613,7 +303,7 @@ export function GiftForm({ onSuccess, onDone, defaultCreate = false }: { onSucce
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel className="text-xs font-bold text-muted-foreground font-kantumruy ml-1">បានទទួលតាមរយៈ</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value || "Cash"}>
                                         <FormControl>
                                             <SelectTrigger className="h-9 md:h-12 rounded-xl text-sm font-bold bg-background/50 backdrop-blur-sm border-border/60 shadow-sm text-foreground font-kantumruy focus:ring-blue-500/20 transition-all">
                                                 <SelectValue />
@@ -621,9 +311,7 @@ export function GiftForm({ onSuccess, onDone, defaultCreate = false }: { onSucce
                                         </FormControl>
                                         <SelectContent className="rounded-xl border-border bg-card/95 backdrop-blur-md shadow-2xl font-kantumruy font-bold border-none ring-1 ring-border">
                                             <SelectItem value="Cash">សាច់ប្រាក់ផ្ទាល់ (Cash)</SelectItem>
-                                            <SelectItem value="ABA">ABA Bank</SelectItem>
-                                            <SelectItem value="Wing">Wing Bank</SelectItem>
-                                            <SelectItem value="ACLEDA">ACLEDA Bank</SelectItem>
+                                            <SelectItem value="KHQR">បាគង (KHQR)</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     <FormMessage className="font-kantumruy text-[10px]" />
@@ -640,7 +328,7 @@ export function GiftForm({ onSuccess, onDone, defaultCreate = false }: { onSucce
                         onClick={(e) => handleSubmit(e, true)}
                         className={`flex-1 h-11 md:h-14 rounded-2xl font-black font-kantumruy text-base md:text-lg transition-all border-none active:scale-[0.98] ${offlineMode
                             ? 'bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 shadow-[0_10px_30px_-10px_rgba(249,115,22,0.5)]'
-                            : 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 shadow-[0_10px_30px_-10px_rgba(220,38,38,0.5)]'
+                            : 'bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-700 hover:to-rose-600 shadow-[0_10px_30px_-10px_rgba(225,29,72,0.5)]'
                             } text-white`}
                     >
                         {loading ? (
@@ -666,54 +354,8 @@ export function GiftForm({ onSuccess, onDone, defaultCreate = false }: { onSucce
                 </div>
             </form>
 
-            {/* Persistent QR Code Section (Always visible if URL exists) */}
-            {
-                paymentQrUrl && (
-                    <div className="mt-6 border-t border-border pt-6">
-                        <div className="bg-muted/30 border border-border rounded-xl p-4 flex flex-col items-center shadow-sm">
-                            <p className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2 font-kantumruy">
-                                <span>ឰ QR សម្រាប់ស្កេន</span>
-                            </p>
-
-                            {/* Click to Expand/Zoom */}
-                            <Dialog>
-                                <DialogTrigger asChild>
-                                    <div className="relative w-48 h-48 bg-white rounded-lg overflow-hidden border border-border cursor-zoom-in hover:opacity-90 transition-opacity">
-                                        <Image
-                                            src={paymentQrUrl}
-                                            alt="Payment QR"
-                                            fill
-                                            className="object-contain p-2"
-                                        />
-                                    </div>
-                                </DialogTrigger>
-                                <DialogContent className="sm:max-w-md flex flex-col items-center justify-center p-8 bg-card">
-                                    <VisuallyHidden.Root>
-                                        <DialogTitle>ស្កេន QR កូដ (Scan Payment QR)</DialogTitle>
-                                        <DialogDescription>
-                                            ពង្រីក QR កូដសម្រាប់ការទូទាត់ (Enlarged QR code for payment)
-                                        </DialogDescription>
-                                    </VisuallyHidden.Root>
-                                    <div className="relative w-full max-w-[300px] aspect-square bg-white rounded-xl p-4">
-                                        <Image
-                                            src={paymentQrUrl}
-                                            alt="Payment QR Full"
-                                            fill
-                                            className="object-contain"
-                                        />
-                                    </div>
-                                    <p className="mt-4 text-center font-bold text-lg font-kantumruy text-foreground">ស្កេនដើម្បីទូទាត់</p>
-                                </DialogContent>
-                            </Dialog>
-
-                            <p className="text-xs text-muted-foreground mt-2 text-center max-w-[200px] font-kantumruy">
-                                បង្ហាញ QR នេះជូនភ្ញៀវប្រសិនបើពួកគាត់ចង់វេរលុយ
-                            </p>
-                        </div>
-                    </div>
-                )
-            }
-        </Form >
+            <PaymentQrView paymentQrUrl={paymentQrUrl} />
+        </Form>
     );
 }
 

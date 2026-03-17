@@ -1,17 +1,19 @@
 import { useState } from 'react';
 
 interface UseCloudinaryUploadProps {
-    onSuccess: (url: string) => void;
+    onSuccess: (url: string, publicId?: string) => void;
     onError?: (error: any) => void;
     uploadPreset?: string;
     resourceType?: "auto" | "image" | "video" | "raw";
+    folder?: string;
 }
 
 export function useCloudinaryUpload({
     onSuccess,
     onError,
     uploadPreset = "wedding_upload",
-    resourceType = "auto"
+    resourceType = "auto",
+    folder
 }: UseCloudinaryUploadProps) {
     const [uploading, setUploading] = useState(false);
     const [progress, setProgress] = useState(0);
@@ -22,12 +24,14 @@ export function useCloudinaryUpload({
             setProgress(0);
 
             // 1. Get signature
+            const timestamp = Math.round((new Date()).getTime() / 1000);
             const response = await fetch('/api/cloudinary/sign', {
                 method: 'POST',
                 body: JSON.stringify({
                     paramsToSign: {
-                        timestamp: Math.round((new Date()).getTime() / 1000),
-                        upload_preset: uploadPreset
+                        timestamp,
+                        upload_preset: uploadPreset,
+                        folder
                     }
                 })
             });
@@ -35,7 +39,6 @@ export function useCloudinaryUpload({
             if (!response.ok) throw new Error("Failed to get signature");
 
             const { signature } = await response.json();
-            const timestamp = Math.round((new Date()).getTime() / 1000);
 
             // 2. Upload to Cloudinary
             const formData = new FormData();
@@ -44,6 +47,7 @@ export function useCloudinaryUpload({
             formData.append("timestamp", timestamp.toString());
             formData.append("signature", signature);
             formData.append("upload_preset", uploadPreset);
+            if (folder) formData.append("folder", folder);
 
             const xhr = new XMLHttpRequest();
             const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
@@ -59,7 +63,7 @@ export function useCloudinaryUpload({
             xhr.onload = () => {
                 if (xhr.status === 200) {
                     const result = JSON.parse(xhr.responseText);
-                    onSuccess(result.secure_url);
+                    onSuccess(result.secure_url, result.public_id);
                 } else {
                     const error = xhr.responseText;
                     console.error("Upload failed", error);

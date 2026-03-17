@@ -1,5 +1,6 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
 
@@ -7,8 +8,10 @@ export async function GET() {
     try {
         const user = await getServerUser();
         if (!user) {
+            console.warn("[Auth Me Debug] Unauthorized: getServerUser returned null. Cookies: " + cookies().getAll().map((c: any) => c.name).join(", "));
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
+        console.log(`[Auth Me Debug] Success: User ${user.userId}, Type ${user.type}`);
 
         // For staff users, return minimal data
         if (user.type === "staff") {
@@ -29,7 +32,10 @@ export async function GET() {
                 email: true,
                 role: true,
                 createdAt: true,
-                twoFactorEnabled: true
+                twoFactorEnabled: true,
+                _count: {
+                    select: { weddings: true }
+                }
             }
         });
 

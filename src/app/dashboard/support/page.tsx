@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { LifeBuoy, Send, CheckCircle2, Loader2, AlertCircle, ShieldCheck, Zap, Sparkles } from "lucide-react";
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, m } from 'framer-motion';
 import { cn } from "@/lib/utils";
 
 function SupportForm() {
@@ -47,26 +47,26 @@ function SupportForm() {
     };
 
     if (submitted) return (
-        <motion.div
+        <m.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center"
         >
             <div className="relative mb-8">
-                <motion.div
+                <m.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", damping: 12, delay: 0.2 }}
                     className="w-24 h-24 bg-green-500/10 dark:bg-green-500/20 rounded-full flex items-center justify-center text-green-500"
                 >
                     <CheckCircle2 size={48} />
-                </motion.div>
+                </m.div>
                 <div className="absolute inset-0 bg-green-400/20 blur-3xl rounded-full animate-pulse" />
             </div>
 
             <h2 className="text-3xl font-black text-foreground mb-3 font-kantumruy tracking-tight">សំណើរបស់អ្នកត្រូវបានផ្ញើ!</h2>
             <p className="text-muted-foreground font-medium font-kantumruy mb-10 max-w-sm leading-relaxed">
-                ក្រុមការងារ Superadmin ទទួលបានសំណើរបស់អ្នកហើយ។ យើងនឹងពិនិត្យមើល និងដោះស្រាយជូនឆាប់ៗបំផុត។
+                ក្រុមការងារ MONEA ទទួលបានសំណើរបស់អ្នកហើយ។ យើងនឹងពិនិត្យមើល និងដោះស្រាយជូនឆាប់ៗបំផុត។
             </p>
 
             <Button
@@ -75,12 +75,12 @@ function SupportForm() {
             >
                 ត្រឡប់ទៅផ្ទាំងដើម
             </Button>
-        </motion.div>
+        </m.div>
     );
 
     return (
         <div className="grid lg:grid-cols-5 gap-10 items-start">
-            <motion.div
+            <m.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.1 }}
@@ -91,7 +91,7 @@ function SupportForm() {
                         <form onSubmit={handleSubmit} className="space-y-8">
                             <AnimatePresence mode="wait">
                                 {error && (
-                                    <motion.div
+                                    <m.div
                                         initial={{ opacity: 0, height: 0 }}
                                         animate={{ opacity: 1, height: 'auto' }}
                                         exit={{ opacity: 0, height: 0 }}
@@ -99,7 +99,7 @@ function SupportForm() {
                                     >
                                         <AlertCircle size={18} />
                                         {error}
-                                    </motion.div>
+                                    </m.div>
                                 )}
                             </AnimatePresence>
 
@@ -159,9 +159,9 @@ function SupportForm() {
                         </form>
                     </div>
                 </Card>
-            </motion.div>
+            </m.div>
 
-            <motion.div
+            <m.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 }}
@@ -201,7 +201,7 @@ function SupportForm() {
                         ))}
                     </ul>
                 </div>
-            </motion.div>
+            </m.div>
         </div>
     );
 }
@@ -213,7 +213,7 @@ export default function SupportPage() {
             <div className="absolute top-0 -left-20 w-96 h-96 bg-primary/10 blur-[120px] rounded-full pointer-events-none opacity-50" />
             <div className="absolute bottom-0 -right-20 w-96 h-96 bg-blue-500/10 blur-[120px] rounded-full pointer-events-none opacity-50" />
 
-            <motion.div
+            <m.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="mb-14 text-center md:text-left"
@@ -226,9 +226,9 @@ export default function SupportPage() {
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-600">មជ្ឈមណ្ឌលជំនួយ</span>
                 </h1>
                 <p className="text-lg text-muted-foreground font-medium font-kantumruy max-w-3xl leading-relaxed">
-                    ជួបបញ្ហាបច្ចេកទេស ឬចង់បានមុខងារបន្ថែម? ផ្ញើសារមកកាន់ពួកយើងដោយផ្ទាល់។ ក្រុមការងារមនោសញ្ចេតនា (MONEA) ត្រៀមខ្លួនជានិច្ចដើម្បីជួយអ្នក។
+                    ជួបបញ្ហាបច្ចេកទេស ឬចង់បានមុខងារបន្ថែម? ផ្ញើសារមកកាន់ពួកយើងដោយផ្ទាល់។ ក្រុមការងារ MONEA ត្រៀមខ្លួនជានិច្ចដើម្បីជួយអ្នក។
                 </p>
-            </motion.div>
+            </m.div>
 
             <Suspense fallback={
                 <div className="min-h-[400px] flex items-center justify-center">

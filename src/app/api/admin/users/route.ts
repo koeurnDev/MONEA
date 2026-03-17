@@ -14,28 +14,58 @@ export async function GET(req: Request) {
     const skip = (page - 1) * limit;
 
     try {
-        const [users, total] = await Promise.all([
-            prisma.user.findMany({
-                select: {
-                    id: true,
-                    email: true,
-                    role: true,
-                    createdAt: true,
-                    weddings: {
-                        select: {
-                            id: true,
-                            groomName: true,
-                            brideName: true,
-                            status: true
+        let users;
+        let total;
+        
+        try {
+            [users, total] = await Promise.all([
+                prisma.user.findMany({
+                    select: {
+                        id: true,
+                        email: true,
+                        role: true,
+                        createdAt: true,
+                        deletedAt: true,
+                        weddings: {
+                            select: {
+                                id: true,
+                                groomName: true,
+                                brideName: true,
+                                status: true
+                            }
                         }
-                    }
-                },
-                orderBy: { createdAt: 'desc' },
-                take: limit,
-                skip: skip
-            }),
-            prisma.user.count()
-        ]);
+                    },
+                    orderBy: { createdAt: 'desc' },
+                    take: limit,
+                    skip: skip
+                }),
+                prisma.user.count()
+            ]);
+        } catch (e) {
+            // Fallback for missing deletedAt field
+            [users, total] = await Promise.all([
+                prisma.user.findMany({
+                    select: {
+                        id: true,
+                        email: true,
+                        role: true,
+                        createdAt: true,
+                        weddings: {
+                            select: {
+                                id: true,
+                                groomName: true,
+                                brideName: true,
+                                status: true
+                            }
+                        }
+                    },
+                    orderBy: { createdAt: 'desc' },
+                    take: limit,
+                    skip: skip
+                }),
+                prisma.user.count()
+            ]);
+        }
 
         return NextResponse.json({
             data: users,
@@ -46,7 +76,11 @@ export async function GET(req: Request) {
                 totalPages: Math.ceil(total / limit)
             }
         });
-    } catch (error) {
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    } catch (error: any) {
+        console.error("[Admin Users API] Error:", error);
+        return NextResponse.json({ 
+            error: "Internal Server Error", 
+            message: "An unexpected error occurred while retrieving users." 
+        }, { status: 500 });
     }
 }

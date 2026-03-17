@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Plus, Clock, Calendar, Activity, Pencil, Trash2 } from "lucide-react";
+import { Plus, Clock, Calendar, Activity, Pencil, Trash2, Scissors, Heart, Camera, Utensils, Music, Flower2, Users, GlassWater, Landmark } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -13,6 +13,18 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { ActivityForm } from "./activity-form";
+
+const KHMER_ICONS_MAP: Record<string, any> = {
+    scissors: Scissors,
+    heart: Heart,
+    flower: Flower2,
+    users: Users,
+    utensils: Utensils,
+    camera: Camera,
+    music: Music,
+    glass: GlassWater,
+    landmark: Landmark,
+};
 
 export default function SchedulePage() {
     const [activities, setActivities] = useState<any[]>([]);
@@ -86,7 +98,7 @@ export default function SchedulePage() {
             {/* Timeline View */}
             <div className="relative">
                 {/* Vertical Line */}
-                <div className="absolute left-[2.25rem] md:left-[2.25rem] top-8 bottom-8 w-0.5 bg-border hidden sm:block" />
+                <div className="absolute left-[2.25rem] md:left-[2.25rem] top-8 bottom-8 w-px bg-border/20 hidden sm:block" />
 
                 <div className="space-y-8 relative">
                     {loading ? (
@@ -118,9 +130,12 @@ export default function SchedulePage() {
                                 <Card className="border-none shadow-[0_4px_20px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.2)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all rounded-[2rem] bg-card overflow-hidden group-hover:-translate-y-1 duration-300">
                                     <div className="flex flex-col md:flex-row items-center">
                                         {/* Time Box */}
-                                        <div className="w-full md:w-40 p-8 flex flex-col items-center justify-center bg-muted/20 md:border-r border-border/10">
+                                        <div className="w-full md:w-40 p-8 flex flex-col items-center justify-center bg-muted/20 md:border-r border-transparent">
                                             <div className="p-3 rounded-2xl bg-background shadow-inner text-red-600 mb-3">
-                                                <Clock size={20} />
+                                                {(() => {
+                                                    const IconComp = item.icon ? KHMER_ICONS_MAP[item.icon] : Clock;
+                                                    return IconComp ? <IconComp size={20} /> : <Clock size={20} />;
+                                                })()}
                                             </div>
                                             <span className="text-xl font-black text-foreground font-mono tracking-tight">{item.time}</span>
                                             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">Scheduled Time</span>
@@ -132,7 +147,7 @@ export default function SchedulePage() {
                                                 <div className="flex items-center gap-3">
                                                     <h3 className="text-xl font-black text-foreground font-kantumruy leading-tight">{item.title}</h3>
                                                     {index === 0 && (
-                                                        <span className="px-3 py-1 rounded-full bg-red-50 dark:bg-red-950/30 text-red-600 text-[10px] font-black uppercase tracking-widest ring-4 ring-red-50/50 dark:ring-red-950/20">
+                                                        <span className="px-3 py-1 rounded-full bg-red-500/10 text-red-600 text-[10px] font-black uppercase tracking-widest">
                                                             Starting Event
                                                         </span>
                                                     )}
@@ -154,7 +169,7 @@ export default function SchedulePage() {
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="h-10 w-10 text-muted-foreground hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-xl transition-all shadow-sm bg-background/50"
+                                                    className="h-10 w-10 text-muted-foreground hover:text-blue-600 hover:bg-blue-500/10 rounded-xl transition-all shadow-sm bg-background/50"
                                                     onClick={() => { setEditActivity(item); setOpen(true); }}
                                                 >
                                                     <Pencil className="h-4 w-4" />
@@ -162,7 +177,7 @@ export default function SchedulePage() {
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="h-10 w-10 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-all shadow-sm bg-background/50"
+                                                    className="h-10 w-10 text-muted-foreground hover:text-red-600 hover:bg-red-500/10 rounded-xl transition-all shadow-sm bg-background/50"
                                                     onClick={() => handleDelete(item.id)}
                                                 >
                                                     <Trash2 className="h-4 w-4" />

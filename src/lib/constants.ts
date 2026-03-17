@@ -29,3 +29,53 @@ export const isEventManager = (role: string) => role === ROLES.EVENT_MANAGER;
 
 // Helper to check if a user is event staff
 export const isEventStaff = (role: string) => role === ROLES.EVENT_STAFF;
+// --- Middleware & Auth Specific Constants ---
+
+export const COOKIE_NAMES = {
+    TOKEN: "token",
+    STAFF_TOKEN: "staff_token",
+    REFRESH_TOKEN: "refresh_token",
+} as const;
+
+export const AUTH_URLS = {
+    LOGIN: "/login",
+    DASHBOARD: "/dashboard",
+} as const;
+
+export const JWT_CONFIG = {
+    ISSUER: "monea:app",
+    AUDIENCE: {
+        USER: "user",
+        STAFF: "staff",
+        ADMIN: "admin",
+    },
+} as const;
+
+export const BLOCKED_BOTS = [
+    "python-requests", "curl", "wget", "headlesschrome", "puppeteer", 
+    "playwright", "phantomjs", "scrapy", "urllib",
+    "GPTBot", "CCBot", "ChatGPT-User", "Omgilibot", "FacebookBot", "PerplexityBot",
+    "googlebot", "bingbot", "slurp", "duckduckbot", "baiduspider", "yandexbot",
+    "sogou", "exabot", "facebot", "ia_archiver"
+];
+
+export const SECURITY_HEADERS = {
+    "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "X-XSS-Protection": "1; mode=block",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Content-Security-Policy": 
+        "default-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://plus.unsplash.com wss:; " +
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://upload-widget.cloudinary.com; " +
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+        "img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://plus.unsplash.com https://*.google.com https://*.gstatic.com; " +
+        "font-src 'self' https://fonts.gstatic.com data:; " +
+        "frame-src 'self' https://challenges.cloudflare.com https://www.youtube.com https://youtube.com https://upload-widget.cloudinary.com; " +
+        "connect-src 'self' https://challenges.cloudflare.com https://api.cloudinary.com https://upload-widget.cloudinary.com https://*.sentry.io wss:; " +
+        "media-src 'self' data: blob: https://res.cloudinary.com; " +
+        "object-src 'none'; " +
+        "base-uri 'self'; " +
+        "frame-ancestors 'none'; " +
+        "form-action 'self';",
+} as const;

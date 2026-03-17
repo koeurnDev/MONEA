@@ -84,7 +84,7 @@ export default function MasterWeddingsPage() {
                                         <td className="px-8 py-6">
                                             <div className="flex flex-col">
                                                 <span className="font-bold text-slate-900">{w.groomName} & {w.brideName}</span>
-                                                <span className="text-[10px] text-slate-400 font-mono mt-0.5">{new Date(w.date).toLocaleDateString()}</span>
+                                                <span className="text-[10px] text-slate-400 font-mono mt-0.5">{new Date(w.date).toLocaleDateString('km-KH', { timeZone: 'Asia/Phnom_Penh' })}</span>
                                             </div>
                                         </td>
                                         <td className="px-8 py-6 text-center">

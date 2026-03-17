@@ -74,7 +74,7 @@ export default function ForgotPasswordPage() {
             {/* Background Image with Overlay */}
             <div className="absolute inset-0 z-0">
                 <div
-                    className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1511285560982-1356c11d4606?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-40"
+                    className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-40"
                     style={{ backgroundPosition: 'center 40%' }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/60 backdrop-blur-[2px]"></div>
@@ -124,13 +124,19 @@ export default function ForgotPasswordPage() {
                                 )}
                             />
 
-                            <div className="flex justify-center my-4 scale-90 xs:scale-100 origin-center">
-                                <Turnstile
-                                    siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA"}
-                                    onSuccess={setToken => setTurnstileToken(setToken)}
-                                    options={{ theme: 'dark' }}
-                                />
-                            </div>
+                            {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ? (
+                                <div className="flex justify-center my-4 scale-90 xs:scale-100 origin-center">
+                                    <Turnstile
+                                        siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+                                        onSuccess={setToken => setTurnstileToken(setToken)}
+                                        options={{ theme: 'dark', appearance: 'always' }}
+                                    />
+                                </div>
+                            ) : (
+                                <div className="text-[10px] text-red-400 bg-red-400/10 p-2 rounded-lg text-center font-bold mb-4">
+                                    Cloudflare Turnstile Key Missing in .env
+                                </div>
+                            )}
 
                             <AnimatePresence>
                                 {error && (

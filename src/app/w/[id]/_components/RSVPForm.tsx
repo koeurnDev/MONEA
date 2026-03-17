@@ -1,41 +1,60 @@
 "use client";
 
-import React, { useState } from 'react';
+import * as React from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Check, X, Users, MessageSquare, Loader2 } from "lucide-react";
-import { m, AnimatePresence } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 
 interface RSVPFormProps {
     weddingId: string;
     guestId?: string;
     primaryColor: string;
+    theme?: 'light' | 'dark';
 }
 
-export function RSVPForm({ weddingId, guestId, primaryColor }: RSVPFormProps) {
-    const [step, setStep] = useState<'status' | 'details' | 'success'>('status');
-    const [status, setStatus] = useState<'CONFIRMED' | 'DECLINED' | null>(null);
-    const [adults, setAdults] = useState(1);
-    const [children, setChildren] = useState(0);
-    const [notes, setNotes] = useState("");
-    const [loading, setLoading] = useState(false);
+import { moneaClient } from "@/lib/api-client";
+
+export function RSVPForm({ weddingId, guestId, primaryColor, theme = 'dark' }: RSVPFormProps) {
+    const isLight = theme === 'light';
+    const textColor = isLight ? 'text-stone-800' : 'text-white';
+    const subTextColor = isLight ? 'text-stone-600' : 'text-white/70';
+    const bgColor = isLight ? 'bg-white shadow-2xl border-lux' : 'bg-white/10 backdrop-blur-md border-white/20 shadow-2xl';
+    const [step, setStep] = React.useState<'status' | 'details' | 'success'>('status');
+    const [status, setStatus] = React.useState<'CONFIRMED' | 'DECLINED' | null>(null);
+    const [adults, setAdults] = React.useState(1);
+    const [children, setChildren] = React.useState(0);
+    const [notes, setNotes] = React.useState("");
+    const [website, setWebsite] = React.useState(""); // Honeypot field
+    const [loading, setLoading] = React.useState(false);
+
+    React.useEffect(() => {
+        // Track when RSVP modal/section is viewed
+        if ((window as any).trackMoneaEvent) {
+            (window as any).trackMoneaEvent("RSVP_OPEN");
+        }
+    }, []);
 
     const handleSubmit = async () => {
         setLoading(true);
         try {
-            await fetch("/api/wedding/rsvp", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    weddingId,
-                    guestId,
-                    rsvpStatus: status,
-                    adultsCount: adults,
-                    childrenCount: children,
-                    rsvpNotes: notes
-                })
+            const res = await moneaClient.post("/api/wedding/rsvp", {
+                weddingId,
+                guestId,
+                rsvpStatus: status,
+                adultsCount: adults,
+                childrenCount: children,
+                rsvpNotes: notes,
+                website: website // Send honeypot field
             });
+
+            if (res.error) throw new Error(res.error);
+            
+            if ((window as any).trackMoneaEvent) {
+                (window as any).trackMoneaEvent("RSVP_SUBMIT");
+            }
+            
             setStep('success');
         } catch (e) {
             console.error(e);
@@ -49,13 +68,17 @@ export function RSVPForm({ weddingId, guestId, primaryColor }: RSVPFormProps) {
             <m.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="text-center p-8 bg-white/10 backdrop-blur-md rounded-[2.5rem] border border-white/20 shadow-2xl"
+                className={`text-center p-8 rounded-[2.5rem] border ${bgColor}`}
             >
                 <div className="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-emerald-500/20">
                     <Check className="text-white w-10 h-10" />
                 </div>
-                <h3 className="text-2xl font-black font-khmer text-white mb-2">អរគុណច្រើន!</h3>
-                <p className="text-white/70 font-medium font-khmer">ការឆ្លើយតបរបស់អ្នកត្រូវបានរក្សាទុក។</p>
+                <h3 className={`text-2xl font-black font-khmer mb-2 ${textColor}`}>អរគុណច្រើន!</h3>
+                <p className={`font-medium font-khmer ${subTextColor}`}>
+                    {status === 'CONFIRMED' 
+                        ? "ជួបគ្នានៅក្នុងថ្ងៃមង្គលការ! ការឆ្លើយតបរបស់អ្នកត្រូវបានរក្សាទុក។" 
+                        : "ទោះមិនអាចអញ្ជើញមកក្តី ក៏យើងខ្ញុំសូមអរគុណចំពោះការផ្ដល់ដំណឹង!"}
+                </p>
             </m.div>
         );
     }
@@ -71,7 +94,7 @@ export function RSVPForm({ weddingId, guestId, primaryColor }: RSVPFormProps) {
                         exit={{ opacity: 0, scale: 1.05 }}
                         className="space-y-8"
                     >
-                        <h3 className="text-2xl md:text-4xl font-black font-khmer text-center text-white/95 leading-tight">តើលោកអ្នកនឹងអញ្ជើញមកចូលរួមដែរឬទេ?</h3>
+                        <h3 className={`text-2xl md:text-4xl font-black font-khmer text-center leading-tight ${isLight ? 'text-stone-800' : 'text-white/95'}`}>តើលោកអ្នកនឹងអញ្ជើញមកចូលរួមដែរឬទេ?</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
                             <button
                                 onClick={() => { setStatus('CONFIRMED'); setStep('details'); }}
@@ -101,7 +124,7 @@ export function RSVPForm({ weddingId, guestId, primaryColor }: RSVPFormProps) {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
-                        className="p-8 md:p-12 bg-white/[0.03] backdrop-blur-3xl rounded-[3.5rem] border border-white/10 shadow-3xl max-w-4xl mx-auto"
+                        className={`p-8 md:p-12 rounded-[3.5rem] border shadow-3xl max-w-4xl mx-auto ${isLight ? 'bg-white border-lux' : 'bg-white/[0.03] backdrop-blur-3xl border-white/10'}`}
                     >
                         <div className="grid md:grid-cols-2 gap-10">
                             <div className="space-y-8">
@@ -147,13 +170,24 @@ export function RSVPForm({ weddingId, guestId, primaryColor }: RSVPFormProps) {
                                         onChange={(e) => setNotes(e.target.value)}
                                         className="bg-white/5 border-white/10 rounded-[2rem] text-white min-h-[160px] p-6 text-lg focus:ring-2 focus:ring-primary/20 placeholder:text-white/10"
                                     />
+                                    {/* Honeypot field - Hidden from users */}
+                                    <div className="hidden" aria-hidden="true">
+                                        <input 
+                                            type="text" 
+                                            name="website" 
+                                            value={website}
+                                            onChange={(e) => setWebsite(e.target.value)}
+                                            tabIndex={-1} 
+                                            autoComplete="off"
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
                             <div className="flex flex-col justify-center gap-6">
                                 <div className="p-8 rounded-[2.5rem] bg-primary/5 border border-primary/10 space-y-4" style={{ borderColor: `${primaryColor}20`, backgroundColor: `${primaryColor}08` }}>
                                     <p className="text-white/60 text-sm font-medium leading-relaxed font-khmer italic">
-                                        "លោកអ្នកនឹងមកក្នុងនាមជាភ្ញៀវម្នាក់ {guestId ? 'ដែលមានឈ្មោះក្នុងបញ្ជីស្រាប់' : ''}។ យើងខ្ញុំទន្ទឹងរងចាំទទួលស្វាគមន៍លោកអ្នកដោយក្តីរីករាយបំផុត។"
+                                        &quot;លោកអ្នកនឹងមកក្នុងនាមជាភ្ញៀវម្នាក់ {guestId ? 'ដែលមានឈ្មោះក្នុងបញ្ជីស្រាប់' : ''}។ យើងខ្ញុំទន្ទឹងរងចាំទទួលស្វាគមន៍លោកអ្នកដោយក្តីរីករាយបំផុត។&quot;
                                     </p>
                                 </div>
                                 <Button

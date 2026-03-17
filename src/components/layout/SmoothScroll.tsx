@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import * as React from "react";
 import Lenis from "lenis";
 import { usePathname } from "next/navigation";
 
@@ -7,7 +7,7 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
     const pathname = usePathname();
     const isDashboard = pathname?.startsWith("/dashboard") || pathname?.startsWith("/admin");
 
-    useEffect(() => {
+    React.useEffect(() => {
         if (isDashboard) return;
 
         // Detection for touch devices to use native scroll
@@ -19,6 +19,7 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
             return;
         }
 
+        let rafId: number;
         const lenis = new Lenis({
             duration: 0.8,
             easing: (t) => 1 - Math.pow(1 - t, 4),
@@ -32,12 +33,13 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
 
         function raf(time: number) {
             lenis.raf(time);
-            requestAnimationFrame(raf);
+            rafId = requestAnimationFrame(raf);
         }
 
-        requestAnimationFrame(raf);
+        rafId = requestAnimationFrame(raf);
 
         return () => {
+            cancelAnimationFrame(rafId);
             lenis.destroy();
         };
     }, [isDashboard]);

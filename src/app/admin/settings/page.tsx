@@ -350,8 +350,8 @@ export default function AdminSettingsPage() {
                                                             </div>
                                                         </td>
                                                         <td className="px-4 py-3 text-right">
-                                                            <div className="text-[10px] font-bold text-foreground">{new Date(log.createdAt).toLocaleString('km-KH', { hour: '2-digit', minute: '2-digit' })}</div>
-                                                            <div className="text-[9px] text-muted-foreground font-medium">{new Date(log.createdAt).toLocaleDateString()}</div>
+                                                            <div className="text-[10px] font-bold text-foreground">{new Date(log.createdAt).toLocaleString('km-KH', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Phnom_Penh' })}</div>
+                                                            <div className="text-[9px] text-muted-foreground font-medium">{new Date(log.createdAt).toLocaleDateString('km-KH', { timeZone: 'Asia/Phnom_Penh' })}</div>
                                                         </td>
                                                     </tr>
                                                 ))}

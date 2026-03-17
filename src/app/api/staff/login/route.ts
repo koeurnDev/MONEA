@@ -1,18 +1,19 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { signToken, generateFingerprint } from "@/lib/auth";
+import { signToken, generateFingerprint, isSecureCookie } from "@/lib/auth";
 import bcrypt from "bcryptjs";
 import { ROLES } from "@/lib/constants";
 import { CryptoUtils } from "@/lib/crypto";
 // const { authenticator } = require("otplib"); - Dynamic import used inside POST for ESM compatibility
 
-const rateLimit = new Map<string, { count: number, lastAttempt: number }>();
+import { authLimiter } from "@/lib/ratelimit";
+import { getIP } from "@/lib/utils";
 
 export async function POST(req: Request) {
     const otplib = await import("otplib") as any;
     try {
-        const ip = req.headers.get("x-forwarded-for") || "unknown";
+        const ip = getIP(req);
         const userAgent = req.headers.get("user-agent") || "unknown";
 
         // Check Blacklist
@@ -22,14 +23,10 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Access Denied" }, { status: 403 });
         }
 
-        const now = Date.now();
-        const limit = rateLimit.get(ip);
-        if (limit) {
-            if (now - limit.lastAttempt < 60 * 1000) {
-                if (limit.count >= 5) return NextResponse.json({ error: "Too many attempts." }, { status: 429 });
-            } else {
-                rateLimit.set(ip, { count: 0, lastAttempt: now });
-            }
+        // Persistent Rate Limiting
+        const { success: rlSuccess } = await authLimiter.limit(ip);
+        if (!rlSuccess) {
+            return NextResponse.json({ error: "Too many attempts. Please try again later." }, { status: 429 });
         }
 
         const body = await req.json();
@@ -85,8 +82,6 @@ export async function POST(req: Request) {
                 const lockTime = attempts >= 5 ? new Date(Date.now() + 15 * 60 * 1000) : null;
                 await prisma.staff.update({ where: { id: checkStaff.id }, data: { failedAttempts: attempts, lockedUntil: lockTime } });
             }
-            const current = rateLimit.get(ip) || { count: 0, lastAttempt: now };
-            rateLimit.set(ip, { count: current.count + 1, lastAttempt: now });
             return NextResponse.json({ error: "ព័ត៌មានមិនត្រឹមត្រូវ (Invalid information)" }, { status: 401 });
         }
 
@@ -113,21 +108,23 @@ export async function POST(req: Request) {
         }
 
         // 3. Success
-        rateLimit.delete(ip);
         await prisma.staff.update({ where: { id: staffMember.id }, data: { failedAttempts: 0, lockedUntil: null } });
 
-        const fingerprint = generateFingerprint({ headers: req.headers, ip });
-        const token = signToken({
+        const fingerprint = await generateFingerprint({ headers: req.headers, ip });
+        const token = await signToken({
             staffId: staffMember.id,
             weddingId: staffMember.weddingId,
             role: ROLES.EVENT_STAFF,
             name: staffMember.name
         }, { fingerprint, expiresIn: "12h" });
 
+        const cookieSecure = isSecureCookie(req);
+        console.log(`[Auth Staff Login] Cookie Secure Flag: ${cookieSecure}, Host: ${req.headers.get("host")}`);
+
         const response = NextResponse.json({ success: true });
         response.cookies.set("staff_token", token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
+            secure: cookieSecure,
             maxAge: 60 * 60 * 12,
             path: "/",
             sameSite: "lax"

@@ -1,8 +1,9 @@
 import { useState } from 'react';
 
 interface UseCloudinaryOptions {
-    onSuccess?: (urls: string[]) => void;
+    onSuccess?: (items: { url: string; publicId: string }[]) => void;
     onError?: (error: any) => void;
+    folder?: string;
 }
 
 export function useCloudinary(options: UseCloudinaryOptions = {}) {
@@ -62,7 +63,7 @@ export function useCloudinary(options: UseCloudinaryOptions = {}) {
 
         const totalFiles = filesArray.length;
         let completedFiles = 0;
-        const uploadedUrls: string[] = [];
+        const uploadedItems: { url: string; publicId: string }[] = [];
 
         try {
             const uploadPromises = filesArray.map(async (file) => {
@@ -71,12 +72,14 @@ export function useCloudinary(options: UseCloudinaryOptions = {}) {
                     const processedFile = file.size > 1024 * 1024 ? await compressImage(file) : file;
 
                     // 2. Get Signature
+                    const timestamp = Math.round((new Date()).getTime() / 1000);
                     const signRes = await fetch('/api/cloudinary/sign', {
                         method: 'POST',
                         body: JSON.stringify({
                             paramsToSign: {
-                                timestamp: Math.round((new Date()).getTime() / 1000),
-                                upload_preset: "wedding_upload"
+                                timestamp,
+                                upload_preset: "wedding_upload",
+                                folder: options.folder
                             }
                         })
                     });
@@ -84,7 +87,6 @@ export function useCloudinary(options: UseCloudinaryOptions = {}) {
                     if (!signRes.ok) throw new Error("Failed to sign upload request");
 
                     const { signature } = await signRes.json();
-                    const timestamp = Math.round((new Date()).getTime() / 1000);
 
                     // 3. Upload to Cloudinary
                     const formData = new FormData();
@@ -93,6 +95,7 @@ export function useCloudinary(options: UseCloudinaryOptions = {}) {
                     formData.append("timestamp", timestamp.toString());
                     formData.append("signature", signature);
                     formData.append("upload_preset", "wedding_upload");
+                    if (options.folder) formData.append("folder", options.folder);
 
                     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
                     if (!cloudName) throw new Error("Cloudinary Cloud Name is missing");
@@ -105,11 +108,11 @@ export function useCloudinary(options: UseCloudinaryOptions = {}) {
                     if (!uploadRes.ok) throw new Error("Cloudinary upload failed");
 
                     const result = await uploadRes.json();
-
+                    
                     completedFiles++;
                     setProgress(Math.round((completedFiles / totalFiles) * 100));
 
-                    return result.secure_url;
+                    return { url: result.secure_url, publicId: result.public_id };
                 } catch (err) {
                     console.error("Single file upload failed", err);
                     return null;
@@ -117,13 +120,13 @@ export function useCloudinary(options: UseCloudinaryOptions = {}) {
             });
 
             const results = await Promise.all(uploadPromises);
-            const successUrls = results.filter((url): url is string => url !== null);
+            const successItems = results.filter((item): item is { url: string; publicId: string } => item !== null);
 
             if (options.onSuccess) {
-                options.onSuccess(successUrls);
+                options.onSuccess(successItems);
             }
 
-            return successUrls;
+            return successItems;
 
         } catch (err) {
             console.error("Upload error:", err);

@@ -1,124 +1,76 @@
 "use client";
-import { useEffect, useState } from "react";
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Gift, Monitor, Users, DollarSign, Activity, Printer } from "lucide-react";
+import { Plus, Gift, Monitor, Printer, Eye, EyeOff, Search, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
-import useSWR from "swr";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { GiftForm } from "./gift-form";
 import Link from "next/link";
-import { TableSkeleton } from "../_components/SkeletonComponents";
+
+// Extracted Components
+import { GiftSummaryCards } from "./components/GiftSummaryCards";
+import { MobileGiftList } from "./components/MobileGiftList";
+import { DesktopGiftTable } from "./components/DesktopGiftTable";
+import { OfflineSyncBanner } from "./components/OfflineSyncBanner";
+
+// Extracted Hook
+import { useGiftsPage } from "./hooks/useGiftsPage";
 
 export default function GiftPage() {
-    // ... (existing state) ...
-    const [gifts, setGifts] = useState<any[]>([]);
-    const [userRole, setUserRole] = useState<"admin" | "staff" | null>(null);
-    const [open, setOpen] = useState(false);
-    const [loading, setLoading] = useState(true);
-    const [visibleCount, setVisibleCount] = useState(20);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-    const [offlineCount, setOfflineCount] = useState(0);
-    const [isSyncing, setIsSyncing] = useState(false);
+    // Using the extracted hook
+    const {
+        wedding,
+        sortedGifts,
+        userRole,
+        loading,
+        visibleCount,
+        setVisibleCount,
+        offlineCount,
+        isSyncing,
+        sortConfig,
+        toggleSort,
+        syncOfflineGifts,
+        clearOfflineQueue,
+        handlePrint,
+        exportExcel,
+        toggleShowGifts,
+        totals,
+        refresh,
+        searchQuery,
+        setSearchQuery
+    } = useGiftsPage(() => setIsDialogOpen(false));
 
-    // Wedding data for branding
-    const { data: wedding = null } = useSWR("/api/wedding", (url) => fetch(url).then(res => res.json()).catch(() => null), { refreshInterval: 60000 });
+    // Manual Khmer Date Formatter for robustness
+    const formatKhmerDate = (date: Date | string | undefined) => {
+        if (!date) return "";
+        const d = new Date(date);
+        const day = d.getDate();
+        const monthIndex = d.getMonth();
+        const year = d.getFullYear();
+        const dayOfWeek = d.getDay();
+        
+        const khmerDays = [
+            "អាទិត្យ", "ច័ន្ទ", "អង្គារ", "ពុធ", "ព្រហស្បតិ៍", "សុក្រ", "សៅរ៍"
+        ];
+        
+        const khmerMonths = [
+            "មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា",
+            "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"
+        ];
+        
+        const khmerDigits = ["០", "១", "២", "៣", "៤", "៥", "៦", "៧", "៨", "៩"];
+        const toKhmerNum = (num: number) => String(num).split('').map(digit => khmerDigits[parseInt(digit)] || digit).join('');
 
-    // ... (existing fetchGifts, checkOfflineQueue, syncOfflineGifts) ...
-    async function fetchGifts() {
-        setLoading(true);
-        try {
-            const res = await fetch("/api/gifts");
-            if (res.ok) {
-                const data = await res.json();
-                if (Array.isArray(data)) {
-                    setGifts(data);
-                } else {
-                    setGifts(data.gifts || []);
-                    setUserRole(data.role);
-                }
-            }
-        } catch (e) {
-            console.error(e);
-        }
-        setLoading(false);
-        checkOfflineQueue();
-    }
-
-    function checkOfflineQueue() {
-        const queue = JSON.parse(localStorage.getItem('gift_offline_queue') || "[]");
-        setOfflineCount(queue.length);
-    }
-
-    async function syncOfflineGifts() {
-        setIsSyncing(true);
-        const queue = JSON.parse(localStorage.getItem('gift_offline_queue') || "[]");
-        const failed = [];
-        let successCount = 0;
-
-        for (const gift of queue) {
-            try {
-                const res = await fetch("/api/gifts", {
-                    method: "POST",
-                    body: JSON.stringify(gift),
-                });
-                if (res.ok) {
-                    successCount++;
-                } else {
-                    failed.push(gift);
-                }
-            } catch (e) {
-                failed.push(gift);
-            }
-        }
-
-        localStorage.setItem('gift_offline_queue', JSON.stringify(failed));
-        setOfflineCount(failed.length);
-        setIsSyncing(false);
-        fetchGifts();
-
-        if (failed.length === 0) {
-            // Optional: Success Toast
-        }
-    }
-
-    useEffect(() => { fetchGifts(); }, []);
-
-    const [sortConfig, setSortConfig] = useState({ key: 'createdAt', direction: 'desc' });
-    // ... (existing sortConfig) ...
-
-    const sortedGifts = [...gifts].sort((a, b) => {
-        if (sortConfig.key === 'createdAt') {
-            return sortConfig.direction === 'asc'
-                ? new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-                : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        }
-        return 0;
-    });
-
-    const toggleSort = () => {
-        setSortConfig(current => ({
-            key: 'createdAt',
-            direction: current.direction === 'asc' ? 'desc' : 'asc'
-        }));
-    };
-
-    // Calculate totals
-    const totalUSD = gifts.reduce((acc, g) => g.currency === 'USD' ? acc + g.amount : acc, 0);
-    const totalKHR = gifts.reduce((acc, g) => g.currency === 'KHR' ? acc + g.amount : acc, 0);
-
-    const handlePrint = () => {
-        const originalTitle = document.title;
-        document.title = ""; // Clear title to hide from browser print header
-        window.print();
-        document.title = originalTitle;
+        return `ថ្ងៃ${khmerDays[dayOfWeek]} ទី${toKhmerNum(day)} ខែ${khmerMonths[monthIndex]} ឆ្នាំ ${toKhmerNum(year)}`;
     };
 
     return (
-        <div className="space-y-10 pb-10 print:p-0 print:m-0 print:bg-white print:text-black">
+        <div className="space-y-6 pb-10 print:p-0 print:m-0 print:bg-white print:text-black min-h-screen">
             <style dangerouslySetInnerHTML={{
                 __html: `
                 @media print {
@@ -131,6 +83,65 @@ export default function GiftPage() {
                     }
                     .print-break-after { page-break-after: always; }
                     .print-no-break { page-break-inside: avoid; }
+                    @media print {
+                        @page { 
+                            margin: 1.5cm 1.5cm 1.5cm 2.5cm; /* Top, Right, Bottom, Left (Gutter for binding) */
+                            size: A4 portrait; 
+                        }
+                        
+                        /* NUCLEAR RESET: Force Light Mode for EVERYTHING in print */
+                        html, body, #__next, main, div, section, p, span, table, tr, td, th {
+                            color-scheme: light !important;
+                            background-color: white !important;
+                            background: white !important;
+                            color: black !important;
+                            -webkit-print-color-adjust: exact !important;
+                            print-color-adjust: exact !important;
+                        }
+
+                        /* Reset all theme variables to Light Mode values specifically for print */
+                        :root, .dark, [data-theme='dark'], body.dark {
+                            --background: 0 0% 100% !important;
+                            --foreground: 0 0% 3.9% !important;
+                            --card: 0 0% 100% !important;
+                            --card-foreground: 0 0% 3.9% !important;
+                            --popover: 0 0% 100% !important;
+                            --popover-foreground: 0 0% 3.9% !important;
+                            --primary: 0 0% 9% !important;
+                            --primary-foreground: 0 0% 98% !important;
+                            --secondary: 0 0% 96.1% !important;
+                            --secondary-foreground: 0 0% 9% !important;
+                            --muted: 0 0% 96.1% !important;
+                            --muted-foreground: 0 0% 45.1% !important;
+                            --accent: 0 0% 96.1% !important;
+                            --accent-foreground: 0 0% 9% !important;
+                            --destructive: 0 84.2% 60.2% !important;
+                            --destructive-foreground: 0 0% 98% !important;
+                            --border: 0 0% 89.8% !important;
+                            --input: 0 0% 89.8% !important;
+                            --ring: 0 0% 3.9% !important;
+                        }
+
+                        /* Ensure borders remain visible but light */
+                        * { 
+                            border-color: #e5e7eb !important;
+                            text-shadow: none !important;
+                            box-shadow: none !important;
+                        }
+
+                        /* Maintain visibility for critical UI elements that should keep colors (like amount badges) */
+                        .bg-emerald-50, .bg-indigo-50, .text-emerald-700, .text-indigo-700 {
+                             -webkit-print-color-adjust: exact !important;
+                             print-color-adjust: exact !important;
+                        }
+
+                        header, nav, aside, footer:not(.print-footer), .print-hidden, .fab-container {
+                            display: none !important;
+                        }
+
+                        table { border-collapse: collapse !important; width: 100% !important; }
+                        th, td { border: 1px solid #e5e7eb !important; padding: 10px !important; }
+                    }
                 }
                 /* Hide number input spinners */
                 input::-webkit-outer-spin-button,
@@ -144,90 +155,88 @@ export default function GiftPage() {
             ` }} />
 
             {/* --- PRINT ONLY HEADER --- */}
-            <div className="hidden print:block mb-8 text-center pt-[2cm]">
-                <div className="flex justify-center mb-8">
-                    <MoneaLogo showText size="xl" />
+                <div className="hidden print:block text-center pt-8 mb-2">
+                    <h1 className="text-3xl font-black tracking-[0.25em] text-rose-600 font-sans">MONEA</h1>
+                    <div className="h-0.5 w-12 bg-rose-200 mx-auto mt-3 opacity-50" />
                 </div>
-                <div className="space-y-2">
-                    <h1 className="text-3xl font-black font-kantumruy tracking-tight">របាយការណ៍សរុប និងបញ្ជីចំណងដៃ</h1>
-                    {wedding?.groomName && wedding?.brideName && (
-                        <p className="text-lg font-bold font-kantumruy text-gray-600">
-                            អាពាហ៍ពិពាហ៍ {wedding.groomName} និង {wedding.brideName}
+
+                {/* Print Title Only */}
+                <div className="hidden print:block mb-8 text-center pt-4">
+                    <h1 className="text-3xl font-black text-slate-900 mb-2 font-kantumruy">របាយការណ៍សរុប និងបញ្ជីចំណងដៃ</h1>
+                    <p className="text-xl text-slate-500 font-bold font-kantumruy">អាពាហ៍ពិពាហ៍ {wedding?.groomNameKh || wedding?.groomName || '...'} និង {wedding?.brideNameKh || wedding?.brideName || '...'}</p>
+                    {wedding?.date && (
+                        <p className="text-lg text-slate-400 font-bold font-kantumruy mt-1">
+                            {formatKhmerDate(wedding.date)}
                         </p>
                     )}
                 </div>
-                <div className="w-32 h-1 bg-red-600 mx-auto mt-6 rounded-full opacity-20" />
-            </div>
 
-            {/* --- PRINT ONLY SUMMARY (Redesigned for Elegance) --- */}
-            <div className="hidden print:flex flex-col mb-12 border border-gray-100 rounded-[2rem] overflow-hidden">
-                <div className="bg-gray-50/50 p-6 border-b border-gray-100">
-                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Financial Summary</p>
-                    <h3 className="font-bold text-gray-900 font-kantumruy">សេចក្តីសង្ខេបចំណងដៃសរុប</h3>
-                </div>
-                <div className="grid grid-cols-2 divide-x divide-gray-100 italic">
-                    <div className="p-8 space-y-2">
-                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">សាច់ប្រាក់ដុល្លារ (Total USD)</p>
-                        <p className="text-2xl font-black text-foreground">${totalUSD.toLocaleString()}</p>
+                {/* PRINT ONLY SUMMARY - Premium Version */}
+                <div className="hidden print:block mb-8">
+                    <div className="grid grid-cols-3 gap-0 border border-slate-100 rounded-3xl overflow-hidden shadow-sm">
+                        <div className="bg-rose-50/30 p-6 border-r border-slate-100">
+                            <p className="text-[10px] text-rose-400 font-black uppercase tracking-widest mb-1.5 font-kantumruy">សរុបភ្ញៀវ</p>
+                            <p className="text-2xl font-black text-slate-900 font-kantumruy">{sortedGifts.length} នាក់</p>
+                        </div>
+                        <div className="bg-amber-50/40 p-6 border-r border-slate-100">
+                            <p className="text-[10px] text-amber-600/60 font-black uppercase tracking-widest mb-1.5 font-kantumruy">សាច់ប្រាក់ដុល្លារ</p>
+                            <div className="flex items-baseline gap-1">
+                                <span className="text-lg font-black text-amber-600">$</span>
+                                <span className="text-3xl font-black text-slate-900 font-kantumruy">{totals.usd.toLocaleString()}</span>
+                            </div>
+                        </div>
+                        <div className="bg-slate-50/50 p-6">
+                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1.5 font-kantumruy">សាច់ប្រាក់រៀល</p>
+                            <div className="flex items-baseline gap-1">
+                                <span className="text-3xl font-black text-slate-900 font-kantumruy">{totals.khr.toLocaleString()}</span>
+                                <span className="text-lg font-black text-slate-400">៛</span>
+                            </div>
+                        </div>
                     </div>
-                    <div className="p-8 space-y-2 text-right">
-                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">សាច់ប្រាក់រៀល (Total KHR)</p>
-                        <p className="text-2xl font-black text-foreground">{totalKHR.toLocaleString()} ៛</p>
-                    </div>
                 </div>
-            </div>
 
-            {offlineCount > 0 && (
-                <div className="bg-orange-50 dark:bg-orange-950/20 border border-orange-100 dark:border-orange-900/50 rounded-[1.5rem] p-6 flex justify-between items-center shadow-lg shadow-orange-500/5 dark:shadow-none" role="alert">
-                    <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-600">
-                            <Activity size={20} className="animate-pulse" />
+            {/* Offline Sync Banner */}
+            <OfflineSyncBanner
+                count={offlineCount}
+                isSyncing={isSyncing}
+                onSync={syncOfflineGifts}
+                onClear={clearOfflineQueue}
+            />
+
+            {/* Header Area */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden -mt-4">
+                <div className="flex-1 space-y-1">
+                    <div className="flex items-center gap-2">
+                        <div className="bg-rose-500/10 p-2 rounded-xl">
+                            <Gift className="w-5 h-5 text-rose-600" />
                         </div>
                         <div>
-                            <p className="font-black text-foreground font-kantumruy">ទិន្នន័យ Offline មិនទាន់បានរក្សាទុក</p>
-                            <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">អ្នកមាន {offlineCount} ចំណងដៃដែលត្រូវ Sync</p>
+                            <h1 className="text-xl md:text-2xl font-black text-foreground font-kantumruy leading-none">
+                                ការត្រួតពិនិត្យចំណងដៃ
+                            </h1>
+                            <p className="text-[10px] md:text-[11px] text-muted-foreground font-medium uppercase tracking-[0.1em] mt-1">
+                                Gift & Guest Management System
+                            </p>
                         </div>
                     </div>
-                    <div className="flex gap-3">
-                        <Button
-                            onClick={() => {
-                                localStorage.removeItem('gift_offline_queue');
-                                setOfflineCount(0);
-                            }}
-                            variant="ghost"
-                            className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl font-bold font-kantumruy"
-                        >
-                            សម្អាត
-                        </Button>
-                        <Button
-                            onClick={syncOfflineGifts}
-                            disabled={isSyncing}
-                            className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-11 px-6 font-bold shadow-lg shadow-red-100 dark:shadow-none font-kantumruy"
-                        >
-                            {isSyncing ? "Syncing..." : "Sync ឥឡូវនេះ"}
-                        </Button>
-                    </div>
                 </div>
-            )}
 
-            {/* Header Area (Hidden in Print) */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden">
-                <div className="space-y-1">
-                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-red-600 mb-1">
-                        <Gift size={12} />
-                        Gift Tracking
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <h2 className="text-2xl md:text-3xl font-black tracking-tight text-foreground font-kantumruy">
-                            បញ្ជីចំណងដៃ
-                        </h2>
-                        <span className="hidden sm:inline-flex px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 text-[10px] font-black tracking-widest uppercase">
-                            Gifts
-                        </span>
-                    </div>
-                </div>
 
                 <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <Button
+                        variant="outline"
+                        onClick={toggleShowGifts}
+                        className={cn(
+                            "h-9 md:h-10 px-4 md:px-6 rounded-xl font-kantumruy font-bold transition-all flex-1 sm:flex-none text-[11px] md:text-sm shadow-sm",
+                            wedding?.themeSettings?.showGiftAmounts === false
+                                ? "bg-amber-500/10 text-amber-500 border-amber-500/20 hover:bg-amber-500/20"
+                                : "bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground border-none"
+                        )}
+                    >
+                        {wedding?.themeSettings?.showGiftAmounts === false ? <Eye className="mr-2 h-3.5 w-3.5" /> : <EyeOff className="mr-2 h-3.5 w-3.5" />}
+                        {wedding?.themeSettings?.showGiftAmounts === false ? "បង្ហាញចំនួនប្រាក់" : "លាក់ចំនួនប្រាក់"}
+                    </Button>
+
                     <Link href="/dashboard/gifts/live" target="_blank" prefetch={false} className="flex-1 sm:flex-none">
                         <Button variant="outline" className="w-full h-9 md:h-10 px-4 md:px-6 border-none bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground rounded-xl font-kantumruy font-bold transition-all text-[11px] md:text-sm shadow-sm">
                             <Monitor className="mr-2 h-3.5 w-3.5" /> Live
@@ -235,300 +244,143 @@ export default function GiftPage() {
                     </Link>
 
                     <Button
-                        variant="ghost"
+                        variant="outline"
+                        onClick={exportExcel}
+                        className="h-9 md:h-10 px-4 md:px-6 border-none bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground rounded-xl font-kantumruy font-bold transition-all flex-1 sm:flex-none text-[11px] md:text-sm shadow-sm"
+                    >
+                        <Plus className="mr-2 h-3.5 w-3.5 text-blue-600 rotate-45" aria-hidden="true" /> 
+                        <span className="hidden sm:inline">Excel</span>
+                        <span className="sm:hidden text-[10px]">Excel</span>
+                    </Button>
+
+                    <Button
+                        variant="outline"
                         onClick={handlePrint}
                         className="h-9 md:h-10 px-4 md:px-6 bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground rounded-xl font-kantumruy font-bold transition-all flex-1 sm:flex-none text-[11px] md:text-sm shadow-sm"
                     >
                         <Printer className="mr-2 h-3.5 w-3.5 text-muted-foreground" /> PDF
                     </Button>
 
-                    <Dialog open={open} onOpenChange={setOpen}>
+                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                         <DialogTrigger asChild>
-                            <Button className="h-9 md:h-10 px-4 md:px-6 bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-lg shadow-red-100 dark:shadow-none transition-all font-kantumruy font-bold flex-1 sm:flex-none text-[11px] md:text-sm">
+                            <Button className="h-9 md:h-10 px-4 md:px-6 bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-lg shadow-rose-100 dark:shadow-none transition-all font-kantumruy font-bold flex-1 sm:flex-none text-[11px] md:text-sm">
                                 <Plus className="mr-2 h-4 w-4" /> <span className="sm:hidden">ថ្មី</span><span className="hidden sm:inline">កត់ត្រាថ្មី</span>
                             </Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-[480px] rounded-3xl border-none shadow-2xl p-4 pt-10 md:p-8 md:pt-14 bg-card">
-                            <VisuallyHidden.Root>
-                                <DialogTitle>កត់ត្រាចំណងដៃថ្មី (Add New Gift)</DialogTitle>
-                                <DialogDescription>
-                                    បំពេញព័ត៌មានដើម្បីកត់ត្រាចំណងដដៃថ្មី (Fill in the details to add a new gift record)
-                                </DialogDescription>
-                            </VisuallyHidden.Root>
+                            <DialogTitle className="sr-only">កត់ត្រាចំណងដៃថ្មី (Add New Gift)</DialogTitle>
+                            <DialogDescription className="sr-only">
+                                បំពេញព័ត៌មានដើម្បីកត់ត្រាចំណងដដៃថ្មី (Fill in the details to add a new gift record)
+                            </DialogDescription>
                             <GiftForm
-                                onSuccess={() => fetchGifts()}
-                                onDone={() => setOpen(false)}
+                                onSuccess={() => refresh()}
+                                onDone={() => setIsDialogOpen(false)}
                             />
                         </DialogContent>
                     </Dialog>
                 </div>
             </div>
 
-            {/* Summary Cards (Hidden in Print) */}
-            {userRole !== "staff" && (
-                <div className="grid gap-2 grid-cols-3 print:hidden">
-                    {[
-                        { label: "ភ្ញៀវ", value: gifts.length, sub: "នាក់", color: "text-foreground", icon: Users },
-                        { label: "សាច់ប្រាក់ $", value: "$" + totalUSD.toLocaleString(), sub: "USD", color: "text-emerald-600 dark:text-emerald-400", icon: DollarSign },
-                        { label: "សាច់ប្រាក់ ៛", value: totalKHR.toLocaleString() + " ៛", sub: "KHR", color: "text-indigo-600 dark:text-indigo-400", icon: Gift },
-                    ].map((stat, i) => (
-                        <Card key={i} className="border-none shadow-[0_4px_24px_rgba(0,0,0,0.07)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.2)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.12)] transition-all rounded-2xl overflow-hidden group bg-card">
-                            <CardContent className="p-3 md:p-6 text-center">
-                                <p className="text-[8px] md:text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 flex items-center justify-center gap-1">
-                                    <stat.icon size={10} className="opacity-30" />
-                                    {stat.label}
-                                </p>
-                                <div className={cn("text-sm md:text-2xl font-black font-kantumruy mb-1", stat.color)}>
-                                    {loading ? "..." : stat.value}
-                                </div>
-                                <p className="text-[8px] font-bold text-muted-foreground/30 uppercase tracking-widest">{stat.sub}</p>
-                            </CardContent>
-                        </Card>
-                    ))}
+            {/* Summary Cards */}
+            <GiftSummaryCards
+                totalGuests={sortedGifts.length}
+                totalUSD={totals.usd}
+                totalKHR={totals.khr}
+                loading={loading}
+                userRole={userRole}
+                showGiftAmounts={wedding?.themeSettings?.showGiftAmounts !== false}
+            />
+
+            {/* Search Toolbar */}
+            <div className="flex items-center justify-end gap-4 print:hidden px-2 -mt-6 mb-3">
+                <div className="w-full max-w-md relative group">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground transition-colors group-focus-within:text-rose-500" />
+                    <Input
+                        placeholder="ស្វែងរកតាមឈ្មោះ ឬ លេខរៀង..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-11 pr-10 h-12 rounded-2xl border-none bg-card shadow-[0_4px_20px_rgba(0,0,0,0.05)] dark:shadow-none focus-visible:ring-rose-500/20 font-kantumruy text-sm"
+                    />
+                    {searchQuery && (
+                        <button 
+                            onClick={() => setSearchQuery("")}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                            <X size={16} />
+                        </button>
+                    )}
                 </div>
-            )}
+            </div>
 
             {/* List Section */}
-            <div className="bg-card rounded-[2rem] shadow-[0_4px_24px_rgba(0,0,0,0.07)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.2)] overflow-hidden min-h-[400px] border-none">
-                {/* Mobile Card List View */}
-                <div className="md:hidden p-3 space-y-2 print:hidden">
-                    {/* Mobile Column Headers — 5 columns: ID, Name, Amount, Method, Time */}
-                    <div className="grid px-4 pb-1.5 opacity-50 gap-2 items-center" style={{ gridTemplateColumns: '24px 1.5fr 1fr auto 60px' }}>
-                        <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">ល.រ</span>
-                        <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">ឈ្មោះភ្ញៀវ</span>
-                        <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest text-center">ចំនួនទឹកប្រាក់</span>
-                        <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest text-right">វិធីសាស្ត្រ</span>
-                        <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest text-right">ម៉ោង</span>
-                    </div>
+            <div className="bg-card rounded-[2rem] shadow-[0_4px_24px_rgba(0,0,0,0.07)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.2)] overflow-hidden min-h-[400px] border-none print:shadow-none print:bg-white print:rounded-none">
+                <MobileGiftList
+                    gifts={sortedGifts}
+                    loading={loading}
+                    visibleCount={visibleCount}
+                    setVisibleCount={setVisibleCount}
+                    showGiftAmounts={wedding?.themeSettings?.showGiftAmounts !== false}
+                />
 
-                    {loading ? (
-                        <div className="p-20 text-center">
-                            <div className="w-8 h-8 border-4 border-red-600/20 border-t-red-600 rounded-full animate-spin mx-auto mb-4" />
-                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">កំពុងផ្ទុក...</p>
-                        </div>
-                    ) : gifts.length === 0 ? (
-                        <div className="p-20 text-center opacity-30">
-                            <Gift size={40} className="mx-auto mb-2" />
-                            <p className="font-kantumruy font-bold">មិនមានទិន្នន័យឡើយ</p>
-                        </div>
-                    ) : (
-                        sortedGifts.slice(0, visibleCount).map((g, index) => {
-                            const displayId = index + 1;
-                            return (
-                                <div key={g.id} className="bg-background rounded-2xl px-4 py-3 shadow-[0_2px_12px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.2)] grid items-center min-h-[52px] gap-2" style={{ gridTemplateColumns: '24px 1.5fr 1fr auto 60px' }}>
-                                    {/* Col 0: Sequence Number (ID) */}
-                                    <div className="flex items-center">
-                                        <span className="text-[10px] font-bold text-muted-foreground/50 font-mono">
-                                            {String(displayId).padStart(2, '0')}
-                                        </span>
-                                    </div>
-
-                                    {/* Col 1: Guest Name */}
-                                    <div className="min-w-0">
-                                        <span className="font-bold text-foreground font-kantumruy text-sm truncate block">
-                                            {g.guest?.name || <span className="text-muted-foreground/30 italic">មិនស្គាល់</span>}
-                                        </span>
-                                    </div>
-
-                                    {/* Col 2: Amount (Center) */}
-                                    <div className="flex justify-center flex-col items-center">
-                                        <span className={cn(
-                                            "px-2 py-0.5 rounded-md text-[11px] font-bold tracking-tight shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none",
-                                            g.currency === "USD"
-                                                ? "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400"
-                                                : "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400"
-                                        )}>
-                                            {g.currency === "USD" ? "$" : "៛"} {g.amount.toLocaleString()}
-                                        </span>
-                                    </div>
-
-                                    {/* Col 3: Method */}
-                                    <div className="flex items-center justify-end">
-                                        <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-tight bg-muted px-2 py-1 rounded-lg">
-                                            {g.method || "Cash"}
-                                        </span>
-                                    </div>
-
-                                    {/* Col 4: Time (Last position) */}
-                                    <div className="flex justify-end items-center">
-                                        <span className="text-[11px] font-bold text-muted-foreground font-kantumruy uppercase">
-                                            {new Date(g.createdAt).toLocaleTimeString("km-KH", { hour: '2-digit', minute: '2-digit', hour12: true })}
-                                        </span>
-                                    </div>
-                                </div>
-                            );
-                        })
-                    )}
-                    {sortedGifts.length > visibleCount && (
-                        <div className="pt-4 flex justify-center">
-                            <Button
-                                variant="outline"
-                                onClick={() => setVisibleCount(prev => prev + 50)}
-                                className="w-full h-12 rounded-2xl border-dashed border-2 border-border text-muted-foreground font-kantumruy font-bold hover:bg-muted/50"
-                            >
-                                <Plus size={16} className="mr-2" /> បង្ហាញបន្ថែម ({sortedGifts.length - visibleCount})
-                            </Button>
-                        </div>
-                    )}
-                </div>
-
-                {/* Desktop Table View */}
-                <div className="hidden md:block overflow-x-auto print:block">
-                    <Table className="print:border-collapse">
-                        <TableHeader className="bg-muted/50 print:bg-gray-50">
-                            {/* Repeating spacer for subsequent pages */}
-                            <TableRow className="hidden print:table-row border-none hover:bg-transparent">
-                                <TableHead colSpan={5} className="h-[2cm] p-0 border-none" />
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {/* Column Titles - First Page Only */}
-                            <TableRow className="border-none print:border-gray-200 hover:bg-transparent hidden print:table-row">
-                                <TableHead className="h-14 px-8 text-[10px] print:text-black font-black text-muted-foreground uppercase tracking-widest w-20 border-r border-none print:border-gray-200">ល.រ</TableHead>
-                                <TableHead className="h-14 px-8 text-[10px] print:text-black font-black text-muted-foreground uppercase tracking-widest border-none print:border-gray-200">ឈ្មោះភ្ញៀវ</TableHead>
-                                <TableHead className="h-14 px-8 text-[10px] print:text-black font-black text-muted-foreground uppercase tracking-widest border-none print:border-gray-200">ចំនួនទឹកប្រាក់</TableHead>
-                                <TableHead className="h-14 px-8 text-[10px] print:text-black font-black text-muted-foreground uppercase tracking-widest border-none print:border-gray-200">វិធីសាស្ត្រ</TableHead>
-                                <TableHead className="h-14 px-8 text-[10px] print:text-black font-black text-muted-foreground uppercase tracking-widest text-right">កាលបរិច្ឆេទ</TableHead>
-                            </TableRow>
-                            {/* Original Web Header Row (Hidden in Print) */}
-                            <TableRow className="border-none print:hidden hover:bg-transparent">
-                                <TableHead className="h-14 px-8 text-[10px] font-black text-muted-foreground uppercase tracking-widest w-20">ល.រ</TableHead>
-                                <TableHead className="h-14 px-8 text-[10px] font-black text-muted-foreground uppercase tracking-widest">ឈ្មោះភ្ញៀវ</TableHead>
-                                <TableHead className="h-14 px-8 text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center">ចំនួនទឹកប្រាក់</TableHead>
-                                <TableHead className="h-14 px-8 text-[10px] font-black text-muted-foreground uppercase tracking-widest">វិធីសាស្ត្រ</TableHead>
-                                <TableHead
-                                    className="h-14 px-8 text-[10px] font-black text-muted-foreground uppercase tracking-widest text-right cursor-pointer hover:text-foreground transition-colors select-none group"
-                                    onClick={toggleSort}
-                                >
-                                    <div className="flex items-center justify-end gap-2">
-                                        កាលបរិច្ឆេទ
-                                        <span className="text-muted-foreground/30 group-hover:text-red-600 transition-colors">
-                                            {sortConfig.direction === 'asc' ? '↑' : '↓'}
-                                        </span>
-                                    </div>
-                                </TableHead>
-                            </TableRow>
-                            {loading ? (
-                                <TableRow>
-                                    <TableCell colSpan={5} className="p-8">
-                                        <TableSkeleton />
-                                    </TableCell>
-                                </TableRow>
-                            ) : gifts.length === 0 ? (
-                                <TableRow>
-                                    <TableCell colSpan={5} className="p-12">
-                                        <div className="max-w-md mx-auto bg-muted border-2 border-dashed border-border rounded-[2.5rem] p-10 text-center group hover:border-red-200 dark:hover:border-red-900/50 transition-all">
-                                            <div className="w-20 h-20 bg-card shadow-sm rounded-full flex items-center justify-center text-muted-foreground/30 mx-auto mb-6 group-hover:scale-110 transition-transform duration-500">
-                                                <Gift className="w-10 h-10" />
-                                            </div>
-                                            <h3 className="text-xl font-black text-foreground mb-2 font-kantumruy">មិនទាន់មានទិន្នន័យឡើយ</h3>
-                                            <p className="text-muted-foreground mb-10 font-medium font-kantumruy">ចាប់ផ្តើមចំណងដៃដំបូងរបស់អ្នកដោយចុចប៊ូតុងខាងក្រោម។</p>
-
-                                            <Button
-                                                onClick={() => setOpen(true)}
-                                                className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-12 px-10 font-bold shadow-lg shadow-red-100 dark:shadow-none transition-all font-kantumruy"
-                                            >
-                                                កត់ត្រាឥឡូវនេះ
-                                            </Button>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            ) : (
-                                sortedGifts.map((g, index) => {
-                                    const displayId = sortConfig.direction === 'asc'
-                                        ? index + 1
-                                        : sortedGifts.length - index;
-
-                                    return (
-                                        <TableRow key={g.id} className="border-none print:border-gray-100 hover:bg-muted/50 transition-colors group">
-                                            <TableCell className="px-8 py-5 text-muted-foreground print:text-slate-900 font-bold font-mono text-[10px] print:border-r print:border-gray-100">
-                                                {String(index + 1).padStart(2, '0')}
-                                            </TableCell>
-                                            <TableCell className="px-8 py-5 print:border-r print:border-gray-100">
-                                                <span className="font-bold text-foreground font-kantumruy">
-                                                    {g.guest?.name || <span className="text-muted-foreground/30 italic">មិនស្គាល់</span>}
-                                                </span>
-                                            </TableCell>
-                                            <TableCell className="px-8 py-5 print:border-r print:border-gray-100 text-center">
-                                                <span className={cn(
-                                                    "px-3 py-1 rounded-full text-[10px] font-black tracking-widest shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none print:shadow-none print:bg-transparent print:text-slate-900",
-                                                    g.currency === "USD" ? "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400" : "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400"
-                                                )}>
-                                                    {g.currency === "USD" ? "$" : "៛"} {g.amount.toLocaleString()}
-                                                </span>
-                                            </TableCell>
-                                            <TableCell className="px-8 py-5 print:border-r print:border-gray-100">
-                                                <span className="text-[10px] font-bold text-muted-foreground print:text-slate-900 uppercase tracking-widest bg-muted print:bg-transparent px-3 py-1 rounded-lg">
-                                                    {g.method || "Cash"}
-                                                </span>
-                                            </TableCell>
-                                            <TableCell className="px-8 py-5 text-right tabular-nums">
-                                                <div className="flex flex-col items-end">
-                                                    <span className="text-xs font-bold text-foreground font-mono">
-                                                        {new Date(g.createdAt).toLocaleDateString("km-KH")}
-                                                    </span>
-                                                    <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
-                                                        {new Date(g.createdAt).toLocaleTimeString("km-KH", { hour: '2-digit', minute: '2-digit', hour12: false })}
-                                                    </span>
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    );
-                                })
-                            )}
-                        </TableBody>
-                    </Table>
-                    {sortedGifts.length > visibleCount && (
-                        <div className="p-6 border-t border-border flex justify-center print:hidden">
-                            <Button
-                                variant="outline"
-                                onClick={() => setVisibleCount(prev => prev + 50)}
-                                className="w-full max-w-xs h-12 rounded-2xl border-dashed border-2 border-border text-muted-foreground font-kantumruy font-bold hover:bg-muted/50"
-                            >
-                                <Plus size={16} className="mr-2" /> បង្ហាញបន្ថែម ({sortedGifts.length - visibleCount})
-                            </Button>
-                        </div>
-                    )}
-                </div>
+                <DesktopGiftTable
+                    gifts={sortedGifts}
+                    loading={loading}
+                    visibleCount={visibleCount}
+                    setVisibleCount={setVisibleCount}
+                    sortConfig={sortConfig}
+                    toggleSort={toggleSort}
+                    onAddClick={() => setIsDialogOpen(true)}
+                    showGiftAmounts={wedding?.themeSettings?.showGiftAmounts !== false}
+                />
             </div>
+
             {/* --- PRINT ONLY FOOTER --- */}
-            <div className="hidden print:flex flex-col mb-10 pt-6 px-10 mt-12 font-kantumruy font-bold text-sm border-t border-gray-100">
-                <div className="flex justify-between items-start italic opacity-60">
-                    <div className="space-y-1">
-                        <p suppressHydrationWarning className="text-gray-400 uppercase tracking-tight text-[10px]">Date of issue</p>
-                        <p suppressHydrationWarning>{new Date().toLocaleDateString('km-KH')}</p>
+            <div className="hidden print:flex flex-col mb-10 pt-8 px-10 mt-16 font-kantumruy border-t-2 border-slate-100">
+                <div className="flex justify-between items-end">
+                    <div className="space-y-2">
+                        <p suppressHydrationWarning className="text-slate-400 uppercase tracking-[0.15em] text-[9px] font-black">កាលបរិច្ឆេទចេញរបាយការណ៍</p>
+                        <p suppressHydrationWarning className="text-sm font-bold text-slate-900">
+                            {formatKhmerDate(new Date())}
+                        </p>
                     </div>
-                    <div className="text-right space-y-1">
-                        <p className="text-gray-400 uppercase tracking-tight text-[10px]">Digitally Signed & Verified</p>
-                        <p className="text-base text-gray-900">Monea Platform Official Report</p>
+                    
+                    <div className="text-right space-y-2">
+                        <div className="flex items-center justify-end gap-2 mb-1">
+                            <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                            <p className="text-slate-400 uppercase tracking-[0.15em] text-[9px] font-black">សុពលភាពឯកសារ</p>
+                        </div>
+                        <p className="text-sm font-black text-slate-900">របាយការណ៍ចំណងដៃផ្លូវការ - ប្រព័ន្ធ MONEA</p>
                     </div>
                 </div>
-                <div className="mt-20 text-center text-[10px] text-gray-300 uppercase tracking-[0.4em] font-normal">
-                    This document is an official record of the wedding event.
+                
+                <div className="mt-24 text-center">
+                    <p className="text-[10px] text-slate-300 uppercase tracking-[0.5em] font-medium font-kantumruy mb-2">
+                        MONEA PLATFORM • OFFICIAL WEDDING RECORD
+                    </p>
+                    <p className="text-[9px] text-slate-300 font-medium font-kantumruy">
+                        ឯកសារនេះត្រូវបានបង្កើតឡើងដោយស្វ័យប្រវត្តិតាមរយៈប្រព័ន្ធ MONEA និងជាកំណត់ត្រាផ្លូវការនៃពិធីមង្គលការ។
+                    </p>
                 </div>
             </div>
-            {/* --- END PRINT FOOTER --- */}
 
             {/* Mobile Floating Action Button (FAB) */}
             <div className="md:hidden fixed bottom-28 right-6 z-40 print:hidden">
-                <Dialog open={open} onOpenChange={setOpen}>
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
                         <Button
-                            className="w-14 h-14 rounded-2xl bg-red-600 hover:bg-red-700 text-white shadow-[0_12px_40px_-8px_rgba(220,38,38,0.4)] flex items-center justify-center p-0 transition-all border-none"
+                            className="w-14 h-14 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white shadow-[0_12px_40px_-8px_rgba(225,29,72,0.4)] flex items-center justify-center p-0 transition-all border-none"
                         >
                             <Plus size={28} strokeWidth={3} />
                         </Button>
                     </DialogTrigger>
                     <DialogContent className="w-[94vw] max-w-[480px] rounded-3xl border-none shadow-2xl p-4 pt-10 bg-card">
-                        <VisuallyHidden.Root>
-                            <DialogTitle>កត់ត្រាចំណងដៃថ្មី (Add New Gift - Mobile)</DialogTitle>
-                            <DialogDescription>
-                                បំពេញព័ត៌មានដើម្បីកត់ត្រាចំណងដដៃថ្មី (Fill in the details to add a new gift record)
-                            </DialogDescription>
-                        </VisuallyHidden.Root>
+                        <DialogTitle className="sr-only">កត់ត្រាចំណងដៃថ្មី (Add New Gift - Mobile)</DialogTitle>
+                        <DialogDescription className="sr-only">
+                            បំពេញព័ត៌មានដើម្បីកត់ត្រាចំណងដដៃថ្មី (Fill in the details to add a new gift record)
+                        </DialogDescription>
                         <GiftForm
-                            onSuccess={() => fetchGifts()}
-                            onDone={() => setOpen(false)}
+                            onSuccess={() => refresh()}
+                            onDone={() => setIsDialogOpen(false)}
                         />
                     </DialogContent>
                 </Dialog>

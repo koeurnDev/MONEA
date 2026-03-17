@@ -28,7 +28,7 @@ export const InteractiveMap = ({ locationName, mapLink }: InteractiveMapProps) =
                     src={embedUrl}
                     style={{ border: 0, opacity: isLoading ? 0 : 1, transition: 'opacity 0.5s' }}
                     allowFullScreen
-                    loading="lazy"
+                    loading="eager"
                     referrerPolicy="no-referrer-when-downgrade"
                     className="absolute inset-0"
                     onLoad={() => setIsLoading(false)}

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { m } from 'framer-motion';
 import clsx from 'clsx';
@@ -10,19 +9,25 @@ interface Step1TemplateProps {
     wedding: WeddingData;
     updateEventType: (type: 'wedding' | 'anniversary') => void;
     updateTemplate: (templateId: string) => void;
+    packageType?: string | null;
 }
 
 const TEMPLATES = [
-    { id: "vip-premium-khmer", title: "Eternal", categories: ['wedding', 'anniversary'], bgClass: "bg-stone-900 border-[#D4AF37]", textClass: "text-[#D4AF37]", image: "/images/bg_staircase.jpg" },
-    { id: "khmer-legacy", title: "Legacy", categories: ['wedding', 'anniversary'], bgClass: "bg-stone-50", textClass: "text-stone-600", image: "/images/bg_staircase.jpg" },
+    { id: "khmer-legacy", title: "កេរ្តិ៍តំណែលខ្មែរ (Legacy)", categories: ['wedding', 'anniversary'], bgClass: "bg-stone-50", textClass: "text-stone-600", image: "/assets/khmer-legacy/legacy-preview-clean.png", isFree: true },
 ];
 
-const Step1Template: React.FC<Step1TemplateProps> = ({ wedding, updateEventType, updateTemplate }) => {
+const Step1Template: React.FC<Step1TemplateProps> = ({ wedding, updateEventType, updateTemplate, packageType }) => {
+    const isFreePlan = !packageType || packageType === "FREE";
+
+    const handleSelectTemplate = (tmpl: any) => {
+        updateTemplate(tmpl.id);
+    };
+
     return (
         <div className="space-y-4">
             <div className="bg-muted/40 p-4 rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.03)] dark:shadow-none">
                 <h3 className="text-sm font-bold text-foreground font-kantumruy mb-1">ជំហានទី១៖ ជ្រើសរើសប្រភេទកម្មវិធី និងម៉ូដធៀប</h3>
-                <p className="text-xs text-muted-foreground leading-relaxed">សូមជ្រើសរើសប្រភេទកម្មវិធីរបស់អ្នក (មង្គលការ ឬ ខួប) រួចរើសយកម៉ូដដែលអ្នកពេញចិត្ត។</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">សូមជ្រើសរើសប្រភេទកម្មវិធីរបស់អ្នក (មង្គលការ ឬ ខួប)។ បច្ចុប្បន្នយើងផ្ញល់ជូនម៉ូដ Legacy ជាជម្រើសដ៏ល្អបំផុត។</p>
             </div>
 
             <div className="grid grid-cols-2 gap-2 text-[10px] font-bold">
@@ -46,46 +51,43 @@ const Step1Template: React.FC<Step1TemplateProps> = ({ wedding, updateEventType,
                 </button>
             </div>
 
-            <div className="grid grid-cols-3 gap-2">
-                {TEMPLATES
-                    .filter(t => t.categories.includes(wedding.eventType || 'wedding'))
-                    .map((tmpl, idx) => (
-                        <m.div
-                            key={tmpl.id}
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: idx * 0.05 }}
-                            onClick={() => updateTemplate(tmpl.id)}
-                            className={clsx(
-                                "cursor-pointer rounded-xl p-1.5 transition-all duration-300 relative overflow-hidden group shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)]",
-                                (wedding.templateId === tmpl.id || (!wedding.templateId && tmpl.id === 'vip-premium-khmer'))
-                                    ? "bg-red-50 dark:bg-red-950/20 shadow-red-100/50 dark:shadow-none"
-                                    : "bg-muted/40 hover:bg-background"
-                            )}
-                        >
-                            <div className={`aspect-[2/3] ${tmpl.bgClass} rounded-lg mb-2 overflow-hidden shadow-inner flex flex-col items-center justify-center transition-transform duration-500 group-hover:scale-105 relative`}>
-                                <div className="absolute inset-0">
-                                    <Image
-                                        src={tmpl.image}
-                                        alt={tmpl.title}
-                                        fill
-                                        className="object-cover opacity-80 group-hover:opacity-100 transition-opacity"
-                                        sizes="(max-width: 768px) 33vw, 15vw"
-                                        priority
-                                    />
-                                </div>
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                                <div className={`relative z-10 text-center p-1 mt-auto w-full`}>
-                                    <p className="text-white font-bold text-[9px] drop-shadow-md truncate w-full px-1">{tmpl.title}</p>
-                                </div>
+            <div className="grid grid-cols-1 gap-2">
+                {TEMPLATES.map((tmpl, idx) => (
+                    <m.div
+                        key={tmpl.id}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: idx * 0.05 }}
+                        onClick={() => handleSelectTemplate(tmpl)}
+                        className={clsx(
+                            "cursor-pointer rounded-xl p-3 transition-all duration-300 relative overflow-hidden group shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)] border-2",
+                            (wedding.templateId === tmpl.id || (!wedding.templateId && tmpl.id === 'khmer-legacy'))
+                                ? "bg-red-50 border-red-200"
+                                : "bg-muted/40 border-transparent hover:bg-background"
+                        )}
+                    >
+                        <div className="flex items-center gap-4">
+                            <div className={`w-20 aspect-[2/3] ${tmpl.bgClass} rounded-lg overflow-hidden relative shadow-inner`}>
+                                <Image
+                                    src={tmpl.image}
+                                    alt={tmpl.title}
+                                    fill
+                                    className="object-cover"
+                                    sizes="80px"
+                                />
                             </div>
-                            {(wedding.templateId === tmpl.id || (!wedding.templateId && tmpl.id === 'vip-premium-khmer')) && (
-                                <div className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-0.5 shadow-md">
-                                    <Check size={8} strokeWidth={3} />
+                            <div className="flex-1">
+                                <p className="font-bold text-sm text-slate-900">{tmpl.title}</p>
+                                <p className="text-xs text-slate-500">រចនាបថខ្មែរ បែបអភិជន និងទាន់សម័យ</p>
+                            </div>
+                            {(wedding.templateId === tmpl.id || (!wedding.templateId && tmpl.id === 'khmer-legacy')) && (
+                                <div className="bg-red-600 text-white rounded-full p-1 shadow-md">
+                                    <Check size={12} strokeWidth={3} />
                                 </div>
                             )}
-                        </m.div>
-                    ))}
+                        </div>
+                    </m.div>
+                ))}
             </div>
         </div>
     );

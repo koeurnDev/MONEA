@@ -100,8 +100,8 @@ export default function MasterAuditPage() {
                                     <tr key={log.id} className="hover:bg-slate-50/30 transition-colors group">
                                         <td className="px-8 py-6">
                                             <div className="flex flex-col">
-                                                <span className="text-xs font-bold text-slate-900">{new Date(log.createdAt).toLocaleTimeString()}</span>
-                                                <span className="text-[10px] text-slate-400 font-medium">{new Date(log.createdAt).toLocaleDateString()}</span>
+                                                <span className="text-xs font-bold text-slate-900">{new Date(log.createdAt).toLocaleTimeString('km-KH', { timeZone: 'Asia/Phnom_Penh' })}</span>
+                                                <span className="text-[10px] text-slate-400 font-medium">{new Date(log.createdAt).toLocaleDateString('km-KH', { timeZone: 'Asia/Phnom_Penh' })}</span>
                                             </div>
                                         </td>
                                         <td className="px-8 py-6">

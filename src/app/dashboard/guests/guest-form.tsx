@@ -1,5 +1,9 @@
 "use client";
 
+import { useState } from "react";
+import { m } from "framer-motion";
+import { User, MapPin, Sparkles } from "lucide-react";
+
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -14,12 +18,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useState } from "react";
-import { User, MapPin, Sparkles } from "lucide-react";
-import { m, AnimatePresence } from "framer-motion";
+import { moneaClient } from "@/lib/api-client";
 
 const formSchema = z.object({
-    name: z.string().min(1, "សូមបញ្ចូលឈ្មោះភ្ញៀវ (Name is required)"),
+    name: z.string().min(1, "សូមបញ្ចូលឈ្មោះភ្ញៀវ"),
     source: z.string().optional(),
 });
 
@@ -37,15 +39,13 @@ export function GuestForm({ onSuccess, onDone, initialData }: { onSuccess: () =>
         setLoading(true);
         try {
             const url = "/api/guests";
-            const method = initialData ? "PATCH" : "POST";
             const body = initialData ? { ...values, id: initialData.id } : values;
 
-            const res = await fetch(url, {
-                method,
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(body),
-            });
-            if (res.ok) {
+            const res = initialData 
+                ? await moneaClient.patch(url, body)
+                : await moneaClient.post(url, body);
+
+            if (!res.error) {
                 onSuccess();
                 form.reset();
                 if (onDone) onDone();
@@ -69,8 +69,8 @@ export function GuestForm({ onSuccess, onDone, initialData }: { onSuccess: () =>
                         className="flex items-center gap-4 px-2 mb-2"
                     >
                         <div className="relative">
-                            <div className="absolute inset-0 bg-red-500/20 blur-xl rounded-full" />
-                            <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-gradient-to-br from-red-600 to-red-400 flex items-center justify-center text-white shadow-lg border border-white/20">
+                            <div className="absolute inset-0 bg-rose-500/20 blur-xl rounded-full" />
+                            <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-gradient-to-br from-rose-600 to-rose-400 flex items-center justify-center text-white shadow-lg border border-white/20">
                                 <User className="w-5 h-5 md:w-6 md:h-6" />
                             </div>
                         </div>
@@ -79,7 +79,7 @@ export function GuestForm({ onSuccess, onDone, initialData }: { onSuccess: () =>
                                 ព័ត៌មានភ្ញៀវ
                             </h3>
                             <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.3em] mt-2 opacity-40 flex items-center gap-2">
-                                <Sparkles size={10} className="text-red-500" />
+                                <Sparkles size={10} className="text-rose-500" />
                                 ព័ត៌មានអត្តសញ្ញាណភ្ញៀវ
                             </p>
                         </div>
@@ -91,7 +91,7 @@ export function GuestForm({ onSuccess, onDone, initialData }: { onSuccess: () =>
                         transition={{ delay: 0.1 }}
                         className="bg-slate-50/80 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-3xl p-4 md:p-8 space-y-6 shadow-xl dark:shadow-2xl backdrop-blur-xl relative overflow-hidden group"
                     >
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 blur-[50px] -mr-16 -mt-16 rounded-full group-hover:bg-red-500/10 transition-colors duration-500" />
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/5 blur-[50px] -mr-16 -mt-16 rounded-full group-hover:bg-rose-500/10 transition-colors duration-500" />
 
                         <FormField
                             control={form.control}
@@ -101,16 +101,16 @@ export function GuestForm({ onSuccess, onDone, initialData }: { onSuccess: () =>
                                     <FormLabel className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] font-kantumruy px-1 block mb-2 opacity-70">ឈ្មោះភ្ញៀវ *</FormLabel>
                                     <FormControl>
                                         <div className="relative group/input">
-                                            <div className="absolute inset-0 bg-red-500/0 group-focus-within/input:bg-red-500/[0.02] rounded-2xl transition-all duration-300" />
-                                            <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500 dark:text-slate-400 group-focus-within/input:text-red-600 group-focus-within/input:scale-110 transition-all duration-300 z-20" />
+                                            <div className="absolute inset-0 bg-rose-500/0 group-focus-within/input:bg-rose-500/[0.02] rounded-2xl transition-all duration-300" />
+                                            <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500 dark:text-slate-400 group-focus-within/input:text-rose-600 group-focus-within/input:scale-110 transition-all duration-300 z-20" />
                                             <Input
                                                 placeholder="តារា សុខ..."
-                                                className="pl-12 h-11 md:h-14 text-base rounded-2xl font-kantumruy border-slate-200 dark:border-white/10 bg-white/80 dark:bg-background/50 hover:bg-white dark:hover:bg-background/80 focus:bg-white dark:focus:bg-background backdrop-blur-md shadow-sm dark:shadow-none focus-visible:ring-red-600/10 focus-visible:border-red-600/30 transition-all duration-300 font-bold placeholder:text-muted-foreground/40 placeholder:font-normal"
+                                                className="pl-12 h-11 md:h-14 text-base rounded-2xl font-kantumruy border-slate-200 dark:border-white/10 bg-white/80 dark:bg-background/50 hover:bg-white dark:hover:bg-background/80 focus:bg-white dark:focus:bg-background backdrop-blur-md shadow-sm dark:shadow-none focus-visible:ring-rose-600/10 focus-visible:border-rose-600/30 transition-all duration-300 font-bold placeholder:text-muted-foreground/40 placeholder:font-normal"
                                                 {...field}
                                             />
                                         </div>
                                     </FormControl>
-                                    <FormMessage className="font-kantumruy text-[10px] mt-1 italic text-red-500/80" />
+                                    <FormMessage className="font-kantumruy text-[10px] mt-1 italic text-rose-500/80" />
                                 </FormItem>
                             )}
                         />
@@ -123,16 +123,16 @@ export function GuestForm({ onSuccess, onDone, initialData }: { onSuccess: () =>
                                     <FormLabel className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] font-kantumruy px-1 block mb-2 opacity-70">មកពីណា? (ជាប់សាច់ញាតិខាងណា)</FormLabel>
                                     <FormControl>
                                         <div className="relative group/input">
-                                            <div className="absolute inset-0 bg-red-500/0 group-focus-within/input:bg-red-500/[0.02] rounded-2xl transition-all duration-300" />
-                                            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500 dark:text-slate-400 group-focus-within/input:text-red-600 group-focus-within/input:scale-110 transition-all duration-300 z-20" />
+                                            <div className="absolute inset-0 bg-rose-500/0 group-focus-within/input:bg-rose-500/[0.02] rounded-2xl transition-all duration-300" />
+                                            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500 dark:text-slate-400 group-focus-within/input:text-rose-600 group-focus-within/input:scale-110 transition-all duration-300 z-20" />
                                             <Input
                                                 placeholder=" ភ្នំពេញ, មិត្តខាងកូនក្រមុំ..."
-                                                className="pl-12 h-11 md:h-14 text-sm rounded-2xl font-kantumruy border-slate-200 dark:border-white/10 bg-white/80 dark:bg-background/50 hover:bg-white dark:hover:bg-background/80 focus:bg-white dark:focus:bg-background backdrop-blur-md shadow-sm dark:shadow-none focus-visible:ring-red-600/10 focus-visible:border-red-600/30 transition-all duration-300 font-medium placeholder:text-muted-foreground/40"
+                                                className="pl-12 h-11 md:h-14 text-sm rounded-2xl font-kantumruy border-slate-200 dark:border-white/10 bg-white/80 dark:bg-background/50 hover:bg-white dark:hover:bg-background/80 focus:bg-white dark:focus:bg-background backdrop-blur-md shadow-sm dark:shadow-none focus-visible:ring-rose-600/10 focus-visible:border-rose-600/30 transition-all duration-300 font-medium placeholder:text-muted-foreground/40"
                                                 {...field}
                                             />
                                         </div>
                                     </FormControl>
-                                    <FormMessage className="font-kantumruy text-[10px] mt-1 italic text-red-500/80" />
+                                    <FormMessage className="font-kantumruy text-[10px] mt-1 italic text-rose-500/80" />
                                 </FormItem>
                             )}
                         />

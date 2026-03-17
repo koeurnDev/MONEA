@@ -8,6 +8,26 @@
   font-family: var(--font-moul);
 }
 
+.font-khmer-moul-pali {
+  font-family: "Kh Muol Pali", var(--font-moul), serif;
+}
+
+.font-khmer-os-moul-light {
+  font-family: "Khmer OS Muol Light", var(--font-moul), serif;
+}
+
+.font-khmer-m1 {
+  font-family: "Khmer M1", var(--font-kantumruy), sans-serif;
+}
+
+.font-gisha {
+  font-family: "Gisha", sans-serif;
+}
+
+.font-clarendon {
+  font-family: "Clarendon BT", serif;
+}
+
 .font-khmer {
   font-family: var(--font-kantumruy);
 }
@@ -60,6 +80,15 @@ html {
     @apply font-bold tracking-tight;
     font-family: var(--font-kantumruy), sans-serif;
     color: #FFD700;
+  }
+
+  .text-gold-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-b from-[#D4AF37] via-[#F9E498] to-[#B8860B] select-none;
+    -webkit-background-clip: text;
+  }
+
+  .text-gold-embossed {
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.4), 0 -1px 1px rgba(0, 0, 0, 0.2);
   }
 }
 
@@ -178,12 +207,13 @@ html {
       -webkit-backdrop-filter: none !important;
     }
 
-    /* Kill non-essential transitions for raw speed */
-    *,
-    :before,
-    :after {
-      transition: none !important;
+    /* Reduce animation complexity for raw speed while keeping interaction feedback */
+    .animate-entrance {
       animation: none !important;
+    }
+    
+    .bg-gradient-animate {
+      background-size: 100% 100% !important;
     }
 
     /* Reduce shadow paint cost */

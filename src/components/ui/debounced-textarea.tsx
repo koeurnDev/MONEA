@@ -1,6 +1,5 @@
 "use client";
-
-import { useEffect, useState } from "react";
+import * as React from "react";
 import { cn } from "@/lib/utils";
 
 interface DebouncedTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
@@ -16,13 +15,13 @@ export function DebouncedTextarea({
     className,
     ...props
 }: DebouncedTextareaProps) {
-    const [value, setValue] = useState(initialValue || "");
+    const [value, setValue] = React.useState(initialValue || "");
 
-    useEffect(() => {
+    React.useEffect(() => {
         setValue(initialValue || "");
     }, [initialValue]);
 
-    useEffect(() => {
+    React.useEffect(() => {
         const timeout = setTimeout(() => {
             if (value !== initialValue) {
                 onDebouncedChange(value);

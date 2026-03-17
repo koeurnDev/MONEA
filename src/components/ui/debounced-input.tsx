@@ -1,6 +1,5 @@
 "use client";
-
-import { useEffect, useState } from "react";
+import * as React from "react";
 import { Input } from "@/components/ui/input";
 
 interface DebouncedInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -15,13 +14,13 @@ export function DebouncedInput({
     debounce = 500,
     ...props
 }: DebouncedInputProps) {
-    const [value, setValue] = useState(initialValue);
+    const [value, setValue] = React.useState(initialValue);
 
-    useEffect(() => {
+    React.useEffect(() => {
         setValue(initialValue);
     }, [initialValue]);
 
-    useEffect(() => {
+    React.useEffect(() => {
         const timeout = setTimeout(() => {
             if (value !== initialValue) {
                 onDebouncedChange(value as string);

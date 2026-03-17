@@ -7,41 +7,167 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  SUPERADMIN
+  ADMIN
+  STAFF
+}
+
+enum WeddingStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum PackageType {
+  FREE
+  PRO
+  PREMIUM
+}
+
+enum PaymentStatus {
+  PENDING
+  AWAITING_VERIFICATION
+  PAID
+}
+
+enum EventType {
+  wedding
+  anniversary
+}
+
+enum AnalyticsType {
+  VIEW
+  MAP_CLICK
+  SAVE_DATE
+  RSVP_OPEN
+  RSVP_SUBMIT
+}
+
+enum DeviceType {
+  MOBILE
+  DESKTOP
+}
+
+enum RsvpStatus {
+  PENDING
+  CONFIRMED
+  DECLINED
+}
+
+enum Currency {
+  USD
+  KHR
+}
+
+enum PaymentMethod {
+  Cash
+  ABA
+  Wing
+  ACLEDA
+  KHQR
+  Other
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+enum StaffRole {
+  SCANNER
+  CASHIER
+  STAFF
+}
+
+enum LogAction {
+  CHECK_IN
+  GIFT
+  UPDATE
+  DELETE
+  CREATE
+  PAYMENT_APPROVAL
+  LOGIN_FAILURE
+}
+
+enum SecurityEvent {
+  LOGIN_FAILED
+  LOGIN_SUCCESS
+  RATE_LIMIT_EXCEEDED
+  PASSWORD_CHANGE_SUCCESS
+  PASSWORD_CHANGE_FAILED
+  TWOFA_SETUP
+  TWOFA_VERIFY
+  TWOFA_DISABLED
+  TWOFA_VERIFY_FAILED
+  SESSION_REVOKED
+}
+
+enum BroadcastType {
+  INFO
+  WARNING
+  SUCCESS
+}
+
+enum TicketStatus {
+  OPEN
+  CLOSED
+  PENDING
+}
+
+enum TicketPriority {
+  LOW
+  NORMAL
+  HIGH
+}
+
+enum GovernanceAction {
+  PUBLISH
+  ROLLBACK
+  CONFIG_UPDATE
+  ENABLE_2FA
+  DISABLE_2FA
+  REVOKE_SESSIONS
+}
+
 model User {
-  id                String    @id @default(cuid())
-  name              String?
-  email             String    @unique
-  password          String
-  role              String    @default("ADMIN") // PLATFORM_OWNER (SUPERADMIN), EVENT_MANAGER (ADMIN), EVENT_STAFF (STAFF)
-  twoFactorSecret   String?
-  twoFactorEnabled  Boolean   @default(false)
+  id                     String          @id @default(cuid())
+  name                   String?
+  email                  String          @unique
+  password               String?
+  googleId               String?         @unique
+  telegramId             String?         @unique
+  avatar                 String?
+  role                   UserRole        @default(ADMIN)
+  twoFactorSecret        String?
+  twoFactorEnabled       Boolean         @default(false)
   twoFactorRecoveryCodes String?
-  failedAttempts    Int       @default(0)
-  lockedUntil       DateTime?
-  sessionsRevokedAt DateTime?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  weddings          Wedding[]
-  supportTickets    SupportTicket[]
+  failedAttempts         Int             @default(0)
+  lockedUntil            DateTime?
+  sessionsRevokedAt      DateTime?
+  deletedAt              DateTime?
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+  weddings               Wedding[]
+  supportTickets         SupportTicket[]
 }
 
 model Wedding {
-  id               String           @id @default(cuid())
+  id               String                   @id @default(cuid())
   groomName        String
   brideName        String
   location         String?
   date             DateTime
-  eventType        String           @default("wedding") // wedding, anniversary
-  templateId       String           @default("classic")
-  themeSettings    String? // Stores: { primaryColor, musicUrl, mapLink, videoUrl, heroImage }
-  notes            String? // Internal organizer notes
-  weddingCode      String?          @unique
-  status           String           @default("ACTIVE") // ACTIVE, ARCHIVED
-  packageType      String           @default("FREE") // FREE, PRO, PREMIUM
-  paymentStatus    String           @default("PENDING") // PENDING, PAID
+  eventType        EventType                @default(wedding)
+  templateId       String                   @default("classic")
+  themeSettings    Json?
+  notes            String?
+  weddingCode      String?                  @unique
+  status           WeddingStatus            @default(ACTIVE)
+  packageType      PackageType              @default(FREE)
+  paymentStatus    PaymentStatus            @default(PENDING)
   expiresAt        DateTime?
   userId           String
-  user             User             @relation(fields: [userId], references: [id])
+  user             User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
   guests           Guest[]
   gifts            Gift[]
   telegramLink     String?
@@ -54,75 +180,81 @@ model Wedding {
   supportTickets   SupportTicket[]
   templateVersions WeddingTemplateVersion[]
   analytics        InvitationAnalytics[]
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @default(now()) @updatedAt
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @default(now()) @updatedAt
 
   @@index([userId])
   @@index([status])
 }
 
 model InvitationAnalytics {
-  id              String   @id @default(cuid())
-  weddingId       String
-  wedding         Wedding  @relation(fields: [weddingId], references: [id])
-  type            String   // VIEW, MAP_CLICK, SAVE_DATE
-  ipHash          String?  // Deduplication
-  userAgent       String?
-  deviceType      String?  // MOBILE, DESKTOP
-  createdAt       DateTime @default(now())
+  id         String        @id @default(cuid())
+  weddingId  String
+  wedding    Wedding       @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  type       AnalyticsType
+  ipHash     String?
+  userAgent  String?
+  deviceType DeviceType?
+  createdAt  DateTime      @default(now())
 
   @@index([weddingId])
   @@index([createdAt])
+  @@index([weddingId, type, createdAt])
 }
 
 model Activity {
   id          String   @id @default(cuid())
   title       String
-  time        String // e.g. "07:00 AM"
+  time        String
   description String?
-  order       Int      @default(0) // For sorting
+  icon        String?
+  publicId    String?
+  order       Int      @default(0)
   weddingId   String
-  wedding     Wedding  @relation(fields: [weddingId], references: [id])
+  wedding     Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
 
   @@index([weddingId])
 }
 
 model Guest {
-  id         String    @id @default(cuid())
-  name       String
-  phone      String?
-  group      String?
-  source     String? // e.g. Phnom Penh, Prey Veng
-  weddingId  String
-  wedding    Wedding   @relation(fields: [weddingId], references: [id])
-  gifts      Gift[]
-  hasArrived Boolean   @default(false)
-  arrivedAt  DateTime?
-  views      Int       @default(0)
-  rsvpStatus  String?   @default("PENDING") // PENDING, CONFIRMED, DECLINED
-  adultsCount Int       @default(1)
-  childrenCount Int?    @default(0)
-  rsvpNotes   String?
-  rsvpAt      DateTime?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @default(now()) @updatedAt
+  id            String      @id @default(cuid())
+  name          String
+  phone         String?
+  group         String?
+  source        String?
+  weddingId     String
+  wedding       Wedding     @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  gifts         Gift[]
+  hasArrived    Boolean     @default(false)
+  arrivedAt     DateTime?
+  views         Int         @default(0)
+  rsvpStatus    RsvpStatus? @default(PENDING)
+  adultsCount   Int         @default(1)
+  childrenCount Int?        @default(0)
+  rsvpNotes     String?
+  rsvpAt        DateTime?
+  guestCode     String?     @unique
+  sequenceNumber Int?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @default(now()) @updatedAt
 
   @@index([weddingId])
   @@index([hasArrived])
 }
 
 model Gift {
-  id        String   @id @default(cuid())
-  amount    Float
-  currency  String // USD, KHR
-  method    String? // Cash, ABA, Wing
+  id        String         @id @default(cuid())
+  amount    Decimal
+  currency  Currency
+  method    PaymentMethod?
   weddingId String
-  wedding   Wedding  @relation(fields: [weddingId], references: [id])
+  wedding   Wedding        @relation(fields: [weddingId], references: [id], onDelete: Cascade)
   guestId   String?
-  guest     Guest?   @relation(fields: [guestId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  guest     Guest?         @relation(fields: [guestId], references: [id], onDelete: SetNull)
+  sequenceNumber Int?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @default(now()) @updatedAt
 
   @@index([weddingId])
   @@index([guestId])
@@ -131,13 +263,14 @@ model Gift {
 }
 
 model GalleryItem {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   url       String
-  type      String // IMAGE, VIDEO
+  publicId  String?
+  type      MediaType
   caption   String?
   weddingId String
-  wedding   Wedding  @relation(fields: [weddingId], references: [id])
-  createdAt DateTime @default(now())
+  wedding   Wedding   @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
 
   @@index([weddingId])
 }
@@ -148,43 +281,43 @@ model GuestbookEntry {
   message   String
   voiceUrl  String?
   weddingId String
-  wedding   Wedding  @relation(fields: [weddingId], references: [id])
+  wedding   Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
 
   @@index([weddingId])
 }
 
 model Staff {
-  id                String    @id @default(cuid())
-  name              String
-  email             String?   @unique
-  password          String?
-  pin               String?
-  role              String    @default("STAFF") // SCANNER, CASHIER
-  weddingId         String
-  wedding           Wedding   @relation(fields: [weddingId], references: [id])
-  accessToken       String?   @unique
-  twoFactorSecret   String?
-  twoFactorEnabled  Boolean   @default(false)
+  id                     String    @id @default(cuid())
+  name                   String
+  email                  String?   @unique
+  password               String?
+  pin                    String?
+  role                   StaffRole @default(STAFF)
+  weddingId              String
+  wedding                Wedding   @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  accessToken            String?   @unique
+  twoFactorSecret        String?
+  twoFactorEnabled       Boolean   @default(false)
   twoFactorRecoveryCodes String?
-  failedAttempts    Int       @default(0)
-  lockedUntil       DateTime?
-  sessionsRevokedAt DateTime?
-  createdAt         DateTime  @default(now())
+  failedAttempts         Int       @default(0)
+  lockedUntil            DateTime?
+  sessionsRevokedAt      DateTime?
+  createdAt              DateTime  @default(now())
 
   @@index([weddingId])
 }
 
 model Log {
-  id          String   @id @default(cuid())
-  action      String // CHECK_IN, GIFT, UPDATE
+  id          String    @id @default(cuid())
+  action      LogAction
   description String
-  actorName   String // Staff Name or User
+  actorName   String
   ip          String?
   userAgent   String?
   weddingId   String
-  wedding     Wedding  @relation(fields: [weddingId], references: [id])
-  createdAt   DateTime @default(now())
+  wedding     Wedding   @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
 
   @@index([weddingId])
 }
@@ -205,14 +338,14 @@ model IpSecurity {
 }
 
 model SecurityLog {
-  id        String   @id @default(cuid())
-  event     String   // e.g., "LOGIN_FAILED", "LOGIN_SUCCESS", "RATE_LIMIT_EXCEEDED"
+  id        String        @id @default(cuid())
+  event     SecurityEvent
   ip        String
-  geoIp     String?  // e.g., "KH", "US"
+  geoIp     String?
   userAgent String?
   email     String?
   details   String?
-  createdAt DateTime @default(now())
+  createdAt DateTime      @default(now())
 
   @@index([event])
   @@index([createdAt])
@@ -224,32 +357,32 @@ model SystemConfig {
   id              String   @id @default("GLOBAL")
   maintenanceMode Boolean  @default(false)
   allowNewSignups Boolean  @default(true)
-  globalCheckIn   Boolean  @default(true) // Master kill switch for all check-ins
+  globalCheckIn   Boolean  @default(true)
   updatedAt       DateTime @updatedAt
 }
 
 model Broadcast {
-  id        String   @id @default(cuid())
+  id        String        @id @default(cuid())
   title     String
   message   String
-  type      String   @default("INFO") // INFO, WARNING, SUCCESS
-  active    Boolean  @default(true)
+  type      BroadcastType @default(INFO)
+  active    Boolean       @default(true)
   expiresAt DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime      @default(now())
 }
 
 model SupportTicket {
-  id          String   @id @default(cuid())
-  subject     String
-  message     String
-  status      String   @default("OPEN") // OPEN, CLOSED, PENDING
-  priority    String   @default("NORMAL")
-  weddingId   String
-  wedding     Wedding  @relation(fields: [weddingId], references: [id])
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String         @id @default(cuid())
+  subject   String
+  message   String
+  status    TicketStatus   @default(OPEN)
+  priority  TicketPriority @default(NORMAL)
+  weddingId String
+  wedding   Wedding        @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
 
   @@index([weddingId])
   @@index([userId])
@@ -257,8 +390,8 @@ model SupportTicket {
 
 model SystemVersion {
   id          String   @id @default(cuid())
-  versionName String // e.g., "v1.0.4", "Stable Release"
-  configData  String // JSON snapshot of SystemConfig
+  versionName String
+  configData  Json
   description String?
   isStable    Boolean  @default(false)
   createdBy   String
@@ -266,28 +399,28 @@ model SystemVersion {
 }
 
 model GovernanceLog {
-  id          String   @id @default(cuid())
-  action      String // PUBLISH, ROLLBACK, CONFIG_UPDATE
-  details     String // JSON details
-  actorId     String
-  actorName   String
-  ip          String?
-  userAgent   String?
-  createdAt   DateTime @default(now())
+  id        String           @id @default(cuid())
+  action    GovernanceAction
+  details   Json
+  actorId   String
+  actorName String
+  ip        String?
+  userAgent String?
+  createdAt DateTime         @default(now())
 
   @@index([actorId])
 }
 
 model WeddingTemplateVersion {
-  id           String   @id @default(cuid())
-  weddingId    String
-  wedding      Wedding  @relation(fields: [weddingId], references: [id])
-  versionName  String   // e.g. "Before color change", "v1.2"
-  templateId   String   // snapshot of templateId
-  themeData    String   // JSON snapshot of themeSettings
-  description  String?
-  createdBy    String
-  createdAt    DateTime @default(now())
+  id          String   @id @default(cuid())
+  weddingId   String
+  wedding     Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+  versionName String
+  templateId  String
+  themeData   Json
+  description String?
+  createdBy   String
+  createdAt   DateTime @default(now())
 
   @@index([weddingId])
 }

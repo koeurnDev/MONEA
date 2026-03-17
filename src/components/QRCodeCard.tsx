@@ -1,15 +1,16 @@
 "use client";
+import * as React from "react";
 import QRCode from "react-qr-code";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
-import { useEffect, useState } from "react";
 
+// Cache bust: 2026-03-10T22:42:00
 export function QRCodeCard({ weddingId }: { weddingId: string }) {
-    const [url, setUrl] = useState("");
-    const [copied, setCopied] = useState(false);
+    const [url, setUrl] = React.useState("");
+    const [copied, setCopied] = React.useState(false);
 
-    useEffect(() => {
+    React.useEffect(() => {
         setUrl(`${window.location.origin}/invite/${weddingId}`);
     }, [weddingId]);
 

@@ -4,6 +4,7 @@ import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Loader2, Heart, Users, MapPin, Calendar, Clock, Image as ImageIcon } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 export default function AdminWeddingDetailsPage() {
@@ -41,7 +42,7 @@ export default function AdminWeddingDetailsPage() {
 
     if (!wedding) return null;
 
-    const formattedDate = wedding.weddingDate ? new Date(wedding.weddingDate).toLocaleDateString() : "មិនទាន់កំណត់";
+    const formattedDate = wedding.weddingDate ? new Date(wedding.weddingDate).toLocaleDateString('km-KH', { timeZone: 'Asia/Phnom_Penh' }) : "មិនទាន់កំណត់";
 
     return (
         <div className="max-w-5xl mx-auto space-y-10 pb-10">
@@ -57,9 +58,14 @@ export default function AdminWeddingDetailsPage() {
 
                 <div className="flex items-start justify-between gap-4">
                     <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center overflow-hidden shrink-0 shadow-inner">
+                        <div className="w-16 h-16 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center overflow-hidden shrink-0 shadow-inner relative">
                             {wedding.couplePhoto ? (
-                                <img src={wedding.couplePhoto} alt="Couple" className="w-full h-full object-cover" />
+                                <Image 
+                                    src={wedding.couplePhoto} 
+                                    alt="Couple" 
+                                    fill
+                                    className="object-cover" 
+                                />
                             ) : (
                                 <Heart size={32} strokeWidth={2.5} />
                             )}

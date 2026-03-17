@@ -1,6 +1,6 @@
 "use client";
-import React, { useState, useEffect, memo } from 'react';
-import { m, AnimatePresence } from 'framer-motion';
+import * as React from 'react';
+import { AnimatePresence, m } from 'framer-motion';
 
 interface WishElement {
     id: number;
@@ -11,10 +11,10 @@ interface WishElement {
     duration: number;
 }
 
-const WishesWall = memo(({ trigger }: { trigger: any }) => {
-    const [elements, setElements] = useState<WishElement[]>([]);
+const WishesWall = React.memo(({ trigger }: { trigger: any }) => {
+    const [elements, setElements] = React.useState<WishElement[]>([]);
 
-    useEffect(() => {
+    React.useEffect(() => {
         if (!trigger) return;
 
         // Generate a new floating element when a trigger (new wish) occurs

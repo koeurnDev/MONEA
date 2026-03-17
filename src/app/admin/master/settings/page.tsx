@@ -1,11 +1,19 @@
 "use client";
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Info, ShieldAlert, ArrowLeft, Save, Loader2, Sparkles, History as HistoryIcon } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { moneaClient } from "@/lib/api-client";
+import Image from "next/image";
 import Link from "next/link";
+import { 
+    ArrowLeft, 
+    Save, 
+    Loader2, 
+    ShieldAlert, 
+    History as HistoryIcon 
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 
 export default function MasterSettingsPage() {
     const [config, setConfig] = useState<any>(null);
@@ -20,20 +28,15 @@ export default function MasterSettingsPage() {
     const [is2FAEnabled, setIs2FAEnabled] = useState(false); // We should ideally get this from an API, assuming false for now if not setup
 
     useEffect(() => {
-        fetch("/api/admin/master/settings")
-            .then(res => res.json())
-            .then(setConfig)
+        moneaClient.get("/api/admin/master/settings")
+            .then(res => setConfig(res.data))
             .finally(() => setLoading(false));
     }, []);
 
     const handleSave = async () => {
         setSaving(true);
         try {
-            await fetch("/api/admin/master/settings", {
-                method: "POST",
-                body: JSON.stringify(config),
-                headers: { "Content-Type": "application/json" }
-            });
+            await moneaClient.post("/api/admin/master/settings", config);
         } catch (e) {
             console.error(e);
         } finally {
@@ -44,11 +47,10 @@ export default function MasterSettingsPage() {
     const handleSetup2FA = async () => {
         setIs2FASetupLoading(true);
         try {
-            const res = await fetch("/api/auth/2fa/setup", { method: "POST" });
-            const data = await res.json();
-            if (data.qrCodeDataUrl) {
-                setQrCode(data.qrCodeDataUrl);
-                setSecret(data.secret);
+            const res = await moneaClient.post<any>("/api/auth/2fa/setup", {});
+            if (res.data?.qrCodeDataUrl) {
+                setQrCode(res.data.qrCodeDataUrl);
+                setSecret(res.data.secret);
             }
         } catch (e) {
             console.error(e);
@@ -60,17 +62,12 @@ export default function MasterSettingsPage() {
     const handleVerify2FA = async () => {
         setIs2FASetupLoading(true);
         try {
-            const res = await fetch("/api/auth/2fa/verify", {
-                method: "POST",
-                body: JSON.stringify({ token: twoFactorToken }),
-                headers: { "Content-Type": "application/json" }
-            });
-            const data = await res.json();
-            if (data.success) {
+            const res = await moneaClient.post<any>("/api/auth/2fa/verify", { token: twoFactorToken });
+            if (res.data?.success) {
                 setIs2FAEnabled(true);
                 setQrCode(null);
             } else {
-                alert(data.error || "Invalid Token");
+                alert(res.data?.error || "Invalid Token");
             }
         } catch (e) {
             console.error(e);
@@ -151,9 +148,9 @@ export default function MasterSettingsPage() {
                                     </div>
                                 ) : (
                                     <div className="p-6 bg-slate-50 border border-slate-100 rounded-3xl flex flex-col md:flex-row gap-8 items-center">
-                                        <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-100">
+                                        <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-100 relative w-32 h-32">
                                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img src={qrCode} alt="2FA QR Code" className="w-32 h-32 rounded-xl" />
+                                            <Image src={qrCode} alt="2FA QR Code" fill className="rounded-xl object-contain p-1" unoptimized />
                                         </div>
                                         <div className="space-y-3 flex-1 flex flex-col">
                                             <p className="text-xs text-slate-500 font-medium">1. Scan this QR Code with your Authenticator app.</p>

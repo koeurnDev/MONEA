@@ -3,7 +3,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
 import { sanitizeObject } from "@/lib/sanitize";
-import { errorResponse } from "@/lib/api-utils";
+import { errorResponse, validateRequest } from "@/lib/api-utils";
+import { activityUpdateSchema } from "@/lib/validations/activity";
 import { createLog } from "@/lib/audit-utils";
 
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
@@ -21,16 +22,10 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     if (!weddingId) return errorResponse("Wedding not found", 404);
 
     const activityId = params.id;
-    const body = await req.json();
-    const { title, time, description } = sanitizeObject<any>(body);
+    const { data, error } = await validateRequest(req, activityUpdateSchema);
+    if (error) return error;
 
-    if (!title || !time) {
-        return errorResponse("Title and Time are required", 400);
-    }
-
-    // Protection: Length limits
-    if (title.length > 100) return errorResponse("Title too long (Max 100)", 400);
-    if (description && description.length > 1000) return errorResponse("Description too long (Max 1000)", 400);
+    const { title, time, description, icon } = data!;
 
     try {
         const activity = await prisma.activity.update({
@@ -42,6 +37,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
                 title,
                 time,
                 description,
+                icon,
             },
         });
 

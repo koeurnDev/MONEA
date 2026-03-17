@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import * as React from "react";
 import { differenceInSeconds } from "date-fns";
 
 interface CountdownProps {
@@ -7,10 +7,10 @@ interface CountdownProps {
 }
 
 export default function Countdown({ targetDate }: CountdownProps) {
-    const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, mins: 0, secs: 0 });
-    const [isClient, setIsClient] = useState(false);
+    const [timeLeft, setTimeLeft] = React.useState({ days: 0, hours: 0, mins: 0, secs: 0 });
+    const [isClient, setIsClient] = React.useState(false);
 
-    useEffect(() => {
+    React.useEffect(() => {
         setIsClient(true);
         const target = new Date(targetDate);
 

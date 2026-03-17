@@ -23,19 +23,32 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Public ID is required' }, { status: 400 });
         }
 
-        // SECURITY: IDOR Protection
-        // Enforce that users can only delete files within their own wedding folders
-        // Platform Owners can delete anything.
+        // 1. Path Traversal & Format Validation
+        const isSafeId = /^[a-zA-Z0-9_\-/]+$/.test(public_id) && !public_id.includes("..");
+        if (!isSafeId) {
+            console.error(`[Security] Malicious public_id detected: ${public_id}`);
+            return NextResponse.json({ error: 'Invalid public_id format' }, { status: 400 });
+        }
+
+        // 2. Platform Owner bypass
         if (user.role !== ROLES.PLATFORM_OWNER) {
-            const weddingId = (user as any).weddingId;
-            // Public IDs in Cloudinary usually look like "wedding-id/filename"
-            if (weddingId && !public_id.startsWith(`${weddingId}/`)) {
-                console.warn(`[Security] Unauthorized Cloudinary delete attempt by ${user.userId} for ID: ${public_id}`);
-                return NextResponse.json({ error: 'Forbidden: You do not own this file' }, { status: 403 });
-            } else if (!weddingId && user.type === "admin") {
-                // If they are an admin but not owner, find their wedding
-                const wedding = await prisma.wedding.findFirst({ where: { userId: user.userId } });
-                if (!wedding || !public_id.startsWith(`${wedding.id}/`)) {
+            // 3. Database Ownership Check (Trust the DB, not just the prefix)
+            const file = await prisma.galleryItem.findFirst({
+                where: { publicId: public_id }
+            });
+
+            const weddingId = user.weddingId || (await prisma.wedding.findFirst({ where: { userId: user.id } }))?.id;
+
+            if (!file) {
+                // If not in galleryItem, check if it starts with wedding folder (legacy)
+                if (!weddingId || !public_id.startsWith(`${weddingId}/`)) {
+                    console.warn(`[Security] Unauthorized Cloudinary delete attempt by ${user.id} for ID: ${public_id}`);
+                    return NextResponse.json({ error: 'Forbidden: You do not own this file' }, { status: 403 });
+                }
+            } else {
+                // Verify wedding ownership
+                if (file.weddingId !== weddingId) {
+                    console.warn(`[Security] BOLA/IDOR attempt: User ${user.id} tried deleting file ${public_id} owned by wedding ${file.weddingId}`);
                     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
                 }
             }

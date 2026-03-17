@@ -13,8 +13,8 @@ export async function GET(req: Request) {
 
         // Aggregate Weddings by Month (last 12 months)
         const weddingsByMonth = await prisma.$queryRaw`
-            SELECT strftime('%Y-%m', createdAt) as month, COUNT(*) as count 
-            FROM Wedding 
+            SELECT to_char("createdAt", 'YYYY-MM') as month, COUNT(*)::int as count 
+            FROM "Wedding" 
             GROUP BY month 
             ORDER BY month DESC 
             LIMIT 12
@@ -22,8 +22,8 @@ export async function GET(req: Request) {
 
         // Aggregate Gifts by Month (Simplified)
         const giftsByMonth = await prisma.$queryRaw`
-            SELECT strftime('%Y-%m', createdAt) as month, SUM(amount) as total, currency
-            FROM Gift 
+            SELECT to_char("createdAt", 'YYYY-MM') as month, SUM(amount)::float as total, currency
+            FROM "Gift" 
             GROUP BY month, currency
             ORDER BY month DESC 
             LIMIT 24

@@ -158,7 +158,7 @@ export default function StaffManagementPage() {
                                     placeholder="ឧ. ហេង ប៊ុណ្ណា"
                                     value={newStaffName}
                                     onChange={(e) => setNewStaffName(e.target.value)}
-                                    className="h-12 rounded-xl bg-muted border-none shadow-sm focus:bg-background transition-all font-kantumruy font-bold text-foreground"
+                                    className="h-12 rounded-xl bg-muted/50 border-none shadow-sm focus:bg-background/80 transition-all font-kantumruy font-bold text-foreground"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -167,7 +167,7 @@ export default function StaffManagementPage() {
                                     placeholder="staff@example.com"
                                     value={newStaffEmail}
                                     onChange={(e) => setNewStaffEmail(e.target.value)}
-                                    className="h-12 rounded-xl bg-muted border-none shadow-sm focus:bg-background transition-all font-kantumruy font-bold text-foreground"
+                                    className="h-12 rounded-xl bg-muted/50 border-none shadow-sm focus:bg-background/80 transition-all font-kantumruy font-bold text-foreground"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -177,7 +177,7 @@ export default function StaffManagementPage() {
                                     placeholder="••••••••"
                                     value={newStaffPassword}
                                     onChange={(e) => setNewStaffPassword(e.target.value)}
-                                    className="h-12 rounded-xl bg-muted border-none shadow-sm focus:bg-background transition-all font-kantumruy font-bold text-foreground"
+                                    className="h-12 rounded-xl bg-muted/50 border-none shadow-sm focus:bg-background/80 transition-all font-kantumruy font-bold text-foreground"
                                 />
                             </div>
 
@@ -228,10 +228,10 @@ export default function StaffManagementPage() {
 
 
             {/* Content Area */}
-            <div className="bg-card rounded-[2rem] shadow-[0_4px_24px_rgba(0,0,0,0.07)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.2)] overflow-hidden">
+            <div className="bg-card rounded-[2rem] shadow-[0_8px_40px_rgba(0,0,0,0.06)] dark:shadow-[0_4px_32px_rgba(0,0,0,0.2)] overflow-hidden border-none">
                 <div className="overflow-x-auto">
                     <Table>
-                        <TableHeader className="bg-muted/40">
+                        <TableHeader className="bg-muted/30">
                             <TableRow className="border-none hover:bg-transparent">
                                 <TableHead className="h-14 px-8 text-sm font-bold text-muted-foreground uppercase tracking-tight">ឈ្មោះ</TableHead>
                                 <TableHead className="h-14 px-8 text-sm font-bold text-muted-foreground uppercase tracking-tight">តួនាទី</TableHead>

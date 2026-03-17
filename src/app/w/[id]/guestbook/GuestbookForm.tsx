@@ -69,17 +69,23 @@ export function GuestbookForm({ weddingId }: { weddingId: string }) {
                     />
                 </div>
 
-                <div className="flex justify-center scale-90 xs:scale-100 origin-center overflow-hidden py-2">
-                    <Turnstile
-                        siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA"}
-                        onSuccess={setToken}
-                        options={{ theme: "auto" }}
-                    />
-                </div>
+                {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ? (
+                    <div className="flex justify-center scale-90 xs:scale-100 origin-center overflow-hidden py-2">
+                        <Turnstile
+                            siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+                            onSuccess={setToken}
+                            options={{ theme: 'auto', appearance: 'always' }}
+                        />
+                    </div>
+                ) : (
+                    <div className="text-[10px] text-rose-500 bg-rose-500/10 p-2 rounded-lg text-center font-bold py-2">
+                        Turnstile Configuration Missing
+                    </div>
+                )}
 
                 <Button
                     type="submit"
-                    disabled={isSubmitting || !token}
+                    disabled={isSubmitting || (!!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && !token)}
                     className="w-full bg-gradient-to-r from-rose-600 to-orange-600 hover:opacity-90 transition-opacity text-white h-12 rounded-xl text-lg font-medium shadow-lg shadow-rose-200 dark:shadow-rose-900/20"
                 >
                     {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "ផ្ញើជូនពរ (Send Wishes)"}

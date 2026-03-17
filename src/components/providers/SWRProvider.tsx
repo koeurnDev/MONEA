@@ -1,9 +1,11 @@
 "use client";
 
 import { SWRConfig } from "swr";
-import { ReactNode } from "react";
+import { ReactNode, useState, useEffect } from "react";
 
 function localStorageProvider() {
+    if (typeof window === "undefined") return new Map();
+
     // When initializing, we restore the data from `localStorage` into a map.
     const map = new Map(JSON.parse(localStorage.getItem("app-cache") || "[]"));
 
@@ -18,13 +20,24 @@ function localStorageProvider() {
 }
 
 export const SWRProvider = ({ children }: { children: ReactNode }) => {
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const [swrConfig] = useState({
+        fetcher: (url: string) => fetch(url).then((res) => res.json()),
+        revalidateOnFocus: false,
+        dedupingInterval: 60000, // Increase deduping to 60s
+        shouldRetryOnError: false, // Don't spam retries
+    });
+
     return (
         <SWRConfig
             value={{
-                fetcher: (url: string) => fetch(url).then((res) => res.json()),
-                provider: typeof window !== "undefined" ? localStorageProvider : undefined,
-                revalidateOnFocus: false,
-                dedupingInterval: 10000, // Default 10s deduping
+                ...swrConfig,
+                provider: mounted ? localStorageProvider : undefined,
             }}
         >
             {children}

@@ -64,7 +64,7 @@ export async function POST(req: Request) {
         // Security Logging
         await prisma.securityLog.create({
             data: {
-                event: "2FA_DISABLED",
+                event: "TWOFA_DISABLED",
                 ip,
                 email: user.email || dbUser.email,
                 details: `2FA disabled by user`

@@ -158,7 +158,7 @@ export default function MasterAdminPage() {
                                                 </td>
                                                 <td className="px-8 py-6 text-right">
                                                     <span className="text-xs font-medium text-muted-foreground">
-                                                        {new Date(w.createdAt).toLocaleDateString()}
+                                                        {new Date(w.createdAt).toLocaleDateString('km-KH', { timeZone: 'Asia/Phnom_Penh' })}
                                                     </span>
                                                 </td>
                                             </tr>

@@ -134,7 +134,7 @@ export default function MasterUsersPage() {
                                             <div className="flex items-center gap-3">
                                                 <div className="text-right mr-4 hidden lg:block">
                                                     <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Joined</p>
-                                                    <p className="text-[11px] font-bold text-slate-900">{new Date(u.createdAt).toLocaleDateString()}</p>
+                                                    <p className="text-[11px] font-bold text-slate-900">{new Date(u.createdAt).toLocaleDateString('km-KH', { timeZone: 'Asia/Phnom_Penh' })}</p>
                                                 </div>
 
                                                 <Button

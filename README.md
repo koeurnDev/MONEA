@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# MONEA - មនោសញ្ចេតនានៃក្តីស្រឡាញ់
 
-## Getting Started
+MONEA is a premium, cinematic digital wedding invitation platform designed to provide couples with a high-end, immersive way to invite their guests and manage their special day.
 
-First, run the development server:
+## ✨ Key Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Cinematic Experience**: High-end entrance animations with music synchronization and smooth parallax transitions.
+- **Visual Editor**: Real-time design wizard with image panning, scaling, and instant preview.
+- **Smart Color Extraction**: Automatically adapts invitation themes based on the primary colors of the couple's hero image.
+- **Multi-step RSVP**: Integrated guest response system with real-time dashboard notifications.
+- **QR & Payments**: Seamless integration for gift scanning (KHQR) and location mapping.
+- **Production Grade**: Built with Next.js, Prisma, SWR, and Cloudinary for resilience and speed.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠 Tech Stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Frontend**: Next.js (App Router), Tailwind CSS, Framer Motion.
+- **Backend**: Next.js API Routes, Prisma ORM.
+- **Storage**: Cloudinary for high-performance image and audio delivery.
+- **Database**: SQLite (Local) / Postgres (Production).
+- **Monitoring**: Sentry Integration for error tracking.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+## 🚀 Getting Started
 
-## Learn More
+1. **Environment Setup**:
+   Copy `.env.example` to `.env` and fill in your Cloudinary and Database credentials.
 
-To learn more about Next.js, take a look at the following resources:
+2. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. **Database Migration**:
+   ```bash
+   npx prisma generate
+   npx prisma db push
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+4. **Launch Application**:
+   ```bash
+   npm run dev
+   ```
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+---
+*Created with ❤️ for MONEA Team.*

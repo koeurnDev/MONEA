@@ -95,7 +95,7 @@ export default function AdminLogsPage() {
                                         className="hover:bg-slate-50 transition-colors"
                                     >
                                         <td className="px-8 py-5 text-xs font-bold text-slate-400 tabular-nums">
-                                            {new Date(log.createdAt).toLocaleString()}
+                                            {new Date(log.createdAt).toLocaleString('km-KH', { timeZone: 'Asia/Phnom_Penh' })}
                                         </td>
                                         <td className="px-8 py-5">
                                             <div className="flex items-center gap-2">

@@ -62,7 +62,7 @@ export async function POST(req: Request) {
         // Await telegram alert to ensure it completes
         const userEmail = (user as any).email || "Unknown";
         const priorityEmoji = (ticket as any).priority === "HIGH" ? "🔴" : "🔵";
-        const adminUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/admin/master/support`;
+        const adminUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001'}/admin/master/support`;
 
         await sendTelegramAlert(
             `━━━━━━━━━━━━━━━━━━━━\n` +

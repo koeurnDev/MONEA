@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import * as React from "react";
 import { AnimatePresence, m } from "framer-motion";
 import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut } from "lucide-react";
 import Image from "next/image";
@@ -14,7 +14,7 @@ interface LightboxProps {
 }
 
 export default function Lightbox({ images, initialIndex, isOpen, onClose }: LightboxProps) {
-    const [index, setIndex] = useState(initialIndex);
+    const [index, setIndex] = React.useState(initialIndex);
 
     const nextImage = React.useCallback((e?: React.MouseEvent) => {
         e?.stopPropagation();
@@ -27,12 +27,12 @@ export default function Lightbox({ images, initialIndex, isOpen, onClose }: Ligh
     }, [images.length]);
 
     // Update index when initialIndex changes (e.g., opening a new image)
-    useEffect(() => {
+    React.useEffect(() => {
         setIndex(initialIndex);
     }, [initialIndex]);
 
     // Handle Keyboard Navigation
-    useEffect(() => {
+    React.useEffect(() => {
         if (!isOpen) return;
 
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -46,7 +46,7 @@ export default function Lightbox({ images, initialIndex, isOpen, onClose }: Ligh
     }, [isOpen, onClose, nextImage, prevImage]);
 
     // Prevent scrolling when lightbox is open
-    useEffect(() => {
+    React.useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = "hidden";
         } else {

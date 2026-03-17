@@ -31,7 +31,7 @@ export async function POST(req: Request) {
         // Brute-force protection: Check if account is locked
         const now = new Date();
         if (dbUser.lockedUntil && dbUser.lockedUntil > now) {
-            return NextResponse.json({ error: `គណនីផ្ទៀងផ្ទាត់ត្រូវបានចាក់សោរបណ្តោះអាសន្ន (Locked until ${dbUser.lockedUntil.toLocaleTimeString()})` }, { status: 423 });
+            return NextResponse.json({ error: `គណនីផ្ទៀងផ្ទាត់ត្រូវបានចាក់សោរបណ្តោះអាសន្ន (Locked until ${dbUser.lockedUntil.toLocaleTimeString('km-KH', { timeZone: 'Asia/Phnom_Penh' })})` }, { status: 423 });
         }
 
         console.log(`[2FA] Verifying token: ${token} for user: ${user.userId}`);
@@ -71,7 +71,7 @@ export async function POST(req: Request) {
 
         const ip = req.headers.get("x-forwarded-for") || "unknown";
         await prisma.securityLog.create({
-            data: { event: "2FA_VERIFY_FAILED", ip, email: user.email, details: `Failed 2FA verification attempt #${newAttempts}` }
+            data: { event: "TWOFA_VERIFY_FAILED", ip: ip, email: user.email, details: `Failed 2FA verification attempt #${newAttempts}` }
         });
 
         return NextResponse.json({ error: "ការផ្ទៀងផ្ទាត់មិនត្រឹមត្រូវ (Invalid token)" }, { status: 400 });

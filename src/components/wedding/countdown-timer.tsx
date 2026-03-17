@@ -1,21 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { m } from "framer-motion";
+import * as React from "react";
+import { AnimatePresence, m } from "framer-motion";
 
 interface CountdownTimerProps {
     targetDate: string | Date;
 }
 
 export const CountdownTimer = ({ targetDate }: CountdownTimerProps) => {
-    const [timeLeft, setTimeLeft] = useState<{
+    const [timeLeft, setTimeLeft] = React.useState<{
         days: number;
         hours: number;
         minutes: number;
         seconds: number;
     } | null>(null);
 
-    useEffect(() => {
+    React.useEffect(() => {
         const calculateTimeLeft = () => {
             const difference = +new Date(targetDate) - +new Date();
             if (difference > 0) {

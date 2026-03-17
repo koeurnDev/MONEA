@@ -4,6 +4,7 @@ import { MessageSquare, Heart } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { GuestbookForm } from "./GuestbookForm";
+import { HydratedDate } from "@/components/shared/HydratedDate";
 
 async function getMessages(weddingId: string) {
     return await prisma.guestbookEntry.findMany({
@@ -56,7 +57,7 @@ export default async function GuestbookPage({ params }: { params: { id: string }
                                             {msg.message}
                                         </p>
                                         <p className="text-xs text-gray-400 pt-2">
-                                            {new Date(msg.createdAt).toLocaleDateString()}
+                                            <HydratedDate date={msg.createdAt} />
                                         </p>
                                     </div>
                                 </div>
