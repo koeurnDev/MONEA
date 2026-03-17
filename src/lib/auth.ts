@@ -124,7 +124,7 @@ export function isSecureCookie(req: Request | any): boolean {
  */
 export async function getServerUser() {
     const cookieStore = cookies();
-    const token = cookieStore.get(COOKIE_NAMES.TOKEN)?.value;
+    const token = cookieStore.get(COOKIE_NAMES.TOKEN)?.value || cookieStore.get(COOKIE_NAMES.STAFF_TOKEN)?.value;
     
     if (!token) {
         if (process.env.NODE_ENV === "development") console.log("[Auth Debug] getServerUser: No token found in cookies.");
