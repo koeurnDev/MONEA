@@ -59,10 +59,10 @@
     "tailwindcss-animate": "^1.0.7",
     "ts-khqr": "^2.2.2",
     "xlsx": "^0.18.5",
-    "zod": "^4.3.5"
+    "zod": "^4.3.5",
+    "@next/bundle-analyzer": "^14.2.3"
   },
   "devDependencies": {
-    "@next/bundle-analyzer": "^16.1.7",
     "@types/canvas-confetti": "^1.9.0",
     "@types/jest": "^29.5.12",
     "@types/node": "^20",
