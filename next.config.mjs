@@ -33,7 +33,7 @@ const nextConfig = {
     },
     output: 'standalone',
     eslint: {
-        ignoreDuringBuilds: true,
+        ignoreDuringBuilds: false,
     },
     transpilePackages: ['@upstash/redis', '@upstash/ratelimit'],
     experimental: {

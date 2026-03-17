@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +24,7 @@ export default function MasterAuditPage() {
     const [actionFilter, setActionFilter] = useState("");
     const [pagination, setPagination] = useState<any>(null);
 
-    const loadData = (page = 1) => {
+    const loadData = useCallback((page = 1) => {
         setLoading(true);
         fetch(`/api/admin/master/audit?search=${search}&action=${actionFilter}&page=${page}`)
             .then(res => res.json())
@@ -33,11 +33,11 @@ export default function MasterAuditPage() {
                 setPagination(data.pagination);
             })
             .finally(() => setLoading(false));
-    };
+    }, [search, actionFilter]);
 
     useEffect(() => {
         loadData();
-    }, []);
+    }, [loadData]);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();

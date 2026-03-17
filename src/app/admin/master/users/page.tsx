@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ROLES, ROLE_LABELS } from "@/lib/constants";
@@ -28,19 +28,7 @@ export default function MasterUsersPage() {
     const [pagination, setPagination] = useState<any>(null);
     const [processing, setProcessing] = useState<string | null>(null);
 
-    useEffect(() => {
-        const delayDebounceFn = setTimeout(() => {
-            setPage(1); // Reset to page 1 on search
-            loadData(1);
-        }, 500);
-        return () => clearTimeout(delayDebounceFn);
-    }, [search]);
-
-    useEffect(() => {
-        loadData(page);
-    }, [page]);
-
-    const loadData = (currentPage: number) => {
+    const loadData = useCallback((currentPage: number) => {
         setLoading(true);
         fetch(`/api/admin/master/users?search=${search}&page=${currentPage}`)
             .then(res => res.json())
@@ -54,7 +42,19 @@ export default function MasterUsersPage() {
                 }
             })
             .finally(() => setLoading(false));
-    };
+    }, [search]);
+
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            setPage(1); // Reset to page 1 on search
+            loadData(1);
+        }, 500);
+        return () => clearTimeout(delayDebounceFn);
+    }, [search, loadData]);
+
+    useEffect(() => {
+        loadData(page);
+    }, [page, loadData]);
 
     const handleAction = async (userId: string, data: any) => {
         setProcessing(userId);

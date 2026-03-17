@@ -121,7 +121,7 @@ const EnvelopeModal = ({ account, isOpen, onClose, customLabels }: { account: Ba
 
                                 <div className="space-y-4 pt-8 border-t border-stone-100">
                                     <p className="font-khmer-content text-gold italic text-base leading-relaxed">
-                                        "សូមជូនពរសទ្ធាជ្រះថ្លារបស់លោកអ្នក <br /> ឱ្យសម្រេចបាននូវសេចក្ដីសុខគ្រប់ប្រការ!"
+                                        &quot;សូមជូនពរសទ្ធាជ្រះថ្លារបស់លោកអ្នក <br /> ឱ្យសម្រេចបាននូវសេចក្ដីសុខគ្រប់ប្រការ!&quot;
                                     </p>
                                 </div>
                             </div>

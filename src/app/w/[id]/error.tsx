@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { HeartOff } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function WeddingError({
     error,
@@ -48,7 +49,7 @@ export default function WeddingError({
             </div>
 
             <div className="mt-20 opacity-20 filter grayscale">
-                <img src="/favicon.png" alt="MONEA" className="w-12 h-12 mx-auto grayscale" />
+                <Image src="/favicon.png" alt="MONEA" width={48} height={48} className="mx-auto grayscale" />
             </div>
         </div>
     );

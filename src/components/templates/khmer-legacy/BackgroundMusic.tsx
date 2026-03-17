@@ -15,9 +15,6 @@ interface BackgroundMusicProps {
 export function BackgroundMusic({ wedding, isPlaying, setIsPlaying, audioRef }: BackgroundMusicProps) {
     const audioUrl = wedding.themeSettings?.musicUrl;
 
-    // Only show if audio URL exists
-    if (!audioUrl) return null;
-
     const togglePlay = () => {
         setIsPlaying(!isPlaying);
     };
@@ -44,6 +41,9 @@ export function BackgroundMusic({ wedding, isPlaying, setIsPlaying, audioRef }: 
             audio.pause();
         }
     }, [isPlaying, audioUrl, setIsPlaying, audioRef]);
+
+    // Only show if audio URL exists
+    if (!audioUrl) return null;
 
     return (
         <div className="fixed bottom-8 right-8 z-[100]">

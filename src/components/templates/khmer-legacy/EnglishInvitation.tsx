@@ -55,7 +55,7 @@ export function EnglishInvitation({
                         <RevealSection delay={0.2}>
                             <div className="grid grid-cols-2 gap-8 md:gap-16 pt-8 w-full">
                                 <div className="space-y-4 flex flex-col items-center md:items-start">
-                                    <p className="font-clarendon text-[11px] md:text-sm tracking-[0.4em] text-gold/50 uppercase font-black">Groom's</p>
+                                    <p className="font-clarendon text-[11px] md:text-sm tracking-[0.4em] text-gold/50 uppercase font-black">Groom&apos;s</p>
                                     <h2
                                         style={{ color: smartColors.primary, textShadow: '0 4px 20px rgba(0,0,0,0.05)' }}
                                         className="font-gisha text-4xl xs:text-5xl md:text-7xl font-black tracking-tight leading-tight"
@@ -66,7 +66,7 @@ export function EnglishInvitation({
                                 </div>
                                 
                                 <div className="space-y-4 flex flex-col items-center md:items-start">
-                                    <p className="font-clarendon text-[11px] md:text-sm tracking-[0.4em] text-gold/50 uppercase font-black">Bride's</p>
+                                    <p className="font-clarendon text-[11px] md:text-sm tracking-[0.4em] text-gold/50 uppercase font-black">Bride&apos;s</p>
                                     <h2
                                         style={{ color: smartColors.primary, textShadow: '0 4px 20px rgba(0,0,0,0.05)' }}
                                         className="font-gisha text-4xl xs:text-5xl md:text-7xl font-black tracking-tight leading-tight"

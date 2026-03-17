@@ -5,12 +5,7 @@ import { AnimatePresence, m } from "framer-motion";
 import { useLoading } from "@/components/providers/LoadingProvider";
 
 export function LoadingBar() {
-    let pathname = "";
-    try {
-        pathname = usePathname();
-    } catch (e) {
-        // Silently fail if context is missing during SSR/Error recovery
-    }
+    const pathname = usePathname();
     const { isLoading: isGlobalLoading } = useLoading();
     const [isLoading, setIsLoading] = React.useState(false);
 

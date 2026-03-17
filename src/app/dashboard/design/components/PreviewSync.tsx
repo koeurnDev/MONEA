@@ -24,45 +24,59 @@ export function PreviewSync({ wedding, iframeRef, currentStep, enableScrollSync 
 
     // 1.5. Throttled sync for specific fields (bypass debounce but throttle to 60ms)
     const lastEmit = useRef(0);
+    const settings = wedding?.themeSettings as any;
+    const heroImagePosition = settings?.heroImagePosition;
+    const heroImageX = settings?.heroImageX;
+    const heroImageScale = settings?.heroImageScale;
+    const heroImageBrightness = settings?.heroImageBrightness;
+    const heroImageContrast = settings?.heroImageContrast;
+    const groomImagePosition = settings?.groomImagePosition;
+    const groomImageX = settings?.groomImageX;
+    const groomImageScale = settings?.groomImageScale;
+    const brideImagePosition = settings?.brideImagePosition;
+    const brideImageX = settings?.brideImageX;
+    const brideImageScale = settings?.brideImageScale;
+
     useEffect(() => {
         const now = Date.now();
         if (now - lastEmit.current < 60) return; // Limit to ~16fps for slider movement
 
         if (iframeRef.current && iframeRef.current.contentWindow && wedding) {
-            const settings = wedding.themeSettings as any;
-            if (settings) {
+            const currentSettings = wedding.themeSettings as any;
+            if (currentSettings) {
                 iframeRef.current.contentWindow.postMessage({
                     type: "UPDATE_PREVIEW_PARTIAL",
                     payload: {
-                        heroImagePosition: settings.heroImagePosition,
-                        heroImageX: settings.heroImageX,
-                        heroImageScale: settings.heroImageScale,
-                        heroImageBrightness: settings.heroImageBrightness,
-                        heroImageContrast: settings.heroImageContrast,
-                        groomImagePosition: settings.groomImagePosition,
-                        groomImageX: settings.groomImageX,
-                        groomImageScale: settings.groomImageScale,
-                        brideImagePosition: settings.brideImagePosition,
-                        brideImageX: settings.brideImageX,
-                        brideImageScale: settings.brideImageScale
+                        heroImagePosition: currentSettings.heroImagePosition,
+                        heroImageX: currentSettings.heroImageX,
+                        heroImageScale: currentSettings.heroImageScale,
+                        heroImageBrightness: currentSettings.heroImageBrightness,
+                        heroImageContrast: currentSettings.heroImageContrast,
+                        groomImagePosition: currentSettings.groomImagePosition,
+                        groomImageX: currentSettings.groomImageX,
+                        groomImageScale: currentSettings.groomImageScale,
+                        brideImagePosition: currentSettings.brideImagePosition,
+                        brideImageX: currentSettings.brideImageX,
+                        brideImageScale: currentSettings.brideImageScale
                     }
                 }, "*");
                 lastEmit.current = now;
             }
         }
     }, [
-        wedding?.themeSettings?.heroImagePosition,
-        (wedding?.themeSettings as any)?.heroImageX,
-        (wedding?.themeSettings as any)?.heroImageScale,
-        (wedding?.themeSettings as any)?.heroImageBrightness,
-        (wedding?.themeSettings as any)?.heroImageContrast,
-        wedding?.themeSettings?.groomImagePosition,
-        (wedding?.themeSettings as any)?.groomImageX,
-        (wedding?.themeSettings as any)?.groomImageScale,
-        wedding?.themeSettings?.brideImagePosition,
-        (wedding?.themeSettings as any)?.brideImageX,
-        (wedding?.themeSettings as any)?.brideImageScale,
-        iframeRef
+        heroImagePosition,
+        heroImageX,
+        heroImageScale,
+        heroImageBrightness,
+        heroImageContrast,
+        groomImagePosition,
+        groomImageX,
+        groomImageScale,
+        brideImagePosition,
+        brideImageX,
+        brideImageScale,
+        iframeRef,
+        wedding
     ]);
 
     useEffect(() => {

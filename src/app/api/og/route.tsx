@@ -68,6 +68,7 @@ export async function GET(req: NextRequest) {
                     {image ? (
                         <img
                             src={image}
+                            alt="Preview Background"
                             style={{
                                 position: 'absolute',
                                 top: 0,

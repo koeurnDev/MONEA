@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Clock, ArrowUpRight, Sparkles, CheckCircle2, Search, Filter, ChevronLeft, ChevronRight } from "lucide-react";
@@ -14,7 +14,7 @@ export default function AdminLogsPage() {
     const [filter, setFilter] = useState("all");
     const [search, setSearch] = useState("");
 
-    const fetchLogs = async () => {
+    const fetchLogs = useCallback(async () => {
         try {
             const url = filter === "all" ? "/api/admin/logs?limit=50" : `/api/admin/logs?limit=50&action=${filter}`;
             const res = await fetch(url);
@@ -24,11 +24,11 @@ export default function AdminLogsPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [filter]);
 
     useEffect(() => {
         fetchLogs();
-    }, [filter]);
+    }, [fetchLogs]);
 
     const filteredLogs = logs.filter(log =>
         log.actorName.toLowerCase().includes(search.toLowerCase()) ||

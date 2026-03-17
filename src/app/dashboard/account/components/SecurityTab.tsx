@@ -178,7 +178,7 @@ export function SecurityTab({
                             <Smartphone size={18} className="text-orange-500" />
                         </div>
                         <p className="text-[11px] text-orange-700/80 font-black font-kantumruy italic uppercase tracking-wider leading-relaxed">
-                            ចំណាំ៖ ប្រសិនបើអ្នកឃើញសកម្មភាពមិនធម្មតា ឬមិនមែនជាឧបករណ៍របស់អ្នក សូមផ្លាស់ប្ដូរលេខសម្ងាត់ជាបន្ទាន់ និងប្រើមុខងារ "ចាកចេញពីគ្រប់ឧបករណ៍"។
+                            ចំណាំ៖ ប្រសិនបើអ្នកឃើញសកម្មភាពមិនធម្មតា ឬមិនមែនជាឧបករណ៍របស់អ្នក សូមផ្លាស់ប្ដូរលេខសម្ងាត់ជាបន្ទាន់ និងប្រើមុខងារ &quot;ចាកចេញពីគ្រប់ឧបករណ៍&quot;។
                         </p>
                     </div>
                 </div>

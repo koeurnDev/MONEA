@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,7 @@ export default function MasterWeddingsPage() {
     const [search, setSearch] = useState("");
     const [pagination, setPagination] = useState<any>(null);
 
-    const loadData = (page = 1) => {
+    const loadData = useCallback((page = 1) => {
         setLoading(true);
         fetch(`/api/admin/master/weddings?search=${search}&page=${page}`)
             .then(res => res.json())
@@ -22,11 +22,11 @@ export default function MasterWeddingsPage() {
                 setPagination(data.pagination);
             })
             .finally(() => setLoading(false));
-    };
+    }, [search]);
 
     useEffect(() => {
         loadData();
-    }, []);
+    }, [loadData]);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();

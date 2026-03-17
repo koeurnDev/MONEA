@@ -36,7 +36,7 @@ export default function NotesPage() {
         fetchNotes();
     }, []);
 
-    const handleSave = async () => {
+    const handleSave = useCallback(async () => {
         setSaving(true);
         setError(null);
         try {
@@ -55,7 +55,7 @@ export default function NotesPage() {
         } finally {
             setSaving(false);
         }
-    };
+    }, [notes]);
 
     const handlePrint = () => {
         const originalTitle = document.title;
@@ -83,7 +83,7 @@ export default function NotesPage() {
         if (debouncedNotes && !loading && notes !== "") {
             handleSave();
         }
-    }, [debouncedNotes]);
+    }, [debouncedNotes, loading, notes, handleSave]);
 
     if (loading) {
         return (

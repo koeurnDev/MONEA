@@ -53,17 +53,17 @@ export class ResilientRatelimit {
 }
 
 export const authLimiter = new ResilientRatelimit(
-  new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(5, "10 m"), analytics: true, prefix: "@monea/ratelimit/auth" }),
+  new Ratelimit({ redis: redis as any, limiter: Ratelimit.slidingWindow(5, "10 m"), analytics: true, prefix: "@monea/ratelimit/auth" }),
   5, 10 * 60 * 1000
 );
 
 export const publicLimiter = new ResilientRatelimit(
-  new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(10, "1 m"), analytics: true, prefix: "@monea/ratelimit/public" }),
+  new Ratelimit({ redis: redis as any, limiter: Ratelimit.slidingWindow(10, "1 m"), analytics: true, prefix: "@monea/ratelimit/public" }),
   10, 60 * 1000
 );
 
 export const standardLimiter = new ResilientRatelimit(
-  new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(100, "1 m"), analytics: true, prefix: "@monea/ratelimit/api" }),
+  new Ratelimit({ redis: redis as any, limiter: Ratelimit.slidingWindow(100, "1 m"), analytics: true, prefix: "@monea/ratelimit/api" }),
   100, 60 * 1000
 );
 

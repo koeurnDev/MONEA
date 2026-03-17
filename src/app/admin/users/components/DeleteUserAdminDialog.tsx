@@ -47,7 +47,7 @@ export function DeleteUserAdminDialog({
                         </DialogTitle>
                         <DialogDescription className="text-slate-500 dark:text-slate-400 font-kantumruy text-sm leading-relaxed max-w-[85%] mx-auto bg-slate-500/5 py-4 px-6 rounded-2xl border border-slate-500/10">
                             អ្នកកំពុងរៀបនឹងផ្អាកគណនី <span className="text-slate-900 dark:text-white font-bold font-mono text-xs">{userEmail}</span>។ 
-                            ទិន្នន័យទាំងអស់នឹងត្រូវរក្សាទុកក្នុង "Recovery Zone" រយៈពេល ៣០ ថ្ងៃ។
+                            ទិន្នន័យទាំងអស់នឹងត្រូវរក្សាទុកក្នុង &quot;Recovery Zone&quot; រយៈពេល ៣០ ថ្ងៃ។
                         </DialogDescription>
                     </DialogHeader>
 
