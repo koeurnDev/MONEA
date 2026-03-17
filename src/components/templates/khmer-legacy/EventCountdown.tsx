@@ -1,5 +1,6 @@
 import * as React from "react";
 import { m } from 'framer-motion';
+import Image from 'next/image';
 import { Calendar } from 'lucide-react';
 import { RevealSection } from '../shared/CinematicComponents';
 import { WeddingData } from "../types";
@@ -41,7 +42,7 @@ export function EventCountdown({
                             className="w-full max-w-sm aspect-[4/5] bg-white p-2 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.1)] border-lux relative overflow-hidden rounded-2xl mx-auto"
                         >
                             {galleryImages[0] ? (
-                                <img 
+                                <Image 
                                     src={galleryImages[0]} 
                                     className={`w-full h-full object-cover transition-all duration-1000 ${hubPan.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-105'}`} 
                                     style={{ 
@@ -53,6 +54,8 @@ export function EventCountdown({
                                     onTouchStart={hubPan.onStart}
                                     draggable={false}
                                     alt="Wedding Hub" 
+                                    width={400}
+                                    height={500}
                                 />
                             ) : (
                                 <div className="w-full h-full bg-gold/5 flex items-center justify-center">

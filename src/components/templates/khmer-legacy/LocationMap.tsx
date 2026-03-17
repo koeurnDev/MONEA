@@ -1,6 +1,7 @@
 "use client";
 
 import { m } from 'framer-motion';
+import Image from 'next/image';
 import { MapPin, QrCode } from 'lucide-react';
 import { RevealSection } from '../shared/CinematicComponents';
 import { WeddingData, GiftRegistryItem } from '../types';
@@ -36,7 +37,7 @@ export function LocationMap({ wedding, galleryImages, mapPan }: LocationMapProps
                             >
                                 {galleryImages[5] ? (
                                     <>
-                                        <img 
+                                        <Image 
                                             src={galleryImages[5]} 
                                             className={`w-full h-full object-cover group-hover:scale-105 transition-all [transition-duration:4s] ${mapPan.isDragging ? 'cursor-grabbing' : 'cursor-grab'}`} 
                                             style={{ 
@@ -48,7 +49,8 @@ export function LocationMap({ wedding, galleryImages, mapPan }: LocationMapProps
                                             onTouchStart={mapPan.onStart}
                                             draggable={false}
                                             alt="Location Banner" 
-                                            loading="eager" 
+                                            fill
+                                            priority
                                         />
                                         <div className="absolute inset-0 bg-black/5 pointer-events-none" />
                                     </>
@@ -77,7 +79,7 @@ export function LocationMap({ wedding, galleryImages, mapPan }: LocationMapProps
                                 </div>
                                 <div className="p-3 md:p-8 bg-gray-50 rounded-xl md:rounded-3xl group-hover:bg-ivory transition-colors ring-1 ring-gold/5 flex items-center justify-center overflow-hidden w-24 h-24 md:w-48 md:h-48 shadow-inner">
                                     {locationQr ? (
-                                        <img src={locationQr} className="w-full h-full object-contain" alt="Location QR" />
+                                        <Image src={locationQr} width={200} height={200} className="w-full h-full object-contain" alt="Location QR" unoptimized />
                                     ) : (
                                         <QrCode size={32} className="text-gold/30 md:w-16 md:h-16" />
                                     )}
@@ -109,7 +111,7 @@ export function LocationMap({ wedding, galleryImages, mapPan }: LocationMapProps
                                 </div>
                                 <div className="p-3 md:p-8 bg-gray-50 rounded-xl md:rounded-3xl group-hover:bg-ivory transition-colors ring-1 ring-gold/5 flex items-center justify-center overflow-hidden w-24 h-24 md:w-48 md:h-48 shadow-inner">
                                     {paymentQr ? (
-                                        <img src={paymentQr} className="w-full h-full object-contain" alt="Gift QR" />
+                                        <Image src={paymentQr} width={200} height={200} className="w-full h-full object-contain" alt="Gift QR" unoptimized />
                                     ) : (
                                         <QrCode size={32} className="text-gold/30 md:w-16 md:h-16" />
                                     )}

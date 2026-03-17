@@ -1,9 +1,12 @@
 "use client";
 
 import { m, useScroll, useTransform } from 'framer-motion';
+import Image from 'next/image';
 import { useRef } from 'react';
 import { WeddingData } from '../types';
 import { RevealSection, CinematicPlaceholder } from '../shared/CinematicComponents';
+
+const MotionImage = m(Image);
 
 interface DynamicGalleryProps {
     wedding: WeddingData;
@@ -58,7 +61,7 @@ export function DynamicGallery({
                                 key={idx}
                                 className="flex-shrink-0 w-[85%] md:w-[450px] aspect-[3/4] snap-center rounded-sm overflow-hidden border-lux shadow-2xl bg-white relative"
                             >
-                                <img src={img} className="w-full h-full object-cover" alt={`Gallery ${idx}`} loading="eager" />
+                                <Image src={img} fill className="object-cover" alt={`Gallery ${idx}`} priority={idx < 2} />
                             </m.div>
                         ))}
                     </div>
@@ -94,7 +97,7 @@ export function DynamicGallery({
                                             whileInView={{ rotate: idx % 2 === 0 ? -1 : 1 }}
                                             className="bg-white p-2 md:p-4 pt-2 md:pt-4 pb-8 md:pb-16 shadow-xl md:shadow-2xl border border-gray-100 rounded-sm relative min-h-[100px] flex items-center justify-center bg-gold/5 overflow-hidden"
                                         >
-                                            <img 
+                                            <Image 
                                                 src={img} 
                                                 className={`w-full h-48 md:h-80 object-cover ${pans[idx % pans.length]?.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-105 transition-all'}`} 
                                                 style={{ 
@@ -106,6 +109,8 @@ export function DynamicGallery({
                                                 onTouchStart={pans[idx % pans.length]?.onStart}
                                                 draggable={false}
                                                 alt={`Gallery ${idx}`} 
+                                                width={400}
+                                                height={320}
                                             />
                                         </m.div>
                                     ))}
@@ -186,7 +191,7 @@ export function DynamicGallery({
                                                     delay={0.1 + (idx % 3) * 0.1}
                                                     className="w-full h-full border-lux bg-white shadow-xl md:shadow-2xl relative overflow-hidden rounded-sm"
                                                 >
-                                                    <m.img
+                                                    <MotionImage
                                                         src={img}
                                                         whileHover={{ scale: 1.05 }}
                                                         transition={{ duration: 0.8 }}
@@ -200,6 +205,8 @@ export function DynamicGallery({
                                                         onTouchStart={pans[globalIdx % pans.length]?.onStart}
                                                         draggable={false}
                                                         alt={`Gallery ${globalIdx}`}
+                                                        fill
+                                                        sizes="(max-width: 768px) 50vw, 33vw"
                                                     />
                                                 </RevealSection>
                                             </m.div>

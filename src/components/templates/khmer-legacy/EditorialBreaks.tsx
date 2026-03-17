@@ -142,7 +142,7 @@ export function EditorialBreaks({
                 <div className="absolute top-0 w-64 h-[2px] bg-gradient-to-r from-transparent via-gold/10 to-transparent" />
                 <div className="w-full aspect-[16/9] md:aspect-[21/7] overflow-hidden hover:scale-[1.01] transition-all duration-[2000ms] relative shadow-lg rounded-sm md:rounded-none bg-gold/5">
                     {galleryImages[4] ? (
-                        <img 
+                        <Image 
                             src={galleryImages[4]} 
                             className={`w-full h-full object-cover ${editorialPan4.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-110'} transition-all duration-1000`} 
                             style={{ 
@@ -154,7 +154,9 @@ export function EditorialBreaks({
                             onTouchStart={editorialPan4.onStart}
                             draggable={false}
                             alt="Story Moment 4" 
-                            loading="eager" 
+                            fill
+                            sizes="100vw"
+                            priority
                         />
                     ) : (
                         <CinematicPlaceholder label="Panoramic Moment" />

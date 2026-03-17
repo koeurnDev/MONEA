@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -191,7 +192,7 @@ export function TwoFactorSetup({ open, onOpenChange, onSuccess }: TwoFactorSetup
                                     </h4>
                                     <div className="bg-slate-50 p-4 rounded-2xl border border-dashed border-slate-200 flex flex-col items-center gap-4">
                                         {setupData.qrCodeDataUrl && (
-                                            <img src={setupData.qrCodeDataUrl} alt="2FA QR Code" className="w-48 h-48" />
+                                            <Image src={setupData.qrCodeDataUrl} alt="2FA QR Code" width={192} height={192} className="w-48 h-48" unoptimized />
                                         )}
                                         <p className="text-[10px] text-slate-500 text-center font-kantumruy">ប្រើកម្មវិធី Google Authenticator ឬ Telegram ដើម្បីស្កេន។</p>
                                     </div>

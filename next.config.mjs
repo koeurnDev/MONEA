@@ -1,5 +1,10 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import withBundleAnalyzer from "@next/bundle-analyzer";
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const bundleAnalyzer = withBundleAnalyzer({
     enabled: process.env.ANALYZE === "true",
@@ -59,7 +64,7 @@ const nextConfig = {
     },
     // Add webpack alias for '@' to resolve to 'src'
     webpack: (config) => {
-        config.resolve.alias['@'] = require('path').resolve(__dirname, 'src');
+        config.resolve.alias['@'] = resolve(__dirname, 'src');
         return config;
     },
 };

@@ -1,6 +1,7 @@
 "use client";
 import * as React from "react";
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
 import { AnimatePresence, m } from 'framer-motion';
 import { Music, Music2, Heart } from 'lucide-react';
 import { WeddingData } from "./types";
@@ -221,10 +222,12 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                             className="absolute top-1/4 left-1/4 w-12 md:w-20 h-12 md:h-20 pointer-events-none"
                             style={{ mixBlendMode: 'multiply' }}
                         >
-                            <img 
+                            <Image 
                                 src="/images/rumduol.png" 
                                 className="w-full h-full object-contain opacity-80" 
                                 alt="" 
+                                width={80}
+                                height={80}
                             />
                         </m.div>
                         <m.div
@@ -237,10 +240,12 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                             className="absolute bottom-1/4 right-1/4 w-16 md:w-24 h-16 md:h-24 pointer-events-none"
                             style={{ mixBlendMode: 'multiply' }}
                         >
-                            <img 
+                            <Image 
                                 src="/images/rumduol.png" 
                                 className="w-full h-full object-contain opacity-70" 
                                 alt="" 
+                                width={96}
+                                height={96}
                             />
                         </m.div>
                         <m.div
@@ -253,10 +258,12 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                             className="absolute top-1/2 left-0 w-8 md:w-12 h-8 md:h-12 pointer-events-none"
                             style={{ mixBlendMode: 'multiply' }}
                         >
-                            <img 
+                            <Image 
                                 src="/images/rumduol.png" 
                                 className="w-full h-full object-contain opacity-40 grayscale" 
                                 alt="" 
+                                width={48}
+                                height={48}
                             />
                         </m.div>
 
@@ -291,12 +298,15 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                                 }}
                                 className="relative w-48 h-48 md:w-[240px] md:h-[240px] flex items-center justify-center p-4"
                             >
-                                <img 
-                                    src="/images/assets/user-red-heart.png" 
-                                    className="absolute inset-0 w-full h-full object-contain select-none pointer-events-none drop-shadow-lg" 
-                                    style={{ mixBlendMode: 'multiply' }}
-                                    alt="Frame" 
-                                />
+                            <Image 
+                                src="/images/assets/user-red-heart.png" 
+                                className="absolute inset-0 w-full h-full object-contain select-none pointer-events-none drop-shadow-lg" 
+                                style={{ mixBlendMode: 'multiply' }}
+                                alt="Frame" 
+                                width={240}
+                                height={240}
+                                priority
+                            />
                                 <div className="flex flex-col items-center justify-center relative z-10 -translate-y-1 md:-translate-y-2">
                                     <div className="font-khmer-moul text-lg md:text-3xl text-gold-gradient drop-shadow-md scale-x-110 select-none leading-tight">
                                         {wedding.groomName.split(' ')[0]}
@@ -430,11 +440,12 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                             <div 
                                 className="relative aspect-[1.4/1] w-full shadow-2xl rounded-sm border-lux overflow-hidden"
                             >
-                                <img 
-                                    src={wedding.galleryItems.find(i => i.type === 'CERTIFICATE')?.url} 
+                                <Image 
+                                    src={wedding.galleryItems.find(i => i.type === 'CERTIFICATE')?.url || "/og-main.jpg"} 
                                     className="w-full h-full object-contain p-4 md:p-10 bg-[#FAF9F6] transition-transform [transition-duration:5s]" 
                                     alt="Marriage Certificate" 
-                                    loading="eager"
+                                    width={800}
+                                    height={600}
                                 />
                             </div>
                         )}

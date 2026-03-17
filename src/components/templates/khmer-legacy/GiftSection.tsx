@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
 import { Copy, Gift, CreditCard, ScanLine, CheckCircle2, XCircle } from 'lucide-react';
+import NextImage from 'next/image';
 import { m, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
 import { WeddingData, BankAccount } from '../types';
@@ -92,7 +93,7 @@ const EnvelopeModal = ({ account, isOpen, onClose, customLabels }: { account: Ba
                                         transition={{ delay: 0.3 }}
                                         className="w-64 h-64 mx-auto p-4 bg-white rounded-3xl shadow-inner ring-1 ring-gold/10 flex items-center justify-center"
                                     >
-                                        <img src={account.qrUrl} alt="QR Code" className="w-full h-full object-contain" />
+                                        <NextImage src={account.qrUrl} alt="QR Code" width={256} height={256} className="w-full h-full object-contain" unoptimized />
                                     </m.div>
                                 ) : (
                                     <div className="w-full py-16 border-2 border-dashed border-stone-100 rounded-[3rem] bg-stone-50/50">

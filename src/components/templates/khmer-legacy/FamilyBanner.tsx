@@ -1,6 +1,7 @@
 "use client";
 
 import { m } from 'framer-motion';
+import Image from 'next/image';
 import { RevealSection, CinematicPlaceholder } from '../shared/CinematicComponents';
 
 interface FamilyBannerProps {
@@ -22,7 +23,7 @@ export function FamilyBanner({ galleryImages, bannerPan }: FamilyBannerProps) {
                 className="w-full aspect-[16/9] md:aspect-[21/7] overflow-hidden grayscale-[5%] hover:grayscale-0 transition-all [transition-duration:2s] bg-gold/5 flex items-center justify-center relative shadow-inner md:shadow-none"
             >
                 {galleryImages[6] ? (
-                    <img 
+                    <Image 
                         src={galleryImages[6]} 
                         className={`w-full h-full object-cover grayscale-[0.5] contrast-125 transition-all duration-1000 ${bannerPan.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-110'}`} 
                         style={{ 
@@ -34,7 +35,8 @@ export function FamilyBanner({ galleryImages, bannerPan }: FamilyBannerProps) {
                         onTouchStart={bannerPan.onStart}
                         draggable={false}
                         alt="Golden Legacy" 
-                        loading="lazy"
+                        fill
+                        sizes="100vw"
                     />
                 ) : (
                     <CinematicPlaceholder label="រូបភាពគ្រួសារ" />
