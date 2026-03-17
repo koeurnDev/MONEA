@@ -31,7 +31,7 @@ export function EditorialBreaks({
                         <Image 
                             src={galleryImages[1 % galleryImages.length]} 
                             fill 
-                            className={`object-cover ${editorialPan1.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-105'} transition-all duration-[1.5s]`} 
+                            className={`object-cover ${editorialPan1.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-105'} transition-all duration-[1500ms]`} 
                             style={{ 
                                 objectPosition: `${editorialPan1.localX} ${editorialPan1.localY}`,
                                 userSelect: 'none',
@@ -79,7 +79,7 @@ export function EditorialBreaks({
                         <Image 
                             src={galleryImages[7 % galleryImages.length]} 
                             fill 
-                            className={`object-cover ${editorialPan2.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-105'} transition-all duration-[1.5s]`} 
+                            className={`object-cover ${editorialPan2.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-105'} transition-all duration-[1500ms]`} 
                             style={{ 
                                 objectPosition: `${editorialPan2.localX} ${editorialPan2.localY}`,
                                 userSelect: 'none',
@@ -140,7 +140,7 @@ export function EditorialBreaks({
             {/* Editorial 4 - Panoramic */}
             <div className="w-full py-16 md:py-32 bg-[#FAF9F6]/10 flex flex-col items-center px-4 relative overflow-hidden">
                 <div className="absolute top-0 w-64 h-[2px] bg-gradient-to-r from-transparent via-gold/10 to-transparent" />
-                <div className="w-full aspect-[16/9] md:aspect-[21/7] overflow-hidden hover:scale-[1.01] transition-all [transition-duration:2s] relative shadow-lg rounded-sm md:rounded-none bg-gold/5">
+                <div className="w-full aspect-[16/9] md:aspect-[21/7] overflow-hidden hover:scale-[1.01] transition-all duration-[2000ms] relative shadow-lg rounded-sm md:rounded-none bg-gold/5">
                     {galleryImages[4] ? (
                         <img 
                             src={galleryImages[4]} 

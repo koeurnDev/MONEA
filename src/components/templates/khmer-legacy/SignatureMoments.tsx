@@ -47,7 +47,7 @@ export function SignatureMoments({
                                     <Image 
                                         src={galleryImages[6]} 
                                         fill 
-                                        className={`object-cover transition-all duration-[2s] ${signaturePan1.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-110'}`} 
+                                        className={`object-cover transition-all duration-[2000ms] ${signaturePan1.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-110'}`} 
                                         style={{ 
                                             objectPosition: `${signaturePan1.localX} ${signaturePan1.localY}`,
                                             userSelect: 'none',
