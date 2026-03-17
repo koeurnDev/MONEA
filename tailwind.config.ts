@@ -35,6 +35,12 @@ const config: Config = {
 				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
 				'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))'
 			},
+			transitionDuration: {
+				'1500': '1500ms',
+				'2000': '2000ms',
+				'2500': '2500ms',
+				'3000': '3000ms',
+			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
