@@ -35,6 +35,7 @@ const nextConfig = {
     eslint: {
         ignoreDuringBuilds: true,
     },
+    transpilePackages: ['@upstash/redis', '@upstash/ratelimit'],
     experimental: {
         serverComponentsExternalPackages: ['otplib', '@scure/base'],
         instrumentationHook: true,
