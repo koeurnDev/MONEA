@@ -47,7 +47,7 @@ export function SignatureMoments({
                                     <Image 
                                         src={galleryImages[6]} 
                                         fill 
-                                        className={`object-cover transition-all duration-[2000ms] ${signaturePan1.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-110'}`} 
+                                        className={`object-cover transition-all duration-2000 ${signaturePan1.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-110'}`} 
                                         style={{ 
                                             objectPosition: `${signaturePan1.localX} ${signaturePan1.localY}`,
                                             userSelect: 'none',
@@ -78,7 +78,7 @@ export function SignatureMoments({
                                     <Image 
                                         src={galleryImages[7]} 
                                         fill 
-                                        className={`object-cover transition-all duration-[2s] ${signaturePan2.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-110'}`} 
+                                        className={`object-cover transition-all duration-2000 ${signaturePan2.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-110'}`} 
                                         style={{ 
                                             objectPosition: `${signaturePan2.localX} ${signaturePan2.localY}`,
                                             userSelect: 'none',
@@ -109,7 +109,7 @@ export function SignatureMoments({
                                     <Image 
                                         src={galleryImages[8]} 
                                         fill 
-                                        className={`object-cover transition-all duration-[2s] ${signaturePan3.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-110'}`} 
+                                        className={`object-cover transition-all duration-2000 ${signaturePan3.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-110'}`} 
                                         style={{ 
                                             objectPosition: `${signaturePan3.localX} ${signaturePan3.localY}`,
                                             userSelect: 'none',
