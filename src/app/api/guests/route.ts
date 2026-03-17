@@ -50,8 +50,11 @@ export async function GET(req: Request) {
 
         return NextResponse.json(decryptedGuests);
     } catch (error: any) {
-        console.error(`[Guests API] GET Error: ${error.message}`);
-        return errorResponse("Failed to fetch guests", 500);
+        console.error(`[Guests API] GET Error: ${error.message}`, {
+            stack: error.stack,
+            weddingId: (req as any).weddingId // Custom prop if set
+        });
+        return errorResponse(`Failed to fetch guests: ${error.message}`, 500);
     }
 }
 
@@ -104,8 +107,10 @@ export async function POST(req: Request) {
 
         return NextResponse.json(guest);
     } catch (error: any) {
-        console.error(`[Guests API] POST Error: ${error.message}`);
-        return errorResponse("Failed to create guest", 500);
+        console.error(`[Guests API] POST Error: ${error.message}`, {
+            stack: error.stack
+        });
+        return errorResponse(`Failed to create guest: ${error.message}`, 500);
     }
 }
 
