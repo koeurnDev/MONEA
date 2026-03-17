@@ -1,5 +1,7 @@
 
 import { NextResponse } from "next/server";
+
+export const dynamic = 'force-dynamic';
 import { prisma } from "@/lib/prisma";
 import { verifyTelegramAuth } from "@/lib/telegram-auth";
 import { signToken, generateFingerprint, isSecureCookie } from "@/lib/auth";

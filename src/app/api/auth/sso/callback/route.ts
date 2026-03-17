@@ -1,5 +1,7 @@
 
 import { NextResponse } from "next/server";
+
+export const dynamic = 'force-dynamic';
 import { prisma } from "@/lib/prisma";
 import { getGoogleTokens, getGoogleUser } from "@/lib/sso";
 import { signToken, generateFingerprint, isSecureCookie } from "@/lib/auth";
