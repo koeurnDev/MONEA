@@ -1,9 +1,10 @@
-export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
 import { sanitizeObject } from "@/lib/sanitize";
 import { errorResponse, validateRequest } from "@/lib/api-utils";
+
+export const dynamic = 'force-dynamic';
 import { activityUpdateSchema } from "@/lib/validations/activity";
 import { createLog } from "@/lib/audit-utils";
 
