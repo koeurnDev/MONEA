@@ -70,7 +70,7 @@ const nextConfig = {
         // Force the bundler to use the isomorphic/browser entry point for Upstash
         // when building for the Edge Runtime to avoid Node.js-only API leaks.
         if (nextRuntime === 'edge') {
-            config.resolve.alias['@upstash/redis'] = resolve(__dirname, 'node_modules/@upstash/redis/index.mjs');
+            config.resolve.alias['@upstash/redis'] = resolve(__dirname, 'node_modules/@upstash/redis/cloudflare.mjs');
         }
 
         return config;
