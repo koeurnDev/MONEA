@@ -26,12 +26,14 @@ const nextConfig = {
             },
         ],
     },
+    output: 'standalone',
     eslint: {
         ignoreDuringBuilds: true,
     },
     experimental: {
         serverComponentsExternalPackages: ['otplib', '@scure/base'],
         instrumentationHook: true,
+        webpackBuildWorker: false,
     },
     async redirects() {
         return [

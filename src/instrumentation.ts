@@ -1,6 +1,7 @@
 import * as Sentry from "@sentry/nextjs";
 
 export async function register() {
+  console.log("[Instrumentation] Registering hooks...");
   if (process.env.NEXT_RUNTIME === "nodejs") {
     if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
       Sentry.init({
@@ -20,4 +21,5 @@ export async function register() {
       });
     }
   }
+  console.log("[Instrumentation] Hooks registered successfully.");
 }
