@@ -64,8 +64,15 @@ const nextConfig = {
         ];
     },
     // Add webpack alias for '@' to resolve to 'src'
-    webpack: (config) => {
+    webpack: (config, { nextRuntime }) => {
         config.resolve.alias['@'] = resolve(__dirname, 'src');
+        
+        // Force the bundler to use the isomorphic/browser entry point for Upstash
+        // when building for the Edge Runtime to avoid Node.js-only API leaks.
+        if (nextRuntime === 'edge') {
+            config.resolve.alias['@upstash/redis'] = resolve(__dirname, 'node_modules/@upstash/redis/index.mjs');
+        }
+
         return config;
     },
 };
