@@ -1,5 +1,4 @@
 import { SignJWT, jwtVerify, type JWTPayload } from "jose";
-import { Redis } from "@upstash/redis";
 import { cookies } from "next/headers";
 import { COOKIE_NAMES, JWT_CONFIG, ROLES } from "./constants";
 
