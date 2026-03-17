@@ -138,8 +138,8 @@ export async function getServerUser() {
         });
 
         return {
-            id: payload.userId as string,
-            userId: payload.userId as string,
+            id: (payload.userId || payload.staffId) as string,
+            userId: (payload.userId || payload.staffId) as string,
             email: payload.email as string,
             name: (payload.name as string) || null,
             role: payload.role as string,
