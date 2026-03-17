@@ -57,6 +57,11 @@ const nextConfig = {
             },
         ];
     }
+    // Add webpack alias for '@' to resolve to 'src'
+    webpack: (config) => {
+        config.resolve.alias['@'] = require('path').resolve(__dirname, 'src');
+        return config;
+    },
 };
 
 export default bundleAnalyzer(withSentryConfig(
