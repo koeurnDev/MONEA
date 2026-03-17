@@ -72,7 +72,7 @@ export function GuestbookForm({ weddingId }: { weddingId: string }) {
                 {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ? (
                     <div className="flex justify-center scale-90 xs:scale-100 origin-center overflow-hidden py-2">
                         <Turnstile
-                            siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+                            siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA"}
                             onSuccess={setToken}
                             options={{ theme: 'auto', appearance: 'always' }}
                         />
