@@ -88,14 +88,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="preconnect" href="https://res.cloudinary.com" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://res.cloudinary.com" />
         <link rel="preconnect" href="https://challenges.cloudflare.com" />
-        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
-        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-        <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
-        <link rel="dns-prefetch" href="https://challenges.cloudflare.com" />
         <link rel="icon" href="/favicon.png" type="image/png" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />

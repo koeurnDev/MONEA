@@ -66,6 +66,7 @@ export async function GET(req: NextRequest) {
                 >
                     {/* Background Image / Overlay */}
                     {image ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
                         <img
                             src={image}
                             alt="Preview Background"
