@@ -76,8 +76,14 @@ export async function POST(req: Request) {
 
         let weddingId = (user as any).weddingId;
         if (!weddingId) {
+            console.log(`[Gifts API] No weddingId in token for user: ${user.id}. Searching in DB...`);
             const wedding = await prisma.wedding.findFirst({ where: { userId: user.userId } });
-            if (wedding) weddingId = wedding.id;
+            if (wedding) {
+                weddingId = wedding.id;
+                console.log(`[Gifts API] Found wedding ${weddingId} for user ${user.id}`);
+            } else {
+                console.warn(`[Gifts API] No wedding found in DB for user ${user.id}`);
+            }
         }
 
         if (!weddingId) return errorResponse("Wedding not found", 404);
