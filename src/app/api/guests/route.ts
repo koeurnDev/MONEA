@@ -72,15 +72,24 @@ export async function POST(req: Request) {
 
         const sanitizedData = sanitizeObject<any>(data);
 
-        let wedding = await prisma.wedding.findFirst({ where: { userId: user.id } });
-        if (!wedding) {
-            wedding = await prisma.wedding.create({
-                data: {
-                    userId: user.id, groomName: "Groom", brideName: "Bride",
-                    date: new Date(), packageType: "FREE"
-                }
-            });
+        let weddingId = (user as any).weddingId;
+        if (!weddingId) {
+            const weddingRecord = await prisma.wedding.findFirst({ where: { userId: user.id } });
+            if (!weddingRecord) {
+                const newWedding = await prisma.wedding.create({
+                    data: {
+                        userId: user.id, groomName: "Groom", brideName: "Bride",
+                        date: new Date(), packageType: "FREE"
+                    }
+                });
+                weddingId = newWedding.id;
+            } else {
+                weddingId = weddingRecord.id;
+            }
         }
+
+        if (!weddingId) return errorResponse("Wedding not found", 404);
+        const wedding = { id: weddingId };
 
         // Generate Guest Code using Raw SQL
         const countResult = await prisma.$queryRaw<any[]>`SELECT COUNT(*)::int as count FROM "Guest" WHERE "weddingId" = ${wedding.id}`;
