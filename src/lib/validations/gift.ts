@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const giftSchema = z.object({
   amount: z.coerce.number().positive("Amount must be positive"),
-  currency: z.string().min(1),
+  currency: z.enum(["USD", "KHR"]),
   method: z.string().optional(),
   guestId: z.string().optional().nullable(),
   guestName: z.string().optional(),

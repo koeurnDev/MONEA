@@ -234,13 +234,14 @@ model Guest {
   childrenCount Int?        @default(0)
   rsvpNotes     String?
   rsvpAt        DateTime?
-  guestCode     String?     @unique
+  guestCode     String?
   sequenceNumber Int?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @default(now()) @updatedAt
 
   @@index([weddingId])
   @@index([hasArrived])
+  @@unique([weddingId, guestCode])
 }
 
 model Gift {

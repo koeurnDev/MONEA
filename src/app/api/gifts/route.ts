@@ -76,11 +76,9 @@ export async function POST(req: Request) {
 
         let weddingId = (user as any).weddingId;
         if (!weddingId) {
-            console.log(`[Gifts API] No weddingId in token for user: ${user.id}. Searching in DB...`);
-            const wedding = await prisma.wedding.findFirst({ where: { userId: user.userId } });
-            if (wedding) {
-                weddingId = wedding.id;
-                console.log(`[Gifts API] Found wedding ${weddingId} for user ${user.id}`);
+            const weddingRecord = await prisma.wedding.findFirst({ where: { userId: user.id } });
+            if (weddingRecord) {
+                weddingId = weddingRecord.id;
             } else {
                 console.warn(`[Gifts API] No wedding found in DB for user ${user.id}`);
             }
@@ -142,10 +140,7 @@ export async function POST(req: Request) {
         return NextResponse.json(gift);
     } catch (error: any) {
         console.error(`[Gifts API] POST ERROR:`, error);
-        try {
-            const fs = require('fs');
-            fs.appendFileSync('d:/MONEA/debug_api.txt', `${new Date().toISOString()} - [Gifts API] POST ERROR: ${error.message}\n${error.stack}\n`);
-        } catch (e) {}
-        return errorResponse("Failed to save gift", 500);
+        // Include error message in details for production debugging
+        return errorResponse("Failed to save gift", 500, error.message);
     }
 }
