@@ -1,10 +1,12 @@
 import { Redis } from "@upstash/redis";
 
-const url = process.env.UPSTASH_REDIS_REST_URL;
-const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+const url = process.env.UPSTASH_REDIS_REST_URL || "";
+const token = process.env.UPSTASH_REDIS_REST_TOKEN || "";
 
-let redis: any;
+let redis: Redis;
 
+// In Next.js Edge Runtime, we must ensure we don't use Node.js-only modules.
+// The @upstash/redis library is isomorphic, but we ensure it's initialized safely.
 if (url && token) {
   redis = new Redis({ url, token });
 } else {
@@ -41,10 +43,10 @@ if (url && token) {
         memory.set(key, val);
         return val;
       }
-    };
+    } as any;
   } else {
     // In production, we still want to instantiate it so it throws on use if misconfigured
-    redis = new Redis({ url: url || "", token: token || "" });
+    redis = new Redis({ url: "", token: "" });
   }
 }
 

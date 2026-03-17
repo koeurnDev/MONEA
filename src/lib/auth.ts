@@ -3,10 +3,7 @@ import { Redis } from "@upstash/redis";
 import { cookies } from "next/headers";
 import { COOKIE_NAMES, JWT_CONFIG, ROLES } from "./constants";
 
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL || "",
-  token: process.env.UPSTASH_REDIS_REST_TOKEN || "",
-});
+import redis from "./redis";
 
 const JWT_SECRET_DEV_FALLBACK = "monea-dev-secret-do-not-use-in-prod-1234567890";
 const SECRET_STR = process.env.JWT_SECRET || (process.env.NODE_ENV === "development" ? JWT_SECRET_DEV_FALLBACK : "");
