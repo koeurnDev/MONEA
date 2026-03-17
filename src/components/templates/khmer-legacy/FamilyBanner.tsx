@@ -20,7 +20,7 @@ export function FamilyBanner({ galleryImages, bannerPan }: FamilyBannerProps) {
                 </RevealSection>
             </div>
             <div 
-                className="w-full aspect-[16/9] md:aspect-[21/7] overflow-hidden grayscale-[5%] hover:grayscale-0 transition-all [transition-duration:2s] bg-gold/5 flex items-center justify-center relative shadow-inner md:shadow-none"
+                className="w-full aspect-[16/9] md:aspect-[21/7] overflow-hidden grayscale-[5%] hover:grayscale-0 transition-all duration-2000 bg-gold/5 flex items-center justify-center relative shadow-inner md:shadow-none"
             >
                 {galleryImages[6] ? (
                     <Image 

@@ -442,7 +442,7 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                             >
                                 <Image 
                                     src={wedding.galleryItems.find(i => i.type === 'CERTIFICATE')?.url || "/og-main.jpg"} 
-                                    className="w-full h-full object-contain p-4 md:p-10 bg-[#FAF9F6] transition-transform [transition-duration:5s]" 
+                                    className="w-full h-full object-contain p-4 md:p-10 bg-[#FAF9F6] transition-transform duration-5000" 
                                     alt="Marriage Certificate" 
                                     width={800}
                                     height={600}
