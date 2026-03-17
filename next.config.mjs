@@ -31,6 +31,7 @@ const nextConfig = {
     },
     experimental: {
         serverComponentsExternalPackages: ['otplib', '@scure/base'],
+        instrumentationHook: true,
     },
     async redirects() {
         return [
