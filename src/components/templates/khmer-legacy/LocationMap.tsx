@@ -54,7 +54,7 @@ export function LocationMap({ wedding, galleryImages, mapPan }: LocationMapProps
                                     <>
                                         <Image 
                                             src={galleryImages[5]} 
-                                            className={`w-full h-full object-cover transition-all duration-[8000ms] group-hover:scale-110 ${mapPan.isDragging ? 'cursor-grabbing' : 'cursor-grab'}`} 
+                                            className={`w-full h-full object-cover transition-all duration-8000 group-hover:scale-110 ${mapPan.isDragging ? 'cursor-grabbing' : 'cursor-grab'}`} 
                                             style={{ 
                                                 objectPosition: `${mapPan.localX} ${mapPan.localY}`,
                                                 userSelect: 'none', touchAction: 'none'

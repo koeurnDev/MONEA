@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,11 +36,7 @@ export default function MasterPaymentsPage() {
     const [loading, setLoading] = useState(true);
     const [processing, setProcessing] = useState<string | null>(null);
 
-    useEffect(() => {
-        loadData();
-    }, []);
-
-    const loadData = async () => {
+    const loadData = useCallback(async () => {
         setLoading(true);
         try {
             const res = await moneaClient.get("/api/admin/master/payments") as any;
@@ -59,7 +55,11 @@ export default function MasterPaymentsPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [isKm, showToast]);
+
+    useEffect(() => {
+        loadData();
+    }, [loadData]);
 
     const handleApprove = async (weddingId: string, packageType: string) => {
         setProcessing(weddingId);

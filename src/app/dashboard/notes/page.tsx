@@ -18,25 +18,26 @@ export default function NotesPage() {
     const [error, setError] = useState<string | null>(null);
     const { data: wedding = null } = useSWR("/api/wedding", (url) => fetch(url).then(res => res.json()).catch(() => null));
 
+    const fetchNotes = useCallback(async () => {
+        try {
+            const res = await fetch("/api/wedding/notes");
+            if (res.ok) {
+                const data = await res.json();
+                setNotes(data.notes || "");
+            } else {
+                setError(t("dashboard.notes.error.fetch"));
+            }
+        } catch (err) {
+            setError(t("dashboard.notes.error.connection"));
+        } finally {
+            setLoading(false);
+        }
+    }, [t]);
+
     // Fetch existing notes
     useEffect(() => {
-        const fetchNotes = async () => {
-            try {
-                const res = await fetch("/api/wedding/notes");
-                if (res.ok) {
-                    const data = await res.json();
-                    setNotes(data.notes || "");
-                } else {
-                    setError(t("dashboard.notes.error.fetch"));
-                }
-            } catch (err) {
-                setError(t("dashboard.notes.error.connection"));
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchNotes();
-    }, []);
+    }, [fetchNotes]);
 
     const handleSave = useCallback(async () => {
         setSaving(true);
@@ -57,7 +58,7 @@ export default function NotesPage() {
         } finally {
             setSaving(false);
         }
-    }, [notes]);
+    }, [notes, t]);
 
     const handlePrint = () => {
         const originalTitle = document.title;

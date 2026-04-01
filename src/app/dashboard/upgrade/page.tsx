@@ -129,7 +129,7 @@ export default function UpgradePage() {
 
         const interval = setInterval(poll, 1800); // Snapier 1.8s polling
         return () => clearInterval(interval);
-    }, [showPayment, qrMd5, orderId, selectedPlan, pricing, countdown]); // Added countdown back but check isPolling inside
+    }, [showPayment, qrMd5, orderId, selectedPlan, pricing, countdown, t]);
 
     const handleSelect = async (plan: "PRO" | "PREMIUM") => {
         setSelectedPlan(plan);

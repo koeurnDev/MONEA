@@ -31,7 +31,7 @@ export function EditorialBreaks({
                         <Image 
                             src={galleryImages[1 % galleryImages.length]} 
                             fill 
-                            className={`object-cover transition-all duration-[3000ms] ease-out ${editorialPan1.isDragging ? 'cursor-grabbing scale-110' : 'cursor-grab hover:scale-110'}`} 
+                            className={`object-cover transition-all duration-3000 ease-out ${editorialPan1.isDragging ? 'cursor-grabbing scale-110' : 'cursor-grab hover:scale-110'}`} 
                             style={{ 
                                 objectPosition: `${editorialPan1.localX} ${editorialPan1.localY}`,
                                 userSelect: 'none',
@@ -80,7 +80,7 @@ export function EditorialBreaks({
                         <Image 
                             src={galleryImages[7 % galleryImages.length]} 
                             fill 
-                            className={`object-cover transition-all duration-[3000ms] ease-out ${editorialPan2.isDragging ? 'cursor-grabbing scale-110' : 'cursor-grab hover:scale-110'}`} 
+                            className={`object-cover transition-all duration-3000 ease-out ${editorialPan2.isDragging ? 'cursor-grabbing scale-110' : 'cursor-grab hover:scale-110'}`} 
                             style={{ 
                                 objectPosition: `${editorialPan2.localX} ${editorialPan2.localY}`,
                                 userSelect: 'none',
@@ -120,7 +120,7 @@ export function EditorialBreaks({
                             <Image 
                                 src={galleryImages[3]} 
                                 fill 
-                                className={`object-cover transition-all duration-[2000ms] ease-out ${editorialPan3.isDragging ? 'cursor-grabbing scale-110' : 'cursor-grab group-hover:scale-110'}`} 
+                                className={`object-cover transition-all duration-2000 ease-out ${editorialPan3.isDragging ? 'cursor-grabbing scale-110' : 'cursor-grab group-hover:scale-110'}`} 
                                 style={{ 
                                     objectPosition: `${editorialPan3.localX} ${editorialPan3.localY}`,
                                     userSelect: 'none',
@@ -149,7 +149,7 @@ export function EditorialBreaks({
                         {galleryImages[4] ? (
                             <Image 
                                 src={galleryImages[4]} 
-                                className={`w-full h-full object-cover transition-all duration-[3000ms] ease-out ${editorialPan4.isDragging ? 'cursor-grabbing scale-110' : 'cursor-grab group-hover:scale-[1.05]'}`} 
+                                className={`w-full h-full object-cover transition-all duration-3000 ease-out ${editorialPan4.isDragging ? 'cursor-grabbing scale-110' : 'cursor-grab group-hover:scale-[1.05]'}`} 
                                 style={{ 
                                     objectPosition: `${editorialPan4.localX} ${editorialPan4.localY}`,
                                     userSelect: 'none',

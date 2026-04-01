@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Shield, Lock, User, Settings, AlertTriangle, Zap, CheckCircle2, Loader2, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/i18n/LanguageProvider";
@@ -27,7 +27,7 @@ export function SecurityAuditFeed() {
     const [rollingBackId, setRollingBackId] = useState<string | null>(null);
     const { showToast } = useToast();
 
-    const fetchLogs = async () => {
+    const fetchLogs = useCallback(async () => {
         try {
             const res = await moneaClient.get(`/api/admin/logs?type=${type}&limit=10`);
             setLogs(Array.isArray(res.data) ? res.data : []);
@@ -35,7 +35,7 @@ export function SecurityAuditFeed() {
         } catch (e) {
             console.error("Failed to fetch audit logs", e);
         }
-    };
+    }, [type]);
 
     const handleRollback = async (versionId: string) => {
         setRollingBackId(versionId);
@@ -55,7 +55,7 @@ export function SecurityAuditFeed() {
         fetchLogs();
         const interval = setInterval(fetchLogs, 15000); // Poll every 15s
         return () => clearInterval(interval);
-    }, [type]);
+    }, [fetchLogs]);
 
     const getIcon = (log: AuditLog) => {
         if (log.event?.includes('FAILED') || log.event?.includes('UNAUTHORIZED')) return <AlertTriangle className="text-red-500" size={16} />;

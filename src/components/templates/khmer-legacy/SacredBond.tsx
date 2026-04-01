@@ -40,7 +40,7 @@ export function SacredBond({ wedding }: { wedding: WeddingData }) {
                         <div className="relative aspect-[1.4/1] w-full shadow-[0_50px_100px_-20px_rgba(0,0,0,0.15)] rounded-[3rem] md:rounded-[5rem] overflow-hidden bg-white border-[12px] md:border-[32px] border-white ring-1 ring-gold-main/10">
                             <Image 
                                 src={certificate.url} 
-                                className="w-full h-full object-contain p-4 md:p-12 transition-transform duration-[3000ms] group-hover:scale-[1.03]" 
+                                className="w-full h-full object-contain p-4 md:p-12 transition-transform duration-3000 group-hover:scale-[1.03]" 
                                 alt="Marriage Certificate" 
                                 fill
                                 sizes="(max-w-1280px) 100vw, 1280px"

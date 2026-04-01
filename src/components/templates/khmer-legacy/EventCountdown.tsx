@@ -55,7 +55,7 @@ export function EventCountdown({
                                 <Image 
                                     src={galleryImages[0]} 
                                     fill
-                                    className={`object-cover transition-all duration-[2000ms] ${hubPan.isDragging ? 'cursor-grabbing scale-110' : 'cursor-grab group-hover:scale-110'}`} 
+                                    className={`object-cover transition-all duration-2000 ${hubPan.isDragging ? 'cursor-grabbing scale-110' : 'cursor-grab group-hover:scale-110'}`} 
                                     style={{ 
                                         objectPosition: `${hubPan.localX} ${hubPan.localY}`,
                                         userSelect: 'none',

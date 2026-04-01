@@ -42,6 +42,7 @@ const config: Config = {
 				'3000': '3000ms',
 				'4000': '4000ms',
 				'5000': '5000ms',
+				'8000': '8000ms',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
