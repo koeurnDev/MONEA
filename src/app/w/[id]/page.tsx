@@ -4,8 +4,7 @@ import { WeddingDataView } from "./_components/WeddingDataView";
 import { WeddingSkeleton } from "./_components/WeddingSkeleton";
 import { unstable_cache } from "next/cache";
 
-// Enable ISR with 60 seconds revalidation for optimal edge caching and TTFB
-export const revalidate = 60;
+// Enable ISR replaced by fully dynamic Server Component for stability
 
 const getWeddingMetadataOnly = unstable_cache(
     async (id: string) => {

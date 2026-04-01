@@ -24,84 +24,6 @@ const moul = Moul({
 const greatVibes = Great_Vibes({
   weight: "400",
   subsets: ["latin"],
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   variable: "--font-great-vibes",
   display: 'swap',
   preload: true
@@ -166,6 +88,8 @@ import { LanguageProvider } from "@/i18n/LanguageProvider";
 import { getLocale } from "@/i18n/server";
 import Script from "next/script";
 import SystemStatusListener from "@/components/layout/SystemStatusListener";
+
+export const dynamic = "force-dynamic";
 
 export default function RootLayout({
   children,

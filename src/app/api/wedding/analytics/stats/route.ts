@@ -4,8 +4,6 @@ import { prisma } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
 import { errorResponse } from "@/lib/api-utils";
 
-export const revalidate = 300; // Cache for 5 minutes
-
 export async function GET(req: Request) {
     try {
         const user = await getServerUser();
