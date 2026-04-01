@@ -11,8 +11,12 @@ const JWT_SECRET_DEV_FALLBACK = "monea-dev-secret-do-not-use-in-prod-1234567890"
 const SECRET_STR = process.env.JWT_SECRET || (process.env.NODE_ENV === "development" ? JWT_SECRET_DEV_FALLBACK : "");
 const SECRET = new TextEncoder().encode(SECRET_STR);
 
-if (process.env.NODE_ENV === "production" && (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32)) {
-    console.error("[CRITICAL] JWT_SECRET is missing or too weak in production!");
+if (process.env.NODE_ENV === "production") {
+  if (!process.env.JWT_SECRET) {
+    console.error("[CRITICAL] JWT_SECRET is missing in production environment!");
+  } else if (process.env.JWT_SECRET.length < 32) {
+    console.error(`[CRITICAL] JWT_SECRET is too weak (length: ${process.env.JWT_SECRET.length}). Must be at least 32 characters in production.`);
+  }
 }
 
 /**
