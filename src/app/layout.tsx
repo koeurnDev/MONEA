@@ -7,26 +7,104 @@ import { cn } from "@/lib/utils";
 import PageTransition from "@/components/layout/PageTransition";
 import SmoothScroll from "@/components/layout/SmoothScroll";
 
-const kantumruy = Kantumruy_Pro({ 
-  weight: ["400", "700"], 
-  subsets: ["khmer", "latin"], 
-  variable: "--font-kantumruy", 
+const kantumruy = Kantumruy_Pro({
+  weight: ["400", "700"],
+  subsets: ["khmer", "latin"],
+  variable: "--font-kantumruy",
   display: 'swap',
-  preload: true 
+  preload: true
 });
-const moul = Moul({ 
-  weight: "400", 
-  subsets: ["khmer"], 
-  variable: "--font-moul", 
+const moul = Moul({
+  weight: "400",
+  subsets: ["khmer"],
+  variable: "--font-moul",
   display: 'swap',
-  preload: true 
+  preload: true
 });
-const greatVibes = Great_Vibes({ 
-  weight: "400", 
-  subsets: ["latin"], 
-  variable: "--font-great-vibes", 
+const greatVibes = Great_Vibes({
+  weight: "400",
+  subsets: ["latin"],
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  variable: "--font-great-vibes",
   display: 'swap',
-  preload: true 
+  preload: true
 });
 const outfit = Outfit({
   subsets: ["latin"],
@@ -94,6 +172,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = getLocale();
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -126,7 +205,7 @@ export default function RootLayout({
           <SWRProvider>
             <LoadingProvider>
               <AnimationProvider>
-                <LanguageProvider initialLocale={getLocale()}>
+                <LanguageProvider initialLocale={locale}>
                   <SystemStatusListener />
                   <LoadingBar />
                   {children}

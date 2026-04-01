@@ -42,7 +42,7 @@ const nextConfig = {
     experimental: {
         serverComponentsExternalPackages: ['otplib', '@scure/base'],
         instrumentationHook: true,
-        webpackBuildWorker: false,
+        webpackBuildWorker: true,
         optimizePackageImports: [
             'lucide-react',
             'date-fns',
