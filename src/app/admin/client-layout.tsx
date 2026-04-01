@@ -17,7 +17,7 @@ import dynamic from "next/dynamic";
 
 const ConfirmModal = dynamic(() => import("@/components/ui/ConfirmModal").then(m => m.ConfirmModal), { ssr: false });
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminClientLayout({ children }: { children: React.ReactNode }) {
     const { t, locale } = useTranslation();
     const pathname = usePathname();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
