@@ -10,9 +10,10 @@ import { m, AnimatePresence } from 'framer-motion';
 import QRCode from "react-qr-code";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { TableSkeleton } from "../_components/SkeletonComponents";
-// Force HMR rebuild due to stale state error
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 export default function StaffManagementPage() {
+    const { t } = useTranslation();
     const [staffList, setStaffList] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -36,7 +37,7 @@ export default function StaffManagementPage() {
 
     function copyLink(staff: any) {
         if (!staff.accessToken) return;
-        const link = `${window.location.origin}/login?token=${staff.accessToken}`;
+        const link = `${window.location.origin}/sign-in?token=${staff.accessToken}`;
         navigator.clipboard.writeText(link);
         setCopiedId(staff.id);
         setTimeout(() => setCopiedId(null), 2000);
@@ -83,7 +84,7 @@ export default function StaffManagementPage() {
                 setNewStaffPassword("");
             } else {
                 const data = await res.json();
-                setCreateError(data.error || "ការបង្កើតគណនីបានបរាជ័យ");
+                setCreateError(data.error || t("dashboard.staff.error.create"));
             }
         } catch (e) {
             console.error(e);
@@ -117,9 +118,9 @@ export default function StaffManagementPage() {
                 onClose={() => setDeleteConfirm({ open: false, staffId: "", staffName: "" })}
                 onConfirm={confirmDeleteStaff}
                 loading={deleteLoading}
-                title="លុបគណនីបុគ្គលិក"
-                description="តើអ្នកប្រាកដថាចង់លុបគណនីបុគ្គលិកនេះមែនទេ? សកម្មភាពនេះមិនអាចដកស្រាយបានឡើយ។"
-                confirmLabel="លុបគណនី"
+                title={t("dashboard.staff.delete.title")}
+                description={t("dashboard.staff.delete.description")}
+                confirmLabel={t("dashboard.staff.delete.confirm")}
                 detail={deleteConfirm.staffName}
                 variant="danger"
             />
@@ -128,53 +129,53 @@ export default function StaffManagementPage() {
                 <div className="space-y-1">
                     <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] text-red-600 mb-1">
                         <UserPlus size={14} />
-                        ACCESS MANAGEMENT
+                        {t("dashboard.staff.accessManagement")}
                     </div>
                     <h2 className="text-3xl font-black tracking-tight text-foreground font-kantumruy">
-                        គ្រប់គ្រងបុគ្គលិក
+                        {t("dashboard.staff.title")}
                     </h2>
                     <p className="text-muted-foreground font-medium font-kantumruy text-base">
-                        គ្រប់គ្រងអ្នកដែលជួយកត់ចំណងដៃ ឬស្កេនភ្ញៀវក្នុងពិធីរបស់អ្នក។
+                        {t("dashboard.staff.subtitle")}
                     </p>
                 </div>
 
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
                         <Button className="h-11 px-8 bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-md transition-all font-kantumruy font-bold">
-                            <Plus className="mr-2 h-4 w-4" /> បន្ថែមបុគ្គលិក
+                            <Plus className="mr-2 h-4 w-4" /> {t("dashboard.staff.addStaff")}
                         </Button>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-[450px] rounded-[2rem] border-none shadow-2xl p-0 overflow-hidden">
                         <DialogHeader className="p-8 pb-4">
-                            <DialogTitle className="text-2xl font-black font-kantumruy tracking-tight text-foreground">បន្ថែមបុគ្គលិកថ្មី</DialogTitle>
+                            <DialogTitle className="text-2xl font-black font-kantumruy tracking-tight text-foreground">{t("dashboard.staff.dialog.title")}</DialogTitle>
                             <DialogDescription className="text-muted-foreground font-medium font-kantumruy">
-                                បង្កើតគណនីសម្រាប់អ្នកជួយការងារ។ ពួកគេនឹងប្រើ អ៊ីមែល និង ពាក្យសម្ងាត់ សម្រាប់ចូលប្រើ។
+                                {t("dashboard.staff.dialog.description")}
                             </DialogDescription>
                         </DialogHeader>
                         <div className="p-8 pt-4 space-y-6">
                             <div className="space-y-2">
-                                <label className="text-xs font-black text-muted-foreground/60 uppercase tracking-widest ml-1">ឈ្មោះបុគ្គលិក</label>
+                                <label className="text-xs font-black text-muted-foreground/60 uppercase tracking-widest ml-1">{t("dashboard.staff.dialog.nameLabel")}</label>
                                 <Input
-                                    placeholder="ឧ. ហេង ប៊ុណ្ណា"
+                                    placeholder={t("dashboard.staff.dialog.namePlaceholder")}
                                     value={newStaffName}
                                     onChange={(e) => setNewStaffName(e.target.value)}
                                     className="h-12 rounded-xl bg-muted/50 border-none shadow-sm focus:bg-background/80 transition-all font-kantumruy font-bold text-foreground"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-xs font-black text-muted-foreground/60 uppercase tracking-widest ml-1">អ៊ីមែល (សម្រាប់ចូលប្រើ)</label>
+                                <label className="text-xs font-black text-muted-foreground/60 uppercase tracking-widest ml-1">{t("dashboard.staff.dialog.emailLabel")}</label>
                                 <Input
-                                    placeholder="staff@example.com"
+                                    placeholder={t("dashboard.staff.dialog.emailPlaceholder")}
                                     value={newStaffEmail}
                                     onChange={(e) => setNewStaffEmail(e.target.value)}
                                     className="h-12 rounded-xl bg-muted/50 border-none shadow-sm focus:bg-background/80 transition-all font-kantumruy font-bold text-foreground"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-xs font-black text-muted-foreground/60 uppercase tracking-widest ml-1">ពាក្យសម្ងាត់</label>
+                                <label className="text-xs font-black text-muted-foreground/60 uppercase tracking-widest ml-1">{t("dashboard.staff.dialog.passwordLabel")}</label>
                                 <Input
                                     type="password"
-                                    placeholder="••••••••"
+                                    placeholder={t("dashboard.staff.dialog.passwordPlaceholder")}
                                     value={newStaffPassword}
                                     onChange={(e) => setNewStaffPassword(e.target.value)}
                                     className="h-12 rounded-xl bg-muted/50 border-none shadow-sm focus:bg-background/80 transition-all font-kantumruy font-bold text-foreground"
@@ -184,8 +185,8 @@ export default function StaffManagementPage() {
                             <div className="p-4 bg-muted/30 rounded-2xl flex items-start gap-4">
                                 <Shield className="w-5 h-5 text-muted-foreground/40 mt-0.5 shrink-0" />
                                 <div className="text-[11px] text-muted-foreground font-kantumruy leading-relaxed">
-                                    <p className="font-black text-foreground uppercase tracking-widest mb-1">ព័ត៌មានសុវត្ថិភាព</p>
-                                    <p>បុគ្គលិកម្នាក់ៗនឹងមាន PIN ផ្ទាល់ខ្លួនសម្រាប់សុវត្ថិភាពទិន្នន័យ។</p>
+                                    <p className="font-black text-foreground uppercase tracking-widest mb-1">{t("dashboard.staff.dialog.securityTitle")}</p>
+                                    <p>{t("dashboard.staff.dialog.securityDesc")}</p>
                                 </div>
                             </div>
 
@@ -194,7 +195,7 @@ export default function StaffManagementPage() {
                                 disabled={createLoading || !newStaffName || !newStaffEmail || !newStaffPassword}
                                 className="w-full h-12 text-sm font-black uppercase tracking-widest font-kantumruy rounded-xl bg-red-600 hover:bg-red-700 text-white shadow-md mt-4"
                             >
-                                {createLoading ? "Loading..." : "យល់ព្រមបង្កើត"}
+                                {createLoading ? t("dashboard.staff.dialog.creating") : t("dashboard.staff.dialog.submit")}
                             </Button>
                         </div>
                     </DialogContent>
@@ -202,23 +203,23 @@ export default function StaffManagementPage() {
                     <Dialog open={!!qrStaff} onOpenChange={(open) => !open && setQrStaff(null)}>
                         <DialogContent className="sm:max-w-md rounded-[2rem] border-none shadow-2xl p-8">
                             <DialogHeader>
-                                <DialogTitle className="text-center text-xl font-black font-kantumruy">ស្កេនដើម្បីចូលប្រើ</DialogTitle>
+                                <DialogTitle className="text-center text-xl font-black font-kantumruy">{t("dashboard.staff.dialog.qrTitle")}</DialogTitle>
                                 <DialogDescription className="text-center font-kantumruy">
-                                    សម្រាប់ {qrStaff?.name} Only
+                                    {t("dashboard.staff.dialog.qrSubtitle", { name: qrStaff?.name })}
                                 </DialogDescription>
                             </DialogHeader>
                             <div className="flex justify-center p-6 bg-white rounded-3xl shadow-inner">
                                 {qrStaff?.accessToken && (
                                     <div className="p-2 bg-white rounded-lg">
                                         <QRCode
-                                            value={`${typeof window !== 'undefined' ? window.location.origin : ''}/login?token=${qrStaff.accessToken}`}
+                                            value={`${typeof window !== 'undefined' ? window.location.origin : ''}/sign-in?token=${qrStaff.accessToken}`}
                                             size={200}
                                         />
                                     </div>
                                 )}
                             </div>
                             <p className="text-center text-xs text-muted-foreground font-medium italic">
-                                បុគ្គលិកអាចស្កេន QR នេះដើម្បីចូលប្រើដោយផ្ទាល់។
+                                {t("dashboard.staff.dialog.qrFooter")}
                             </p>
                         </DialogContent>
                     </Dialog>
@@ -233,10 +234,10 @@ export default function StaffManagementPage() {
                     <Table>
                         <TableHeader className="bg-muted/30">
                             <TableRow className="border-none hover:bg-transparent">
-                                <TableHead className="h-14 px-8 text-sm font-bold text-muted-foreground uppercase tracking-tight">ឈ្មោះ</TableHead>
-                                <TableHead className="h-14 px-8 text-sm font-bold text-muted-foreground uppercase tracking-tight">តួនាទី</TableHead>
-                                <TableHead className="h-14 px-8 text-sm font-bold text-muted-foreground uppercase tracking-tight">Email / PIN</TableHead>
-                                <TableHead className="h-14 px-8 text-sm font-bold text-muted-foreground uppercase tracking-tight text-right">សកម្មភាព</TableHead>
+                                <TableHead className="h-14 px-8 text-sm font-bold text-muted-foreground uppercase tracking-tight">{t("dashboard.staff.table.name")}</TableHead>
+                                <TableHead className="h-14 px-8 text-sm font-bold text-muted-foreground uppercase tracking-tight">{t("dashboard.staff.table.role")}</TableHead>
+                                <TableHead className="h-14 px-8 text-sm font-bold text-muted-foreground uppercase tracking-tight">{t("dashboard.staff.table.emailPin")}</TableHead>
+                                <TableHead className="h-14 px-8 text-sm font-bold text-muted-foreground uppercase tracking-tight text-right">{t("dashboard.staff.table.actions")}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -253,14 +254,14 @@ export default function StaffManagementPage() {
                                             <div className="w-20 h-20 bg-background shadow-sm rounded-full flex items-center justify-center text-muted-foreground/30 mx-auto mb-6 group-hover:scale-110 transition-transform duration-500">
                                                 <UserCog className="w-10 h-10" />
                                             </div>
-                                            <h3 className="text-xl font-black text-foreground mb-2 font-kantumruy">មិនទាន់មានបុគ្គលិក</h3>
-                                            <p className="text-muted-foreground mb-10 font-medium font-kantumruy">បន្ថែមបុគ្គលិកដើម្បីជួយសម្រួលការងាររបស់អ្នក។</p>
+                                            <h3 className="text-xl font-black text-foreground mb-2 font-kantumruy">{t("dashboard.staff.table.empty.title")}</h3>
+                                            <p className="text-muted-foreground mb-10 font-medium font-kantumruy">{t("dashboard.staff.table.empty.description")}</p>
 
                                             <Button
                                                 onClick={() => setIsDialogOpen(true)}
                                                 className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-12 px-10 font-bold shadow-md transition-all font-kantumruy"
                                             >
-                                                បន្ថែមឥឡូវនេះ
+                                                {t("dashboard.staff.table.empty.button")}
                                             </Button>
                                         </div>
                                     </TableCell>
@@ -305,7 +306,7 @@ export default function StaffManagementPage() {
                                                     size="icon"
                                                     className="w-9 h-9 rounded-lg text-muted-foreground/40 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-all"
                                                     onClick={() => copyLink(staff)}
-                                                    title="Copy Magic Link"
+                                                    title={t("dashboard.staff.copyMagicLink")}
                                                 >
                                                     {copiedId === staff.id ? <Check size={16} /> : <Copy size={16} />}
                                                 </Button>
@@ -314,7 +315,7 @@ export default function StaffManagementPage() {
                                                     size="icon"
                                                     className="w-9 h-9 rounded-lg text-muted-foreground/40 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-all"
                                                     onClick={() => setQrStaff(staff)}
-                                                    title="Show QR Code"
+                                                    title={t("dashboard.staff.showQrCode")}
                                                 >
                                                     <QrIcon size={16} />
                                                 </Button>

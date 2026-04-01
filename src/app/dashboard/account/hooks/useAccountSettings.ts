@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import useSWR from "swr";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 const fetcher = async (url: string) => {
     const res = await fetch(url);
@@ -44,7 +45,7 @@ export function useAccountSettings() {
     useEffect(() => {
         if (error?.status === 401) {
             fetch("/api/auth/logout", { method: "POST" }).finally(() => {
-                window.location.href = "/login";
+                window.location.href = "/sign-in";
             });
         }
     }, [error]);
@@ -70,8 +71,10 @@ export function useAccountSettings() {
         }
     }, [activeTab, fetchLogs]);
 
+    const { t } = useTranslation();
+
     const handleRevokeSessions = async () => {
-        if (!confirm("តើអ្នកពិតជាចង់ចាកចេញពីគ្រប់ឧបករណ៍មែនទេ?")) return;
+        if (!confirm(t("account.security.sessions.confirm"))) return;
         setRevoking(true);
         try {
             const res = await fetch("/api/admin/security/revoke", {
@@ -81,11 +84,11 @@ export function useAccountSettings() {
             });
             const data = await res.json();
             if (data.success) {
-                alert("បានចាកចេញពីគ្រប់ឧបករណ៍ដោយជោគជ័យ។ លោកអ្នកត្រូវចូលប្រព័ន្ធម្ដងទៀត។");
-                window.location.href = "/login";
+                alert(t("account.security.sessions.success"));
+                window.location.href = "/sign-in";
             }
         } catch (err) {
-            alert("មានបញ្ហាក្នុងការចាកចេញ។");
+            alert(t("account.security.sessions.error"));
         } finally {
             setRevoking(false);
         }
@@ -96,12 +99,12 @@ export function useAccountSettings() {
         setPwError("");
 
         if (newPassword !== confirmPassword) {
-            setPwError("លេខសម្ងាត់ថ្មីមិនស៊ីគ្នាទេ");
+            setPwError(t("account.dialogs.changePassword.errors.mismatch"));
             return;
         }
 
         if (newPassword.length < 8) {
-            setPwError("លេខសម្ងាត់ថ្មីត្រូវមានយ៉ាងតិច ៨ ខ្ទង់");
+            setPwError(t("account.dialogs.changePassword.errors.length"));
             return;
         }
 
@@ -114,13 +117,13 @@ export function useAccountSettings() {
             });
             const data = await res.json();
             if (res.ok) {
-                alert("ប្តូរលេខសម្ងាត់បានជោគជ័យ។ ដើម្បីសុវត្ថិភាព លោកអ្នកត្រូវចូលប្រព័ន្ធម្ដងទៀត។");
-                window.location.href = "/login";
+                alert(t("account.dialogs.changePassword.success"));
+                window.location.href = "/sign-in";
             } else {
-                setPwError(data.error || "មានបញ្ហាក្នុងការប្តូរលេខសម្ងាត់");
+                setPwError(data.error || t("account.dialogs.changePassword.errors.general"));
             }
         } catch (err) {
-            setPwError("មានបញ្ហាបច្ចេកទេស");
+            setPwError(t("account.dialogs.changePassword.errors.tech"));
         } finally {
             setChangingPassword(false);
         }
@@ -138,15 +141,15 @@ export function useAccountSettings() {
             });
             const data = await res.json();
             if (res.ok) {
-                alert("បានបិទប្រព័ន្ធការពារ ២ ជាន់ដោយជោគជ័យ។");
+                alert(t("account.dialogs.disable2fa.success"));
                 setShowDisable2FA(false);
                 setDisablePassword("");
                 mutate();
             } else {
-                setDisableError(data.error || "មានបញ្ហាក្នុងការបិទ 2FA");
+                setDisableError(data.error || t("account.dialogs.disable2fa.errors.general"));
             }
         } catch (err) {
-            setDisableError("មានបញ្ហាបច្ចេកទេស");
+            setDisableError(t("account.dialogs.disable2fa.errors.tech"));
         } finally {
             setDisabling2FA(false);
         }
@@ -163,13 +166,13 @@ export function useAccountSettings() {
             });
             const data = await res.json();
             if (res.ok) {
-                alert("គណនីរបស់អ្នកត្រូវបានលុបដោយជោគជ័យ។");
+                alert(t("account.dialogs.deleteAccount.success"));
                 window.location.href = "/";
             } else {
-                setDeleteError(data.error || "មានបញ្ហាក្នុងការលុបគណនី");
+                setDeleteError(data.error || t("account.dialogs.deleteAccount.errors.general"));
             }
         } catch (err) {
-            setDeleteError("មានបញ្ហាបច្ចេកទេស");
+            setDeleteError(t("account.dialogs.deleteAccount.errors.tech"));
         } finally {
             setDeletingAccount(false);
         }

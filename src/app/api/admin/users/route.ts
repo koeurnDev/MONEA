@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma, queryRaw } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
 import { ROLES } from "@/lib/constants";
 
@@ -14,58 +14,22 @@ export async function GET(req: Request) {
     const skip = (page - 1) * limit;
 
     try {
-        let users;
-        let total;
-        
-        try {
-            [users, total] = await Promise.all([
-                prisma.user.findMany({
-                    select: {
-                        id: true,
-                        email: true,
-                        role: true,
-                        createdAt: true,
-                        deletedAt: true,
-                        weddings: {
-                            select: {
-                                id: true,
-                                groomName: true,
-                                brideName: true,
-                                status: true
-                            }
-                        }
-                    },
-                    orderBy: { createdAt: 'desc' },
-                    take: limit,
-                    skip: skip
-                }),
-                prisma.user.count()
-            ]);
-        } catch (e) {
-            // Fallback for missing deletedAt field
-            [users, total] = await Promise.all([
-                prisma.user.findMany({
-                    select: {
-                        id: true,
-                        email: true,
-                        role: true,
-                        createdAt: true,
-                        weddings: {
-                            select: {
-                                id: true,
-                                groomName: true,
-                                brideName: true,
-                                status: true
-                            }
-                        }
-                    },
-                    orderBy: { createdAt: 'desc' },
-                    take: limit,
-                    skip: skip
-                }),
-                prisma.user.count()
-            ]);
-        }
+        const users = await queryRaw(`
+            SELECT 
+                u.id, 
+                u.email, 
+                u.role, 
+                u."createdAt", 
+                u."deletedAt",
+                (SELECT json_agg(json_build_object('id', w.id, 'groomName', w."groomName", 'brideName', w."brideName", 'status', w.status)) 
+                 FROM "Wedding" w WHERE w."userId" = u.id) as weddings
+            FROM "User" u
+            ORDER BY u."createdAt" DESC
+            LIMIT $1 OFFSET $2
+        `, limit, skip);
+
+        const totalResults = await queryRaw('SELECT count(*) as count FROM "User"');
+        const total = Number(totalResults[0]?.count || 0);
 
         return NextResponse.json({
             data: users,

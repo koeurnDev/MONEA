@@ -6,6 +6,8 @@ import { m, AnimatePresence } from 'framer-motion';
 import { Menu, X } from "lucide-react";
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { LanguageToggle } from "@/components/LanguageToggle";
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { useTheme } from "next-themes";
 
 export function NavBar() {
@@ -19,12 +21,13 @@ export function NavBar() {
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
+    const { t } = useTranslation();
     const navItems = [
-        { name: "ទំព័រដើម", href: "#" },
-        { name: "លក្ខណៈពិសេស", href: "#features" },
-        { name: "របៀបប្រើប្រាស់", href: "#how-it-works" },
-        { name: "ពុម្ពគំរូ", href: "#templates" },
-        { name: "តម្លៃ", href: "#pricing" },
+        { name: t("nav.home"), href: "#" },
+        { name: t("nav.features"), href: "#features" },
+        { name: t("nav.howItWorks"), href: "#how-it-works" },
+        { name: t("nav.templates"), href: "#templates" },
+        { name: t("nav.pricing"), href: "#pricing" },
     ];
 
     const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
@@ -87,16 +90,17 @@ export function NavBar() {
                     </nav>
 
                     <div className="hidden md:flex items-center justify-end gap-3 shrink-0">
+                        <LanguageToggle />
                         <ThemeToggle className="mr-2" />
-                        <Link href="/login" className={cn(
+                        <Link href="/sign-in" className={cn(
                             "text-sm font-bold transition-colors font-kantumruy px-4 py-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-full",
                             isScrolled
                                 ? "text-slate-700 dark:text-white/80 hover:text-slate-900 dark:hover:text-white"
                                 : "text-slate-800 hover:text-slate-900 dark:text-white/80 dark:hover:text-white"
                         )}>
-                            ចូលប្រើប្រាស់
+                            {t("nav.signIn")}
                         </Link>
-                        <Link href="/register">
+                        <Link href="/sign-up">
                             <span className={cn(
                                 "group relative inline-flex h-10 items-center justify-center overflow-hidden rounded-full px-6 font-medium transition-all duration-300 hover:scale-105 hover:shadow-[0_0_20px_rgba(255,192,203,0.3)]",
                                 isScrolled
@@ -107,7 +111,7 @@ export function NavBar() {
                                 <span className={cn(
                                     "font-kantumruy text-sm font-bold relative z-10 pt-0.5",
                                     "group-hover:text-white dark:group-hover:text-black"
-                                )}>ចុះឈ្មោះ</span>
+                                )}>{t("nav.signUp")}</span>
                             </span>
                         </Link>
                     </div>
@@ -151,12 +155,18 @@ export function NavBar() {
                                 </m.a>
                             ))}
                             <div className="mt-8 flex flex-col gap-3">
-                                <Link href="/login" onClick={() => setIsMenuOpen(false)} className="text-base text-slate-900 dark:text-white font-kantumruy border border-slate-200 dark:border-white/20 hover:bg-slate-100 dark:hover:bg-white/10 py-3 rounded-2xl transition-all shadow-sm">ចូលប្រើប្រាស់</Link>
-                                <Link href="/register" onClick={() => setIsMenuOpen(false)} className="text-base bg-pink-600 text-white border border-transparent font-kantumruy font-bold py-3 rounded-2xl hover:scale-105 transition-all shadow-[0_4px_20px_rgba(219,39,119,0.3)] dark:shadow-[0_0_30px_rgba(219,39,119,0.4)]">ចុះឈ្មោះឥឡូវនេះ</Link>
+                                <Link href="/sign-in" onClick={() => setIsMenuOpen(false)} className="text-base text-slate-900 dark:text-white font-kantumruy border border-slate-200 dark:border-white/20 hover:bg-slate-100 dark:hover:bg-white/10 py-3 rounded-2xl transition-all shadow-sm">{t("nav.signIn")}</Link>
+                                <Link href="/sign-up" onClick={() => setIsMenuOpen(false)} className="text-base bg-pink-600 text-white border border-transparent font-kantumruy font-bold py-3 rounded-2xl hover:scale-105 transition-all shadow-[0_4px_20px_rgba(219,39,119,0.3)] dark:shadow-[0_0_30px_rgba(219,39,119,0.4)]">{t("nav.signUp")}</Link>
                             </div>
-                            <div className="mt-4 flex flex-col items-center justify-center gap-3">
-                                <span className="text-slate-500 dark:text-white/50 text-xs font-kantumruy">ផ្លាស់ប្តូររូបរាង</span>
-                                <ThemeToggle className="scale-110 !bg-slate-100 dark:!bg-white/10 hover:!bg-slate-200 dark:hover:!bg-white/20 border border-slate-200 dark:border-white/20 [&_svg]:!text-slate-800 dark:[&_svg]:!text-white" />
+                             <div className="mt-4 flex flex-col items-center justify-center gap-6">
+                                <div className="flex flex-col items-center gap-3">
+                                    <span className="text-slate-500 dark:text-white/50 text-[10px] uppercase tracking-widest font-kantumruy">ភាសា / Language</span>
+                                    <LanguageToggle className="scale-125 !bg-slate-100 dark:!bg-white/10 hover:!bg-slate-200 dark:hover:!bg-white/20 border border-slate-200 dark:border-white/20" />
+                                </div>
+                                <div className="flex flex-col items-center gap-3">
+                                    <span className="text-slate-500 dark:text-white/50 text-[10px] uppercase tracking-widest font-kantumruy">រូបរាង</span>
+                                    <ThemeToggle className="scale-110 !bg-slate-100 dark:!bg-white/10 hover:!bg-slate-200 dark:hover:!bg-white/20 border border-slate-200 dark:border-white/20 [&_svg]:!text-slate-800 dark:[&_svg]:!text-white" />
+                                </div>
                             </div>
                         </div>
                     </m.div>

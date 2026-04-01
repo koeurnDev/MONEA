@@ -8,13 +8,11 @@ import { m, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Palette, Smartphone, LayoutTemplate, Settings2, X, Loader2, ArrowRight, ArrowLeft, StickyNote, Save, CheckCircle2, ExternalLink } from "lucide-react";
+import { Palette, Smartphone, LayoutTemplate, Settings2, Loader2, ArrowRight, ArrowLeft, CheckCircle2, ExternalLink, Lock } from "lucide-react";
 
-import ImageUpload from "@/components/ui/image-upload-widget";
-import AudioUploadWidget from "@/components/ui/audio-upload-widget";
 import Image from "next/image";
-import { CldUploadWidget } from 'next-cloudinary';
 import clsx from "clsx";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 import Step1Template from "./components/Step1Template";
 import Step2Info from "./components/Step2Info";
@@ -26,14 +24,14 @@ import { PreviewSync, MobilePreviewWrapper } from "./components/PreviewSync";
 import { useDesignWizard, STEPS, PRESET_COLORS, TEMPLATE_LAYOUTS } from "./hooks/useDesignWizard";
 import type { WeddingData } from "@/components/templates/types";
 import { isEditingLocked } from "@/lib/permissions";
-import { Lock } from "lucide-react";
 
 export default function DesignPage() {
+    const { t } = useTranslation();
     return (
         <Suspense fallback={
             <div className="flex h-screen w-full flex-col items-center justify-center gap-4 bg-background">
                 <Loader2 className="w-12 h-12 text-primary animate-spin" />
-                <p className="text-sm font-black text-muted-foreground uppercase tracking-widest font-kantumruy">រង់ចាំបន្តិច...</p>
+                <p className="text-sm font-black text-muted-foreground uppercase tracking-widest font-kantumruy">{t("design.wizard.waiting")}</p>
             </div>
         }>
             <DesignContent />
@@ -42,6 +40,7 @@ export default function DesignPage() {
 }
 
 function DesignContent() {
+    const { t } = useTranslation();
     const {
         mounted,
         wedding,
@@ -93,26 +92,10 @@ function DesignContent() {
         prevStep
     } = useDesignWizard();
 
-    const t = {
-        title: "រចនាធៀប (Design Wizard)",
-        publish: "ដាក់ឱ្យប្រើប្រាស់",
-        saving: "កំពុងរក្សាទុក...",
-        templates: {
-            modern: { title: "សិរីមង្គលភាពយន្ត (Eternal Cinematic)", desc: "ពេញអេក្រង់, តន្ត្រី, វីដេអូ, ចលនា។" },
-            khmer: { title: "រចនាប័ទ្មទស្សនាវដ្តីថ្នាក់ខ្ពស់ (Royal Editorial)", desc: "រចនាប័ទ្មប្រពៃណី, ពណ៌លឿង & ក្រហម។" },
-            minimal: { title: "ភាពថ្លៃថ្នូរដ៏ស្រស់ស្អាត (Glass Sophistication)", desc: "ស្អាត, សាមញ្ញ, ផ្តោតលើអត្ថបទ។" },
-            floral: { title: "ផ្កាក្រអូបនៃក្តីស្រឡាញ់ (Velvet Blossom)", desc: "ផ្កាស្រស់ស្អាត, ទន់ភ្លន់, រ៉ូមែនទិក។" },
-            luxury: { title: "ប្រណិត (Luxury)", desc: "ពណ៌មាស, ខ្មៅ, គុណភាពខ្ពស់។" },
-            pastel: { title: "Pastel Floral", desc: "ទន់ភ្លន់, ផ្កាស្រស់, ពណ៌ឡាវែនឌ័រ។" },
-            legacy: { title: "កេរ្តិ៍តំណែលខ្មែរ (Khmer Legacy)", desc: "រចនាប័ទ្មបញ្ឈរ, ស្អាត, បែបអភិជន។" },
-            visionary: { title: "ទស្សនវិជ្ជាទំនើប (Visionary Modern)", desc: "រចនាប័ទ្មអនាគត, ពណ៌ខៀវចាស់, ចលនាអស្ចារ្យ។" },
-            celestial: { title: "សម្រស់ចក្រវាល (Celestial Elegance)", desc: "រចនាប័ទ្មអវកាស, ពណ៌ខ្មៅប្រណិត, ចលនាផ្កាយ។" }
-        },
-    };
     if (!wedding) return (
         <div className="flex h-screen w-full flex-col items-center justify-center gap-4 bg-background">
             <Loader2 className="w-12 h-12 text-primary animate-spin" />
-            <p className="text-sm font-black text-muted-foreground uppercase tracking-widest font-kantumruy">កំពុងទាញយកទិន្នន័យចំណងដៃ...</p>
+            <p className="text-sm font-black text-muted-foreground uppercase tracking-widest font-kantumruy">{t("design.wizard.fetching")}</p>
         </div>
     );
 
@@ -202,7 +185,7 @@ function DesignContent() {
                         className="absolute top-0 left-1/2 z-50 flex items-center gap-2 px-4 py-1.5 bg-green-500 text-white rounded-full shadow-lg shadow-green-500/30"
                     >
                         <CheckCircle2 className="w-4 h-4" />
-                        <span className="text-[11px] font-bold font-kantumruy uppercase tracking-wider">រក្សាទុកបានជោគជ័យ</span>
+                        <span className="text-[11px] font-bold font-kantumruy uppercase tracking-wider">{t("design.success")}</span>
                     </m.div>
                 )}
             </AnimatePresence>
@@ -237,7 +220,7 @@ function DesignContent() {
     const desktopLayout = (
         <div className="hidden md:flex flex-row overflow-hidden bg-background h-screen w-full">
             {/* 1. EDITOR PANEL (Left Sidebar) */}
-            <div className="flex-none w-[400px] flex flex-col z-20 bg-card shadow-[0_0_40px_rgba(0,0,0,0.05)] dark:shadow-none h-full">
+            <div className="flex-none w-[520px] flex flex-col z-20 bg-card shadow-[0_0_40px_rgba(0,0,0,0.05)] dark:shadow-none h-full">
                 {editorPanel}
             </div>
 
@@ -260,7 +243,7 @@ function DesignContent() {
                         ref={iframeRef}
                         src="/preview"
                         className="w-full h-full border-none bg-background"
-                        title="Preview"
+                        title={t("design.wizard.preview")}
                     />
                 </div>
 
@@ -273,7 +256,7 @@ function DesignContent() {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-2 rounded-full text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all duration-300"
-                        title="View Public Invitation"
+                        title={t("design.wizard.viewPublic")}
                     >
                         <ExternalLink size={16} />
                     </a>
@@ -284,7 +267,7 @@ function DesignContent() {
                             "p-2 rounded-full transition-all duration-300",
                             previewMode === 'mobile' ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:text-foreground hover:bg-muted"
                         )}
-                        title="Mobile View"
+                        title={t("design.wizard.previewMode.mobile")}
                     >
                         <Smartphone size={16} />
                     </button>
@@ -294,7 +277,7 @@ function DesignContent() {
                             "p-2 rounded-full transition-all duration-300",
                             previewMode === 'desktop' ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:text-foreground hover:bg-muted"
                         )}
-                        title="Desktop View"
+                        title={t("design.wizard.previewMode.desktop")}
                     >
                         <LayoutTemplate size={16} />
                     </button>
@@ -322,7 +305,7 @@ function DesignContent() {
                                 mobileTab === 'editor' ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
                             )}
                         >
-                            <Settings2 size={13} /> រចនា
+                            <Settings2 size={13} /> {t("design.wizard.editor")}
                         </button>
                         <button
                             onClick={() => setMobileTab('preview')}
@@ -331,7 +314,7 @@ function DesignContent() {
                                 mobileTab === 'preview' ? "bg-background text-red-600 shadow-sm" : "text-muted-foreground hover:text-foreground"
                             )}
                         >
-                            <Smartphone size={13} /> មើលមុន
+                            <Smartphone size={13} /> {t("design.wizard.preview")}
                         </button>
                     </div>
                     <a
@@ -339,7 +322,7 @@ function DesignContent() {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-2 ml-1 text-muted-foreground hover:text-red-600 transition-colors"
-                        title="View Public"
+                        title={t("design.wizard.viewPublic")}
                     >
                         <ExternalLink size={14} />
                     </a>
@@ -354,11 +337,11 @@ function DesignContent() {
                         disabled={currentStep === 1}
                         className="text-muted-foreground hover:text-foreground h-7 px-2 text-[10px] bg-background/50 shadow-sm"
                     >
-                        <ArrowLeft size={14} className="mr-1" /> ថយក្រោយ
+                        <ArrowLeft size={14} className="mr-1" /> {t("design.wizard.back")}
                     </Button>
 
                     <span className="text-[10px] font-medium text-muted-foreground">
-                        ជំហានទី {currentStep} / {STEPS.length}
+                        {t("design.wizard.step", { current: currentStep, total: STEPS.length })}
                     </span>
 
                     {currentStep < STEPS.length ? (
@@ -367,7 +350,7 @@ function DesignContent() {
                             onClick={nextStep}
                             className="bg-slate-900 text-white hover:bg-black h-7 px-3 rounded-full text-[10px]"
                         >
-                            បន្ទាប់ <ArrowRight size={14} className="ml-1" />
+                            {t("design.wizard.next")} <ArrowRight size={14} className="ml-1" />
                         </Button>
                     ) : (
                         <Button
@@ -376,7 +359,7 @@ function DesignContent() {
                             disabled={loading}
                             className="bg-red-600 text-white hover:bg-red-700 h-7 px-3 rounded-full text-[10px]"
                         >
-                            {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : "បោះពុម្ពផ្សាយ"}
+                            {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : t("design.publish")}
                         </Button>
                     )}
                 </div>
@@ -423,14 +406,14 @@ function DesignContent() {
                         <div className="w-20 h-20 rounded-3xl bg-red-50 dark:bg-red-950/30 flex items-center justify-center mb-6">
                             <Lock className="w-10 h-10 text-red-600" />
                         </div>
-                        <h2 className="text-2xl font-black text-foreground mb-4 font-kantumruy uppercase tracking-tight">ការកែសម្រួលត្រូវបានចាក់សោ</h2>
-                        <p className="text-muted-foreground mb-8 font-khmer leading-relaxed">គម្រោងឥតគិតថ្លៃ (Free Plan) របស់អ្នកបានផុតកំណត់ការកែសម្រួលរយៈពេល ៣ថ្ងៃហើយ។ សូមធ្វើការអាប់ដេតគម្រោង ដើម្បីបន្តការបង្កើតធៀបដ៏អស្ចារ្យរបស់អ្នក ឬទាក់ទងមកក្រុមការងារ MONEA ។</p>
+                        <h2 className="text-2xl font-black text-foreground mb-4 font-kantumruy uppercase tracking-tight">{t("design.locked.title")}</h2>
+                        <p className="text-muted-foreground mb-8 font-khmer leading-relaxed">{t("design.locked.description")}</p>
                         <div className="flex flex-col gap-3 w-full">
                             <Button asChild className="h-14 rounded-2xl bg-slate-900 hover:bg-black text-white font-black uppercase tracking-wider shadow-xl dark:bg-slate-800 dark:hover:bg-slate-700">
-                                <Link href="/pricing">អាប់ដេតគម្រោងឥឡូវនេះ</Link>
+                                <Link href="/pricing">{t("design.locked.updateBtn")}</Link>
                             </Button>
                             <Button variant="ghost" asChild className="h-12 rounded-2xl font-bold font-khmer">
-                                <Link href="/dashboard">ត្រលប់ទៅ Dashboard</Link>
+                                <Link href="/dashboard">{t("design.locked.backBtn")}</Link>
                             </Button>
                         </div>
                     </div>

@@ -47,13 +47,14 @@ export async function PUT(req: Request) {
     if (!user || user.role !== ROLES.PLATFORM_OWNER) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     try {
-        const { id, packageType, status, expiresAt } = await req.json();
+        const { id, packageType, status, expiresAt, paymentStatus } = await req.json();
 
         const updated = await prisma.wedding.update({
             where: { id },
             data: {
                 packageType,
                 status,
+                paymentStatus,
                 expiresAt: expiresAt ? new Date(expiresAt) : null
             }
         });

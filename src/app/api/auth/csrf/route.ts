@@ -9,6 +9,7 @@ import { getServerUser } from "@/lib/auth";
  * The token is tied to the user's session fingerprint.
  */
 export async function GET() {
+    console.log("[API/CSRF] Generating new token for client...");
     try {
         const user = await getServerUser();
         

@@ -6,7 +6,7 @@ export default async function ScannerPage() {
     const user = await getServerUser();
 
     if (!user) {
-        redirect("/login");
+        redirect("/sign-in");
     }
 
     return (

@@ -5,6 +5,7 @@ import { Gift, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { TableSkeleton } from "../../_components/SkeletonComponents";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface DesktopGiftTableProps {
     gifts: any[];
@@ -27,6 +28,7 @@ export function DesktopGiftTable({
     onAddClick,
     showGiftAmounts = true
 }: DesktopGiftTableProps) {
+    const { t } = useTranslation();
     return (
         <div className="hidden md:block overflow-x-auto print:block">
             <Table className="print:border-collapse">
@@ -34,23 +36,23 @@ export function DesktopGiftTable({
                 </TableHeader>
                 <TableBody>
                     <TableRow className="border-none print:border-b-2 print:border-rose-100 hover:bg-transparent hidden print:table-row bg-rose-50/20">
-                        <TableHead className="h-14 px-8 text-[10px] print:text-rose-600 font-black uppercase tracking-widest w-20 border-r print:border-rose-100/50">ល.រ</TableHead>
-                        <TableHead className="h-14 px-8 text-[10px] print:text-rose-600 font-black uppercase tracking-widest border-r print:border-rose-100/50">ឈ្មោះភ្ញៀវ</TableHead>
-                        <TableHead className="h-14 px-8 text-[10px] print:text-rose-600 font-black uppercase tracking-widest border-r print:border-rose-100/50">មកពីណា</TableHead>
-                        <TableHead className="h-14 px-8 text-[10px] print:text-rose-600 font-black uppercase tracking-widest border-r print:border-rose-100/50">ចំនួនទឹកប្រាក់</TableHead>
-                        <TableHead className="h-14 px-8 text-[10px] print:text-rose-600 font-black uppercase tracking-widest border-r print:border-rose-100/50">វិធីសាស្ត្រ</TableHead>
-                        <TableHead className="h-14 px-8 text-[10px] print:text-rose-600 font-black uppercase tracking-widest text-center">កាលបរិច្ឆេទ</TableHead>
+                        <TableHead className="h-14 px-8 text-[10px] print:text-rose-600 font-black uppercase tracking-widest w-20 border-r print:border-rose-100/50">{t("gifts.table.no")}</TableHead>
+                        <TableHead className="h-14 px-8 text-[10px] print:text-rose-600 font-black uppercase tracking-widest border-r print:border-rose-100/50">{t("gifts.table.name")}</TableHead>
+                        <TableHead className="h-14 px-8 text-[10px] print:text-rose-600 font-black uppercase tracking-widest border-r print:border-rose-100/50">{t("gifts.table.source")}</TableHead>
+                        <TableHead className="h-14 px-8 text-[10px] print:text-rose-600 font-black uppercase tracking-widest border-r print:border-rose-100/50">{t("gifts.table.amount")}</TableHead>
+                        <TableHead className="h-14 px-8 text-[10px] print:text-rose-600 font-black uppercase tracking-widest border-r print:border-rose-100/50">{t("gifts.table.method")}</TableHead>
+                        <TableHead className="h-14 px-8 text-[10px] print:text-rose-600 font-black uppercase tracking-widest text-center">{t("gifts.table.time")}</TableHead>
                     </TableRow>
 
                     <TableRow className="border-none print:hidden hover:bg-transparent">
-                        <TableHead className="h-14 px-8 text-xs font-black text-muted-foreground uppercase tracking-widest w-20">No.</TableHead>
-                        <TableHead className="px-6 py-4 text-left text-[10px] font-black text-muted-foreground uppercase tracking-widest bg-muted/30">ឈ្មោះភ្ញៀវ</TableHead>
+                        <TableHead className="h-14 px-8 text-xs font-black text-muted-foreground uppercase tracking-widest w-20">{t("gifts.table.no")}</TableHead>
+                        <TableHead className="px-6 py-4 text-left text-[10px] font-black text-muted-foreground uppercase tracking-widest bg-muted/30">{t("gifts.table.name")}</TableHead>
                         <TableHead
                             className="h-14 px-8 text-xs font-black text-muted-foreground uppercase tracking-widest cursor-pointer hover:text-foreground transition-colors group"
                             onClick={() => toggleSort('address')}
                         >
                             <div className="flex items-center gap-2">
-                                មកពីណា
+                                {t("gifts.table.source")}
                                 <span className={cn(
                                     "transition-colors",
                                     sortConfig.key === 'address' ? "text-rose-600" : "text-muted-foreground/30 group-hover:text-rose-300"
@@ -59,14 +61,14 @@ export function DesktopGiftTable({
                                 </span>
                             </div>
                         </TableHead>
-                        <TableHead className="h-14 px-8 text-xs font-black text-muted-foreground uppercase tracking-widest text-center">ចំនួនទឹកប្រាក់</TableHead>
-                        <TableHead className="h-14 px-8 text-xs font-black text-muted-foreground uppercase tracking-widest">វិធីសាស្ត្រ</TableHead>
+                        <TableHead className="h-14 px-8 text-xs font-black text-muted-foreground uppercase tracking-widest text-center">{t("gifts.table.amount")}</TableHead>
+                        <TableHead className="h-14 px-8 text-xs font-black text-muted-foreground uppercase tracking-widest">{t("gifts.table.method")}</TableHead>
                         <TableHead
                             className="h-14 px-8 text-xs font-black text-muted-foreground uppercase tracking-widest text-center cursor-pointer hover:text-foreground transition-colors select-none group"
                             onClick={() => toggleSort('createdAt')}
                         >
                             <div className="flex items-center justify-center gap-2">
-                                កាលបរិច្ឆេទ
+                                {t("gifts.table.time")}
                                 <span className="text-muted-foreground/30 group-hover:text-rose-600 transition-colors">
                                     {sortConfig.direction === 'asc' ? '↑' : '↓'}
                                 </span>
@@ -87,14 +89,14 @@ export function DesktopGiftTable({
                                     <div className="w-20 h-20 bg-card shadow-sm rounded-full flex items-center justify-center text-muted-foreground/30 mx-auto mb-6 group-hover:scale-110 transition-transform duration-500">
                                         <Gift className="w-10 h-10" />
                                     </div>
-                                    <h3 className="text-xl font-black text-foreground mb-2 font-kantumruy">មិនទាន់មានទិន្នន័យឡើយ</h3>
-                                    <p className="text-muted-foreground mb-10 font-medium font-kantumruy">ចាប់ផ្តើមចំណងដៃដំបូងរបស់អ្នកដោយចុចប៊ូតុងខាងក្រោម។</p>
+                                    <h3 className="text-xl font-black text-foreground mb-2 font-kantumruy">{t("gifts.empty")}</h3>
+                                    <p className="text-muted-foreground mb-10 font-medium font-kantumruy">{t("gifts.form.description")}</p>
 
                                     <Button
                                         onClick={onAddClick}
                                         className="bg-rose-600 hover:bg-rose-700 text-white rounded-xl h-12 px-10 font-bold shadow-lg shadow-rose-100 dark:shadow-none transition-all font-kantumruy"
                                     >
-                                        កត់ត្រាឥឡូវនេះ
+                                        {t("gifts.actions.addNew")}
                                     </Button>
                                 </div>
                             </TableCell>
@@ -107,12 +109,12 @@ export function DesktopGiftTable({
                                 </TableCell>
                                 <TableCell className="px-8 py-5 print:border-r print:border-gray-100 max-w-[180px]">
                                     <span className="font-bold text-sm text-foreground font-kantumruy leading-tight truncate block">
-                                        {g.guest?.name || <span className="text-muted-foreground/30 italic">មិនស្គាល់</span>}
+                                        {g.guest?.name || <span className="text-muted-foreground/30 italic">{t("gifts.table.unknown")}</span>}
                                     </span>
                                 </TableCell>
                                 <TableCell className="px-8 py-5 print:border-r print:border-rose-50/50 max-w-[140px]">
                                     <span className="text-sm font-bold text-muted-foreground print:text-slate-600 font-kantumruy truncate block">
-                                        {g.guest?.group && g.guest.group !== "None" ? g.guest.group : (g.guest?.source && g.guest.source !== "GIFT_ENTRY" && g.guest.source !== "None" ? g.guest.source : <span className="opacity-40 italic">ទូទៅ</span>)}
+                                        {g.guest?.group && g.guest.group !== "None" ? g.guest.group : (g.guest?.source && g.guest.source !== "GIFT_ENTRY" && g.guest.source !== "None" ? g.guest.source : <span className="opacity-40 italic">{t("gifts.table.notSpecified")}</span>)}
                                     </span>
                                 </TableCell>
                                 <TableCell className="px-8 py-5 print:border-r print:border-gray-100 text-center">
@@ -125,12 +127,12 @@ export function DesktopGiftTable({
                                 </TableCell>
                                 <TableCell className="px-8 py-5 print:border-r print:border-gray-100">
                                     <span className="text-sm font-bold text-muted-foreground print:text-slate-900 uppercase tracking-widest bg-muted print:bg-transparent px-3 py-1 rounded-lg font-kantumruy">
-                                        {g.method || "សាច់ប្រាក់"}
+                                        {g.method === "CASH" ? t("gifts.table.cash") : (g.method || t("gifts.table.cash"))}
                                     </span>
                                 </TableCell>
                                 <TableCell className="px-8 py-5 text-center tabular-nums">
                                     <span className="text-sm font-bold text-foreground font-kantumruy whitespace-nowrap">
-                                        {new Date(g.createdAt).toLocaleDateString("en-US", { month: '2-digit', day: '2-digit', year: 'numeric', timeZone: 'Asia/Phnom_Penh' })} {new Date(g.createdAt).toLocaleTimeString("en-GB", { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Phnom_Penh' })}
+                                        {new Date(g.createdAt).toLocaleDateString("en-US", { month: '2-digit', day: '2-digit', year: 'numeric' })} {new Date(g.createdAt).toLocaleTimeString("en-GB", { hour: '2-digit', minute: '2-digit', hour12: false })}
                                     </span>
                                 </TableCell>
                             </TableRow>
@@ -146,7 +148,7 @@ export function DesktopGiftTable({
                         onClick={() => setVisibleCount(prev => prev + 50)}
                         className="w-full max-w-xs h-12 rounded-2xl border-dashed border-2 border-border text-muted-foreground font-kantumruy font-bold hover:bg-muted/50"
                     >
-                        <Plus size={16} className="mr-2" /> បង្ហាញបន្ថែម ({gifts.length - visibleCount})
+                        <Plus size={16} className="mr-2" /> {t("gifts.viewMore")} ({gifts.length - visibleCount})
                     </Button>
                 </div>
             )}

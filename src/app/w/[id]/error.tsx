@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { HeartOff } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 export default function WeddingError({
     error,
@@ -13,6 +14,7 @@ export default function WeddingError({
     error: Error & { digest?: string };
     reset: () => void;
 }) {
+    const { t } = useTranslation();
     useEffect(() => {
         // Log the error to an error reporting service
         console.error(error);
@@ -25,11 +27,11 @@ export default function WeddingError({
             </div>
 
             <h1 className="font-moul text-2xl md:text-3xl text-white mb-4">
-                សូមអភ័យទោស (Oops!)
+                {t("common.errors.oops")}
             </h1>
 
             <p className="text-white/60 font-khmer max-w-sm mb-12">
-                មានបញ្ហាបច្ចេកទេសបន្តិចបន្តួចនៅពេលកំពុងទាញយកទិន្នន័យ។ សូមព្យាយាមម្តងទៀត។
+                {t("common.errors.unexpected")}
             </p>
 
             <div className="flex flex-col gap-4 w-full max-w-xs">
@@ -37,14 +39,14 @@ export default function WeddingError({
                     onClick={() => reset()}
                     className="bg-rose-600 hover:bg-rose-700 text-white rounded-xl h-12 font-bold"
                 >
-                    ព្យាយាមម្តងទៀត (Try Again)
+                    {t("common.actions.tryAgain")}
                 </Button>
 
                 <Link
                     href="/"
                     className="text-white/40 hover:text-white transition-colors text-xs font-khmer uppercase tracking-widest py-2"
                 >
-                    ត្រឡប់ទៅទំព័រដើម
+                    {t("common.auth.backToHome")}
                 </Link>
             </div>
 

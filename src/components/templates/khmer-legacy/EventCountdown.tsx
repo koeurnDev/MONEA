@@ -1,9 +1,12 @@
+"use client";
+
 import * as React from "react";
 import { m } from 'framer-motion';
 import Image from 'next/image';
 import { Calendar } from 'lucide-react';
 import { RevealSection } from '../shared/CinematicComponents';
 import { WeddingData } from "../types";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 export function EventCountdown({
     wedding,
@@ -18,33 +21,41 @@ export function EventCountdown({
     timeLeft: { days: number; hours: number; minutes: number; seconds: number };
     hubPan: any;
 }) {
+    const { t, locale } = useTranslation();
     return (
-        <section id="event-info" className="py-24 md:py-64 px-8 md:px-12 bg-[#FAF9F6]/50 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-96 h-96 opacity-[0.03] pointer-events-none bg-[conic-gradient(from_0deg_at_50%_50%,_transparent_0deg,_rgba(184,134,11,0.2)_360deg)]" />
+        <section id="event-info" className="py-32 md:py-64 px-8 md:px-12 bg-[#FDFBF7] relative overflow-hidden">
+             {/* Studio Atmosphere */}
+            <div className="absolute inset-0 opacity-[0.03] pointer-events-none premium-texture" />
+            <div className="absolute top-0 right-0 w-full h-[1px] bg-gradient-to-r from-transparent via-gold-main/20 to-transparent" />
 
-            <div className="max-w-4xl mx-auto relative z-10">
+            <div className="max-w-5xl mx-auto relative z-10">
                 <RevealSection>
                     <div className="flex flex-col items-center space-y-24">
                         {/* Section Header */}
                         <div className="text-center space-y-6">
                             <div className="flex items-center justify-center gap-6">
-                                <div className="w-8 h-[1px] bg-gold/20" />
-                                <p className="font-khmer text-[10px] md:text-sm tracking-[0.4em] text-gold/60 uppercase font-black">
-                                    {wedding.themeSettings?.customLabels?.infoSubtitle || (wedding.eventType === 'anniversary' ? 'ព័ត៌មានកម្មវិធីខួប' : 'ព័ត៌មានកម្មវិធីមង្គល')}
+                                <div className="w-12 h-[1px] bg-gold-main/20" />
+                                <p className="font-playfair text-[10px] md:text-sm tracking-[0.2em] md:tracking-[0.8em] text-gold-main/60 uppercase font-black italic leading-relaxed">
+                                    {wedding.themeSettings?.customLabels?.infoSubtitle || t("template.khmerLegacy.familySubtitle")}
                                 </p>
-                                <div className="w-8 h-[1px] bg-gold/20" />
+                                <div className="w-12 h-[1px] bg-gold-main/20" />
                             </div>
+                            <h3 className="font-khmer-moul text-3xl md:text-5xl text-gold-gradient text-gold-embossed tracking-wider leading-relaxed">
+                                {t("template.khmerLegacy.familyTitle")}
+                            </h3>
                         </div>
 
-                        {/* Centered Image Card */}
+                        {/* Centered Image Card - Redesigned to floating studio style */}
                         <m.div
-                            whileHover={{ scale: 1.02 }}
-                            className="w-full max-w-sm aspect-[4/5] bg-white p-2 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.1)] border-lux relative overflow-hidden rounded-2xl mx-auto"
+                            animate={{ y: [0, -15, 0] }}
+                            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                            className="w-full max-w-sm aspect-[4/5] bg-white p-3 shadow-[0_50px_100px_-20px_rgba(0,0,0,0.15)] border-[12px] border-white relative overflow-hidden rounded-[2.5rem] mx-auto ring-1 ring-gold-main/10 group"
                         >
                             {galleryImages[0] ? (
                                 <Image 
                                     src={galleryImages[0]} 
-                                    className={`w-full h-full object-cover transition-all duration-1000 ${hubPan.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-105'}`} 
+                                    fill
+                                    className={`object-cover transition-all duration-[2000ms] ${hubPan.isDragging ? 'cursor-grabbing scale-110' : 'cursor-grab group-hover:scale-110'}`} 
                                     style={{ 
                                         objectPosition: `${hubPan.localX} ${hubPan.localY}`,
                                         userSelect: 'none',
@@ -54,63 +65,70 @@ export function EventCountdown({
                                     onTouchStart={hubPan.onStart}
                                     draggable={false}
                                     alt="Wedding Hub" 
-                                    width={400}
-                                    height={500}
+                                    sizes="400px"
                                 />
                             ) : (
-                                <div className="w-full h-full bg-gold/5 flex items-center justify-center">
-                                    <Calendar className="w-1/3 h-1/3 text-gold/20" />
+                                <div className="w-full h-full bg-gold-main/5 flex items-center justify-center">
+                                    <Calendar className="w-1/3 h-1/3 text-gold-main/20" />
                                 </div>
                             )}
-                            {/* Floating Date Badge */}
-                            <div className="absolute top-6 left-6 w-16 h-16 bg-white/90 backdrop-blur-md rounded-xl flex flex-col items-center justify-center border border-gold/10 shadow-lg">
-                                <span className="font-playfair text-2xl font-black text-gray-800">
+                            {/* Floating Date Badge - Glassmorphic */}
+                            <div className="absolute top-6 left-6 w-20 h-20 bg-white/40 backdrop-blur-xl rounded-2xl flex flex-col items-center justify-center border border-white/50 shadow-xl ring-1 ring-gold-main/20">
+                                <span className="font-serif-elegant text-3xl font-black text-slate-800">
                                     {mounted ? new Date(wedding.date).getDate().toString().padStart(2, '0') : '..'}
                                 </span>
-                                <span className="font-khmer text-[8px] text-gold font-bold uppercase tracking-widest leading-none">
+                                <span className="font-playfair text-[9px] text-gold-main font-black uppercase tracking-widest leading-none">
                                     {mounted ? new Date(wedding.date).toLocaleDateString('en-US', { month: 'short' }) : '...'}
                                 </span>
                             </div>
+                            
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
                         </m.div>
 
                         {/* Spaced Calendar & Countdown Info */}
-                        <div className="w-full space-y-16 text-center">
+                        <div className="w-full space-y-24 text-center">
                             {/* Calendar Text */}
-                            <div className="space-y-4">
-                                <p className="font-khmer-moul text-[10px] md:text-sm text-gold/80 tracking-widest">{wedding.themeSettings?.customLabels?.calendarLabel || "ប្រក្រតិទិន"}</p>
-                                <div className="space-y-2">
-                                    <p className="font-playfair text-4xl md:text-8xl font-black text-gray-800 tracking-tighter">
+                            <div className="space-y-8">
+                                <p className="font-playfair italic text-gold-main/60 text-lg md:text-2xl tracking-widest">{wedding.themeSettings?.customLabels?.calendarLabel || t("invitation.calendar.saveTheDate")}</p>
+                                <div className="space-y-4">
+                                    <p className="font-playfair text-5xl md:text-9xl font-black text-slate-800 tracking-tighter drop-shadow-sm">
                                         {mounted ? `${new Date(wedding.date).getDate().toString().padStart(2, '0')}.${(new Date(wedding.date).getMonth() + 1).toString().padStart(2, '0')}.${new Date(wedding.date).getFullYear()}` : '--.--.----'}
                                     </p>
-                                    <p className="font-khmer text-[8px] md:text-[14px] tracking-[0.3em] text-gray-400 font-bold uppercase">
-                                        {mounted ? new Date(wedding.date).toLocaleDateString('km-KH', { month: 'long', year: 'numeric' }) : '...'}
+                                    <p className="font-khmer text-[10px] md:text-[16px] tracking-[0.5em] text-gold-main/40 font-black uppercase">
+                                        {mounted ? new Date(wedding.date).toLocaleDateString(locale === 'km' ? 'km-KH' : 'en-US', { month: 'long', year: 'numeric' }) : '...'}
                                     </p>
                                 </div>
                             </div>
 
-                            {/* Divider */}
-                            <div className="w-24 h-[1px] bg-gold/10 mx-auto" />
+                            {/* Divider - Cinematic */}
+                            <div className="flex justify-center">
+                                <div className="w-32 h-[1px] bg-gradient-to-r from-transparent via-gold-main/20 to-transparent" />
+                            </div>
 
                             {/* Premium Spaced Countdown */}
-                            <div className="space-y-10">
-                                <p className="font-khmer text-[8px] md:text-[12px] tracking-[0.5em] text-gold font-black uppercase">
-                                    {wedding.themeSettings?.customLabels?.countdownLabel || "រាប់ថយក្រោយ"}
+                            <div className="space-y-12">
+                                <p className="font-playfair text-[10px] md:text-xs tracking-[0.8em] text-gold-main/60 uppercase font-black italic">
+                                    {wedding.themeSettings?.customLabels?.countdownLabel || t("invitation.countdown.title")}
                                 </p>
                                 
-                                <div className="grid grid-cols-4 gap-4 md:gap-12 max-w-2xl mx-auto">
+                                <div className="grid grid-cols-4 gap-6 md:gap-16 max-w-3xl mx-auto">
                                     {[
-                                        { val: timeLeft.days, label: wedding.themeSettings?.customLabels?.daysLabel || "DAYS" },
-                                        { val: timeLeft.hours, label: wedding.themeSettings?.customLabels?.hoursLabel || "HOURS" },
-                                        { val: timeLeft.minutes, label: wedding.themeSettings?.customLabels?.minsLabel || "MINS" },
-                                        { val: timeLeft.seconds, label: wedding.themeSettings?.customLabels?.secsLabel || "SECS" }
+                                        { val: timeLeft.days, label: wedding.themeSettings?.customLabels?.daysLabel || t("invitation.countdown.days") },
+                                        { val: timeLeft.hours, label: wedding.themeSettings?.customLabels?.hoursLabel || t("invitation.countdown.hours") },
+                                        { val: timeLeft.minutes, label: wedding.themeSettings?.customLabels?.minsLabel || t("invitation.countdown.minutes") },
+                                        { val: timeLeft.seconds, label: wedding.themeSettings?.customLabels?.secsLabel || t("invitation.countdown.seconds") }
                                     ].map((unit, idx) => (
-                                        <div key={idx} className="flex flex-col items-center space-y-2 group">
-                                            <span className="font-playfair text-3xl md:text-6xl font-black text-gray-800 tracking-tighter group-hover:text-gold transition-colors duration-500">
-                                                {mounted ? String(unit.val).padStart(2, '0') : '--'}
-                                            </span>
-                                            <span className="font-khmer text-[7px] md:text-[10px] text-gold/40 font-black uppercase tracking-[0.2em]">
-                                                {unit.label}
-                                            </span>
+                                        <div key={idx} className="flex flex-col items-center space-y-4 group">
+                                    <m.span 
+                                    animate={{ scale: [1, 1.05, 1] }}
+                                    transition={{ duration: 3, repeat: Infinity, delay: idx * 0.2 }}
+                                    className="font-playfair text-4xl sm:text-6xl md:text-8xl font-black text-slate-800 tracking-tighter group-hover:text-gold-main transition-colors duration-700 drop-shadow-sm leading-tight"
+                                >
+                                    {mounted ? String(unit.val).padStart(2, '0') : '--'}
+                                </m.span>
+                                <span className="font-khmer text-[8px] md:text-[12px] text-gold-main/40 font-black uppercase tracking-[0.2em] md:tracking-[0.3em] leading-relaxed">
+                                    {unit.label}
+                                </span>
                                         </div>
                                     ))}
                                 </div>

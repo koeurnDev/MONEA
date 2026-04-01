@@ -3,6 +3,7 @@
 import { AnimatePresence, m } from 'framer-motion';
 import { Sparkles, Star } from "lucide-react";
 import { CinematicText } from "./CinematicText";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface CelebrationOverlayProps {
     show: boolean;
@@ -10,6 +11,8 @@ interface CelebrationOverlayProps {
 }
 
 export function CelebrationOverlay({ show, latestGift }: CelebrationOverlayProps) {
+    const { t } = useTranslation();
+
     return (
         <AnimatePresence>
             {show && latestGift && (
@@ -51,11 +54,11 @@ export function CelebrationOverlay({ show, latestGift }: CelebrationOverlayProps
                         </div>
 
                         <div className="space-y-8 relative z-20">
-                            <div className="bg-gradient-to-r from-amber-600 via-amber-400 to-amber-600 bg-[length:200%_auto] text-black px-8 py-3 rounded-full font-black tracking-[0.3em] text-[14px] uppercase font-kantumruy animate-pulse w-fit mx-auto shadow-[0_0_30px_rgba(245,158,11,0.5)]">NEW GIFT!</div>
+                            <div className="bg-gradient-to-r from-amber-600 via-amber-400 to-amber-600 bg-[length:200%_auto] text-black px-8 py-3 rounded-full font-black tracking-[0.3em] text-[14px] uppercase font-kantumruy animate-pulse w-fit mx-auto shadow-[0_0_30px_rgba(245,158,11,0.5)]">{t("gifts.live.newGift")}</div>
                             <div className="text-6xl md:text-[6rem] font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60 leading-none font-kantumruy tracking-tighter drop-shadow-[0_20px_50px_rgba(255,255,255,0.15)]">
-                                <CinematicText text={latestGift.guest?.name || "ភ្ញៀវកិត្តិយស"} />
+                                <CinematicText text={latestGift.guest?.name || t("gifts.live.guestOfHonor")} />
                             </div>
-                            <p className="text-amber-500/80 font-black tracking-[0.3em] uppercase text-sm drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]">THANK YOU FOR YOUR CELEBRATION</p>
+                            <p className="text-amber-500/80 font-black tracking-[0.3em] uppercase text-sm drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]">{t("gifts.live.thankYouCelebration")}</p>
                         </div>
                     </m.div>
                 </m.div>

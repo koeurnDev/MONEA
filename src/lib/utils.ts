@@ -56,5 +56,12 @@ export function getIP(req: Request | any): string {
     if (ips[0]) return ips[0];
   }
   
-  return (req as any).ip || "unknown";
+  let ip = (req as any).ip || "unknown";
+
+  // Normalize Loopback (Local Dev Consistency)
+  if (ip === "::1" || ip === "::ffff:127.0.0.1") {
+    ip = "127.0.0.1";
+  }
+  
+  return ip;
 }

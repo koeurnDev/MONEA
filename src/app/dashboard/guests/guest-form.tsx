@@ -19,14 +19,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { moneaClient } from "@/lib/api-client";
-
-const formSchema = z.object({
-    name: z.string().min(1, "សូមបញ្ចូលឈ្មោះភ្ញៀវ"),
-    source: z.string().optional(),
-});
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 export function GuestForm({ onSuccess, onDone, initialData }: { onSuccess: () => void, onDone?: () => void, initialData?: any }) {
+    const { t } = useTranslation();
     const [loading, setLoading] = useState(false);
+
+    const formSchema = z.object({
+        name: z.string().min(1, t("guests.form.validation.name")),
+        source: z.string().optional(),
+    });
+
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -76,11 +79,11 @@ export function GuestForm({ onSuccess, onDone, initialData }: { onSuccess: () =>
                         </div>
                         <div>
                             <h3 className="text-lg md:text-xl font-black text-foreground font-kantumruy leading-none tracking-tight italic">
-                                ព័ត៌មានភ្ញៀវ
+                                {t("guests.form.sectionTitle")}
                             </h3>
                             <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.3em] mt-2 opacity-40 flex items-center gap-2">
                                 <Sparkles size={10} className="text-rose-500" />
-                                ព័ត៌មានអត្តសញ្ញាណភ្ញៀវ
+                                {t("guests.form.sectionSubtitle")}
                             </p>
                         </div>
                     </m.div>
@@ -98,13 +101,13 @@ export function GuestForm({ onSuccess, onDone, initialData }: { onSuccess: () =>
                             name="name"
                             render={({ field }) => (
                                 <FormItem className="space-y-3">
-                                    <FormLabel className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] font-kantumruy px-1 block mb-2 opacity-70">ឈ្មោះភ្ញៀវ *</FormLabel>
+                                    <FormLabel className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] font-kantumruy px-1 block mb-2 opacity-70">{t("guests.form.nameLabel")} *</FormLabel>
                                     <FormControl>
                                         <div className="relative group/input">
                                             <div className="absolute inset-0 bg-rose-500/0 group-focus-within/input:bg-rose-500/[0.02] rounded-2xl transition-all duration-300" />
                                             <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500 dark:text-slate-400 group-focus-within/input:text-rose-600 group-focus-within/input:scale-110 transition-all duration-300 z-20" />
                                             <Input
-                                                placeholder="តារា សុខ..."
+                                                placeholder={t("guests.form.namePlaceholder")}
                                                 className="pl-12 h-11 md:h-14 text-base rounded-2xl font-kantumruy border-slate-200 dark:border-white/10 bg-white/80 dark:bg-background/50 hover:bg-white dark:hover:bg-background/80 focus:bg-white dark:focus:bg-background backdrop-blur-md shadow-sm dark:shadow-none focus-visible:ring-rose-600/10 focus-visible:border-rose-600/30 transition-all duration-300 font-bold placeholder:text-muted-foreground/40 placeholder:font-normal"
                                                 {...field}
                                             />
@@ -120,13 +123,13 @@ export function GuestForm({ onSuccess, onDone, initialData }: { onSuccess: () =>
                             name="source"
                             render={({ field }) => (
                                 <FormItem className="space-y-3">
-                                    <FormLabel className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] font-kantumruy px-1 block mb-2 opacity-70">មកពីណា? (ជាប់សាច់ញាតិខាងណា)</FormLabel>
+                                    <FormLabel className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] font-kantumruy px-1 block mb-2 opacity-70">{t("guests.form.locationLabel")}</FormLabel>
                                     <FormControl>
                                         <div className="relative group/input">
                                             <div className="absolute inset-0 bg-rose-500/0 group-focus-within/input:bg-rose-500/[0.02] rounded-2xl transition-all duration-300" />
                                             <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500 dark:text-slate-400 group-focus-within/input:text-rose-600 group-focus-within/input:scale-110 transition-all duration-300 z-20" />
                                             <Input
-                                                placeholder=" ភ្នំពេញ, មិត្តខាងកូនក្រមុំ..."
+                                                placeholder={t("guests.form.locationPlaceholder")}
                                                 className="pl-12 h-11 md:h-14 text-sm rounded-2xl font-kantumruy border-slate-200 dark:border-white/10 bg-white/80 dark:bg-background/50 hover:bg-white dark:hover:bg-background/80 focus:bg-white dark:focus:bg-background backdrop-blur-md shadow-sm dark:shadow-none focus-visible:ring-rose-600/10 focus-visible:border-rose-600/30 transition-all duration-300 font-medium placeholder:text-muted-foreground/40"
                                                 {...field}
                                             />
@@ -156,11 +159,11 @@ export function GuestForm({ onSuccess, onDone, initialData }: { onSuccess: () =>
                             {loading ? (
                                 <>
                                     <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                                    <span>រក្សាសិទ្ធិ...</span>
+                                    <span>{t("guests.form.saving")}</span>
                                 </>
                             ) : (
                                 <>
-                                    <span>{initialData ? "កែប្រែព័ត៌មានភ្ញៀវ" : "រក្សាទុកព័ត៌មានភ្ញៀវ"}</span>
+                                    <span>{initialData ? t("guests.form.editBtn") : t("guests.form.saveBtn")}</span>
                                     <Sparkles className="w-5 h-5 group-hover/btn:rotate-12 transition-transform" />
                                 </>
                             )}

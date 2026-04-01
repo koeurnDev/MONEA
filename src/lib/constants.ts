@@ -38,7 +38,8 @@ export const COOKIE_NAMES = {
 } as const;
 
 export const AUTH_URLS = {
-    LOGIN: "/login",
+    SIGN_IN: "/sign-in",
+    SIGN_UP: "/sign-up",
     DASHBOARD: "/dashboard",
 } as const;
 
@@ -62,7 +63,7 @@ export const BLOCKED_BOTS = [
 export const SECURITY_HEADERS = {
     "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
     "X-Content-Type-Options": "nosniff",
-    "X-Frame-Options": "DENY",
+    "X-Frame-Options": "SAMEORIGIN",
     "X-XSS-Protection": "1; mode=block",
     "Referrer-Policy": "strict-origin-when-cross-origin",
     "Permissions-Policy": "camera=(), microphone=(), geolocation=(), interest-cohort=()",
@@ -77,6 +78,6 @@ export const SECURITY_HEADERS = {
         "media-src 'self' data: blob: https://res.cloudinary.com; " +
         "object-src 'none'; " +
         "base-uri 'self'; " +
-        "frame-ancestors 'none'; " +
+        "frame-ancestors 'self'; " +
         "form-action 'self';",
 } as const;

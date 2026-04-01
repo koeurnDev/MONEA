@@ -3,6 +3,7 @@
 import { m } from 'framer-motion';
 import Image from 'next/image';
 import { RevealSection, CinematicPlaceholder } from '../shared/CinematicComponents';
+import { useTranslation } from '@/i18n/LanguageProvider';
 
 interface FamilyBannerProps {
     galleryImages: string[];
@@ -10,12 +11,14 @@ interface FamilyBannerProps {
 }
 
 export function FamilyBanner({ galleryImages, bannerPan }: FamilyBannerProps) {
+    const { t } = useTranslation();
     return (
         <section className="w-full py-24 md:py-48 flex flex-col items-center bg-white space-y-16">
             <div className="max-w-6xl mx-auto w-full px-8">
                 <RevealSection>
-                    <div className="text-center space-y-6 mb-12">
-                        <p className="font-khmer text-xl md:text-3xl text-gray-300 font-bold uppercase tracking-widest">គ្រឹះនៃក្ដីស្រឡាញ់</p>
+                    <div className="text-center space-y-6 mb-12 flex flex-col items-center">
+                        <div className="text-[10px] md:text-xs tracking-[1em] text-gold-main/60 font-black uppercase italic">{t("template.khmerLegacy.familySubtitle")}</div>
+                        <div className="w-16 h-[1.5px] bg-gradient-to-r from-transparent via-gold-main/30 to-transparent" />
                     </div>
                 </RevealSection>
             </div>
@@ -39,7 +42,7 @@ export function FamilyBanner({ galleryImages, bannerPan }: FamilyBannerProps) {
                         sizes="100vw"
                     />
                 ) : (
-                    <CinematicPlaceholder label="រូបភាពគ្រួសារ" />
+                    <CinematicPlaceholder label={t("template.khmerLegacy.familyTitle")} />
                 )}
             </div>
         </section>

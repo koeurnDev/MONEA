@@ -8,8 +8,8 @@ import { X, Bell, MessageSquare, Heart } from "lucide-react";
 export interface ToastMessage {
     id: string;
     title: string;
-    description: string;
-    type: "info" | "success" | "wish";
+    description?: string;
+    type: "info" | "success" | "wish" | "error";
 }
 
 interface ToastContextType {
@@ -51,10 +51,12 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                             <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
                                 toast.type === "wish" ? "bg-pink-500/20 text-pink-500" : 
                                 toast.type === "success" ? "bg-emerald-500/20 text-emerald-500" :
+                                toast.type === "error" ? "bg-red-500/20 text-red-500" :
                                 "bg-blue-500/20 text-blue-500"
                             }`}>
                                 {toast.type === "wish" ? <Heart size={18} fill="currentColor" /> : 
                                  toast.type === "success" ? <MessageSquare size={18} /> : 
+                                 toast.type === "error" ? <Bell size={18} className="animate-shake" /> :
                                  <Bell size={18} />}
                             </div>
                             <div className="flex-1 min-w-0">

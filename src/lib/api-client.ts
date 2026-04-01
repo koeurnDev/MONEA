@@ -74,6 +74,11 @@ async function request<T>(
             if (response.status === 401 && !path.includes("/api/auth/signin")) {
                 // Potential session expiry
                 console.warn("[MoneaClient] 401 Unauthorized detected.");
+                if (typeof window !== 'undefined' && 
+                    !window.location.pathname.startsWith('/sign-in') && 
+                    !window.location.pathname.startsWith('/sign-up')) {
+                    window.location.href = '/sign-in';
+                }
             }
 
             return {

@@ -12,6 +12,9 @@ const bundleAnalyzer = withBundleAnalyzer({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    reactStrictMode: true,
+    poweredByHeader: false,
+    compress: true,
     images: {
         remotePatterns: [
             {
@@ -40,6 +43,13 @@ const nextConfig = {
         serverComponentsExternalPackages: ['otplib', '@scure/base'],
         instrumentationHook: true,
         webpackBuildWorker: false,
+        optimizePackageImports: [
+            'lucide-react',
+            'date-fns',
+            'lodash',
+            'framer-motion',
+            '@radix-ui/react-icons'
+        ],
     },
     async redirects() {
         return [
@@ -53,7 +63,16 @@ const nextConfig = {
     async headers() {
         return [
             {
-                source: '/images/(.*)',
+                source: '/images/(.*).(webp|png|jpg|jpeg|svg|ico)',
+                headers: [
+                    {
+                        key: 'Cache-Control',
+                        value: 'public, max-age=31536000, immutable',
+                    },
+                ],
+            },
+            {
+                source: '/fonts/(.*)',
                 headers: [
                     {
                         key: 'Cache-Control',

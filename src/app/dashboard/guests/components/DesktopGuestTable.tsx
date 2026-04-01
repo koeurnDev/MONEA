@@ -5,6 +5,7 @@ import { TableSkeleton } from "../../_components/SkeletonComponents";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface DesktopGuestTableProps {
     loading: boolean;
@@ -29,6 +30,8 @@ export function DesktopGuestTable({
     onEdit,
     onDelete
 }: DesktopGuestTableProps) {
+    const { t } = useTranslation();
+
     return (
         <div className="hidden md:block overflow-x-auto print:block">
             <Table className="print:border-collapse print:border-2 print:border-slate-200">
@@ -36,20 +39,20 @@ export function DesktopGuestTable({
                 </TableHeader>
                 <TableBody>
                     <TableRow className="border-none print:border-t-2 print:border-b-2 print:border-rose-300 hover:bg-transparent hidden print:table-row bg-rose-50/20">
-                        <TableHead className="h-14 px-8 text-[11px] print:text-rose-600 font-black uppercase tracking-widest w-20 border-r print:border-rose-300 print:border-t-2 print:border-l-2">ល.រ</TableHead>
-                        <TableHead className="h-14 px-8 text-[11px] print:text-rose-600 font-black uppercase tracking-widest border-r print:border-rose-300 text-left print:border-t-2">ឈ្មោះភ្ញៀវ</TableHead>
-                        <TableHead className="h-14 px-8 text-[11px] print:text-rose-600 font-black uppercase tracking-widest text-center print:border-t-2 print:border-r-2 print:border-rose-300">មកពីណា / ទីតាំង</TableHead>
+                        <TableHead className="h-14 px-8 text-[11px] print:text-rose-600 font-black uppercase tracking-widest w-20 border-r print:border-rose-300 print:border-t-2 print:border-l-2">{t("guests.cols.no")}</TableHead>
+                        <TableHead className="h-14 px-8 text-[11px] print:text-rose-600 font-black uppercase tracking-widest border-r print:border-rose-300 text-left print:border-t-2">{t("guests.cols.name")}</TableHead>
+                        <TableHead className="h-14 px-8 text-[11px] print:text-rose-600 font-black uppercase tracking-widest text-center print:border-t-2 print:border-r-2 print:border-rose-300">{t("guests.cols.location")}</TableHead>
                     </TableRow>
 
                     <TableRow className="border-none print:hidden hover:bg-transparent">
-                        <TableHead className="h-14 px-8 text-[11px] font-black text-muted-foreground uppercase tracking-widest w-20">NO.</TableHead>
+                        <TableHead className="h-14 px-8 text-[11px] font-black text-muted-foreground uppercase tracking-widest w-20">{t("guests.cols.no")}</TableHead>
                         <TableHead className="h-14 px-8 text-[11px] font-black text-muted-foreground uppercase tracking-widest bg-muted/30">
-                            ឈ្មោះភ្ញៀវ
+                            {t("guests.cols.name")}
                         </TableHead>
                         <TableHead className="h-14 px-8 text-[11px] font-black text-muted-foreground uppercase tracking-widest text-center opacity-70">
-                            មកពីណា / ទីតាំង
+                            {t("guests.cols.location")}
                         </TableHead>
-                        <TableHead className="h-14 px-8 text-[11px] font-black text-muted-foreground uppercase tracking-widest text-right opacity-70">សកម្មភាព</TableHead>
+                        <TableHead className="h-14 px-8 text-[11px] font-black text-muted-foreground uppercase tracking-widest text-right opacity-70">{t("guests.cols.actions")}</TableHead>
                     </TableRow>
 
                     {loading ? (
@@ -60,7 +63,7 @@ export function DesktopGuestTable({
                         </TableRow>
                     ) : guests.length === 0 ? (
                         <TableRow>
-                            <TableCell colSpan={3} className="h-64 text-center text-sm font-kantumruy font-bold text-muted-foreground/30">មិនមានទិន្នន័យភ្ញៀវឡើយ</TableCell>
+                            <TableCell colSpan={3} className="h-64 text-center text-sm font-kantumruy font-bold text-muted-foreground/30">{t("guests.empty")}</TableCell>
                         </TableRow>
                     ) : (
                         guests.map((g: any, index: number) => (
@@ -79,7 +82,7 @@ export function DesktopGuestTable({
                                 </TableCell>
                                 <TableCell className="px-8 py-5 text-center print:border-r-2 print:border-slate-200">
                                     <span className="px-3 py-1 rounded-lg font-bold font-kantumruy text-[11px] bg-muted/60 dark:bg-white/5 text-muted-foreground print:bg-transparent print:text-sm print:text-slate-600">
-                                        {g.group && g.group !== "None" ? g.group : (g.source && g.source !== "GIFT_ENTRY" && g.source !== "None" ? g.source : <span className="opacity-40 italic">ទូទៅ</span>)}
+                                        {g.group && g.group !== "None" ? g.group : (g.source && g.source !== "GIFT_ENTRY" && g.source !== "None" ? g.source : <span className="opacity-40 italic">{t("guests.general")}</span>)}
                                     </span>
                                 </TableCell>
                                 <TableCell className="px-8 py-4 text-right print:hidden">
@@ -93,7 +96,7 @@ export function DesktopGuestTable({
                                                 copiedId === g.id ? "bg-green-600 text-white" : "text-muted-foreground"
                                             )}
                                         >
-                                            {copiedId === g.id ? "ចម្លងរួច" : "ចម្លងតំណរ"}
+                                            {copiedId === g.id ? t("guests.copied") : t("guests.copyLink")}
                                         </Button>
                                         {!isArchived && (
                                             <>
@@ -115,7 +118,7 @@ export function DesktopGuestTable({
                         onClick={() => setVisibleCount((prev: number) => prev + 50)}
                         className="w-full max-w-xs h-12 rounded-2xl border-dashed border-2 border-border text-muted-foreground font-kantumruy font-bold hover:bg-muted/50"
                     >
-                        <Plus size={16} className="mr-2" /> បង្ហាញបន្ថែម ({guests.length - visibleCount})
+                        <Plus size={16} className="mr-2" /> {t("guests.showMore", { count: guests.length - visibleCount })}
                     </Button>
                 </div>
             )}

@@ -14,17 +14,17 @@ export const TEMPLATE_LAYOUTS: Record<string, { slots: number, labels: string[] 
     "khmer-legacy": { 
         slots: 11, 
         labels: [
-            "រូបភាពបដាដើម (Hero)", // 0
-            "រូបភាពរឿងរ៉ាវ ១ (Editorial 1)", // 1
-            "រូបភាពរឿងរ៉ាវ ២ (Editorial 2)", // 2
-            "រូបភាពរឿងរ៉ាវ ៣ (Editorial 3)", // 3
-            "រូបភាពរឿងរ៉ាវ ៤ (Editorial 4)", // 4
-            "រូបភាពបដាផែនទី (Map Banner)", // 5
-            "រូបភាពហត្ថលេខា ១ (Signature 1)", // 6
-            "រូបភាពហត្ថលេខា ២ (Signature 2)", // 7
-            "រូបភាពហត្ថលេខា ៣ (Signature 3)", // 8
-            "រូបថតកូនប្រុស (Groom Portrait)", // 9
-            "រូបថតកូនស្រី (Bride Portrait)" // 10
+            "wizard.steps.4.slots.hero", 
+            "wizard.steps.4.slots.editorial1",
+            "wizard.steps.4.slots.editorial2",
+            "wizard.steps.4.slots.editorial3",
+            "wizard.steps.4.slots.editorial4",
+            "wizard.steps.4.slots.map",
+            "wizard.steps.4.slots.sig1",
+            "wizard.steps.4.slots.sig2",
+            "wizard.steps.4.slots.sig3",
+            "wizard.steps.4.slots.groom",
+            "wizard.steps.4.slots.bride"
         ] 
     },
 };
@@ -99,11 +99,11 @@ export const DEFAULT_WEDDING: WeddingData = {
 };
 
 export const STEPS = [
-    { id: 1, title: "ជ្រើសរើសពុម្ព (Template)" },
-    { id: 2, title: "ព័ត៌មាន (Info)" },
-    { id: 3, title: "ពេលវេលា (Time)" },
-    { id: 4, title: "រូបភាព (Media)" },
-    { id: 5, title: "បន្ថែម (Extra)" }
+    { id: 1 },
+    { id: 2 },
+    { id: 3 },
+    { id: 4 },
+    { id: 5 }
 ];
 
 export function useDesignWizard() {

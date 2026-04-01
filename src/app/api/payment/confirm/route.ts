@@ -5,6 +5,7 @@ import { getServerUser } from "@/lib/auth";
 import { errorResponse } from "@/lib/api-utils";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { revalidateTag } from "next/cache";
+import { z } from "zod";
 import { ROLES } from "@/lib/constants";
 
 export async function POST(req: Request) {
@@ -12,39 +13,34 @@ export async function POST(req: Request) {
     if (!user) return errorResponse("Unauthorized", 401);
 
     try {
-        const { packageType, turnstileToken } = await req.json(); // "PRO" or "PREMIUM"
+        const body = await req.json();
+        const schema = z.object({
+            packageType: z.enum(["PRO", "PREMIUM"]),
+            turnstileToken: z.string()
+        });
+        const validated = schema.safeParse(body);
+        if (!validated.success) return errorResponse("Invalid package or missing CAPTCHA", 400);
 
-        if (!packageType) return errorResponse("Package required", 400);
+        const { packageType, turnstileToken } = validated.data;
 
         // Turnstile check
-        if (!turnstileToken) return errorResponse("Please verify CAPTCHA", 428);
         const isHuman = await verifyTurnstile(turnstileToken);
         if (!isHuman) return errorResponse("CAPTCHA verification failed", 400);
 
         let wedding;
-        if (user.role === ROLES.PLATFORM_OWNER || user.role === ROLES.EVENT_STAFF) {
-            wedding = await prisma.wedding.findUnique({ where: { id: (user as any).weddingId } });
+        if (user.role === ROLES.EVENT_STAFF) {
+            // Staff can only update the wedding they are assigned to
+            if (!user.weddingId) return errorResponse("Staff not assigned to any wedding", 403);
+            wedding = await prisma.wedding.findUnique({ where: { id: user.weddingId } });
         } else {
+            // Users can only update their own weddings (IDOR Protection)
             wedding = await prisma.wedding.findFirst({ 
-                where: { userId: user.userId },
+                where: { userId: user.id },
                 orderBy: { createdAt: 'desc' }
             });
         }
 
-        if (!wedding) {
-            console.log("Payment Info: No wedding found for userId", user.id, ". Creating one...");
-            wedding = await prisma.wedding.create({
-                data: {
-                    userId: user.id,
-                    groomName: "Groom",
-                    brideName: "Bride",
-                    date: new Date(),
-                    location: "",
-                    status: "ACTIVE",
-                    packageType: "FREE"
-                }
-            });
-        }
+        if (!wedding) return errorResponse("Wedding not found", 404);
 
         // DUPLICATE/SPAM PROTECTION: Check if already pending verification
         if (wedding.paymentStatus === "AWAITING_VERIFICATION") {
@@ -54,16 +50,9 @@ export async function POST(req: Request) {
         }
 
         // Logic for expiration
-        let expiresAt = null;
-        if (packageType === "PRO") {
-            const date = new Date();
-            date.setDate(date.getDate() + 30); // 30 days
-            expiresAt = date;
-        } else if (packageType === "PREMIUM") {
-            const date = new Date();
-            date.setFullYear(date.getFullYear() + 100);
-            expiresAt = date;
-        }
+        const date = new Date();
+        date.setDate(date.getDate() + 30); // 30 Days (Monthly)
+        const expiresAt = date;
 
         const updated = await prisma.wedding.update({
             where: { id: wedding.id },

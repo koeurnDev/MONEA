@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { queryRaw } from "@/lib/prisma";
 import { unstable_cache } from "next/cache";
 import dynamic from "next/dynamic";
 import { notFound } from "next/navigation";
@@ -10,11 +10,7 @@ const KhmerLegacy = dynamic(() => import("@/components/templates/KhmerLegacy"), 
     loading: () => <div className="min-h-screen bg-[#FDFBF7] animate-pulse" />
 });
 
-const RSVPForm = dynamic(() => import("./RSVPForm").then(mod => mod.RSVPForm), {
-    ssr: false
-});
-
-const RevealSection = dynamic(() => import("@/components/templates/shared/CinematicComponents").then(mod => mod.RevealSection), {
+const FloatingRSVP = dynamic(() => import("./FloatingRSVP").then(mod => mod.FloatingRSVP), {
     ssr: false
 });
 
@@ -33,32 +29,32 @@ type PublicWeddingData = {
 };
 
 export async function WeddingDataView({ id, template, guestId }: { id: string; template?: string; guestId?: string }) {
-    // Cache this heavy database query for better TTFB (Time to First Byte)
+    // Cache the raw SQL result for high-performance TTFB
     const getCachedWedding = unstable_cache(
         async (weddingId: string): Promise<PublicWeddingData | null> => {
-            return await prisma.wedding.findUnique({
-                where: { id: weddingId },
-                select: {
-                    id: true,
-                    groomName: true,
-                    brideName: true,
-                    date: true,
-                    location: true,
-                    eventType: true,
-                    templateId: true,
-                    themeSettings: true,
-                    activities: {
-                        orderBy: { order: 'asc' }
-                    },
-                    galleryItems: {
-                        orderBy: { createdAt: 'desc' },
-                        take: 24
-                    }
-                }
-            });
+            try {
+                // Fetch in parallel using stable Raw SQL
+                const [weddings, activities, galleryItems] = await Promise.all([
+                    queryRaw('SELECT * FROM "Wedding" WHERE id = $1 LIMIT 1', weddingId),
+                    queryRaw('SELECT * FROM "Activity" WHERE "weddingId" = $1 ORDER BY "order" ASC', weddingId),
+                    queryRaw('SELECT * FROM "GalleryItem" WHERE "weddingId" = $1 ORDER BY "createdAt" DESC LIMIT 24', weddingId)
+                ]);
+
+                if (!weddings.length) return null;
+
+                const wedding = weddings[0];
+                return {
+                    ...wedding,
+                    activities,
+                    galleryItems
+                };
+            } catch (e) {
+                console.error("[WeddingDataView] Raw SQL fetch failed:", e);
+                return null;
+            }
         },
         [`wedding-${id}`],
-        { revalidate: 60, tags: [`wedding-${id}`] } // Revalidate every 60s at the Edge
+        { revalidate: 60, tags: [`wedding-${id}`] }
     );
 
     const wedding = await getCachedWedding(id);
@@ -85,20 +81,10 @@ export async function WeddingDataView({ id, template, guestId }: { id: string; t
         <main className="min-h-screen bg-[#FDFBF7]">
             <AnalyticsTracker weddingId={id} />
 
-            <KhmerLegacy wedding={{ ...wedding, guestId } as any} />
+            <KhmerLegacy wedding={{ ...wedding, guestId } as any} guestName={guestId ? "Guest" : undefined} />
 
             {rsvpEnabled && (
-                <div className="fixed bottom-24 right-6 z-50">
-                    <div className="max-w-4xl mx-auto">
-                        <RevealSection>
-                            <div className="text-center mb-12">
-                                <h2 className="font-khmer text-3xl font-black text-white mb-4 uppercase tracking-widest">ការឆ្លើយតប (RSVP)</h2>
-                                <div className="h-1 w-20 bg-[#D4AF37] mx-auto rounded-full" />
-                            </div>
-                            <RSVPForm weddingId={id} guestId={guestId} primaryColor="#D4AF37" />
-                        </RevealSection>
-                    </div>
-                </div>
+                <FloatingRSVP weddingId={id} guestId={guestId} />
             )}
         </main>
     );

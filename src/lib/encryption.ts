@@ -36,7 +36,7 @@ export function encrypt(text: string): string {
     return `${iv.toString('hex')}:${authTag}:${encrypted}`;
 }
 
-export function decrypt(encryptedData: string): string {
+export function decrypt(encryptedData: string): string | null {
     if (!encryptedData || !encryptedData.includes(':')) return encryptedData;
 
     try {
@@ -55,7 +55,6 @@ export function decrypt(encryptedData: string): string {
 
         return decrypted;
     } catch (error) {
-        console.error('Decryption failed:', error);
-        return encryptedData; // Return original on failure to avoid breaking things if data was plain
+        return null; // Return null on failure to inform the caller that data is invalid/tampered
     }
 }

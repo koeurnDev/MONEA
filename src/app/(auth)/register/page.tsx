@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
 import dynamic from "next/dynamic";
 import Image from "next/image";
+import { LanguageToggle } from "@/components/LanguageToggle";
 const Turnstile = dynamic(() => import("@marsidev/react-turnstile").then(mod => mod.Turnstile), { ssr: false });
 
 const formSchema = z.object({
@@ -107,8 +108,13 @@ export default function RegisterPage() {
                     style={{ objectPosition: 'center 40%' }}
                     sizes="(max-width: 768px) 100vw, 50vw"
                     priority
+                    unoptimized
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/60 backdrop-blur-[2px]"></div>
+            </div>
+
+            <div className="absolute top-4 right-4 md:top-6 md:right-8 z-50">
+                <LanguageToggle className="bg-white/10 text-white hover:bg-white/20 hover:text-white border border-white/20 backdrop-blur-md" />
             </div>
 
             {/* Content Container */}

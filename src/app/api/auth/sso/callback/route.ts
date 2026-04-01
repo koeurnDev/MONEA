@@ -6,6 +6,8 @@ import { prisma } from "@/lib/prisma";
 import { getGoogleTokens, getGoogleUser } from "@/lib/sso";
 import { signToken, generateFingerprint, isSecureCookie } from "@/lib/auth";
 import { ROLES } from "@/lib/constants";
+import { getIP } from "@/lib/utils";
+
 
 export async function GET(req: Request) {
     try {
@@ -13,7 +15,7 @@ export async function GET(req: Request) {
         const code = searchParams.get("code");
 
         if (!code) {
-            return NextResponse.redirect(new URL("/login?error=no_code", req.url));
+            return NextResponse.redirect(new URL("/sign-in?error=no_code", req.url));
         }
 
         // 1. Exchange code for tokens
@@ -23,7 +25,7 @@ export async function GET(req: Request) {
         const googleUser = await getGoogleUser(tokens.id_token, tokens.access_token);
         
         if (!googleUser.email) {
-            return NextResponse.redirect(new URL("/login?error=no_email", req.url));
+            return NextResponse.redirect(new URL("/sign-in?error=no_email", req.url));
         }
 
         // 3. Find or Create User in MONEA
@@ -59,8 +61,9 @@ export async function GET(req: Request) {
         }
 
         // 4. Create Session
-        const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "127.0.0.1";
+        const ip = getIP(req);
         const fingerprint = await generateFingerprint({ headers: req.headers, ip });
+
         const token = await signToken({
             userId: user.id,
             email: user.email,
@@ -82,6 +85,6 @@ export async function GET(req: Request) {
 
     } catch (error) {
         console.error("[SSO Callback Error]", error);
-        return NextResponse.redirect(new URL("/login?error=sso_failed", req.url));
+        return NextResponse.redirect(new URL("/sign-in?error=sso_failed", req.url));
     }
 }

@@ -17,28 +17,30 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
-
-const formSchema = z.object({
-    title: z.string().min(1, "សូមបញ្ចូលចំណងជើងសកម្មភាព"),
-    time: z.string().min(1, "សូមបញ្ចូលពេលវេលា"),
-    description: z.string().optional(),
-    icon: z.string().optional(),
-});
-
-const KHMER_ICONS = [
-    { id: "scissors", icon: Scissors, label: "កាត់សក់" },
-    { id: "heart", icon: Heart, label: "សំពះផ្ទឹម" },
-    { id: "flower", icon: Flower2, label: "សូត្រមន្ត" },
-    { id: "users", icon: Users, label: "ហែជំនូន" },
-    { id: "utensils", icon: Utensils, label: "អាហារ" },
-    { id: "camera", icon: Camera, label: "ថតរូប" },
-    { id: "music", icon: Music, label: "តន្ត្រី" },
-    { id: "glass", icon: GlassWater, label: "ទទួលភ្ញៀវ" },
-    { id: "landmark", icon: Landmark, label: "ផ្ទះកូនស្រី" },
-];
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 export function ActivityForm({ onSuccess, initialData }: { onSuccess: () => void, initialData?: any }) {
+    const { t } = useTranslation();
     const [loading, setLoading] = useState(false);
+
+    const formSchema = z.object({
+        title: z.string().min(1, t("dashboard.schedule.form.validation.title")),
+        time: z.string().min(1, t("dashboard.schedule.form.validation.time")),
+        description: z.string().optional(),
+        icon: z.string().optional(),
+    });
+
+    const ICONS = [
+        { id: "scissors", icon: Scissors, label: t("dashboard.schedule.icons.scissors") },
+        { id: "heart", icon: Heart, label: t("dashboard.schedule.icons.heart") },
+        { id: "flower", icon: Flower2, label: t("dashboard.schedule.icons.flower") },
+        { id: "users", icon: Users, label: t("dashboard.schedule.icons.users") },
+        { id: "utensils", icon: Utensils, label: t("dashboard.schedule.icons.utensils") },
+        { id: "camera", icon: Camera, label: t("dashboard.schedule.icons.camera") },
+        { id: "music", icon: Music, label: t("dashboard.schedule.icons.music") },
+        { id: "glass", icon: GlassWater, label: t("dashboard.schedule.icons.glass") },
+        { id: "landmark", icon: Landmark, label: t("dashboard.schedule.icons.landmark") },
+    ];
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -76,9 +78,9 @@ export function ActivityForm({ onSuccess, initialData }: { onSuccess: () => void
                         name="time"
                         render={({ field }) => (
                             <FormItem className="w-1/3">
-                                <FormLabel>ម៉ោង</FormLabel>
+                                <FormLabel>{t("dashboard.schedule.form.time")}</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="07:00 ព្រឹក" {...field} className="h-11 rounded-xl bg-muted border-none shadow-sm focus-visible:ring-red-500" />
+                                    <Input placeholder={t("dashboard.schedule.form.timePlaceholder")} {...field} className="h-11 rounded-xl bg-muted border-none shadow-sm focus-visible:ring-red-500" />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -89,9 +91,9 @@ export function ActivityForm({ onSuccess, initialData }: { onSuccess: () => void
                         name="title"
                         render={({ field }) => (
                             <FormItem className="w-2/3">
-                                <FormLabel>ចំណងជើងសកម្មភាព</FormLabel>
+                                <FormLabel>{t("dashboard.schedule.form.title")}</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="ពិធីហែជំនូន" {...field} className="h-11 rounded-xl bg-muted border-none shadow-sm focus-visible:ring-red-500" />
+                                    <Input placeholder={t("dashboard.schedule.form.titlePlaceholder")} {...field} className="h-11 rounded-xl bg-muted border-none shadow-sm focus-visible:ring-red-500" />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -104,10 +106,10 @@ export function ActivityForm({ onSuccess, initialData }: { onSuccess: () => void
                     name="icon"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>ជ្រើសរើសរូបតំណាង (Icons)</FormLabel>
+                            <FormLabel>{t("dashboard.schedule.form.icons")}</FormLabel>
                             <FormControl>
                                 <div className="grid grid-cols-5 sm:grid-cols-9 gap-3">
-                                    {KHMER_ICONS.map((item) => (
+                                    {ICONS.map((item) => (
                                         <button
                                             key={item.id}
                                             type="button"
@@ -135,16 +137,16 @@ export function ActivityForm({ onSuccess, initialData }: { onSuccess: () => void
                     name="description"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>ការពិពណ៌នា (ស្របចិត្ត)</FormLabel>
+                            <FormLabel>{t("dashboard.schedule.form.description")}</FormLabel>
                             <FormControl>
-                                <Textarea placeholder="ព័ត៌មានលម្អិតអំពីសកម្មភាពនេះ..." {...field} className="rounded-xl bg-muted border-none shadow-sm min-h-[100px] focus-visible:ring-red-500" />
+                                <Textarea placeholder={t("dashboard.schedule.form.descriptionPlaceholder")} {...field} className="rounded-xl bg-muted border-none shadow-sm min-h-[100px] focus-visible:ring-red-500" />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
                 <Button type="submit" disabled={loading} className="w-full h-12 text-lg rounded-xl bg-red-600 hover:bg-red-700 shadow-md font-bold font-kantumruy">
-                    {loading ? "កំពុងរក្សាទុក..." : initialData ? "កែប្រែសកម្មភាព" : "បន្ថែមសកម្មភាព"}
+                    {loading ? t("dashboard.schedule.form.saving") : initialData ? t("dashboard.schedule.form.edit") : t("dashboard.schedule.form.add")}
                 </Button>
             </form>
         </Form>

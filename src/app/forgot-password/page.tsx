@@ -19,17 +19,21 @@ import {
 import { Input } from "@/components/ui/input";
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
 import dynamic from "next/dynamic";
+import { useTranslation } from "@/i18n/LanguageProvider";
+import { AUTH_URLS } from "@/lib/constants";
+import { LanguageToggle } from "@/components/LanguageToggle";
 const Turnstile = dynamic(() => import("@marsidev/react-turnstile").then(mod => mod.Turnstile), { ssr: false });
 
-const formSchema = z.object({
-    email: z.string().email({ message: "សូមបញ្ចូលអ៊ីមែលដែលត្រឹមត្រូវ (Invalid email)" }),
-});
-
 export default function ForgotPasswordPage() {
+    const { t } = useTranslation();
     const [error, setError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [turnstileToken, setTurnstileToken] = useState("");
+
+    const formSchema = z.object({
+        email: z.string().email({ message: t('common.validation.invalidEmail') }),
+    });
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -41,7 +45,6 @@ export default function ForgotPasswordPage() {
         setSuccessMessage("");
         setIsLoading(true);
         try {
-            // Note: Replace with actual forgot-password API endpoint when available
             const res = await fetch("/api/auth/forgot-password", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -52,18 +55,18 @@ export default function ForgotPasswordPage() {
             });
 
             if (res.ok) {
-                setSuccessMessage("តំណភ្ជាប់សម្រាប់ប្តូរពាក្យសម្ងាត់ត្រូវបានផ្ញើទៅកាន់អ៊ីមែលរបស់អ្នក។ សូមពិនិត្យមើល!");
+                setSuccessMessage(t('common.auth.resetLinkSent'));
             } else {
                 let data;
                 try {
                     data = await res.json();
                 } catch (e) {
-                    data = { error: `Server Error (Code: ${res.status})` };
+                    data = { error: `${t('common.errors.unexpected')} (Code: ${res.status})` };
                 }
-                setError(data.error || "មិនអាចផ្ញើសំណើបានទេ។ សូមព្យាយាមម្តងទៀត។");
+                setError(data.error || t('common.errors.technical'));
             }
         } catch (e) {
-            setError("មានបញ្ហាបច្ចេកទេស។ សូមព្យាយាមម្តងទៀត។");
+            setError(t('common.errors.technical'));
         } finally {
             setIsLoading(false);
         }
@@ -80,6 +83,10 @@ export default function ForgotPasswordPage() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/60 backdrop-blur-[2px]"></div>
             </div>
 
+            <div className="absolute top-4 right-4 md:top-6 md:right-8 z-50">
+                <LanguageToggle className="bg-white/10 text-white hover:bg-white/20 hover:text-white border border-white/20 backdrop-blur-md" />
+            </div>
+
             {/* Content Container */}
             <m.div
                 initial={{ opacity: 0, y: 20 }}
@@ -90,10 +97,10 @@ export default function ForgotPasswordPage() {
                 <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
                     {/* Back Button */}
                     <Link
-                        href="/login"
+                        href={AUTH_URLS.SIGN_IN}
                         className="absolute left-6 top-6 text-white/40 hover:text-white transition-colors group flex items-center gap-1 text-[10px] font-black uppercase tracking-widest z-20"
                     >
-                        <ChevronLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" /> ត្រឡប់
+                        <ChevronLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" /> {t('common.auth.back')}
                     </Link>
 
                     {/* Header */}
@@ -101,8 +108,8 @@ export default function ForgotPasswordPage() {
                         <Link href="/" className="inline-flex justify-center">
                             <MoneaLogo showText size="md" variant="dark" />
                         </Link>
-                        <h1 className="text-2xl font-bold text-white mb-2 font-kantumruy mt-4">ភ្លេចពាក្យសម្ងាត់?</h1>
-                        <p className="text-white/40 text-xs font-kantumruy">សូមបញ្ចូលអ៊ីមែលរបស់អ្នក ដើម្បីប្តូរពាក្យសម្ងាត់ថ្មី</p>
+                        <h1 className="text-2xl font-bold text-white mb-2 font-kantumruy mt-4">{t('common.auth.forgotPasswordTitle')}</h1>
+                        <p className="text-white/40 text-xs font-kantumruy">{t('common.auth.forgotPasswordSubtitle')}</p>
                     </div>
 
                     <Form {...form}>
@@ -112,7 +119,7 @@ export default function ForgotPasswordPage() {
                                 name="email"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-white/80 text-xs uppercase tracking-wider font-bold ml-1">អ៊ីមែល</FormLabel>
+                                        <FormLabel className="text-white/80 text-xs uppercase tracking-wider font-bold ml-1">{t('common.auth.email')}</FormLabel>
                                         <div className="relative group">
                                             <div className="absolute left-3 top-3 text-white/40 group-focus-within:text-pink-400 transition-colors">
                                                 <Mail className="w-5 h-5" />
@@ -134,7 +141,7 @@ export default function ForgotPasswordPage() {
                                 </div>
                             ) : (
                                 <div className="text-[10px] text-red-400 bg-red-400/10 p-2 rounded-lg text-center font-bold mb-4">
-                                    Cloudflare Turnstile Key Missing in .env
+                                    Turnstile Key Missing
                                 </div>
                             )}
 
@@ -162,7 +169,7 @@ export default function ForgotPasswordPage() {
                             </AnimatePresence>
 
                             <Button type="submit" disabled={isLoading || !!successMessage || !turnstileToken} className="w-full bg-gradient-to-r from-pink-500 to-rose-600 rounded-xl font-bold uppercase tracking-wide h-11 border border-white/10 hover:shadow-lg hover:shadow-pink-500/20 transition-all mt-6 text-white text-sm">
-                                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "ផ្ញើតំណភ្ជាប់"}
+                                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : t('common.auth.sendLink')}
                             </Button>
                         </form>
                     </Form>
@@ -173,14 +180,14 @@ export default function ForgotPasswordPage() {
                         </div>
                         <div className="relative flex justify-center text-xs uppercase">
                             <span className="bg-[#1c1c1c] px-2 text-white/40 rounded-full font-kantumruy">
-                                ចងចាំពាក្យសម្ងាត់?
+                                {t('common.auth.rememberPassword')}
                             </span>
                         </div>
                     </div>
 
                     <div className="text-center">
-                        <Link href="/login" className="font-semibold text-white hover:text-pink-400 transition-colors flex items-center justify-center gap-2 text-sm font-kantumruy">
-                            <ArrowLeft className="w-4 h-4" /> ត្រឡប់ទៅការចូលគណនី
+                        <Link href={AUTH_URLS.SIGN_IN} className="font-semibold text-white hover:text-pink-400 transition-colors flex items-center justify-center gap-2 text-sm font-kantumruy">
+                            <ArrowLeft className="w-4 h-4" /> {t('common.auth.backToSignIn')}
                         </Link>
                     </div>
 

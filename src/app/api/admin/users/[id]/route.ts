@@ -16,35 +16,19 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     const targetUserId = params.id;
 
     try {
-        let targetUser;
-        try {
-            targetUser = await prisma.user.findUnique({
-                where: { id: targetUserId },
-                select: {
-                    id: true,
-                    email: true,
-                    name: true,
-                    role: true,
-                    createdAt: true,
-                    deletedAt: true,
-                    twoFactorEnabled: true,
-                    weddings: true
-                }
-            });
-        } catch (e) {
-            targetUser = await prisma.user.findUnique({
-                where: { id: targetUserId },
-                select: {
-                    id: true,
-                    email: true,
-                    name: true,
-                    role: true,
-                    createdAt: true,
-                    twoFactorEnabled: true,
-                    weddings: true
-                }
-            });
-        }
+        const targetUser = await prisma.user.findUnique({
+            where: { id: targetUserId },
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                role: true,
+                createdAt: true,
+                deletedAt: true,
+                twoFactorEnabled: true,
+                weddings: true
+            }
+        });
 
         if (!targetUser) {
             return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -97,35 +81,15 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
             return NextResponse.json({ error: "No valid fields provided for update" }, { status: 400 });
         }
 
-        let updatedUser;
-        try {
-            updatedUser = await prisma.user.update({
-                where: { id: targetUserId },
-                data: updateData,
-                select: {
-                    id: true,
-                    email: true,
-                    role: true,
-                }
-            });
-        } catch (e) {
-            // Fallback for missing deletedAt field in Prisma Client using parameterized query
-            if (updateData.deletedAt !== undefined) {
-                const isRestoring = updateData.deletedAt === null;
-                if (updateData.role) {
-                    await (prisma as any).$executeRaw`UPDATE "User" SET "deletedAt" = ${isRestoring ? null : new Date()}, "role" = ${updateData.role} WHERE "id" = ${targetUserId}`;
-                } else {
-                    await (prisma as any).$executeRaw`UPDATE "User" SET "deletedAt" = ${isRestoring ? null : new Date()} WHERE "id" = ${targetUserId}`;
-                }
-            } else if (updateData.role) {
-                await (prisma as any).$executeRaw`UPDATE "User" SET "role" = ${updateData.role} WHERE "id" = ${targetUserId}`;
+        const updatedUser = await prisma.user.update({
+            where: { id: targetUserId },
+            data: updateData,
+            select: {
+                id: true,
+                email: true,
+                role: true,
             }
-            
-            updatedUser = await prisma.user.findUnique({
-                where: { id: targetUserId },
-                select: { id: true, email: true, role: true }
-            });
-        }
+        });
 
         return NextResponse.json({ data: updatedUser, message: "User updated successfully" });
     } catch (error: any) {
@@ -157,15 +121,10 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
         }
 
         // Perform soft deletion
-        try {
-            await prisma.user.update({
-                where: { id: targetUserId },
-                data: { deletedAt: new Date() }
-            });
-        } catch (e) {
-            // Fallback for missing deletedAt field in Prisma Client - Parameterized
-            await (prisma as any).$executeRaw`UPDATE "User" SET "deletedAt" = ${new Date()} WHERE "id" = ${targetUserId}`;
-        }
+        await prisma.user.update({
+            where: { id: targetUserId },
+            data: { deletedAt: new Date() }
+        });
 
         return NextResponse.json({ success: true, message: "User account deactivated (Soft Delete) for 30 days." });
     } catch (error: any) {

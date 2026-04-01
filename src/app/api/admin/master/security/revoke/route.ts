@@ -12,22 +12,33 @@ export async function POST(req: Request) {
     }
 
     try {
-        // Set sessionsRevokedAt to now() for all Staff members
-        const res = await prisma.staff.updateMany({
+        // 1. Revoke Staff sessions
+        const staffRes = await prisma.staff.updateMany({
             data: { sessionsRevokedAt: new Date() }
         });
+
+        // 2. Revoke User sessions (Wedding owners)
+        const userRes = await prisma.user.updateMany({
+            data: { sessionsRevokedAt: new Date() }
+        });
+
+        const totalRevoked = staffRes.count + userRes.count;
 
         const ip = req.headers.get("x-forwarded-for") || "unknown";
         await SystemGovernance.logAction(
             user.userId,
             (user as any).name || user.email || "Admin",
             GOVERNANCE_ACTIONS.REVOKE_SESSIONS,
-            { revokedCount: res.count, target: "STAFF" },
+            { revokedCount: totalRevoked, target: "ALL_ACCOUNTS" },
             ip,
             req.headers.get("user-agent") || "unknown"
         );
 
-        return NextResponse.json({ success: true, count: res.count });
+        return NextResponse.json({ 
+            success: true, 
+            count: totalRevoked,
+            details: { staff: staffRes.count, users: userRes.count }
+        });
     } catch (e) {
         console.error(e);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

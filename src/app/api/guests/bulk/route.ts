@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { queryRaw, executeRaw } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
 import { sanitizeObject } from "@/lib/sanitize";
 import { encrypt } from "@/lib/encryption";
@@ -25,11 +25,12 @@ export async function POST(req: Request) {
         if (user.type === "staff") {
             weddingId = user.weddingId!;
         } else {
-            const wedding = await prisma.wedding.findFirst({ where: { userId: user.userId } });
-            if (!wedding) {
+            // Use Raw SQL for stability
+            const results = await queryRaw('SELECT id FROM "Wedding" WHERE "userId" = $1 LIMIT 1', user.userId);
+            if (!results.length) {
                 return NextResponse.json({ error: "Please create a wedding profile first" }, { status: 403 });
             }
-            weddingId = wedding.id;
+            weddingId = results[0].id;
         }
 
         console.log(`[BulkImport] User ${user.userId} importing ${guests.length} guests for wedding ${weddingId}`);
@@ -39,39 +40,35 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Wedding ID not found" }, { status: 400 });
         }
 
-        // Get current guest count to continue sequence
-        const currentCount = await prisma.guest.count({ where: { weddingId } });
+        // Get current guest count using Raw SQL
+        const counts = await queryRaw('SELECT COUNT(*)::int as count FROM "Guest" WHERE "weddingId" = $1', weddingId);
+        const currentCount = counts[0]?.count || 0;
         console.log(`[BulkImport] Current count: ${currentCount}`);
 
-        const dataToInsert = guests.map((g: any, index: number) => {
+        // Prepare data for batch insert
+        const values: any[] = [];
+        let placeholderIdx = 1;
+        const valueStrings = guests.map((g: any, index: number) => {
             const sanitized = sanitizeObject<any>(g);
-            return {
-                name: sanitized.name || "Guest",
-                // Encrypt phone before saving for security
-                phone: sanitized.phone ? encrypt(sanitized.phone) : "",
-                group: sanitized.group || "Friend",
-                weddingId: weddingId as string,
-                sequenceNumber: currentCount + index + 1,
-            };
+            const name = sanitized.name || "Guest";
+            const phone = sanitized.phone ? encrypt(sanitized.phone) : "";
+            const group = sanitized.group || "Friend";
+            const sequenceNum = currentCount + index + 1;
+            
+            const startIdx = placeholderIdx;
+            placeholderIdx += 5;
+            values.push(name, phone, group, weddingId, sequenceNum);
+            
+            return `($${startIdx}, $${startIdx + 1}, $${startIdx + 2}, $${startIdx + 3}, $${startIdx + 4})`;
         });
 
-        console.log(`[BulkImport] Prepared ${dataToInsert.length} items. Phone encrypted.`);
+        const sql = `
+            INSERT INTO "Guest" (name, phone, "group", "weddingId", "sequenceNumber")
+            VALUES ${valueStrings.join(", ")}
+        `;
 
-        let count = 0;
-        try {
-            // Try high-performance createMany first
-            const result = await prisma.guest.createMany({
-                data: dataToInsert
-            });
-            count = result.count;
-        } catch (createManyError: any) {
-            console.warn("[BulkImport] createMany failed, falling back to manual batch:", createManyError.message);
-            // Fallback: Manual batch creation if createMany is not supported by current client
-            const results = await prisma.$transaction(
-                dataToInsert.map(data => prisma.guest.create({ data }))
-            );
-            count = results.length;
-        }
+        console.log(`[BulkImport] Executing batch insert for ${guests.length} items.`);
+        const count = await executeRaw(sql, ...values);
 
         console.log(`[BulkImport] Success. Created ${count} guests.`);
         return NextResponse.json({ success: true, count });

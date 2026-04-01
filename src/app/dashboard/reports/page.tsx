@@ -7,6 +7,7 @@ import { Users, DollarSign, Gift, MessageSquare, CheckCircle, Activity, Printer 
 import { cn } from "@/lib/utils";
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
 import { CardSkeleton, TableSkeleton } from "../_components/SkeletonComponents";
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { LazyMotion, domMax, m } from "framer-motion";
 
 export default function ReportsPage() {
@@ -28,6 +29,7 @@ export default function ReportsPage() {
     const { data: logs = [], isLoading: loadingLogs } = useSWR("/api/logs", safeFetcher, { refreshInterval: 30000 });
     const { data: wishes = [], isLoading: loadingWishes } = useSWR("/api/guestbook", safeFetcher, { refreshInterval: 30000 });
     const { data: wedding = null } = useSWR("/api/wedding", (url) => fetch(url).then(res => res.json()).catch(() => null), { refreshInterval: 60000 });
+    const { t, locale } = useTranslation();
 
     const loading = loadingGuests || loadingGifts || loadingLogs || loadingWishes;
 
@@ -127,36 +129,36 @@ export default function ReportsPage() {
             </div>
 
             <div className="hidden print:block mb-10 text-center pt-4">
-                <h1 className="text-3xl font-black text-slate-900 mb-2 font-kantumruy uppercase tracking-tight">របាយការណ៍សរុប និងសកម្មភាពមង្គលការ</h1>
-                <p className="text-xl text-slate-500 font-bold font-kantumruy">អាពាហ៍ពិពាហ៍ {wedding?.groomName || '...'} និង {wedding?.brideName || '...'}</p>
-                <p className="text-lg text-slate-400 font-bold font-kantumruy mt-2 italic shadow-sm bg-zinc-50/50 py-2 rounded-full inline-block px-8 border border-zinc-100/50">របាយការណ៍ផ្លូវការសម្រាប់អ្នករៀបចំ</p>
+                <h1 className="text-3xl font-black text-slate-900 mb-2 font-kantumruy uppercase tracking-tight">{t("reports.print.header")}</h1>
+                <p className="text-xl text-slate-500 font-bold font-kantumruy">{t("reports.print.weddingOf", { groom: wedding?.groomName || '...', bride: wedding?.brideName || '...' })}</p>
+                <p className="text-lg text-slate-400 font-bold font-kantumruy mt-2 italic shadow-sm bg-zinc-50/50 py-2 rounded-full inline-block px-8 border border-zinc-100/50">{t("reports.print.official")}</p>
             </div>
 
             {/* --- PRINT ONLY SUMMARY SECTION --- */}
             <div className="hidden print:grid grid-cols-2 gap-6 mb-12 print-no-break">
                 <div className="border-2 border-slate-100 rounded-[2.5rem] p-8 bg-blue-50/20 relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full -mr-16 -mt-16" />
-                    <p className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] mb-4">ស្ថិតិវត្តមានភ្ញៀវ</p>
+                    <p className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] mb-4">{t("reports.print.guestStats")}</p>
                     <div className="flex items-baseline gap-2">
                         <span className="text-3xl font-black text-slate-900 font-kantumruy leading-none">{stats.checkInCount} / {stats.totalGuests}</span>
-                        <span className="text-sm font-bold text-slate-400 font-kantumruy">នាក់</span>
+                        <span className="text-sm font-bold text-slate-400 font-kantumruy">{t("common.labels.people")}</span>
                     </div>
-                    <p className="text-[10px] font-bold text-slate-400 mt-2 font-kantumruy italic opacity-70">ភ្ញៀវដែលបានចូលរួមក្នុងកម្មវិធី</p>
+                    <p className="text-[10px] font-bold text-slate-400 mt-2 font-kantumruy italic opacity-70">{t("reports.print.joined")}</p>
                 </div>
 
                 <div className="border-2 border-slate-100 rounded-[2.5rem] p-8 bg-pink-50/20 relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-pink-500/5 rounded-full -mr-16 -mt-16" />
-                    <p className="text-[10px] font-black text-pink-600 uppercase tracking-[0.2em] mb-4">ពាក្យជូនពរសរុប</p>
+                    <p className="text-[10px] font-black text-pink-600 uppercase tracking-[0.2em] mb-4">{t("reports.print.totalWishes")}</p>
                     <div className="flex items-baseline gap-2">
                         <span className="text-3xl font-black text-slate-900 font-kantumruy leading-none">{stats.wishesCount}</span>
-                        <span className="text-sm font-bold text-slate-400 font-kantumruy">ពាក្យជូនពរ</span>
+                        <span className="text-sm font-bold text-slate-400 font-kantumruy">{t("reports.stats.wishes")}</span>
                     </div>
-                    <p className="text-[10px] font-bold text-slate-400 mt-2 font-kantumruy italic opacity-70">សំណេរពីភ្ញៀវកិត្តិយស</p>
+                    <p className="text-[10px] font-bold text-slate-400 mt-2 font-kantumruy italic opacity-70">{t("reports.print.guestWritings")}</p>
                 </div>
 
                 <div className="border-2 border-slate-100 rounded-[2.5rem] p-8 bg-emerald-50/20 relative overflow-hidden col-span-2">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full -mr-32 -mt-32" />
-                    <p className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] mb-6 text-center">សរុបសាច់ប្រាក់ចំណងដៃ</p>
+                    <p className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] mb-6 text-center">{t("reports.print.totalCashGifts")}</p>
                     <div className="flex items-center justify-around gap-12 py-2">
                         <div className="text-center">
                             <span className="text-[10px] font-black text-slate-400 block mb-2 uppercase tracking-widest font-sans">USD</span>
@@ -178,13 +180,13 @@ export default function ReportsPage() {
                 <div className="space-y-1">
                     <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-red-600 mb-1">
                         <Activity className="w-3 h-3" />
-                        Platform Analytics
+                        {t("reports.analytics")}
                     </div>
                     <h2 className="text-3xl font-black tracking-tight text-foreground font-kantumruy">
-                        របាយការណ៍ & ស្ថិតិ
+                        {t("reports.title")}
                     </h2>
                     <p className="text-muted-foreground font-medium font-kantumruy text-sm">
-                        តាមដាន និងវិភាគទ្និន្ន័យមង្គលការរបស់អ្នកក្នុងពេលជាក់ស្តែង។
+                        {t("reports.subtitle")}
                     </p>
                 </div>
             </div>
@@ -200,10 +202,10 @@ export default function ReportsPage() {
                     </>
                 ) : (
                     [
-                        { label: "ភ្ញៀវសរុប", value: stats.totalGuests, sub: "Check-in: " + stats.checkInCount, icon: Users, color: "text-blue-600", bg: "bg-blue-50/50 dark:bg-blue-950/20" },
-                        { label: "សាច់ប្រាក់ដុល្លារ", value: "$" + stats.totalGiftsUsd.toLocaleString(), sub: "សរុបចំនួន " + stats.giftsCount + " នាក់", icon: DollarSign, color: "text-emerald-600", bg: "bg-emerald-50/50 dark:bg-emerald-950/20" },
-                        { label: "សាច់ប្រាក់រៀល", value: stats.totalGiftsKhr.toLocaleString() + " ៛", sub: "សរុបចំនួន " + stats.giftsCount + " នាក់", icon: Gift, color: "text-amber-600", bg: "bg-amber-50/50 dark:bg-amber-950/20" },
-                        { label: "ពាក្យជូនពរ", value: stats.wishesCount, sub: "ពីភ្ញៀវកិត្តិយស", icon: MessageSquare, color: "text-pink-600", bg: "bg-pink-500/10" },
+                        { label: t("reports.stats.totalGuests"), value: stats.totalGuests, sub: t("reports.stats.checkIn", { count: stats.checkInCount }), icon: Users, color: "text-blue-600", bg: "bg-blue-50/50 dark:bg-blue-950/20" },
+                        { label: t("reports.stats.usdGifts"), value: "$" + stats.totalGiftsUsd.toLocaleString(), sub: t("reports.stats.totalCount", { count: stats.giftsCount }), icon: DollarSign, color: "text-emerald-600", bg: "bg-emerald-50/50 dark:bg-emerald-950/20" },
+                        { label: t("reports.stats.khrGifts"), value: stats.totalGiftsKhr.toLocaleString() + " ៛", sub: t("reports.stats.totalCount", { count: stats.giftsCount }), icon: Gift, color: "text-amber-600", bg: "bg-amber-50/50 dark:bg-amber-950/20" },
+                        { label: t("reports.stats.wishes"), value: stats.wishesCount, sub: t("reports.stats.fromGuests"), icon: MessageSquare, color: "text-pink-600", bg: "bg-pink-500/10" },
                     ].map((stat, i) => (
                         <Card key={i} className="border-none shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.2)] hover:shadow-[0_8px_40px_rgba(0,0,0,0.08)] transition-all rounded-[2rem] overflow-hidden group relative bg-card">
                             <CardContent className="p-8 pt-10">
@@ -232,7 +234,7 @@ export default function ReportsPage() {
                         <div className="w-8 h-8 rounded-xl bg-red-50 dark:bg-red-950/20 flex items-center justify-center text-red-600 shadow-sm">
                             <CheckCircle className="w-4 h-4" />
                         </div>
-                        <h3 className="text-lg font-bold text-foreground font-kantumruy">សកម្មភាព និងស្ថិតិលម្អិត</h3>
+                        <h3 className="text-lg font-bold text-foreground font-kantumruy">{t("reports.detailed")}</h3>
                     </div>
                 </div>
 
@@ -240,17 +242,17 @@ export default function ReportsPage() {
                 <Card className="lg:col-span-7 border-none shadow-[0_8px_40px_rgba(0,0,0,0.06)] dark:shadow-[0_4px_32px_rgba(0,0,0,0.2)] rounded-[2.5rem] bg-card overflow-hidden print:border print:border-slate-100 print:shadow-none print-no-break">
                     <CardHeader className="p-10 pb-6 bg-muted/30 border-b border-border/5 flex flex-row items-center justify-between">
                         <div className="flex flex-col gap-1">
-                            <CardTitle className="text-xl font-black text-foreground font-kantumruy">សកម្មភាពចុងក្រោយ</CardTitle>
-                            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest opacity-60">Real-time Activity Stream</p>
+                            <CardTitle className="text-xl font-black text-foreground font-kantumruy">{t("reports.activity.title")}</CardTitle>
+                            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest opacity-60">{t("reports.activity.stream")}</p>
                         </div>
                         <div className="px-4 py-1.5 rounded-full bg-emerald-500/10 text-emerald-600 text-[10px] font-black uppercase tracking-widest animate-pulse">
-                            Live
+                            {t("reports.activity.live")}
                         </div>
                     </CardHeader>
                     <CardContent className="p-0">
                         {!Array.isArray(logs) || logs.length === 0 ? (
                             <div className="p-20 text-center text-muted-foreground/30">
-                                <span className="text-xs font-bold font-kantumruy uppercase tracking-widest">មិនទាន់មានសកម្មភាពទេ</span>
+                                <span className="text-xs font-bold font-kantumruy uppercase tracking-widest">{t("reports.activity.empty")}</span>
                             </div>
                         ) : (
                             <div className="divide-y divide-border/10">
@@ -277,10 +279,10 @@ export default function ReportsPage() {
                                                 <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest bg-muted/50 px-2 py-0.5 rounded-md">
                                                     {(() => {
                                                         const diff = Date.now() - new Date(log.createdAt).getTime();
-                                                        if (diff < 60000) return "Just now";
-                                                        if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-                                                        if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
-                                                        return new Date(log.createdAt).toLocaleDateString('km-KH', { day: 'numeric', month: 'short' });
+                                                        if (diff < 60000) return t("reports.activity.justNow");
+                                                        if (diff < 3600000) return t("reports.activity.m_ago", { count: Math.floor(diff / 60000) });
+                                                        if (diff < 86400000) return t("reports.activity.h_ago", { count: Math.floor(diff / 3600000) });
+                                                        return new Date(log.createdAt).toLocaleDateString(locale === 'km' ? 'km-KH' : 'en-US', { day: 'numeric', month: 'short' });
                                                     })()}
                                                 </span>
                                             </div>
@@ -296,7 +298,7 @@ export default function ReportsPage() {
                 <div className="lg:col-span-5 space-y-8">
                     <Card className="border-none shadow-[0_8px_40px_rgba(0,0,0,0.06)] dark:shadow-[0_4px_32px_rgba(0,0,0,0.2)] rounded-[2rem] bg-card overflow-hidden">
                         <CardHeader className="p-8 pb-4 bg-muted/20">
-                            <CardTitle className="text-lg font-bold text-foreground font-kantumruy">ស្ថិតិតាមទីតាំង</CardTitle>
+                            <CardTitle className="text-lg font-bold text-foreground font-kantumruy">{t("reports.location.title")}</CardTitle>
                         </CardHeader>
                         <CardContent className="p-8 pb-10">
                             <div className="space-y-8">
@@ -305,7 +307,7 @@ export default function ReportsPage() {
                                     const safeGifts = Array.isArray(gifts) ? gifts : [];
 
                                     const sourceStats = safeGuests.reduce((acc: any, g: any) => {
-                                        const source = g.source || g.group || "មិនបានបញ្ជាក់";
+                                        const source = g.source || g.group || t("reports.location.unspecified");
                                         if (!acc[source]) acc[source] = { guests: 0, usd: 0, khr: 0 };
                                         acc[source].guests += 1;
                                         return acc;
@@ -326,7 +328,7 @@ export default function ReportsPage() {
                                     if (sortedSources.length === 0) return (
                                         <div className="text-center py-10 opacity-30">
                                             <Users size={32} className="mx-auto mb-2" />
-                                            <p className="text-[10px] font-bold uppercase tracking-widest">មិនទាន់មានទិន្នន័យ</p>
+                                            <p className="text-[10px] font-bold uppercase tracking-widest">{t("reports.location.empty")}</p>
                                         </div>
                                     );
 
@@ -335,7 +337,7 @@ export default function ReportsPage() {
                                             <div className="flex justify-between items-end">
                                                 <div>
                                                     <p className="text-sm font-black text-foreground font-kantumruy">{name}</p>
-                                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{data.guests} នាក់</p>
+                                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{t("reports.location.people", { count: data.guests })}</p>
                                                 </div>
                                                 <div className="text-right">
                                                     <p className="text-xs font-black text-emerald-600">${data.usd.toLocaleString()}</p>
@@ -361,18 +363,18 @@ export default function ReportsPage() {
             <div className="hidden print:flex flex-col mb-10 pt-8 px-10 mt-16 font-kantumruy border-t-2 border-slate-100">
                 <div className="flex justify-between items-end">
                     <div className="space-y-2">
-                        <p suppressHydrationWarning className="text-slate-400 uppercase tracking-[0.15em] text-[10px] font-black">កាលបរិច្ឆេទចេញរបាយការណ៍</p>
+                        <p suppressHydrationWarning className="text-slate-400 uppercase tracking-[0.15em] text-[10px] font-black">{t("reports.print.reportDate")}</p>
                         <p suppressHydrationWarning className="text-sm font-bold text-slate-900">
-                            {new Date().toLocaleDateString('km-KH', { timeZone: 'Asia/Phnom_Penh', day: 'numeric', month: 'long', year: 'numeric' })}
+                            {new Date().toLocaleDateString(locale === 'km' ? 'km-KH' : 'en-US', { timeZone: 'Asia/Phnom_Penh', day: 'numeric', month: 'long', year: 'numeric' })}
                         </p>
                     </div>
                     
                     <div className="text-right space-y-2">
                         <div className="flex items-center justify-end gap-2 mb-1">
                             <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                            <p className="text-slate-400 uppercase tracking-[0.15em] text-[10px] font-black">សុពលភាពឯកសារ</p>
+                            <p className="text-slate-400 uppercase tracking-[0.15em] text-[10px] font-black">{t("reports.print.validity")}</p>
                         </div>
-                        <p className="text-sm font-black text-slate-900">របាយការណ៍ផ្លូវការ - ប្រព័ន្ធ MONEA</p>
+                        <p className="text-sm font-black text-slate-900">{t("reports.print.officialMonea")}</p>
                     </div>
                 </div>
                 
@@ -381,7 +383,7 @@ export default function ReportsPage() {
                         MONEA PLATFORM • OFFICIAL ANALYTICS RECORD
                     </p>
                     <p className="text-[9px] text-zinc-300 font-medium font-kantumruy">
-                        ឯកសារនេះត្រូវបានបង្កើតឡើងដោយស្វ័យប្រវត្តិតាមរយៈប្រព័ន្ធ MONEA និងជាកំណត់ត្រាផ្លូវការនៃស្ថិតិមង្គលការ។
+                        {t("reports.print.autoGenerated")}
                     </p>
                 </div>
             </div>

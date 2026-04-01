@@ -2,6 +2,7 @@ import * as React from "react";
 import Image from 'next/image';
 import { WeddingData } from "../types";
 import { RevealSection, CinematicPlaceholder } from '../shared/CinematicComponents';
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 export function EnglishInvitation({
     wedding,
@@ -14,6 +15,7 @@ export function EnglishInvitation({
     smartColors: { primary: string; secondary: string; dark: string };
     englishPan: any;
 }) {
+    const { t } = useTranslation();
     return (
         <section id="invitation-english" className="pt-12 md:pt-48 pb-16 md:pb-40 px-4 md:px-12 text-left md:text-left relative overflow-hidden">
             {galleryImages.length > 0 && (
@@ -34,12 +36,12 @@ export function EnglishInvitation({
                         <RevealSection>
                             <div className="grid grid-cols-2 gap-8 md:gap-16 w-full font-gisha text-gray-700 font-bold tracking-wide text-[14px] md:text-[18px]">
                                 <div className="space-y-1 flex flex-col items-center md:items-start">
-                                    <p>Mr. {wedding.themeSettings?.parents?.groomFather || ""}</p>
-                                    <p>& Mrs. {wedding.themeSettings?.parents?.groomMother || ""}</p>
+                                    <p>{t("common.mr")} {wedding.themeSettings?.parents?.groomFather || ""}</p>
+                                    <p>& {t("common.mrs")} {wedding.themeSettings?.parents?.groomMother || ""}</p>
                                 </div>
                                 <div className="space-y-1 flex flex-col items-center md:items-start">
-                                    <p>Mr. {wedding.themeSettings?.parents?.brideFather || ""}</p>
-                                    <p>& Mrs. {wedding.themeSettings?.parents?.brideMother || ""}</p>
+                                    <p>{t("common.mr")} {wedding.themeSettings?.parents?.brideFather || ""}</p>
+                                    <p>& {t("common.mrs")} {wedding.themeSettings?.parents?.brideMother || ""}</p>
                                 </div>
                             </div>
                         </RevealSection>
@@ -47,7 +49,7 @@ export function EnglishInvitation({
                         <RevealSection delay={0.1}>
                             <div className="space-y-4 md:space-y-6 flex flex-col items-center md:items-start">
                                 <p className="font-clarendon text-[14px] md:text-[18px] text-gray-600 leading-relaxed italic max-w-[450px]">
-                                    Cordially Request the honour of your presence On the Auspicious Occasion of the Wedding of our Children
+                                    {t("template.khmerLegacy.invitationBodyEn")}
                                 </p>
                             </div>
                         </RevealSection>
@@ -55,7 +57,7 @@ export function EnglishInvitation({
                         <RevealSection delay={0.2}>
                             <div className="grid grid-cols-2 gap-8 md:gap-16 pt-8 w-full">
                                 <div className="space-y-4 flex flex-col items-center md:items-start">
-                                    <p className="font-clarendon text-[11px] md:text-sm tracking-[0.4em] text-gold/50 uppercase font-black">Groom&apos;s</p>
+                                    <p className="font-clarendon text-[11px] md:text-sm tracking-[0.4em] text-gold/50 uppercase font-black">{t("template.khmerLegacy.groomLabelEn")}</p>
                                     <h2
                                         style={{ color: smartColors.primary, textShadow: '0 4px 20px rgba(0,0,0,0.05)' }}
                                         className="font-gisha text-4xl xs:text-5xl md:text-7xl font-black tracking-tight leading-tight"
@@ -66,7 +68,7 @@ export function EnglishInvitation({
                                 </div>
                                 
                                 <div className="space-y-4 flex flex-col items-center md:items-start">
-                                    <p className="font-clarendon text-[11px] md:text-sm tracking-[0.4em] text-gold/50 uppercase font-black">Bride&apos;s</p>
+                                    <p className="font-clarendon text-[11px] md:text-sm tracking-[0.4em] text-gold/50 uppercase font-black">{t("template.khmerLegacy.brideLabelEn")}</p>
                                     <h2
                                         style={{ color: smartColors.primary, textShadow: '0 4px 20px rgba(0,0,0,0.05)' }}
                                         className="font-gisha text-4xl xs:text-5xl md:text-7xl font-black tracking-tight leading-tight"
@@ -81,11 +83,11 @@ export function EnglishInvitation({
                         <RevealSection delay={0.3}>
                             <div className="pt-8 md:pt-12">
                                 <p className="font-clarendon text-[16px] md:text-[18px] text-gray-700 leading-loose max-w-[500px]">
-                                    Which Will Be Held On Wednesday 7th February 2009,<br />
-                                    At 4:00 pm. At the Bride’s House,<br />
-                                    KrangAth Village, Kampongseila Commune,<br />
-                                    Kampongseila District,<br />
-                                    Preahsihanouk Province. Thank You!
+                                    {t("template.khmerLegacy.receptionBodyEn", {
+                                        date: new Date(wedding.date).toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+                                        time: wedding.time || "4:00 pm",
+                                        location: wedding.location || "the Bride's House"
+                                    })}
                                 </p>
                             </div>
                         </RevealSection>

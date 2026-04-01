@@ -1,0 +1,1727 @@
+{
+  "common": {
+    "auth": {
+      "signIn": "Sign In",
+      "signUp": "Sign Up",
+      "getStarted": "Get Started",
+      "logout": "Logout",
+      "email": "Email Address",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "forgotPassword": "Forgot Password?",
+      "forgotPasswordShort": "Forgot?",
+      "loginTitle": "Sign In",
+      "loginSubtitle": "Please enter your credentials to continue",
+      "registerTitle": "Create Account",
+      "registerSubtitle": "Start your journey for free",
+      "fullName": "Your Full Name",
+      "verifyCaptcha": "Please verify CAPTCHA",
+      "twoFactorTitle": "Two-Factor Authentication (2FA)",
+      "twoFactorSubtitle": "Please enter the code from your authenticator app",
+      "returnToPassword": "Return to password login",
+      "orContinueWith": "Or continue with",
+      "noAccount": "Don't have an account?",
+      "hasAccount": "Already have an account?",
+      "signUpNow": "Sign up now",
+      "signInNow": "Sign in to your account",
+      "back": "Back",
+      "forgotPasswordTitle": "Forgot Password?",
+      "forgotPasswordSubtitle": "Enter your email to receive a password reset link",
+      "sendLink": "Send Reset Link",
+      "rememberPassword": "Remember your password?",
+      "backToSignIn": "Back to Sign In",
+      "backToHome": "Back to Home",
+      "resetLinkSent": "A password reset link has been sent to your email. Please check!",
+      "resetPasswordTitle": "Reset Password",
+      "resetPasswordSubtitle": "Please enter your new password below.",
+      "newPassword": "New Password",
+      "confirmNewPassword": "Confirm New Password",
+      "resetButton": "Reset Password",
+      "passwordMismatched": "Passwords do not match"
+    },
+    "constants": {
+      "brandName": "MONEA",
+      "brandDomain": "monea.app",
+      "googleMaps": "Google Maps",
+      "qrCode": "QR Code",
+      "locale": "en-US"
+    },
+    "loading": {
+      "preparing": "Preparing your experience...",
+      "creating": "Creating your invitation...",
+      "saving": "Saving changes...",
+      "guestlist": "Loading guest list...",
+      "dashboard": "Loading dashboard...",
+      "wishes": "Loading wishes...",
+      "fetching": "Loading..."
+    },
+    "success": {
+      "saved": "Saved successfully",
+      "thankYou": "Thank you!",
+      "responseReceived": "Response received"
+    },
+    "empty": {
+      "generic": "No data available",
+      "guests": "No guests yet",
+      "images": "No images uploaded",
+      "activities": "No activities scheduled",
+      "wishes": "No wishes yet. Be the first to share your blessing!"
+    },
+    "validation": {
+      "required": "This field is required",
+      "invalidEmail": "Invalid email address",
+      "tooShort": "Value is too short"
+    },
+    "actions": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "edit": "Edit",
+      "back": "Back",
+      "next": "Next",
+      "previous": "Previous",
+      "confirm": "Confirm",
+      "retry": "Retry",
+      "finish": "Complete",
+      "tryAgain": "Try Again",
+      "import": "Import",
+      "export": "Export",
+      "logout": "Logout",
+      "continue": "Continue"
+    },
+    "labels": {
+      "mr": "Mr.",
+      "mrs": "Mrs.",
+      "you": "You",
+      "sending": "Sending...",
+      "scrollExplore": "Scroll to explore",
+      "wedding": "Wedding",
+      "anniversary": "Anniversary",
+      "premium": "Premium",
+      "free": "Free"
+    },
+    "navigation": {
+      "home": "Home",
+      "features": "Features",
+      "howItWorks": "How It Works",
+      "templates": "Templates",
+      "pricing": "Pricing",
+      "schedule": "Schedule",
+      "map": "Map",
+      "rsvp": "RSVP",
+      "login": "Login",
+      "dashboard": "Dashboard"
+    },
+    "calendar": {
+      "day": "Day",
+      "number": "No.",
+      "month": "Month",
+      "year": "Year",
+      "days": [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday"
+      ],
+      "months": [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+      ],
+      "digits": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ]
+    },
+    "errors": {
+      "unexpected": "An unexpected error occurred.",
+      "technical": "There was a technical issue while fetching data. Please try again.",
+      "oops": "Oops!"
+    },
+    "footer": {
+      "home": "Home",
+      "features": "Features",
+      "howItWorks": "How It Works",
+      "templates": "Templates",
+      "contact": "Contact",
+      "copyright": "All Rights Reserved © 2026 MONEA",
+      "privacyPolicy": "Privacy Policy",
+      "termsOfUse": "Terms of Use"
+    },
+    "partners": {
+      "subtitle": "Supporting local banks for digital gifts"
+    },
+    "terms": {
+      "title": "Terms of Use (Terms & Conditions)",
+      "lastUpdated": "Last Updated: 3/19/2026",
+      "s1": {
+        "title": "1. Agreement to Terms",
+        "p1": "These Terms of Use constitute a legally binding agreement made between you, whether personally or on behalf of an entity (“you”) and MONEA (“we”, “us”, or “our”), concerning your access to and use of our website as well as any other media form, media channel, mobile website or mobile application related, linked, or otherwise connected thereto (collectively, the “Site”)."
+      },
+      "s2": {
+        "title": "2. Intellectual Property Rights",
+        "p1": "Unless otherwise indicated, the Site is our proprietary property and all source code, databases, functionality, software, website designs, audio, video, text, photographs, and graphics on the Site (collectively, the “Content”) and the trademarks, service marks, and logos contained therein (the “Marks”) are owned or controlled by us or licensed to us, and are protected by copyright and trademark laws and various other intellectual property rights and unfair competition laws."
+      },
+      "s3": {
+        "title": "3. User Representations",
+        "p1": "By using the Site, you represent and warrant that:",
+        "items": [
+          "all registration information you submit will be true, accurate, current, and complete;",
+          "you will maintain the accuracy of such information and promptly update such registration information as necessary;",
+          "you have the legal capacity and you agree to comply with these Terms of Use;",
+          "you are not a minor in the jurisdiction in which you reside;",
+          "you will not access the Site through automated or non-human means, whether through a bot, script or otherwise;",
+          "you will not use the Site for any illegal or unauthorized purpose; and",
+          "your use of the Site will not violate any applicable law or regulation."
+        ]
+      },
+      "s4": {
+        "title": "4. User Registration",
+        "p1": "You may be required to register with the Site. You agree to keep your password confidential and will be responsible for all use of your account and password. We reserve the right to remove, reclaim, or change a username you select if we determine, in our sole discretion, that such username is inappropriate, obscene, or otherwise objectionable."
+      },
+      "s5": {
+        "title": "5. Prohibited Activities",
+        "p1": "You may not access or use the Site for any purpose other than that for which we make the Site available. The Site may not be used in connection with any commercial endeavors except those that are specifically endorsed or approved by us.",
+        "p2": "As a user of the Site, you agree not to:",
+        "items": [
+          "Systematically retrieve data or other content from the Site to create or compile, directly or indirectly, a collection, compilation, database, or directory without written permission from us.",
+          "Trick, defraud, or mislead us and other users, especially in any attempt to learn sensitive account information such as user passwords.",
+          "Circumvent, disable, or otherwise interfere with security-related features of the Site.",
+          "Disparage, tarnish, or otherwise harm, in our opinion, us and/or the Site.",
+          "Use any information obtained from the Site in order to harass, abuse, or harm another person."
+        ]
+      },
+      "s6": {
+        "title": "6. Modifications and Interruptions",
+        "p1": "We reserve the right to change, modify, or remove the contents of the Site at any time or for any reason at our sole discretion without notice. However, we have no obligation to update any information on our Site. We also reserve the right to modify or discontinue all or part of the Site without notice at any time. We will not be liable to you or any third party for any modification, price change, suspension, or discontinuance of the Site."
+      },
+      "s7": {
+        "title": "7. Contact Us",
+        "p1": "In order to resolve a complaint regarding the Site or to receive further information regarding use of the Site, please contact us at:",
+        "email": "Email: support@monea.com",
+        "phone": "Phone: +855 (0) 12 345 678"
+      }
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "lastUpdated": "Last Updated: 3/19/2026",
+      "s1": {
+        "title": "1. Introduction",
+        "p1": "Welcome to MONEA (“we”, “our”, or “us”). We respect your privacy and are committed to protecting your personal data. This privacy policy will inform you as to how we look after your personal data when you visit our website (regardless of where you visit it from) and tell you about your privacy rights and how the law protects you."
+      },
+      "s2": {
+        "title": "2. The Data We Collect About You",
+        "p1": "Personal data, or personal information, means any information about an individual from which that person can be identified. We may collect, use, store and transfer different kinds of personal data about you which we have grouped together as follows:",
+        "items": [
+          "Identity Data includes first name, last name, username or similar identifier.",
+          "Contact Data includes email address and telephone numbers.",
+          "Technical Data includes internet protocol (IP) address, your login data, browser type and version, time zone setting and location.",
+          "Profile Data includes your username and password, purchases or orders made by you, your interests, feedback and survey responses.",
+          "Event Data includes details about events (e.g., weddings) you create using our platform, including guest lists and event details."
+        ]
+      },
+      "s3": {
+        "title": "3. How We Use Your Personal Data",
+        "p1": "We will only use your personal data when the law allows us to. Most commonly, we will use your personal data in the following circumstances:",
+        "items": [
+          "Where we need to perform the contract we are about to enter into or have entered into with you (e.g., providing our digital invitation services).",
+          "Where it is necessary for our legitimate interests (or those of a third party) and your interests and fundamental rights do not override those interests.",
+          "Where we need to comply with a legal obligation."
+        ]
+      },
+      "s4": {
+        "title": "4. Data Security",
+        "p1": "We have put in place appropriate security measures to prevent your personal data from being accidentally lost, used or accessed in an unauthorized way, altered or disclosed. In addition, we limit access to your personal data to those employees, agents, contractors and other third parties who have a business need to know. They will only process your personal data on our instructions and they are subject to a duty of confidentiality."
+      },
+      "s5": {
+        "title": "5. Data Retention",
+        "p1": "We will only retain your personal data for as long as reasonably necessary to fulfill the purposes we collected it for, including for the purposes of satisfying any legal, regulatory, tax, accounting or reporting requirements. We may retain your personal data for a longer period in the event of a complaint or if we reasonably believe there is a prospect of litigation in respect to our relationship with you."
+      },
+      "s6": {
+        "title": "6. Your Legal Rights",
+        "p1": "Under certain circumstances, you have rights under data protection laws in relation to your personal data, including the right to:",
+        "items": [
+          "Request access to your personal data.",
+          "Request correction of your personal data.",
+          "Request erasure of your personal data.",
+          "Object to processing of your personal data.",
+          "Request restriction of processing your personal data.",
+          "Request transfer of your personal data.",
+          "Right to withdraw consent."
+        ]
+      },
+      "s7": {
+        "title": "7. Contact Us",
+        "p1": "If you have any questions about this privacy policy or our privacy practices, please contact us at:",
+        "email": "Email: privacy@monea.com",
+        "phone": "Phone: +855 (0) 12 345 678"
+      }
+    },
+    "upgrade": {
+      "special_offer": "Special Offer: 50% Off",
+      "subtitle": "Upgrade for professional features and a premium experience.",
+      "title": "Choose Your Power",
+      "free_name": "FREE MASTER",
+      "pro_name": "PRO MASTER",
+      "premium_name": "PREMIUM MASTER",
+      "current_plan": "Current Plan",
+      "best_value": "Best Value",
+      "already_active": "Already Active",
+      "upgrade_now": "Upgrade Now",
+      "unlock_elite": "Unlock Elite",
+      "secure_payment": "Secure Payment",
+      "scan_khqr": "Scan with your banking app using KHQR",
+      "payable_amount": "Payable Amount",
+      "time_remaining": "Time Remaining",
+      "do_not_close": "Please do not close this window until the payment is detected.",
+      "payment_received": "Payment Received!",
+      "upgrading_wait": "Upgrading your system, please wait...",
+      "digital_receipt": "Digital Receipt",
+      "trans_success": "Transaction Successful",
+      "receipt_order": "Order ID",
+      "receipt_package": "Package",
+      "receipt_amount": "Amount Paid",
+      "continue_btn": "Continue to Dashboard"
+    }
+  },
+  "support": {
+    "title": "Support Center",
+    "titleKm": "មជ្ឈមណ្ឌលជំនួយ",
+    "subtitle": "Encountering technical issues or want additional features? Send us a message directly. The MONEA team is always ready to help you.",
+    "center": "Help Center",
+    "form": {
+      "subject": "Subject",
+      "subjectPlaceholder": "What do you need help with?",
+      "priority": "Priority Level",
+      "priorityNormal": "Normal",
+      "priorityHigh": "High Priority",
+      "message": "Message",
+      "messagePlaceholder": "Describe your issue or request in detail...",
+      "submit": "Send Message",
+      "success": {
+        "title": "Message Sent!",
+        "desc": "Your support ticket has been created. Our team will review it and get back to you shortly via email.",
+        "back": "Back to Dashboard"
+      }
+    },
+    "urgentHelp": {
+      "title": "Urgent Help?",
+      "desc": "For the most urgent cases, you can chat with our support team directly on Telegram for a faster response.",
+      "telegram": "Chat on Telegram"
+    },
+    "whyContact": {
+      "title": "Why contact us?",
+      "solve": "Solve technical issues",
+      "request": "Request new features",
+      "help": "Help with wedding setup"
+    }
+  },
+  "nav": {
+    "home": "Home",
+    "features": "Features",
+    "howItWorks": "How It Works",
+    "templates": "Templates",
+    "pricing": "Pricing",
+    "signIn": "Sign In",
+    "signUp": "Sign Up"
+  },
+  "hero": {
+    "badge": "MONEA Digital: The New Era of Wedding Bliss",
+    "title1": "A Beautiful Beginning",
+    "title2": "Starts Here",
+    "description": "Craft a luxurious digital invitation experience, manage your guest list effortlessly, and receive blessings and gifts — all in one elegant platform.",
+    "ctaRegister": "Get Started",
+    "ctaTemplates": "View Templates",
+    "scrollDown": "Scroll Down"
+  },
+  "features": {
+    "badge": "Features",
+    "title": "What MONEA Offers",
+    "subtitle": "A complete digital system designed to make your wedding planning effortless and modern.",
+    "card1Title": "Premium Design",
+    "card1Desc": "Exquisite, modern, and highly customizable templates that create a lasting impression for your guests.",
+    "card2Title": "Guest Management (RSVP)",
+    "card2Desc": "Track attendance, organize tables, and manage responses effortlessly in one centralized system.",
+    "card3Title": "Digital Gifts (QR)",
+    "card3Desc": "Securely link your bank account so guests can send digital gifts and blessings with a quick QR scan.",
+    "card4Title": "Maps & Location",
+    "card4Desc": "Integrated Google Maps ensures your guests can navigate to your venue seamlessly.",
+    "howBadge": "Easy Steps",
+    "howTitle": "How It Works",
+    "howSubtitle": "Just 4 simple steps to your exquisite digital invitation.",
+    "step1Title": "Sign Up",
+    "step1Desc": "Create a free account and start your wedding project in minutes.",
+    "step2Title": "Choose Template",
+    "step2Desc": "Browse our collection of stunning templates and customize them to your style.",
+    "step3Title": "Add Details",
+    "step3Desc": "Input guest details, event schedule, and location coordinates.",
+    "step4Title": "Share Invitation",
+    "step4Desc": "Send your invitation link to guests and await their responses."
+  },
+  "stats": {
+    "couples": "Happy Couples",
+    "templates": "Design Templates",
+    "guests": "Guests Attended",
+    "events": "Live Events"
+  },
+  "pricing": {
+    "badge": "Pricing Options",
+    "title": "Our Plans",
+    "subtitle": "Choose the plan that best fits your needs.",
+    "freeName": "Free",
+    "freePrice": "0$",
+    "freeDesc": "Perfect for trying out core features",
+    "freeF1": "1 Template",
+    "freeF2": "50 Guests",
+    "freeF3": "Valid for 2 Weeks",
+    "proName": "Pro",
+    "proPrice": "19$",
+    "proDesc": "Best value for couples",
+    "proF1": "All Templates",
+    "proF2": "Unlimited Guests",
+    "proF3": "30 Days Access",
+    "proF4": "Digital Gifts (KHQR)",
+    "proF5": "Google Maps Integration",
+    "proHighlight": "Recommended",
+    "bizName": "Business",
+    "bizPrice": "49$",
+    "bizDesc": "For event professionals",
+    "bizF1": "Custom Branding",
+    "bizF2": "API Access",
+    "bizF3": "Priority Support",
+    "priceSuffix": "Per Month",
+    "cta": "Subscribe Now"
+  },
+  "testimonials": {
+    "badge": "Testimonials",
+    "title": "Real Impressions",
+    "t1Name": "Sokha & Sreyleak",
+    "t1Role": "Married Oct 2025",
+    "t1Text": "MONEA is so easy to use! Our guests loved the modern look of our invitations. Managing the guest list has never been this simple.",
+    "t2Name": "Ousaphea & Kanhha",
+    "t2Role": "Married Dec 2025",
+    "t2Text": "The QR gift feature is my favorite. It's secure and convenient for guests who couldn't attend in person. Saved us so much time!",
+    "t3Name": "Vicheka & Pich",
+    "t3Role": "Married Jan 2026",
+    "t3Text": "Beautiful templates with so many options. Quick setup and very professional. I highly recommend it to all new couples!",
+    "quote": "Genuine Feedback"
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "q1": "Can I edit my invitation after sending it?",
+    "a1": "Yes! You can update your date, location, or time anytime. The guest link will update automatically.",
+    "q2": "How secure is the Digital Gift (QR) feature?",
+    "a2": "It is highly secure. We simply display your direct bank QR code. Transactions occur directly between the guest's bank app and yours; MONEA does not process the funds.",
+    "q3": "How long is the Free package valid?",
+    "a3": "The free package allows you to test core features for 2 weeks with a guest limit of up to 50 people.",
+    "q4": "Can I add background music to my invitation?",
+    "a4": "Yes, Pro and Business plans allow you to select or upload romantic background music for your invitations."
+  },
+  "cta": {
+    "title1": "Ready to create your",
+    "title2": "digital invitation?",
+    "description": "Join hundreds of happy couples who chose MONEA to make their special day even more unforgettable.",
+    "button": "Start Your Wedding Invitation"
+  },
+  "wizard": {
+    "title": "Design Your Invitation",
+    "designer": "Setup Wizard",
+    "liveEdit": "Live Preview",
+    "steps": {
+      "1": {
+        "title": "Choose Template",
+        "header": "Step 1: Choose Template",
+        "description": "Select the perfect design for your special day.",
+        "wedding": "Wedding",
+        "anniversary": "Anniversary",
+        "popularTemplates": "Popular Templates",
+        "templates": {
+          "khmer-legacy": {
+            "title": "Khmer Legacy",
+            "description": "Vertical style, clean, noble."
+          },
+          "modern": {
+            "title": "Eternal Cinematic",
+            "description": "Full screen, music, video, animation."
+          },
+          "khmer": {
+            "title": "Royal Editorial",
+            "description": "Traditional style, yellow & red."
+          },
+          "minimal": {
+            "title": "Glass Sophistication",
+            "description": "Clean, simple, focus on text."
+          },
+          "floral": {
+            "title": "Velvet Blossom",
+            "description": "Beautiful flowers, gentle, romantic."
+          },
+          "luxury": {
+            "title": "Luxury",
+            "description": "Gold, black, high quality."
+          },
+          "pastel": {
+            "title": "Pastel Floral",
+            "description": "Gentle, fresh flowers, lavender."
+          },
+          "legacy": {
+            "title": "Khmer Legacy",
+            "description": "Vertical style, clean, noble."
+          },
+          "visionary": {
+            "title": "Visionary Modern",
+            "description": "Future style, dark blue, amazing movement."
+          },
+          "celestial": {
+            "title": "Celestial Elegance",
+            "description": "Space style, premium black, star movement."
+          }
+        }
+      },
+      "2": {
+        "title": "Personal Details",
+        "coupleTitle": "Couple Information",
+        "coupleSubtitle": "Details of the bride and groom",
+        "groomName": "Groom's Name",
+        "groomPlaceholder": "Enter groom's name",
+        "brideName": "Bride's Name",
+        "bridePlaceholder": "Enter bride's name",
+        "photo": "Profile Photos",
+        "uploadGroom": "Upload groom's photo",
+        "uploadBride": "Upload bride's photo",
+        "mediaTitle": "Wedding Media",
+        "mediaSubtitle": "Main photos and banners",
+        "heroLabel": "Cover Photo (Hero Banner)",
+        "vowsTitle": "Vows & Quotes",
+        "vowsSubtitle": "Couple's promises and favorite quotes",
+        "vowPlaceholder": "Enter your vows here...",
+        "quoteLabel": "Love Quote (Main Display)",
+        "quotePlaceholder": "\"Love is patient, love is kind...\"",
+        "parentsTitle": "Family Details",
+        "parentsSubtitle": "Parents and family information",
+        "groomSide": "Groom's Side",
+        "brideSide": "Bride's Side",
+        "father": "Father",
+        "mother": "Mother",
+        "fatherPlaceholder": "Father's name",
+        "motherPlaceholder": "Mother's name",
+        "settingsTitle": "Section Management",
+        "settingsSubtitle": "Customize section titles",
+        "editorialLabel": "Story Section Title",
+        "editorialPlaceholder": "e.g. MOMENTS MATTER",
+        "galleryLabel": "Gallery Section Title",
+        "galleryPlaceholder": "e.g. Precious Memories",
+        "giftLabel": "Gift Section Title",
+        "giftPlaceholder": "e.g. Generosity"
+      },
+      "3": {
+        "title": "Date & Venue",
+        "description": "Set the schedule and location for your guests.",
+        "datetimeTitle": "Date & Location",
+        "datetimeSubtitle": "When and where the magic happens",
+        "eventDate": "Event Date",
+        "lunarDate": "Lunar Date",
+        "lunarPlaceholder": "e.g. 15th Day of the Waxing Moon...",
+        "venue": "Venue Name",
+        "venuePlaceholder": "e.g. Grand Ballroom, Rosewood Hotel",
+        "mapLabel": "Google Maps Location",
+        "mapHowTo": "How to get link?",
+        "mapPlaceholder": "Paste Google Maps 'Share' link here...",
+        "bannerLabel": "Invitation Banner (16:9)",
+        "locationQr": "Location QR Code (Optional)",
+        "scheduleTitle": "Event Schedule",
+        "scheduleSubtitle": "Plan the day's proceedings",
+        "headerBtn": "Header",
+        "headerBtnTooltip": "Toggle Group Header",
+        "headerLabel": "Header Title (e.g. MORNING PROGRAM)",
+        "activityTime": "08:00 AM",
+        "activityTitle": "Activity Title",
+        "activityDesc": "Activity Description (Optional)",
+        "addActivity": "Add New Activity"
+      },
+      "4": {
+        "title": "Gallery & Media",
+        "description": "Upload your beautiful photos and background music.",
+        "mediaNote": "Please upload your photos. Template slots are fixed design elements, while the General Gallery is for additional photos.",
+        "bannerCategory": "Banners & Main Visuals",
+        "bannerCategoryDesc": "Large visuals for the header and map sections",
+        "storyCategory": "Our Love Story",
+        "storyCategoryDesc": "Photos to accompany your journey together",
+        "portraitCategory": "Portraits & Signatures",
+        "portraitCategoryDesc": "Groom, Bride, and memorable signature shots",
+        "addImage": "Add Image",
+        "bondTitle": "Sacred Bond of Love",
+        "bondSubtitle": "Displayed below the map for a meaningful memory",
+        "uploadBond": "Upload Sacred Bond Image",
+        "recommendSize": "Recommended: Landscape (16:9)",
+        "albumTitle": "General Photo Album",
+        "albumSubtitle": "Add unlimited photos for the gallery",
+        "bulkUpload": "Bulk Upload Supported",
+        "galleryStyle": "Gallery Display Style",
+        "masonry": "Masonry",
+        "slider": "Slider",
+        "polaroid": "Polaroid",
+        "audioVideoTitle": "Music & Video",
+        "audioVideoSubtitle": "Add a romantic atmosphere to your invitation",
+        "bgMusic": "Background Music",
+        "youtubeTitle": "YouTube Video",
+        "youtubePlaceholder": "Paste YouTube link here...",
+        "cropperTitle": "Crop Image",
+        "slots": {
+          "hero": "Main Hero Banner (Top)",
+          "editorial1": "Love Story Photo 1",
+          "editorial2": "Love Story Photo 2",
+          "editorial3": "Love Story Photo 3",
+          "editorial4": "Love Story Photo 4",
+          "map": "Map Section Banner",
+          "sig1": "Signature Photo 1",
+          "sig2": "Signature Photo 2",
+          "sig3": "Signature Photo 3",
+          "groom": "Groom's Portrait",
+          "bride": "Bride's Portrait"
+        }
+      },
+      "5": {
+        "title": "Advanced Settings",
+        "subtitle": "Social sharing and premium configurations",
+        "socialTitle": "Social Media Preview",
+        "socialSubtitle": "How your invitation looks when shared",
+        "socialPreviewDesc": "Please join us in celebrating our wedding day...",
+        "socialPreviewDomain": "monea.app",
+        "uploadPreview": "Upload Page Preview Image",
+        "searchTitle": "Search Engine Title (SEO)",
+        "searchPlaceholder": "e.g. Wedding of Groom & Bride",
+        "passcode": "Passcode Protection",
+        "passcodePlaceholder": "Leave blank for public",
+        "themeTitle": "Colors & Branding",
+        "themeSubtitle": "Choose your primary wedding color",
+        "colorLabel": "Primary Color",
+        "premiumColorUnlockHint": "Upgrade to Pro to unlock custom colors!",
+        "premiumBadge": "Pro",
+        "storyTitle": "Our Story",
+        "storySubtitle": "Welcome messages and love stories",
+        "thankYou": "Thank You Message",
+        "thankYouPlaceholder": "Write a message for your guests...",
+        "welcome": "Welcome Message",
+        "welcomePlaceholder": "Welcome to our wedding celebration...",
+        "loveStory": "Our Love Story",
+        "groomStory": "Groom's Story",
+        "groomStoryPlaceholder": "Tell your story...",
+        "brideStory": "Bride's Story",
+        "brideStoryPlaceholder": "Tell your story...",
+        "socialMediaTitle": "Social Media Links",
+        "socialMediaSubtitle": "WhatsApp, Facebook, or Telegram contacts",
+        "facebook": "Facebook Profile",
+        "facebookPlaceholder": "Paste profile link...",
+        "telegram": "Telegram Username",
+        "telegramPlaceholder": "Enter @username...",
+        "displayTitle": "Visibility & Fonts",
+        "displaySubtitle": "Toggle sections and change typography",
+        "visStory": "Show Love Story Section",
+        "visGallery": "Show Image Gallery",
+        "visTimeline": "Show Event Timeline",
+        "visGuestbook": "Show Guestbook Section",
+        "typography": "Brand Font Style",
+        "fontStandard": "Standard Display",
+        "fontKantumruy": "Modern Minimalist",
+        "fontSuwannaphum": "Classic Elegant",
+        "fontBattambang": "Sharp Modern",
+        "fontPreahvihear": "Heritage Classic",
+        "paymentTitle": "Gifts & Registry",
+        "paymentSubtitle": "Bank details for digital gift giving",
+        "qrLabel": "Payment QR Code",
+        "accOwner": "Account Owner",
+        "bank": "Bank Name",
+        "otherBank": "Other",
+        "bothSides": "Both Sides",
+        "accName": "Account Name",
+        "accNumber": "Account Number",
+        "addBank": "Add Bank Account",
+        "labelsTitle": "Manual Text Override",
+        "labelsSubtitle": "Customize every label on your invitation",
+        "labelBannerSection": "Banner & Invitation Text",
+        "labelLocationSection": "Location & Ceremony",
+        "labelGallerySection": "Gallery & Gifts",
+        "labelInviteHeader": "Header Title (Large Display)",
+        "labelHeroSubtitle": "Hero Subtitle",
+        "labelHeroButton": "Open Button Label",
+        "labelAndLabel": "Joiner Word (e.g. &)",
+        "labelInvitationBadge": "Invitation Badge",
+        "labelInvitationTitle": "Invitation Title",
+        "labelInvitationHonorTitle": "Honorific Title",
+        "labelInvitationText": "Main Invitation Body",
+        "labelLocationTitle": "Location Card Title",
+        "labelLocationSubtitle": "Location Card Subtitle",
+        "labelLocationCardLabel": "Map Overlay Label",
+        "labelCountdownLabel": "Countdown Heading",
+        "labelGalleryTitle": "Gallery Page Title",
+        "labelGallerySubtitle": "Gallery Page Subtitle",
+        "labelGiftTitle": "Gift Section Title",
+        "labelGiftBadge": "Gift Section Badge",
+        "labelGiftCopyBtn": "Copy Account Button",
+        "labelRsvpSubmittedText": "Success Message (Post-RSVP)",
+        "historyTitle": "Revision History",
+        "historySubtitle": "Version control and rollbacks",
+        "saveVersion": "Save Current Version",
+        "versionPlaceholder": "e.g. Before changing theme...",
+        "savedList": "Previously Saved Versions",
+        "loading": "Loading revisions...",
+        "noVersions": "No saved versions found",
+        "rollback": "Restore This Version",
+        "delete": "Delete Version"
+      }
+    }
+  },
+  "invitation": {
+    "rsvp": {
+      "title": "Will you be attending?",
+      "confirm": "Yes, I will attend",
+      "decline": "Sorry, I won’t be able to attend",
+      "adults": "Adults",
+      "children": "Children",
+      "guestCount_one": "1 Guest",
+      "guestCount_other": "{count} Guests",
+      "guestCount": "Number of Guests",
+      "notes": "Message or Well Wishes",
+      "notesPlaceholder": "Best wishes for your wedding...",
+      "submit": "Submit Response",
+      "success": "Thank you!",
+      "successConfirmed": "See you at the wedding! Your response has been saved.",
+      "successDeclined": "Even though you can't make it, we are grateful for your notice!",
+      "back": "Back to selection",
+      "registeredGuest": "You will be attending as a guest {name}.",
+      "badge": "Response Form",
+      "received": "We've received a response from {name}.",
+      "wishWedding": "Hope to see you on our wedding day!",
+      "wishAnniversary": "Hope to see you on our anniversary!",
+      "closing": "With love and thanks",
+      "subtitle": "Please let us know if you can attend."
+    },
+    "guestbook": {
+      "title": "Guestbook",
+      "subtitle": "Warm wishes from our loved ones",
+      "name": "Name",
+      "message": "Message",
+      "submit": "Send Blessing",
+      "loading": "Loading wishes...",
+      "noWishes": "No wishes yet. Be the first to share your blessing!",
+      "namePlaceholder": "Your Name",
+      "msgPlaceholder": "Write your wishes here...",
+      "emptyBadge": "Ready to receive",
+      "emptyTitle": "Waiting for Blessings",
+      "empty": "No wishes yet. Be the first to share your blessing!"
+    },
+    "countdown": {
+      "title": "Counting Down To Our Day",
+      "days": "Days",
+      "hours": "Hours",
+      "minutes": "Minutes",
+      "seconds": "Seconds",
+      "badge": "The Final Countdown"
+    },
+    "location": {
+      "venue": "Event Venue",
+      "googleMaps": "Click here for Google Maps",
+      "soon": "Location details coming soon",
+      "giftBadge": "Wedding Gift",
+      "giftThanks": "Thank you for your generosity!",
+      "title": "Event Location"
+    },
+    "calendar": {
+      "saveTheDate": "Save the Date",
+      "eventTitle": "Wedding Ceremony",
+      "eventDetails": "Wedding of {groom} & {bride}"
+    }
+  },
+  "template": {
+    "khmerLegacy": {
+      "familyTitle": "Family Foundation",
+      "familySubtitle": "Foundation of Love",
+      "heroSubtitle": "Official Wedding Invitation",
+      "heroButton": "Save to Calendar",
+      "schedule": "Event Program",
+      "scheduleSubtitle": "Event Flow",
+      "galleryTitle": "Happy Memories",
+      "gallerySubtitle": "The Wedding Gallery",
+      "invitationBadge": "Wedding Blessing",
+      "invitationTitle": "Wedding Invitation",
+      "invitationHonorTitle": "Request the Honor of Your Presence",
+      "invitationBody": "To excellencies, lok chumteav, ladies and gentlemen, and all relatives and friends, please join us to witness and celebrate the wedding ceremony of our children.",
+      "parentsGroom": "Groom's Parents",
+      "parentsBride": "Bride's Parents",
+      "groomTitle": "Groom",
+      "brideTitle": "Bride",
+      "receptionTitle": "Wedding Reception",
+      "receptionBody": "We are honored to invite you to our wedding reception on {date}.\nLocation: {location}",
+      "sacredBondBadge": "Sacred Bond",
+      "sacredBondTitle": "Testimony of Love",
+      "sacredBondAnniversary": "Everlasting Anniversary",
+      "eternalPromise": "- Eternal Promise -",
+      "storyBadge": "Our Love Journey",
+      "storyTitle": "Our Love Story",
+      "giftCheckHint": "Click on the envelope to check the account",
+      "giftCheckBtn": "Check Account",
+      "giftCopied": "Copied!",
+      "giftCopyBtn": "Copy Account Number",
+      "giftBlessing": "May your generosity bring you much happiness!",
+      "giftBadge": "Gesture of Love",
+      "giftTitle": "Digital Gift",
+      "giftSubtitleAnniversary": "You can send your best wishes by scanning the QR code or transferring to the account below.",
+      "giftSubtitleWedding": "You can send your wedding gift by scanning the QR code or transferring to the account below.",
+      "giftThankYou": "Thank you for your generosity!",
+      "giftsTitle": "Gift Registry",
+      "giftsSubtitle": "Your presence is our greatest gift. Should you wish to honor us with a gift, a contribution to our future together would be sincerely appreciated.",
+      "thankYouTitle": "Thank You",
+      "thankYouMessage": "Thank you for being part of our journey",
+      "ticketHeader": "Digital Ticket",
+      "ticketSubtitle": "Digital Entry Pass",
+      "ticketInfo": "Please show this QR to the staff for check-in.",
+      "footerLabel": "Preserving Every Memory",
+      "footerThankYou": "We would like to express our deepest gratitude for your presence at our ceremony and wish you the four blessings of the Buddha: longevity, beauty, happiness, and strength.",
+      "musicPauseLabel": "Pause Music",
+      "musicPlayLabel": "Play Music",
+      "invitationBodyEn": "Cordially request the honour of your presence on the auspicious occasion of the wedding of our children",
+      "groomLabelEn": "Groom's",
+      "brideLabelEn": "Bride's",
+      "receptionBodyEn": "Which will be held on {date},\nAt {time}, at {location}.\nThank you!",
+      "overlaySubtitle": "Memory of Eternal Love",
+      "overlayTitleWedding": "Wedding Ceremony",
+      "overlayTitleAnniversary": "Wedding Anniversary",
+      "invitationGreeting": "Cordially Invite You",
+      "and": "and",
+      "heroButtonWedding": "Open Invitation",
+      "heroButtonAnniversary": "View Anniversary",
+      "overlayHintInvitation": "Please click to open the digital invitation",
+      "overlayHintTicket": "Please click to receive the digital ticket",
+      "galleryWatermark": "Gallery"
+    }
+  },
+  "dashboard": {
+    "controlPanel": "CONTROL PANEL",
+    "smartInsights": "SMART INSIGHTS",
+    "title": "Dashboard",
+    "welcome": "Hello, {name}",
+    "adminWelcome": "Welcome to the Command Center",
+    "adminSubtitle": "Monitor and manage platform operations.",
+    "greeting": "What's new for today?",
+    "user": {
+      "profile": "User Profile",
+      "accountSettings": "Account Settings",
+      "designSettings": "Design Settings",
+      "helpSupport": "Help & Support"
+    },
+    "summary": "View your wedding summary data.",
+    "actions": {
+      "addGuest": "Add New Guest"
+    },
+    "empty": {
+      "message": "Please wait a moment to start creating your wedding program."
+    },
+    "nav": {
+      "overview": "Overview",
+      "home": "Home",
+      "menu": "Menu",
+      "guests": "Manage Guests",
+      "gifts": "Gift List",
+      "schedule": "Event Schedule",
+      "settings": "Settings",
+      "generalInfo": "General Information"
+    },
+    "cards": {
+      "inviteCenter": "Invite Center",
+      "dataExport": "Data Export",
+      "quickActions": "Quick Actions"
+    },
+    "menu": {
+      "guests": "Manage Guests",
+      "gifts": "Gift List",
+      "schedule": "Event Schedule",
+      "reports": "Financial Reports",
+      "notes": "Notes",
+      "staff": "Staff",
+      "general": "General",
+      "setup": "Setup",
+      "others": "Others"
+    },
+    "stats": {
+      "guests": "Guests",
+      "cashUSD": "Cash $",
+      "cashKHR": "Cash ៛",
+      "guestUnit": "Person",
+      "analysis": "Results Analysis",
+      "openRate": "Open Rate",
+      "openedCount": "{count} people opened",
+      "confirmedRSVPs": "Confirmed RSVPs",
+      "respondedCount": "{count} people responded"
+    },
+    "analytics": {
+      "noData": "No Data Available",
+      "noDataSub": "Data will appear once views are recorded",
+      "totalViews": "Total Views",
+      "totalViewsSub": "Total Unique Views",
+      "mapClicks": "Map Clicks",
+      "mapClicksSub": "Map Interactions",
+      "saveDate": "Save Date",
+      "saveDateSub": "Calendar Saves",
+      "rsvpOpens": "RSVP Opens",
+      "rsvpOpensSub": "RSVP Modal Opens",
+      "rsvpSubmits": "RSVP Submits",
+      "rsvpSubmitsSub": "Responses Received",
+      "viewTrend": "View Trend",
+      "viewTrendSub": "View statistics for the last 21 days",
+      "liveFlow": "Live Flow",
+      "noFlowData": "No flow data yet",
+      "tooltip": "{count} guests ({date})",
+      "devices": "Devices Used",
+      "sessionsDetected": "{count} sessions detected",
+      "noDataYet": "No data yet",
+      "mobile": "Mobile",
+      "desktop": "Desktop"
+    },
+    "export": {
+      "guestListTitle": "Guest List - {groom} and {bride}",
+      "giftListTitle": "Gift List - {groom} and {bride}",
+      "summary": "Date: {date} | Total: {count}",
+      "moneySummary": "Total (USD): {usd} | Total (KHR): {khr}",
+      "guestSheetName": "Guest List",
+      "giftSheetName": "Gift List",
+      "error": "Export failed! Please try again.",
+      "unspecified": "Unspecified",
+      "general": "General",
+      "unknown": "Unknown",
+      "cash": "Cash",
+      "cols": {
+        "no": "No.",
+        "name": "Name",
+        "location": "Location/From",
+        "amount": "Amount",
+        "currency": "Currency",
+        "method": "Method",
+        "date": "Date"
+      }
+    },
+    "quickActions": {
+      "inviteTitle": "Share Your Link",
+      "copyLink": "Copy Link",
+      "copied": "Copied!",
+      "qrTitle": "Invitation QR",
+      "qrDescription": "Scan to view your digital invitation",
+      "downloadQR": "Download QR",
+      "guests": "Guest List",
+      "gifts": "Gift List",
+      "shareInvite": "Send Invitation",
+      "viewPublic": "View Public Invitation",
+      "liveInvitation": "Live Invitation link"
+    },
+    "logout": {
+      "confirmTitle": "Confirm Logout",
+      "confirmDescription": "Are you sure you want to log out of your account?"
+    },
+    "schedule": {
+      "title": "Event Schedule",
+      "subtitle": "Organize and managing your wedding timeline.",
+      "rundown": "Wedding Rundown",
+      "addActivity": "Add Activity",
+      "newActivity": "New Activity",
+      "editActivity": "Edit Activity",
+      "deleteConfirm": "Are you sure you want to delete this activity?",
+      "emptyTitle": "No activities yet",
+      "emptySubtitle": "Start planning your wedding schedule now.",
+      "createNew": "Create New",
+      "form": {
+        "time": "Time",
+        "timePlaceholder": "07:00 AM",
+        "title": "Activity Title",
+        "titlePlaceholder": "e.g. Groom Procession",
+        "subtitle": "Fill out the form below to add a new activity to your schedule.",
+        "icons": "Select Icon",
+        "description": "Description (Optional)",
+        "descriptionPlaceholder": "Details about this activity...",
+        "save": "Save Activity",
+        "saving": "Saving...",
+        "add": "Add Activity",
+        "edit": "Edit Activity",
+        "validation": {
+          "title": "Please enter activity title",
+          "time": "Please enter time"
+        }
+      },
+      "status": {
+        "starting": "Starting Event",
+        "scheduled": "Scheduled Time"
+      },
+      "loading": "Loading...",
+      "icons": {
+        "scissors": "Hair Cutting",
+        "heart": "Pithy Phtum",
+        "flower": "Buddhist Monk",
+        "users": "Procession",
+        "utensils": "Meal Time",
+        "camera": "Photo Session",
+        "music": "Reception Music",
+        "glass": "Reception",
+        "landmark": "Bride's House"
+      }
+    },
+    "upgrade": {
+      "cta": "Upgrade Plan",
+      "titlePrefix": "Service Plans",
+      "subtitle": "Choose the most suitable package to make your special day even more meaningful.",
+      "promoBadge": "Upgrade your plan",
+      "promo": {
+        "removeLogo": "Want to remove MONEA logo?",
+        "moreFeatures": "Want more features?",
+        "description": "Upgrade your plan now for a great experience and unlimited features.",
+        "toUpperPlan": "Upgrade to Premium",
+        "cta": "Upgrade Now"
+      },
+      "plans": {
+        "free": {
+          "name": "Free Plan",
+          "price": "0$",
+          "desc": "Essential features for your special day.",
+          "features": [
+            "Guests: Up to 50 people",
+            "Templates: Standard only",
+            "Storage: 2 weeks only"
+          ]
+        },
+        "pro": {
+          "name": "Standard Plan",
+          "price": "9$",
+          "desc": "Perfect for essential wedding events.",
+          "features": [
+            "Guests: Unlimited",
+            "Templates: All available",
+            "Gifts: Gift and wish tracking",
+            "Storage: Lifetime"
+          ]
+        },
+        "premium": {
+          "name": "Pro Plan",
+          "price": "19$",
+          "desc": "White-label experience for perfection.",
+          "features": [
+            "Remove Logo: No MONEA watermark",
+            "Customization: Custom theme colors",
+            "Reports: PDF/Excel downloads",
+            "Support: 24/7 priority help"
+          ]
+        }
+      },
+      "labels": {
+        "popular": "Popular",
+        "current": "Current Plan",
+        "upgrade": "Upgrade Now",
+        "cta": "Get Started",
+        "select": "Select Premium",
+        "ready": "Ready",
+        "free": "Basic Plan",
+        "evt": "/ EVT",
+        "alreadyPaid": "I have already paid (Sync Status)",
+        "checkAccount": "Check Account"
+      },
+      "help": {
+        "text": "Need help?",
+        "telegram": "Telegram Help"
+      },
+      "payment": {
+        "title": "Scan to Pay",
+        "method": "ABA / Wing / KHQR Payment",
+        "subtitle": "ABA Mobile KHQR Payment",
+        "auto": "Automatic Upgrade",
+        "autoTitle": "Automatic Upgrade",
+        "autoDesc": "Your account will receive features immediately after successful payment.",
+        "confirm": "I have paid",
+        "paid": "I have paid",
+        "cancel": "Cancel Payment",
+        "success": "Payment successful! Plan upgraded.",
+        "errorTitle": "Payment Failed",
+        "errorRetry": "Please try again",
+        "techError": "Technical issue! Please try again."
+      },
+      "messages": {
+        "success": "Payment successful! Your plan has been upgraded.",
+        "verifying": "Verifying your payment...",
+        "activated": "Your premium experience is now active!"
+      },
+      "noWedding": {
+        "title": "Ready to start?",
+        "desc": "It looks like you haven't created a wedding program yet. Let's get started!"
+      }
+    },
+    "notes": {
+      "title": "Notes",
+      "subtitle": "Planning notes for your wedding ceremony.",
+      "organizerOnly": "Organizers only",
+      "badge": "Notes",
+      "saved": "Saved",
+      "save": "Save",
+      "saving": "Saving...",
+      "pdf": "PDF",
+      "placeholder": "Write important information here (e.g. photographer's phone number, list of helpers, or other memories...)",
+      "loading": "Loading notes...",
+      "error": {
+        "fetch": "Unable to fetch data.",
+        "save": "Save failed.",
+        "connection": "Connection problem."
+      },
+      "workspace": "Important Information Workspace",
+      "persistence": {
+        "title": "Persistence",
+        "description": "All your notes are automatically saved to our secure cloud."
+      },
+      "usage": {
+        "title": "Usage",
+        "description": "Use this for phone numbers, to-do lists, or coordinator instructions."
+      },
+      "premium": "Monea Premium",
+      "adminCenter": "Internal Admin Center",
+      "print": {
+        "header": "Wedding Planning Notes",
+        "weddingLabel": "Wedding:",
+        "generated": "Generated:"
+      }
+    },
+    "staff": {
+      "title": "Staff Management",
+      "subtitle": "Manage who helps record gifts or scan guests at your event.",
+      "accessManagement": "ACCESS MANAGEMENT",
+      "addStaff": "Add Staff",
+      "dialog": {
+        "title": "Add New Staff",
+        "description": "Create an account for assistants. They will use Email and Password to log in.",
+        "nameLabel": "Staff Name",
+        "namePlaceholder": "e.g. Heng Bunna",
+        "emailLabel": "Email (for login)",
+        "emailPlaceholder": "staff@example.com",
+        "passwordLabel": "Password",
+        "passwordPlaceholder": "••••••••",
+        "securityTitle": "Security Information",
+        "securityDesc": "Each staff member will have a personal PIN for data security.",
+        "submit": "Confirm Create",
+        "creating": "Loading...",
+        "qrTitle": "Scan to Login",
+        "qrSubtitle": "For {name} Only",
+        "qrFooter": "Staff can scan this QR to login directly."
+      },
+      "table": {
+        "name": "Name",
+        "role": "Role",
+        "emailPin": "Email / PIN",
+        "actions": "Actions",
+        "empty": {
+          "title": "No Staff Yet",
+          "description": "Add staff to help facilitate your tasks.",
+          "button": "Add Now"
+        }
+      },
+      "delete": {
+        "title": "Delete Staff Account",
+        "description": "Are you sure you want to delete this staff account? This action cannot be undone.",
+        "confirm": "Delete Account",
+        "success": "Staff deleted successfully",
+        "error": "Failed to delete staff"
+      },
+      "copyMagicLink": "Copy Magic Link",
+      "showQrCode": "Show QR Code",
+      "error": {
+        "create": "Account creation failed"
+      }
+    }
+  },
+  "design": {
+    "title": "Design Wizard",
+    "publish": "Publish",
+    "saving": "Saving...",
+    "success": "Saved successfully",
+    "locked": {
+      "title": "Editing Locked",
+      "description": "Your Free Plan has expired its 3-day editing period. Please update your plan to continue creating your amazing invitation or contact the MONEA team.",
+      "updateBtn": "Update Plan Now",
+      "backBtn": "Back to Dashboard"
+    },
+    "wizard": {
+      "waiting": "Please wait...",
+      "fetching": "Loading wedding data...",
+      "step": "Step {current} / {total}",
+      "next": "Next",
+      "back": "Back",
+      "editor": "Design",
+      "preview": "Preview",
+      "viewPublic": "View Public",
+      "previewMode": {
+        "mobile": "Mobile View",
+        "desktop": "Desktop View"
+      }
+    }
+  },
+  "guests": {
+    "title": "Guest List",
+    "subtitle": "Guest Management System",
+    "managementTitle": "Guest Management",
+    "archivedLabel": "Archived",
+    "descriptionLabel": "Manage your guest list and invitation links.",
+    "upgradeHint": "Upgrade to Premium to download!",
+    "loading": "Loading...",
+    "empty": "No guest data found",
+    "showMore": "Show More ({count})",
+    "copyLink": "Copy Link",
+    "copied": "Copied",
+    "general": "General",
+    "personUnit": "Person",
+    "notSpecified": "Not Specified",
+    "deleteError": "Deletion failed! Please try again.",
+    "exportTitle": "Guest List",
+    "summaryDate": "Date: {date}",
+    "summaryTotal": "Total Guests: {count} {unit}",
+    "delete": {
+      "title": "Confirm Deletion",
+      "description": "Are you sure you want to delete this guest? This action cannot be undone."
+    },
+    "import": {
+      "title": "Import Guest List",
+      "description": "Please select an Excel file (.xlsx) with columns: **Guest Name** and **From/Location**.",
+      "noNote": "* Sequence numbers will be automatically assigned by the system.",
+      "downloadTemplate": "Download Sample Template",
+      "clickToSelect": "Click here to select an Excel file",
+      "allowedFiles": "Allowed files: .xlsx, .xls",
+      "importing": "Importing data...",
+      "success": "Imported successfully!",
+      "failed": "Import failed: {error}"
+    },
+    "cols": {
+      "no": "No.",
+      "name": "Guest Name",
+      "location": "From/Location",
+      "actions": "Actions"
+    },
+    "print": {
+      "header": "Summary and Guest List",
+      "weddingOf": "Wedding of {groom} and {bride}",
+      "totalGuests": "Total Guests",
+      "personUnit": "Person",
+      "reportStatus": "Report Status",
+      "official": "Official",
+      "reportDate": "Report Date",
+      "validity": "Document Validity",
+      "officialReport": "Official Guest Report - MONEA System",
+      "footerNote": "This document was automatically generated by the MONEA system and is an official record of the wedding."
+    },
+    "total": "Total",
+    "search": "Search by name or location...",
+    "form": {
+      "title": "Add/Edit Guest",
+      "description": "Fill in guest details",
+      "addBtn": "Add Guest",
+      "sectionTitle": "Guest Information",
+      "sectionSubtitle": "Guest Identity Details",
+      "nameLabel": "Guest Name",
+      "namePlaceholder": "Dara Sok...",
+      "locationLabel": "From / Location",
+      "locationPlaceholder": "Phnom Penh, Friend of bride...",
+      "saveBtn": "Save Guest Info",
+      "editBtn": "Update Guest Info",
+      "saving": "Saving...",
+      "validation": {
+        "name": "Please enter guest name"
+      }
+    }
+  },
+  "gifts": {
+    "title": "Gift Monitoring",
+    "subtitle": "Gift & Guest Management System",
+    "totalGuests": "Total Guests",
+    "cashUSD": "Cash (USD)",
+    "cashKHR": "Cash (KHR)",
+    "personUnit": "Person",
+    "print": {
+      "header": "Summary Report and Gift List",
+      "weddingOf": "Wedding of {groom} and {bride}",
+      "reportDate": "Report Date",
+      "validity": "Document Validity",
+      "officialReport": "Official Gift Report - MONEA System",
+      "footerNote": "This document was automatically generated by the MONEA system and is an official record of the wedding."
+    },
+    "actions": {
+      "showAmount": "Show Amount",
+      "hideAmount": "Hide Amount",
+      "addNew": "Add New",
+      "live": "Live",
+      "excel": "Excel",
+      "pdf": "PDF"
+    },
+    "form": {
+      "title": "Add New Gift",
+      "description": "Fill in the details to add a new gift record",
+      "name": "Guest Name",
+      "namePlaceholder": "Eg: Mr. Sovann...",
+      "number": "Guest Number (Optional)",
+      "amount": "Amount",
+      "currency": "Currency",
+      "date": "Date",
+      "note": "Note",
+      "saving": "Saving record...",
+      "success": "Gift recorded successfully!",
+      "error": "Failed to record gift. Please try again.",
+      "save": "Save Gift",
+      "cancel": "Cancel",
+      "amountRequired": "Please enter amount",
+      "syncSuccess": "Synced {count} gifts successfully! 🎉",
+      "syncPartial": "Synced {success} gifts. {failed} failed.",
+      "offlineAlert": "Offline! Gift saved locally.",
+      "guestIdentity": "Guest Identity",
+      "guestInfo": "Guest Information",
+      "sourcePlaceholder": "Eg: Kampot...",
+      "memberExists": "Existing Member",
+      "giftDetails": "Gift Details",
+      "receivedVia": "Received Via",
+      "saveAndAddMore": "Save & Add More",
+      "saveAndClose": "Save & Close",
+      "cashPlus": "Cash",
+      "khqr": "Bakong (KHQR)"
+    },
+    "receipt": {
+      "success": "Received Successfully",
+      "recorded": "Gift has been recorded in the system",
+      "from": "Received From",
+      "closeAndNext": "Close & Next Guest"
+    },
+    "qr": {
+      "title": "QR for Scanning",
+      "scan": "Scan to Pay",
+      "description": "Show this QR to guests if they want to transfer money",
+      "enlarge": "Scan QR Code",
+      "zoom": "Enlarged QR code for payment"
+    },
+    "sync": {
+      "offlineData": "Offline Data Not Saved",
+      "pendingGifts": "You have {count} gifts to sync",
+      "clear": "Clear",
+      "syncNow": "Sync Now",
+      "syncing": "Syncing..."
+    },
+    "live": {
+      "clickToStart": "Click the button below to start the display <br /> guest honors and new gift wishes",
+      "start": "Start Process",
+      "guestsArrived": "Guests Arrived",
+      "status": "Status",
+      "guestsList": "Guest List",
+      "recentGuests": "Recent Guests",
+      "guestOfHonor": "Guest of Honor",
+      "giftReceivedFrom": "Gift Received From",
+      "giftAmount": "Gift Amount",
+      "waitingForFlow": "Waiting for flow...",
+      "private": "Private",
+      "newGift": "New Gift!",
+      "thankYou": "Thank You",
+      "thankYouCelebration": "Thank you for your celebration",
+      "syncingFeed": "Synchronizing Live Feed..."
+    },
+    "export": {
+      "title": "Gift List",
+      "and": "and",
+      "date": "Date",
+      "totalGuests": "Total Guests",
+      "guestsCount": "Guests",
+      "totalUsd": "Total (USD)",
+      "totalKhr": "Total (KHR)",
+      "headers": {
+        "no": "No.",
+        "guestName": "Guest Name",
+        "from": "From",
+        "amount": "Amount",
+        "currency": "Currency",
+        "method": "Method",
+        "date": "Date"
+      },
+      "unknown": "Unknown",
+      "general": "General",
+      "cash": "Cash",
+      "sheetName": "Gift List"
+    },
+    "search": "Search by name or number...",
+    "empty": "No gifts recorded yet.",
+    "viewMore": "View More",
+    "table": {
+      "no": "#",
+      "name": "Name",
+      "source": "Source",
+      "amount": "Amount",
+      "method": "Method",
+      "time": "Time",
+      "unknown": "Unknown",
+      "notSpecified": "Not Specified",
+      "cash": "Cash"
+    }
+  },
+  "meta": {
+    "title": "MONEA | Premium Digital Wedding Invitations & Guest Management",
+    "description": "Craft luxurious digital wedding invitations, manage your guest list effortlessly, and receive digital blessings and gifts in one elegant platform."
+  },
+  "reports": {
+    "title": "Reports & Stats",
+    "subtitle": "Track and analyze your wedding data in real-time.",
+    "analytics": "Platform Analytics",
+    "stats": {
+      "totalGuests": "Total Guests",
+      "checkIn": "Check-in: {count}",
+      "usdGifts": "USD Gifts",
+      "totalCount": "Total {count} people",
+      "khrGifts": "KHR Gifts",
+      "wishes": "Wishes",
+      "fromGuests": "From honored guests"
+    },
+    "detailed": "Activities & Detailed Stats",
+    "activity": {
+      "title": "Latest Activity",
+      "stream": "Real-time Activity Stream",
+      "live": "Live",
+      "empty": "No activity yet",
+      "justNow": "Just now",
+      "m_ago": "{count}m ago",
+      "h_ago": "{count}h ago"
+    },
+    "location": {
+      "title": "Stats by Location",
+      "unspecified": "Unspecified",
+      "people": "{count} people",
+      "empty": "No data yet"
+    },
+    "print": {
+      "header": "Summary Report & Wedding Activities",
+      "weddingOf": "Wedding of {groom} and {bride}",
+      "official": "Official report for organizers",
+      "guestStats": "Guest Attendance Stats",
+      "joined": "Guests who joined the event",
+      "totalWishes": "Total Wishes",
+      "guestWritings": "Writings from honored guests",
+      "totalCashGifts": "Total Cash Gifts",
+      "reportDate": "Report Generation Date",
+      "validity": "Document Validity",
+      "officialMonea": "Official Report - MONEA System",
+      "autoGenerated": "This document was automatically generated by the MONEA system and is the official record of wedding statistics."
+    }
+  },
+  "account": {
+    "badge": "Account Settings",
+    "title": "Account Settings",
+    "subtitle": "Manage your profile, security settings, and preferences.",
+    "tabs": {
+      "profile": "Profile",
+      "security": "Security",
+      "preferences": "Preferences"
+    },
+    "preferences": {
+      "title": "System Preferences",
+      "description": "Customize your experience on the platform.",
+      "language": {
+        "title": "Display Language",
+        "description": "Select your preferred language for the interface.",
+        "en": "English",
+        "km": "Khmer"
+      }
+    },
+    "profile": {
+      "title": "General Information",
+      "description": "Basic information about your account.",
+      "labels": {
+        "username": "Username",
+        "email": "Email Address"
+      },
+      "changePassword": {
+        "title": "Change Password",
+        "description": "It's a good idea to use a strong password that you're not using elsewhere.",
+        "button": "Update Password"
+      }
+    },
+    "security": {
+      "title": "Security Configuration",
+      "description": "Keep your account secure with 2FA and session management.",
+      "twoFactor": {
+        "title": "Two-Factor Authentication (2FA)",
+        "description": "Add an extra layer of security to your account.",
+        "enabled": "2FA is currently enabled for your account.",
+        "disabled": "Two-factor authentication is not enabled. We highly recommend enabling it.",
+        "enableBtn": "Setup 2FA Now",
+        "disableBtn": "Disable 2FA"
+      },
+      "sessions": {
+        "title": "Active Sessions",
+        "description": "Manage your active login sessions across all devices.",
+        "revokeBtn": "Sign Out From All Devices",
+        "confirm": "Are you sure you want to sign out from all devices?",
+        "success": "Signed out from all devices successfully. You need to login again.",
+        "error": "Failed to revoke sessions."
+      },
+      "logs": {
+        "title": "Security Log Activity",
+        "description": "Recent security events related to your account.",
+        "loading": "Loading logs...",
+        "empty": "No security logs available.",
+        "types": {
+          "LOGIN_SUCCESS": "Successful Login",
+          "LOGIN_FAILED": "Failed Login Attempt",
+          "PASSWORD_CHANGE": "Password Changed",
+          "TWO_FACTOR_ENABLED": "2FA Enabled",
+          "TWO_FACTOR_DISABLED": "2FA Disabled"
+        }
+      }
+    },
+    "dangerZone": {
+      "badge": "Sensitive Actions",
+      "title": "Danger Zone",
+      "description": "Irreversible actions for your account.",
+      "deleteTitle": "Delete Account",
+      "deleteDescription": "Permanently delete your account and all associated data.",
+      "deleteBtn": "Delete My Account"
+    },
+    "dialogs": {
+      "changePassword": {
+        "title": "Change Password",
+        "description": "Please enter your current password and your new password.",
+        "currentLabel": "Current Password",
+        "currentPlaceholder": "Enter current password",
+        "newLabel": "New Password",
+        "newPlaceholder": "Enter new password",
+        "confirmLabel": "Confirm New Password",
+        "confirmPlaceholder": "Re-enter new password",
+        "submit": "Change Password",
+        "submitting": "Updating...",
+        "success": "Password changed successfully. For security, you need to login again.",
+        "errors": {
+          "mismatch": "New passwords do not match",
+          "length": "New password must be at least 8 characters",
+          "general": "Failed to change password",
+          "tech": "Technical error occurred"
+        }
+      },
+      "disable2fa": {
+        "title": "Disable 2FA",
+        "description": "Are you sure you want to disable 2FA? This will make your account less secure.",
+        "passwordLabel": "Confirm Password",
+        "passwordPlaceholder": "Enter your password to confirm",
+        "submit": "Disable 2FA",
+        "submitting": "Disabling...",
+        "success": "Two-factor authentication has been disabled.",
+        "errors": {
+          "general": "Failed to disable 2FA",
+          "tech": "Technical error occurred"
+        }
+      },
+      "deleteAccount": {
+        "title": "Delete Account",
+        "description": "This action is permanent and cannot be undone. All your data will be permanently removed.",
+        "passwordLabel": "Confirm Password",
+        "passwordPlaceholder": "Enter your password to confirm deletion",
+        "submit": "Delete My Account",
+        "submitting": "Deleting...",
+        "success": "Your account has been deleted successfully.",
+        "errors": {
+          "general": "Failed to delete account",
+          "tech": "Technical error occurred"
+        }
+      }
+    }
+  },
+  "admin": {
+    "sidebar": {
+      "governance": "Governance",
+      "overview": "Intelligence Hub",
+      "weddings": "Weddings",
+      "users": "Users",
+      "pricing": "Platform Pricing",
+      "settings": "Settings",
+      "logout": "Logout",
+      "pulse": "Platform Pulse",
+      "pulseStatus": "99.9% Up"
+    },
+    "overview": {
+      "title": "Master Control",
+      "subtitle": "System Administration",
+      "systemLogs": "System Logs",
+      "globalSettings": "Global Settings",
+      "stats": {
+        "totalProjects": "Total Projects",
+        "activeProjects": "Active Projects",
+        "activeHirers": "Active Hirers",
+        "totalRevenue": "Total Revenue (USD)",
+        "globalGuests": "Global Guests",
+        "ipBlacklist": "IP Blacklist",
+        "securityAudit": "Security Audit",
+        "activeDefenses": "Active Defenses",
+        "failures": "Failures",
+        "blocked": "Blocked"
+      },
+      "recentWeddings": {
+        "title": "Recent Hirers",
+        "subtitle": "Latest wedding platform activations",
+        "viewAll": "View All",
+        "table": {
+          "name": "Project Name",
+          "plan": "Plan",
+          "status": "Status",
+          "created": "Created"
+        }
+      },
+      "systemHealth": {
+        "title": "System Health",
+        "ipFirewalls": "IP Firewalls",
+        "cdn": "CDN (Cloudinary)",
+        "database": "Database",
+        "security": "Security",
+        "diagnostics": "System Diagnostics",
+        "export": "Export Data",
+        "healthy": "HEALTHY",
+        "active": "Active",
+        "connected": "Connected",
+        "protected": "Protected"
+      },
+      "actions": {
+        "title": "Security Actions",
+        "paymentCenter": "Payment Center",
+        "userDirectory": "User Directory",
+        "broadcastCenter": "Broadcast Center",
+        "auditExplorer": "Audit Explorer",
+        "revenueGrowth": "Revenue & Growth",
+        "supportDesk": "Support Desk",
+        "broadcast": "Broadcast",
+        "audit": "Audit",
+        "revenue": "Revenue"
+      }
+    },
+    "header": {
+      "portal": "Admin Dashboard Portal",
+      "version": "Intelligence v2.1",
+      "role": "Command Center",
+      "platform": "Platform Owner"
+    },
+    "logout": {
+      "title": "Sign Out",
+      "description": "Are you sure you want to sign out? You will need to sign in again to access the dashboard.",
+      "confirm": "Sign Out",
+      "cancel": "Stay"
+    },
+    "settings": {
+      "securityAuthority": "Security & Platform Authority",
+      "masterController": "Master Controller",
+      "logsHistory": "Logs & History",
+      "saveSuccess": "System Synchronized",
+      "saveBtn": "Save All Configurations",
+      "saveFailed": "Save Failed",
+      "saveFailedDesc": "Could not update system config.",
+      "pricingTitle": "Platform Economics",
+      "pricingSubtitle": "Tier-based subscription management",
+      "activeSince": "Active Since Alpha 1.0",
+      "standardTier": "Standard",
+      "standardBadge": "Public Tier 02",
+      "proTier": "Pro Master",
+      "proBadge": "Premium White Label",
+      "2faTitle": "Access Guardian",
+      "2faSubtitle": "Protect the SuperAdmin identity with mandatory TOTP verification.",
+      "2faActive": "Enhanced Identity Active",
+      "2faInit": "Initialize 2FA Protocol",
+      "2faPlaceholder": "6-Digit Verification Code",
+      "2faVerify": "Verify",
+      "2faInvalid": "Invalid Token",
+      "2faCheckCode": "Please check your code and try again.",
+      "lockoutTitle": "Entry Lockout",
+      "lockoutSubtitle": "Global Scan Killswitch",
+      "statusTitle": "System Status",
+      "statusHalt": "System Halted",
+      "statusOnline": "System Online",
+      "maintenanceDesc": "Platform activity is frozen. Users will see a maintenance screen.",
+      "onlineDesc": "Platform is fully operational and accepting requests.",
+      "onboardingTitle": "New Signups",
+      "onboardingSubtitle": "Toggle platform registration",
+      "engineTitle": "Platform Engine",
+      "engineVersion": "v1.4.2",
+      "engineVersionBadge": "Enterprise",
+      "security": {
+        "title": "Security Monitoring",
+        "subtitle": "Threat Detection & Access Control",
+        "return": "Return to Master Audit Command Center",
+        "sync": "Sync Stats",
+        "revokeBtn": "Revoke ALL Sessions",
+        "revokeConfirm": "Are you sure you want to revoke ALL staff and user sessions? This will logout everyone immediately.",
+        "revokeSuccess": "All sessions revoked successfully.",
+        "stats": {
+          "locked": "Locked Accounts",
+          "blacklisted": "Blacklisted IPs",
+          "failedLogins": "Failed Logins (Active)"
+        },
+        "blacklist": {
+          "title": "IP Access Control",
+          "placeholder": "IP Address (e.g. 192.168.1.1)",
+          "reason": "Reason for blocking",
+          "addBtn": "Block IP",
+          "unblock": "Unblock",
+          "unblocking": "Unblocking..."
+        },
+        "tables": {
+          "failedAccounts": "Accounts with Failed Logins",
+          "blacklistedIps": "Blacklisted IPs",
+          "noFailed": "No accounts with recent failed logins.",
+          "noBlacklisted": "No blacklisted IPs found.",
+          "lockedBadge": "Locked"
+        }
+      },
+      "support": {
+        "title": "Support Desk",
+        "subtitle": "Manage and resolve user assistance requests",
+        "refresh": "Refresh Desk",
+        "return": "View Master Performance Logs",
+        "noTickets": "No active tickets found",
+        "syncing": "Syncing Database...",
+        "ticket": {
+          "resolved": "Mark Resolved",
+          "reopen": "Re-open Ticket",
+          "affiliated": "Affiliated Party",
+          "unknown": "Unknown User",
+          "masterControl": "Master Control"
+        }
+      },
+      "overrideTitle": "Security Override Protocol",
+      "overrideDesc": "These settings affect platform-wide availability and security. Use extreme caution when modifying live configurations. All changes are logged in the Security Audit Feed."
+    },
+    "payments": {
+      "title": "Payment Verification Center",
+      "subtitle": "Pending Activations",
+      "awaitingApproval": "{count} Awaiting Approval",
+      "loading": "Loading Payment Requests...",
+      "empty": "No Pending Payments",
+      "emptyDesc": "All wedding projects are currently activated.",
+      "request": "{type} Plan Request",
+      "registrationDate": "Registration Date",
+      "weddingId": "Wedding ID",
+      "planCost": "Plan Cost",
+      "awaitingVerification": "Awaiting Verification",
+      "approve": "Approve Payment",
+      "preview": "Preview Wedding Context",
+      "syncing": "Syncing Payments...",
+      "success": "Payment Approved",
+      "successDesc": "The wedding has been successfully activated.",
+      "return": "Return to Master Center"
+    }
+  }
+}

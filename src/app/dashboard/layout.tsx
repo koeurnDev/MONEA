@@ -1,4 +1,5 @@
 import { getServerUser } from "@/lib/auth";
+import { redirect } from "next/navigation";
 import { DashboardShell } from "./_components/DashboardShell";
 import { ToastProvider } from "@/components/ui/Toast";
 import { NotificationProvider } from "@/components/providers/NotificationProvider";
@@ -6,15 +7,22 @@ import { prisma } from "@/lib/prisma";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
     const user = await getServerUser();
+    if (!user) {
+        redirect("/sign-in");
+    }
     console.log(`[DashboardLayout Debug] User: ${user?.userId}, Type: ${user?.type}, Wedding: ${(user as any)?.weddingId}`);
 
     let weddingId = (user as any)?.weddingId;
     if (!weddingId && user?.userId) {
-        const wedding = await prisma.wedding.findFirst({
-            where: { userId: user.userId },
-            select: { id: true }
-        });
-        weddingId = wedding?.id;
+        try {
+            const results = await (prisma as any).$queryRawUnsafe(
+                'SELECT id FROM "Wedding" WHERE "userId" = $1 LIMIT 1',
+                user.userId
+            );
+            weddingId = results[0]?.id;
+        } catch (e) {
+            console.error("[DashboardLayout] DB Fetch failed:", e);
+        }
     }
 
     const isStaff = user?.type === "staff";

@@ -7,11 +7,12 @@ import { DebouncedInput } from "@/components/ui/debounced-input";
 import { DebouncedTextarea } from "@/components/ui/debounced-textarea";
 import { Switch } from "@/components/ui/switch";
 import ImageUpload from "@/components/ui/image-upload-widget";
-import { Palette, Heart, CreditCard, Type, Clock, Sparkles, Loader2, Save, X, RotateCcw, Trash2, Plus, BookOpen, MessageSquare, Eye, Facebook, Send, Globe, Share2, ExternalLink, ChevronDown } from "lucide-react";
+import { Palette, Heart, CreditCard, Type, Clock, Sparkles, Loader2, Save, X, RotateCcw, Trash2, Plus, BookOpen, MessageSquare, Eye, Facebook, Send, Globe, Share2, ExternalLink, ChevronDown, ImageIcon } from "lucide-react";
 import clsx from "clsx";
 import { m, AnimatePresence } from 'framer-motion';
 import Image from "next/image";
 import type { WeddingData } from '@/components/templates/types';
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface Step5ExtraProps {
     wedding: WeddingData;
@@ -36,24 +37,36 @@ interface Step5ExtraProps {
 }
 
 const AccordionItem = ({ icon: Icon, title, subtitle, children, isOpen, onClick }: any) => (
-    <div className="rounded-2xl overflow-hidden bg-card shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] transition-all">
+    <div className={clsx(
+        "transition-all duration-300",
+        isOpen 
+            ? "bg-slate-50/50 dark:bg-white/[0.02] rounded-2xl ring-1 ring-slate-100 dark:ring-white/5" 
+            : "border-b border-slate-100 dark:border-white/5"
+    )}>
         <button
             onClick={onClick}
-            className="w-full flex items-center justify-between p-4 text-left hover:bg-muted/50 transition-colors"
+            className="w-full flex items-center justify-between py-6 px-4 text-left transition-colors group"
         >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
                 <div className={clsx(
-                    "p-2 rounded-xl transition-colors",
-                    isOpen ? "bg-red-600 text-white" : "bg-muted text-muted-foreground"
+                    "w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300",
+                    isOpen 
+                        ? "bg-rose-500 text-white shadow-md shadow-rose-500/20" 
+                        : "bg-slate-50/50 dark:bg-white/5 text-slate-400 group-hover:bg-rose-500 group-hover:text-white"
                 )}>
-                    <Icon className="w-4 h-4" />
+                    <Icon size={16} />
                 </div>
                 <div>
-                    <h3 className="text-xs font-black text-foreground font-kantumruy">{title}</h3>
-                    <p className="text-[10px] text-muted-foreground font-medium font-kantumruy truncate max-w-[180px]">{subtitle}</p>
+                    <h3 className="text-[12px] font-bold text-slate-900 dark:text-white font-kantumruy tracking-tight capitalize">{title}</h3>
+                    <p className="text-[9px] text-slate-400 dark:text-white/30 uppercase tracking-widest font-medium mt-0.5">{subtitle}</p>
                 </div>
             </div>
-            <ChevronDown className={clsx("w-4 h-4 text-muted-foreground transition-transform", isOpen && "rotate-180")} />
+            <div className={clsx(
+                "transition-transform duration-300 text-slate-300",
+                isOpen && "rotate-180 text-rose-500"
+            )}>
+                <ChevronDown size={14} />
+            </div>
         </button>
         <AnimatePresence>
             {isOpen && (
@@ -61,9 +74,9 @@ const AccordionItem = ({ icon: Icon, title, subtitle, children, isOpen, onClick 
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    className="overflow-hidden"
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
                 >
-                    <div className="p-4 pt-0">
+                    <div className="px-4 pb-8">
                         {children}
                     </div>
                 </m.div>
@@ -93,77 +106,126 @@ const Step5Extra: React.FC<Step5ExtraProps> = ({
     addGalleryItem,
     removeGalleryItem
 }) => {
+    const { t } = useTranslation();
     const [mounted, setMounted] = React.useState(false);
     React.useEffect(() => {
         setMounted(true);
     }, []);
 
     const isPremium = packageType === "PREMIUM";
-    return (
-        <div className="space-y-4 pb-10 font-khmer">
-            <div className="bg-muted/40 p-4 rounded-xl mb-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)] dark:shadow-none font-khmer">
-                <h3 className="text-sm font-bold text-foreground font-kantumruy mb-1">ជំហានទី៥៖ ការកំណត់បន្ថែម និងតេស្តមើលមុន</h3>
-                <p className="text-xs text-muted-foreground leading-relaxed">រៀបចំពណ៌ចម្បង, ព័ត៌មានគ្រួសារមាតាបិតា, ប្រវត្តិស្នេហា, បណ្ដាញសង្គម និងការមើលមុនពេលស៊ែរ (Social Preview)។</p>
-            </div>
 
-            <div className="bg-card border-2 border-primary/10 rounded-2xl overflow-hidden shadow-xl mb-6 font-khmer group">
-                <div className="bg-primary/5 px-4 py-3 border-b border-primary/10 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <Share2 className="w-4 h-4 text-primary" />
-                        <span className="text-xs font-black text-primary uppercase tracking-wider">Social Share Preview (ការមើលមុនពេលស៊ែរ)</span>
-                    </div>
+    // New state and ref for social preview
+    const [socialPreviewUrl, setSocialPreviewUrl] = React.useState<string | null>(wedding.themeSettings?.socialPreviewImage || null);
+    const socialInputRef = React.useRef<HTMLInputElement>(null);
+
+    React.useEffect(() => {
+        setSocialPreviewUrl(wedding.themeSettings?.socialPreviewImage || null);
+    }, [wedding.themeSettings?.socialPreviewImage]);
+
+    const onSocialFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setSocialPreviewUrl(reader.result as string);
+                updateTheme('socialPreviewImage', reader.result as string); // Update theme with base64 or URL
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    return (
+        <div className="space-y-8 pb-10 font-khmer">
+            {/* Header Section */}
+            <section className="space-y-1">
+                <h3 className="text-lg font-bold font-kantumruy text-slate-900 dark:text-white uppercase tracking-tight flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                    {t("wizard.steps.5.title")}
+                </h3>
+                <p className="text-[10px] text-slate-400 dark:text-white/30 uppercase tracking-widest font-medium pl-3.5">{t("wizard.steps.5.subtitle")}</p>
+            </section>
+
+            {/* Social Preview / Meta Data */}
+            <section className="space-y-6">
+                <div className="space-y-1">
+                    <h4 className="text-[11px] font-bold text-slate-900 dark:text-white uppercase tracking-widest flex items-center gap-2">
+                        <div className="w-1 h-1 rounded-full bg-slate-300" />
+                        {t("wizard.steps.5.socialTitle")}
+                    </h4>
+                    <p className="text-[10px] text-slate-400 dark:text-white/30 font-medium pl-3">{t("wizard.steps.5.socialSubtitle")}</p>
                 </div>
-                <div className="p-4 space-y-4">
-                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                        <Globe className="w-3 h-3" />
-                        <span>https://monea.app/invitation/{wedding.id}</span>
-                    </div>
-                    <div className="bg-muted/30 rounded-xl overflow-hidden border border-border/50 group-hover:border-primary/30 transition-colors">
-                        <div className="aspect-[1.91/1] bg-muted relative">
-                            {wedding.themeSettings?.heroImage ? (
-                                <Image 
-                                    src={wedding.themeSettings.heroImage} 
-                                    alt="Social Preview" 
-                                    fill
-                                    className="object-cover" 
-                                />
+
+                <div className="pl-3 space-y-8">
+                    {/* Social Simulator */}
+                    <div className="max-w-md bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5 overflow-hidden shadow-sm transition-all hover:shadow-md">
+                        <div className="aspect-[1.91/1] bg-slate-50/50 dark:bg-white/5 relative group cursor-pointer" onClick={() => socialInputRef.current?.click()}>
+                            {socialPreviewUrl ? (
+                                <Image src={socialPreviewUrl} alt="Social Meta" className="object-cover" fill />
                             ) : (
-                                <div className="w-full h-full flex items-center justify-center text-muted-foreground/30 italic text-[10px]">គ្មានរូបភាពបដា</div>
+                                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-slate-300 group-hover:text-rose-400 transition-colors">
+                                    <ImageIcon size={32} />
+                                    <span className="text-[10px] uppercase font-bold tracking-widest">{t("wizard.steps.5.uploadPreview")}</span>
+                                </div>
                             )}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                            <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button className="p-2 bg-white/90 dark:bg-slate-900/90 rounded-lg text-rose-500 shadow-sm" onClick={(e) => { e.stopPropagation(); socialInputRef.current?.click(); }}><Plus size={14}/></button>
+                                {socialPreviewUrl && <button className="p-2 bg-white/90 dark:bg-slate-900/90 rounded-lg text-red-500 shadow-sm" onClick={(e) => { e.stopPropagation(); setSocialPreviewUrl(null); updateTheme('socialPreviewImage', null); }}><Trash2 size={14}/></button>}
+                            </div>
                         </div>
-                        <div className="p-4 bg-white dark:bg-card">
-                            <h4 className="text-sm font-black text-foreground font-kantumruy mb-1 line-clamp-1">
-                                {wedding.themeSettings?.customLabels?.invite_title || `អបអរសាទរអាពាហ៍ពិពាហ៍៖ ${wedding.groomName} 🙏 ${wedding.brideName}`}
-                            </h4>
-                            <p className="text-[10px] text-muted-foreground line-clamp-2 leading-relaxed">
-                                {wedding.themeSettings?.welcomeMessage || `យើងខ្ញុំសូមគោរពអញ្ជើញលោកអ្នកចូលរួមកម្មវិធីអាពាហ៍ពិពាហ៍របស់យើង នៅថ្ងៃទី ${mounted ? new Date(wedding.date).toLocaleDateString('km-KH') : '...'}`}
-                            </p>
+                        <div className="p-4 bg-slate-50/50 dark:bg-white/[0.02] border-t dark:border-white/5 space-y-1">
+                            <h5 className="text-[11px] font-bold text-slate-900 dark:text-white line-clamp-1">{wedding.themeSettings?.customLabels?.invite_title || `${wedding.groomName} & ${wedding.brideName}`}</h5>
+                            <p className="text-[10px] text-slate-500 dark:text-white/40 line-clamp-2 leading-relaxed">{t("wizard.steps.5.socialPreviewDesc")}</p>
+                            <span className="text-[9px] text-slate-400 uppercase tracking-tighter">{t("wizard.steps.5.socialPreviewDomain")}</span>
                         </div>
                     </div>
-                    <p className="text-[9px] text-muted-foreground italic bg-primary/5 p-2 rounded-lg">
-                        * បញ្ជាក់៖ នេះជារូបភាពដែលភ្ញៀវនឹងឃើញពេលអ្នកផ្ញើតំណភ្ជាប់តាមរយៈ Facebook, Telegram ឬ Messenger។
-                    </p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                             <Label className="text-[10px] uppercase font-bold tracking-widest text-slate-400 pl-1">{t("wizard.steps.5.searchTitle")}</Label>
+                             <DebouncedInput 
+                                placeholder={t("wizard.steps.5.searchPlaceholder")}
+                                value={wedding.themeSettings?.customLabels?.invite_title || ""}
+                                onDebouncedChange={(val) => updateLabel('invite_title', val as string)}
+                                className="h-11 rounded-xl border-none bg-slate-50/50 dark:bg-white/5 focus:ring-1 ring-rose-500/20 text-xs font-medium"
+                             />
+                        </div>
+                        <div className="space-y-2">
+                             <Label className="text-[10px] uppercase font-bold tracking-widest text-slate-400 pl-1">{t("wizard.steps.5.passcode")}</Label>
+                             <DebouncedInput 
+                                placeholder={t("wizard.steps.5.passcodePlaceholder")}
+                                value={wedding.themeSettings?.passcode || ""}
+                                onDebouncedChange={(val) => updateTheme('passcode', val as string)}
+                                className="h-11 rounded-xl border-none bg-slate-50/50 dark:bg-white/5 focus:ring-1 ring-rose-500/20 text-xs font-medium"
+                             />
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div className="space-y-3">
+                <input type="file" accept="image/*" className="hidden" ref={socialInputRef} onChange={onSocialFileChange} />
+            </section>
+
+            <div className="space-y-2">
                 <AccordionItem
                     icon={Palette}
-                    title="ពណ៌ចម្បង"
-                    subtitle="ជ្រើសរើសពណ៌សម្រាប់ធៀបរបស់អ្នក"
+                    title={t("wizard.steps.5.themeTitle")}
+                    subtitle={t("wizard.steps.5.themeSubtitle")}
                     isOpen={activeAccordion === 'theme'}
                     onClick={() => setActiveAccordion(activeAccordion === 'theme' ? null : 'theme')}
                 >
-                    <div className="space-y-6 pt-2">
-                        <div>
-                            <Label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-3 block">ជម្រើសពណ៌</Label>
-                            <div className="grid grid-cols-5 gap-3 relative">
+                    <div className="space-y-8 pt-4">
+                        <div className="bg-slate-50/50 dark:bg-white/[0.02] p-6 rounded-2xl ring-1 ring-slate-100 dark:ring-white/5 space-y-6">
+                            <div className="flex items-center justify-between px-1">
+                                <Label className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-widest">{t("wizard.steps.5.colorLabel")}</Label>
                                 {!isPremium && (
-                                    <div className="absolute inset-0 z-20 bg-card/60 backdrop-blur-[2px] rounded-xl flex items-center justify-center border-2 border-dashed border-primary/20 cursor-help group/lock" title="សូមដំឡើងទៅគម្រោងកម្រិតខ្ពស់ ដើម្បីប្តូរពណ៌តាមចិត្ត!">
-                                        <div className="bg-white p-2 rounded-full shadow-lg group-hover/lock:scale-110 transition-transform">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-red-500"><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+                                    <div className="bg-rose-500 text-white text-[8px] font-black uppercase px-2 py-0.5 rounded-full shadow-sm shadow-rose-500/20">{t("wizard.steps.5.premiumBadge")}</div>
+                                )}
+                            </div>
+                            
+                            <div className="grid grid-cols-5 gap-4 relative">
+                                {!isPremium && (
+                                    <div className="absolute inset-x-0 -inset-y-2 z-20 bg-white/20 dark:bg-slate-900/40 backdrop-blur-[1px] rounded-[2rem] flex items-center justify-center border-2 border-dashed border-rose-500/20 cursor-help group/lock" title={t("wizard.steps.5.premiumColorUnlockHint")}>
+                                        <div className="bg-white dark:bg-slate-900 p-2.5 rounded-full shadow-xl shadow-rose-500/10 group-hover/lock:scale-110 transition-transform text-rose-500">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
                                         </div>
-                                        <span className="ml-2 text-[10px] font-black text-foreground uppercase tracking-wider">មុខងារពិសេស (Premium)</span>
                                     </div>
                                 )}
                                 {PRESET_COLORS.map(color => (
@@ -172,21 +234,24 @@ const Step5Extra: React.FC<Step5ExtraProps> = ({
                                         onClick={() => isPremium && updateTheme('primaryColor', color)}
                                         disabled={!isPremium}
                                         className={clsx(
-                                            "w-10 h-10 rounded-full border-4 shadow-sm transition-transform hover:scale-110",
-                                            wedding.themeSettings?.primaryColor === color ? "border-primary scale-110" : "border-transparent",
-                                            !isPremium && "cursor-not-allowed"
+                                            "aspect-square rounded-2xl border-4 transition-all hover:scale-110 shadow-sm",
+                                            wedding.themeSettings?.primaryColor === color ? "border-rose-500 scale-110 shadow-lg shadow-rose-500/20" : "border-white dark:border-white/10",
+                                            !isPremium && "opacity-50"
                                         )}
                                         style={{ backgroundColor: color }}
                                     />
                                 ))}
-                                <div className="relative w-10 h-10 rounded-full overflow-hidden shadow-inner">
+                                <div className="relative aspect-square rounded-2xl overflow-hidden border-4 border-white dark:border-white/10 shadow-sm group/picker">
                                     <DebouncedInput
                                         type="color"
                                         disabled={!isPremium}
-                                        className="absolute -top-2 -left-2 w-16 h-16 cursor-pointer border-none"
+                                        className="absolute -top-4 -left-4 w-20 h-20 cursor-pointer border-none bg-transparent scale-150"
                                         value={wedding.themeSettings?.primaryColor || "#8E5A5A"}
                                         onDebouncedChange={(val) => isPremium && updateTheme('primaryColor', val as string)}
                                     />
+                                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center text-white/50 opacity-0 group-hover/picker:opacity-100 transition-opacity">
+                                        <Palette size={14} />
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -195,48 +260,56 @@ const Step5Extra: React.FC<Step5ExtraProps> = ({
 
                 <AccordionItem
                     icon={BookOpen}
-                    title="សាច់រឿងស្នេហា & សារស្វាគមន៍"
-                    subtitle="សារស្វាគមន៍ភ្ញៀវ និងរឿងរ៉ាវរបស់កូនកំលោះកូនក្រមុំ"
+                    title={t("wizard.steps.5.storyTitle")}
+                    subtitle={t("wizard.steps.5.storySubtitle")}
                     isOpen={activeAccordion === 'story'}
                     onClick={() => setActiveAccordion(activeAccordion === 'story' ? null : 'story')}
                 >
-                    <div className="space-y-4 pt-2">
-                        <div>
-                            <Label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2 block">សារថ្លែងអំណរគុណ</Label>
-                            <DebouncedTextarea
-                                className="min-h-[60px]"
-                                value={wedding.themeSettings?.acknowledgment || ""}
-                                onDebouncedChange={(val) => updateTheme('acknowledgment', val)}
-                                placeholder="បញ្ចូលសារថ្លែងអំណរគុណ..."
-                            />
-                        </div>
-                        <div>
-                            <Label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2 block">សារស្វាគមន៍</Label>
-                            <DebouncedTextarea
-                                className="min-h-[60px]"
-                                value={wedding.themeSettings?.welcomeMessage || ""}
-                                onDebouncedChange={(val) => updateTheme('welcomeMessage', val)}
-                                placeholder="សូមស្វាគមន៍មកកាន់កម្មវិធីអាពាហ៍ពិពាហ៍របស់យើង..."
-                            />
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <Label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2 block">រឿងរ៉ាវកូនប្រុស</Label>
+                    <div className="space-y-6 pt-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="bg-slate-50/50 dark:bg-white/5 p-6 rounded-2xl border border-slate-100 dark:border-white/5 space-y-3">
+                                <Label className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-widest px-1">{t("wizard.steps.5.thankYou")}</Label>
                                 <DebouncedTextarea
-                                    className="min-h-[80px]"
-                                    value={wedding.themeSettings?.groomStory || ""}
-                                    onDebouncedChange={(val) => updateTheme('groomStory', val)}
-                                    placeholder="រៀបរាប់ពីប្រវត្តិកូនប្រុស..."
+                                    className="min-h-[100px] rounded-2xl border-none bg-white dark:bg-white/5 shadow-inner focus:ring-2 ring-rose-500/10 text-xs py-4 px-4 font-medium leading-relaxed"
+                                    value={wedding.themeSettings?.acknowledgment || ""}
+                                    onDebouncedChange={(val) => updateTheme('acknowledgment', val)}
+                                    placeholder={t("wizard.steps.5.thankYouPlaceholder")}
                                 />
                             </div>
-                            <div>
-                                <Label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2 block">រឿងរ៉ាវកូនស្រី</Label>
+                            <div className="bg-slate-50/50 dark:bg-white/5 p-6 rounded-2xl border border-slate-100 dark:border-white/5 space-y-3">
+                                <Label className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-widest px-1">{t("wizard.steps.5.welcome")}</Label>
                                 <DebouncedTextarea
-                                    className="min-h-[80px]"
-                                    value={wedding.themeSettings?.brideStory || ""}
-                                    onDebouncedChange={(val) => updateTheme('brideStory', val)}
-                                    placeholder="រៀបរាប់ពីប្រវត្តិកូនស្រី..."
+                                    className="min-h-[100px] rounded-2xl border-none bg-white dark:bg-white/5 shadow-inner focus:ring-2 ring-rose-500/10 text-xs py-4 px-4 font-medium leading-relaxed"
+                                    value={wedding.themeSettings?.welcomeMessage || ""}
+                                    onDebouncedChange={(val) => updateTheme('welcomeMessage', val)}
+                                    placeholder={t("wizard.steps.5.welcomePlaceholder")}
                                 />
+                            </div>
+                        </div>
+
+                        <div className="bg-slate-50/50 dark:bg-white/[0.02] p-8 rounded-2xl ring-1 ring-slate-100 dark:ring-white/5 space-y-8">
+                            <h4 className="text-[11px] font-black text-rose-500 uppercase tracking-widest flex items-center gap-3">
+                                <Heart size={16} /> {t("wizard.steps.5.loveStory")}
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-4">
+                                    <Label className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-[0.2em] px-1 italic">— {t("wizard.steps.5.groomStory")}</Label>
+                                    <DebouncedTextarea
+                                        className="min-h-[140px] rounded-[2rem] border-none bg-white dark:bg-white/5 shadow-sm focus:ring-2 ring-rose-500/10 text-[13px] p-6 font-medium leading-[1.8]"
+                                        value={wedding.themeSettings?.groomStory || ""}
+                                        onDebouncedChange={(val) => updateTheme('groomStory', val)}
+                                        placeholder={t("wizard.steps.5.groomStoryPlaceholder")}
+                                    />
+                                </div>
+                                <div className="space-y-4">
+                                    <Label className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-[0.2em] px-1 italic">— {t("wizard.steps.5.brideStory")}</Label>
+                                    <DebouncedTextarea
+                                        className="min-h-[140px] rounded-[2rem] border-none bg-white dark:bg-white/5 shadow-sm focus:ring-2 ring-rose-500/10 text-[13px] p-6 font-medium leading-[1.8]"
+                                        value={wedding.themeSettings?.brideStory || ""}
+                                        onDebouncedChange={(val) => updateTheme('brideStory', val)}
+                                        placeholder={t("wizard.steps.5.brideStoryPlaceholder")}
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -244,27 +317,39 @@ const Step5Extra: React.FC<Step5ExtraProps> = ({
 
                 <AccordionItem
                     icon={MessageSquare}
-                    title="បណ្ដាញសង្គម"
-                    subtitle="Facebook និង Telegram របស់កូនមង្គលការ"
+                    title={t("wizard.steps.5.socialMediaTitle")}
+                    subtitle={t("wizard.steps.5.socialMediaSubtitle")}
                     isOpen={activeAccordion === 'social'}
                     onClick={() => setActiveAccordion(activeAccordion === 'social' ? null : 'social')}
                 >
-                    <div className="space-y-4 pt-2">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="pt-4">
+                        <div className="bg-slate-50/50 dark:bg-white/[0.02] p-8 rounded-2xl ring-1 ring-slate-100 dark:ring-white/5 grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div className="space-y-4">
-                                <Label className="flex items-center gap-2 mb-1"><Facebook className="w-4 h-4 text-blue-600" /> Facebook</Label>
+                                <Label className="flex items-center gap-3 text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-widest px-1">
+                                    <div className="w-8 h-8 rounded-xl bg-blue-500 text-white flex items-center justify-center shadow-lg shadow-blue-500/20">
+                                        <Facebook size={16} />
+                                    </div>
+                                    {t("wizard.steps.5.facebook")}
+                                </Label>
                                 <DebouncedInput
-                                    placeholder="បញ្ចូលតំណភ្ជាប់ Facebook..."
+                                    placeholder={t("wizard.steps.5.facebookPlaceholder")}
                                     value={wedding.themeSettings?.facebookUrl || ""}
                                     onDebouncedChange={(val) => updateTheme('facebookUrl', val as string)}
+                                    className="h-14 rounded-2xl border-none bg-white dark:bg-white/5 shadow-sm focus:ring-2 ring-blue-500/20 font-bold px-6"
                                 />
                             </div>
                             <div className="space-y-4">
-                                <Label className="flex items-center gap-2 mb-1"><Send className="w-4 h-4 text-sky-500" /> Telegram</Label>
+                                <Label className="flex items-center gap-3 text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-widest px-1">
+                                    <div className="w-8 h-8 rounded-xl bg-sky-500 text-white flex items-center justify-center shadow-lg shadow-sky-500/20">
+                                        <Send size={16} />
+                                    </div>
+                                    {t("wizard.steps.5.telegram")}
+                                </Label>
                                 <DebouncedInput
-                                    placeholder="បញ្ចូលតំណភ្ជាប់ Telegram..."
+                                    placeholder={t("wizard.steps.5.telegramPlaceholder")}
                                     value={wedding.themeSettings?.telegramUrl || ""}
                                     onDebouncedChange={(val) => updateTheme('telegramUrl', val as string)}
+                                    className="h-14 rounded-2xl border-none bg-white dark:bg-white/5 shadow-sm focus:ring-2 ring-sky-500/20 font-bold px-6"
                                 />
                             </div>
                         </div>
@@ -273,27 +358,33 @@ const Step5Extra: React.FC<Step5ExtraProps> = ({
 
                 <AccordionItem
                     icon={Eye}
-                    title="ការបង្ហាញ និងពុម្ពអក្សរ"
-                    subtitle="បិទ/បើកផ្នែកផ្សេងៗ និងប្តូរប្រភេទអក្សរ"
+                    title={t("wizard.steps.5.displayTitle")}
+                    subtitle={t("wizard.steps.5.displaySubtitle")}
                     isOpen={activeAccordion === 'display'}
                     onClick={() => setActiveAccordion(activeAccordion === 'display' ? null : 'display')}
                 >
-                    <div className="space-y-6 pt-2">
-                        <div className="space-y-4">
-                            <h4 className="text-[11px] font-bold text-foreground uppercase pb-2">កំណត់ការបង្ហាញផ្នែកខ្លះៗ</h4>
-                            <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
+                    <div className="space-y-10 pt-4">
+                        <div className="bg-slate-50/50 dark:bg-white/[0.02] p-8 rounded-2xl ring-1 ring-slate-100 dark:ring-white/5 space-y-6">
+                            <h4 className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-[0.2em] border-b dark:border-white/5 pb-4 px-1">{t("wizard.steps.5.displaySubtitle")}</h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {[
-                                    { key: 'showStory', label: 'បង្ហាញប្រវត្តិ' },
-                                    { key: 'showGallery', label: 'បង្ហាញរូបភាព' },
-                                    { key: 'showTimeline', label: 'បង្ហាញកម្មវិធី' },
-                                    { key: 'showGuestbook', label: 'បង្ហាញសៀវភៅពរ' }
-                                ].map(({ key, label }) => (
-                                    <div key={key} className="flex items-center justify-between p-3 bg-muted rounded-lg shadow-sm">
-                                        <Label className="text-xs font-bold leading-none cursor-pointer" htmlFor={key}>
-                                            {label}
-                                        </Label>
+                                    { key: 'showStory', label: t("wizard.steps.5.visStory"), icon: Heart },
+                                    { key: 'showGallery', label: t("wizard.steps.5.visGallery"), icon: ImageIcon },
+                                    { key: 'showTimeline', label: t("wizard.steps.5.visTimeline"), icon: Clock },
+                                    { key: 'showGuestbook', label: t("wizard.steps.5.visGuestbook"), icon: MessageSquare }
+                                ].map(({ key, label, icon: Icon }) => (
+                                    <div key={key} className="flex items-center justify-between p-5 bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/10 shadow-sm group">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-lg bg-slate-50/50 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover:text-rose-500 transition-colors">
+                                                <Icon size={16} />
+                                            </div>
+                                            <Label className="text-xs font-black text-slate-700 dark:text-white/60 leading-none cursor-pointer" htmlFor={key}>
+                                                {label}
+                                            </Label>
+                                        </div>
                                         <Switch
                                             id={key}
+                                            className="data-[state=checked]:bg-rose-500"
                                             checked={wedding.themeSettings?.visibility ? (wedding.themeSettings.visibility as any)[key] !== false : true}
                                             onCheckedChange={(checked) => {
                                                 const newVisibility = { ...(wedding.themeSettings?.visibility || {}), [key]: checked };
@@ -305,280 +396,248 @@ const Step5Extra: React.FC<Step5ExtraProps> = ({
                             </div>
                         </div>
 
-                        <div className="space-y-4 pt-4">
-                            <h4 className="text-[11px] font-bold text-foreground uppercase pb-2">ប្រភេទអក្សរ (Font Style)</h4>
-                            <select
-                                className="w-full h-11 border-none rounded-lg px-3 bg-muted text-xs text-foreground font-sans focus:ring-1 focus:ring-red-500 outline-none shadow-sm"
-                                value={wedding.themeSettings?.fontStyle || 'default'}
-                                onChange={(e) => updateTheme('fontStyle', e.target.value)}
-                            >
-                                <option value="default">អក្សរខ្មែរស្ដង់ដារ</option>
-                                <option value="kantumruy">កន្ទុមរុយ (Kantumruy)</option>
-                                <option value="suwannaphum">សុវណ្ណភូមិ (Suwannaphum)</option>
-                                <option value="battambang">បាត់ដំបង (Battambang)</option>
-                                <option value="preahvihear">ព្រះវិហារ (Preahvihear)</option>
-                            </select>
+                        <div className="bg-slate-50/50 dark:bg-white/[0.02] p-8 rounded-2xl ring-1 ring-slate-100 dark:ring-white/5 space-y-6">
+                            <h4 className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-[0.2em] border-b dark:border-white/5 pb-4 px-1">{t("wizard.steps.5.typography")}</h4>
+                            <div className="relative">
+                                <select
+                                    className="w-full h-14 border-none rounded-2xl px-6 bg-white dark:bg-white/5 text-[13px] text-slate-900 dark:text-white font-black focus:ring-2 focus:ring-rose-500/20 shadow-sm appearance-none outline-none"
+                                    value={wedding.themeSettings?.fontStyle || 'default'}
+                                    onChange={(e) => updateTheme('fontStyle', e.target.value)}
+                                >
+                                    <option value="default">{t("wizard.steps.5.fontStandard")}</option>
+                                    <option value="kantumruy">{t("wizard.steps.5.fontKantumruy")}</option>
+                                    <option value="suwannaphum">{t("wizard.steps.5.fontSuwannaphum")}</option>
+                                    <option value="battambang">{t("wizard.steps.5.fontBattambang")}</option>
+                                    <option value="preahvihear">{t("wizard.steps.5.fontPreahvihear")}</option>
+                                </select>
+                                <div className="absolute top-1/2 right-6 -translate-y-1/2 pointer-events-none text-slate-400">
+                                    <ChevronDown size={18} />
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </AccordionItem>
 
                 <AccordionItem
                     icon={CreditCard}
-                    title="គណនីធនាគារ"
-                    subtitle="សម្រាប់ភ្ញៀវផ្ញើចំណងដៃ"
+                    title={t("wizard.steps.5.paymentTitle")}
+                    subtitle={t("wizard.steps.5.paymentSubtitle")}
                     isOpen={activeAccordion === 'payment'}
                     onClick={() => setActiveAccordion(activeAccordion === 'payment' ? null : 'payment')}
                 >
-                    <div className="space-y-4 pt-2">
-                        {wedding.themeSettings?.bankAccounts?.map((acc: any, idx: number) => (
-                            <div key={idx} className="bg-muted/40 p-4 rounded-xl shadow-sm relative group">
-                                <button
-                                    onClick={() => {
-                                        const newAccs = wedding.themeSettings?.bankAccounts?.filter((_, i) => i !== idx);
-                                        updateTheme('bankAccounts', newAccs);
-                                    }}
-                                    className="absolute top-3 right-3 text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                    <div className="space-y-6 pt-4">
+                        <div className="grid grid-cols-1 gap-6">
+                            {wedding.themeSettings?.bankAccounts?.map((acc: any, idx: number) => (
+                                <m.div 
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: idx * 0.1 }}
+                                    key={idx} 
+                                    className="bg-slate-50/50 dark:bg-white/[0.02] p-8 rounded-2xl ring-1 ring-slate-100 dark:ring-white/5 relative group"
                                 >
-                                    <X size={14} />
-                                </button>
-                                <div className="grid grid-cols-2 gap-3 mb-3">
-                                    <select
-                                        className="w-full h-10 border-none rounded-lg px-2 bg-background text-xs text-foreground shadow-sm font-bold"
-                                        value={acc.side || 'groom'}
-                                        onChange={(e) => {
-                                            const newAccs = [...(wedding.themeSettings?.bankAccounts || [])];
-                                            newAccs[idx] = { ...newAccs[idx], side: e.target.value };
+                                    <button
+                                        onClick={() => {
+                                            const newAccs = wedding.themeSettings?.bankAccounts?.filter((_: any, i: number) => i !== idx);
                                             updateTheme('bankAccounts', newAccs);
                                         }}
+                                        className="absolute top-6 right-6 w-8 h-8 rounded-full bg-white dark:bg-white/10 flex items-center justify-center text-slate-300 hover:text-rose-500 hover:shadow-lg transition-all z-10"
                                     >
-                                        <option value="groom">ខាងកូនប្រុស</option>
-                                        <option value="bride">ខាងកូនស្រី</option>
-                                        <option value="both">ទាំងសងខាង</option>
-                                    </select>
-                                    <select
-                                        className="w-full h-10 border-none rounded-lg px-2 bg-background text-xs text-foreground shadow-sm"
-                                        value={acc.bankName}
-                                        onChange={(e) => {
-                                            const newAccs = [...(wedding.themeSettings?.bankAccounts || [])];
-                                            newAccs[idx] = { ...newAccs[idx], bankName: e.target.value };
-                                            updateTheme('bankAccounts', newAccs);
-                                        }}
-                                    >
-                                        <option value="KHQR">KHQR</option>
-                                        <option value="ACLEDA Bank">ACLEDA Bank</option>
-                                        <option value="Wing Bank">Wing Bank</option>
-                                        <option value="Other">ផ្សេងៗ</option>
-                                    </select>
-                                    <DebouncedInput
-                                        placeholder="ឈ្មោះគណនី"
-                                        className="h-10 text-xs rounded-lg"
-                                        value={acc.accountName}
-                                        onDebouncedChange={(val) => {
-                                            const newAccs = [...(wedding.themeSettings?.bankAccounts || [])];
-                                            newAccs[idx] = { ...newAccs[idx], accountName: val as string };
-                                            updateTheme('bankAccounts', newAccs);
-                                        }}
-                                    />
-                                </div>
-                                <DebouncedInput
-                                    placeholder="លេខគណនី"
-                                    className="h-10 text-xs rounded-lg mb-3"
-                                    value={acc.accountNumber}
-                                    onDebouncedChange={(val) => {
-                                        const newAccs = [...(wedding.themeSettings?.bankAccounts || [])];
-                                        newAccs[idx] = { ...newAccs[idx], accountNumber: val as string };
-                                        updateTheme('bankAccounts', newAccs);
-                                    }}
-                                />
-                                <div className="mt-2">
-                                    <Label className="text-[10px] text-muted-foreground font-bold uppercase mb-1 block">អាប់ឡូត QR កូដទីនេះ</Label>
-                                    <ImageUpload
-                                        value={acc.qrUrl || ""}
-                                        onChange={(url) => {
-                                            const newAccs = [...(wedding.themeSettings?.bankAccounts || [])];
-                                            newAccs[idx] = { ...newAccs[idx], qrUrl: url };
-                                            updateTheme('bankAccounts', newAccs);
-                                        }}
-                                        onRemove={() => {
-                                            const newAccs = [...(wedding.themeSettings?.bankAccounts || [])];
-                                            newAccs[idx] = { ...newAccs[idx], qrUrl: "" };
-                                            updateTheme('bankAccounts', newAccs);
-                                        }}
-                                        folder={wedding.id}
-                                    />
-                                </div>
-                            </div>
-                        ))}
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full text-[10px] border-dashed"
+                                        <X size={14} />
+                                    </button>
+                                    
+                                    <div className="flex flex-col md:flex-row gap-8">
+                                        <div className="w-full md:w-1/3 space-y-4">
+                                            <Label className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-[0.2em] px-1 italic">— {t("wizard.steps.5.qrLabel")}</Label>
+                                            <ImageUpload
+                                                value={acc.qrUrl || ""}
+                                                onChange={(url) => {
+                                                    const newAccs = [...(wedding.themeSettings?.bankAccounts || [])];
+                                                    newAccs[idx] = { ...newAccs[idx], qrUrl: url };
+                                                    updateTheme('bankAccounts', newAccs);
+                                                }}
+                                                onRemove={() => {
+                                                    const newAccs = [...(wedding.themeSettings?.bankAccounts || [])];
+                                                    newAccs[idx] = { ...newAccs[idx], qrUrl: "" };
+                                                    updateTheme('bankAccounts', newAccs);
+                                                }}
+                                                folder={wedding.id}
+                                            />
+                                        </div>
+                                        
+                                        <div className="flex-1 space-y-6">
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-3">
+                                                    <Label className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-widest px-1">{t("wizard.steps.5.accOwner")}</Label>
+                                                    <select
+                                                        className="w-full h-12 border-none rounded-2xl px-4 bg-white dark:bg-white/5 text-xs text-slate-900 dark:text-white font-black shadow-sm outline-none appearance-none cursor-pointer"
+                                                        value={acc.side || 'groom'}
+                                                        onChange={(e) => {
+                                                            const newAccs = [...(wedding.themeSettings?.bankAccounts || [])];
+                                                            newAccs[idx] = { ...newAccs[idx], side: e.target.value };
+                                                            updateTheme('bankAccounts', newAccs);
+                                                        }}
+                                                    >
+                                                        <option value="groom">{t("wizard.steps.2.groomSide")}</option>
+                                                        <option value="bride">{t("wizard.steps.2.brideSide")}</option>
+                                                        <option value="both">{t("wizard.steps.5.bothSides")}</option>
+                                                    </select>
+                                                </div>
+                                                <div className="space-y-3">
+                                                    <Label className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-widest px-1">{t("wizard.steps.5.bank")}</Label>
+                                                    <select
+                                                        className="w-full h-12 border-none rounded-2xl px-4 bg-white dark:bg-white/5 text-xs text-slate-900 dark:text-white font-black shadow-sm outline-none appearance-none cursor-pointer"
+                                                        value={acc.bankName}
+                                                        onChange={(e) => {
+                                                            const newAccs = [...(wedding.themeSettings?.bankAccounts || [])];
+                                                            newAccs[idx] = { ...newAccs[idx], bankName: e.target.value };
+                                                            updateTheme('bankAccounts', newAccs);
+                                                        }}
+                                                    >
+                                                        <option value="KHQR">KHQR (Bakong)</option>
+                                                        <option value="ACLEDA Bank">ACLEDA Bank</option>
+                                                        <option value="ABA Bank">ABA Bank</option>
+                                                        <option value="Wing Bank">Wing Bank</option>
+                                                        <option value="Other">{t("wizard.steps.5.otherBank")}</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-4">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div className="space-y-3">
+                                                        <Label className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-widest px-1">{t("wizard.steps.5.accName")}</Label>
+                                                        <DebouncedInput
+                                                            placeholder={t("wizard.steps.5.accName")}
+                                                            className="h-12 text-xs rounded-2xl border-none bg-white dark:bg-white/5 shadow-sm font-bold px-5"
+                                                            value={acc.accountName}
+                                                            onDebouncedChange={(val) => {
+                                                                const newAccs = [...(wedding.themeSettings?.bankAccounts || [])];
+                                                                newAccs[idx] = { ...newAccs[idx], accountName: val as string };
+                                                                updateTheme('bankAccounts', newAccs);
+                                                            }}
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-3">
+                                                        <Label className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-widest px-1">{t("wizard.steps.5.accNumber")}</Label>
+                                                        <DebouncedInput
+                                                            placeholder={t("wizard.steps.5.accNumber")}
+                                                            className="h-12 text-xs rounded-2xl border-none bg-white dark:bg-white/5 shadow-sm font-bold px-5"
+                                                            value={acc.accountNumber}
+                                                            onDebouncedChange={(val) => {
+                                                                const newAccs = [...(wedding.themeSettings?.bankAccounts || [])];
+                                                                newAccs[idx] = { ...newAccs[idx], accountNumber: val as string };
+                                                                updateTheme('bankAccounts', newAccs);
+                                                            }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </m.div>
+                            ))}
+                        </div>
+                        
+                        <button
                             onClick={() => {
                                 const newAccs = [...(wedding.themeSettings?.bankAccounts || []), { side: "bride", bankName: "KHQR", accountName: "", accountNumber: "", qrUrl: "" }];
                                 updateTheme('bankAccounts', newAccs);
                             }}
+                            className="w-full py-6 rounded-[2rem] border-2 border-dashed border-slate-200 dark:border-white/5 hover:border-rose-300 dark:hover:border-rose-500/30 hover:bg-rose-50/30 dark:hover:bg-rose-500/5 transition-all flex flex-col items-center gap-3 text-slate-400 hover:text-rose-500 group"
                         >
-                            <Plus size={14} className="mr-1" /> បន្ថែមគណនី
-                        </Button>
+                            <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center group-hover:bg-rose-500/10 transition-colors">
+                                <Plus size={20} />
+                            </div>
+                            <span className="text-[11px] font-black uppercase tracking-widest">{t("wizard.steps.5.addBank")}</span>
+                        </button>
                     </div>
                 </AccordionItem>
 
                 <AccordionItem
                     icon={Type}
-                    title="ចំណងជើង និងអត្ថបទ"
-                    subtitle="ប្ដូរអត្ថបទ និងចំណងជើងគ្រប់ផ្នែកទាំងអស់"
+                    title={t("wizard.steps.5.labelsTitle")}
+                    subtitle={t("wizard.steps.5.labelsSubtitle")}
                     isOpen={activeAccordion === 'labels'}
                     onClick={() => setActiveAccordion(activeAccordion === 'labels' ? null : 'labels')}
                 >
-                    <div className="space-y-8 pt-2">
-                        {/* 1. Hero & Intro */}
-                        <div className="space-y-4">
-                            <h4 className="text-[11px] font-black text-primary uppercase tracking-widest border-l-2 border-primary pl-2">Hero & Intro (ផ្នែកខាងលើបង្អស់)</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-1.5">
-                                    <Label className="text-[9px] text-muted-foreground font-bold uppercase ml-1">ចំណងជើងធំ (Main Title)</Label>
-                                    <DebouncedInput className="h-11 rounded-xl bg-muted border-none shadow-sm" value={wedding.themeSettings?.customLabels?.invite_title || ""} onDebouncedChange={(val) => updateLabel('invite_title', val as string)} />
+                    <div className="space-y-8 pt-4">
+                        {[
+                            {
+                                title: t("wizard.steps.5.labelBannerSection"),
+                                fields: [
+                                    { key: 'invite_title', label: t("wizard.steps.5.labelInviteHeader"), type: 'input' },
+                                    { key: 'hero_subtitle', label: t("wizard.steps.5.labelHeroSubtitle"), type: 'input' },
+                                    { key: 'hero_button', label: t("wizard.steps.5.labelHeroButton"), type: 'input' },
+                                    { key: 'andLabel', label: t("wizard.steps.5.labelAndLabel"), type: 'input' },
+                                    { key: 'invitationBadge', label: t("wizard.steps.5.labelInvitationBadge"), type: 'input' },
+                                    { key: 'invitationTitle', label: t("wizard.steps.5.labelInvitationTitle"), type: 'input' },
+                                    { key: 'invitationHonorTitle', label: t("wizard.steps.5.labelInvitationHonorTitle"), type: 'input' },
+                                    { key: 'invitationText', label: t("wizard.steps.5.labelInvitationText"), type: 'textarea' }
+                                ]
+                            },
+                            {
+                                title: t("wizard.steps.5.labelLocationSection"),
+                                fields: [
+                                    { key: 'locationTitle', label: t("wizard.steps.5.labelLocationTitle"), type: 'input' },
+                                    { key: 'locationSubtitle', label: t("wizard.steps.5.labelLocationSubtitle"), type: 'input' },
+                                    { key: 'locationCardLabel', label: t("wizard.steps.5.labelLocationCardLabel"), type: 'input' },
+                                    { key: 'countdownLabel', label: t("wizard.steps.5.labelCountdownLabel"), type: 'input' }
+                                ]
+                            },
+                            {
+                                title: t("wizard.steps.5.labelGallerySection"),
+                                fields: [
+                                    { key: 'gallery_title', label: t("wizard.steps.5.labelGalleryTitle"), type: 'input' },
+                                    { key: 'gallerySubtitle', label: t("wizard.steps.5.labelGallerySubtitle"), type: 'input' },
+                                    { key: 'giftTitle', label: t("wizard.steps.5.labelGiftTitle"), type: 'input' },
+                                    { key: 'giftBadge', label: t("wizard.steps.5.labelGiftBadge"), type: 'input' },
+                                    { key: 'giftCopyBtn', label: t("wizard.steps.5.labelGiftCopyBtn"), type: 'input' },
+                                    { key: 'rsvpSubmittedText', label: t("wizard.steps.5.labelRsvpSubmittedText"), type: 'input' }
+                                ]
+                            }
+                        ].map((section, sIdx) => (
+                            <m.div 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: sIdx * 0.1 }}
+                                key={sIdx}
+                                className="space-y-6"
+                            >
+                                <div className="flex items-center gap-3 px-1">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-rose-500/30" />
+                                    <h5 className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-[0.2em] italic">{section.title}</h5>
                                 </div>
-                                <div className="space-y-1.5">
-                                    <Label className="text-[9px] text-muted-foreground font-bold uppercase ml-1">ចំណងជើងរង (Hero Subtitle)</Label>
-                                    <DebouncedInput className="h-11 rounded-xl bg-muted border-none shadow-sm" value={wedding.themeSettings?.customLabels?.hero_subtitle || ""} onDebouncedChange={(val) => updateLabel('hero_subtitle', val as string)} />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 bg-slate-50/50 dark:bg-white/[0.02] p-6 rounded-2xl ring-1 ring-slate-100 dark:ring-white/5">
+                                    {section.fields.map((field) => (
+                                        <div key={field.key} className="space-y-2">
+                                            <Label className="text-[10px] uppercase font-bold tracking-widest text-slate-400 pl-1">{field.label}</Label>
+                                            {field.type === 'textarea' ? (
+                                                <DebouncedTextarea
+                                                    placeholder={field.label}
+                                                    value={field.key === 'invitationText' ? (wedding.themeSettings?.invitationText || "") : ((wedding.themeSettings?.customLabels as any)?.[field.key] || "")}
+                                                    onDebouncedChange={(val) => field.key === 'invitationText' ? updateTheme('invitationText', val) : updateLabel(field.key, val)}
+                                                    className="min-h-[80px] rounded-xl border-none bg-white dark:bg-white/5 shadow-sm focus:ring-1 ring-rose-500/20 text-xs font-medium leading-relaxed"
+                                                />
+                                            ) : (
+                                                <DebouncedInput
+                                                    placeholder={field.label}
+                                                    value={(wedding.themeSettings?.customLabels as any)?.[field.key] || ""}
+                                                    onDebouncedChange={(val) => updateLabel(field.key, val as string)}
+                                                    className="h-10 rounded-xl border-none bg-white dark:bg-white/5 shadow-sm focus:ring-1 ring-rose-500/20 text-xs font-medium"
+                                                />
+                                            )}
+                                        </div>
+                                    ))}
                                 </div>
-                                <div className="space-y-1.5">
-                                    <Label className="text-[9px] text-muted-foreground font-bold uppercase ml-1">ប៊ូតុងបើកសំបុត្រ (Open Button)</Label>
-                                    <DebouncedInput className="h-11 rounded-xl bg-muted border-none shadow-sm" value={wedding.themeSettings?.customLabels?.hero_button || ""} onDebouncedChange={(val) => updateLabel('hero_button', val as string)} />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <Label className="text-[9px] text-muted-foreground font-bold uppercase ml-1">ពាក្យភ្ជាប់ឈ្មោះ (e.g. និង/AND)</Label>
-                                    <DebouncedInput className="h-11 rounded-xl bg-muted border-none shadow-sm" value={wedding.themeSettings?.customLabels?.andLabel || ""} onDebouncedChange={(val) => updateLabel('andLabel', val as string)} />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* 2. Invitation & Parents */}
-                        <div className="space-y-4">
-                            <h4 className="text-[11px] font-black text-primary uppercase tracking-widest border-l-2 border-primary pl-2">Invitation (ផ្នែកអញ្ជើញ)</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-1.5">
-                                    <Label className="text-[9px] text-muted-foreground font-bold uppercase ml-1">ផ្លាកសញ្ញាលើ (Badge)</Label>
-                                    <DebouncedInput className="h-11 rounded-xl bg-muted border-none shadow-sm" value={wedding.themeSettings?.customLabels?.invitationBadge || ""} onDebouncedChange={(val) => updateLabel('invitationBadge', val as string)} />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <Label className="text-[9px] text-muted-foreground font-bold uppercase ml-1">ចំណងជើងអញ្ជើញ (Title)</Label>
-                                    <DebouncedInput className="h-11 rounded-xl bg-muted border-none shadow-sm" value={wedding.themeSettings?.customLabels?.invitationTitle || ""} onDebouncedChange={(val) => updateLabel('invitationTitle', val as string)} />
-                                </div>
-                                <div className="space-y-1.5 md:col-span-2">
-                                    <Label className="text-[9px] text-muted-foreground font-bold uppercase ml-1">ចំណងជើងកិត្តិយស (Honor Title)</Label>
-                                    <DebouncedInput className="h-11 rounded-xl bg-muted border-none shadow-sm" value={wedding.themeSettings?.customLabels?.invitationHonorTitle || ""} onDebouncedChange={(val) => updateLabel('invitationHonorTitle', val as string)} />
-                                </div>
-                                <div className="space-y-1.5 md:col-span-2">
-                                    <Label className="text-[9px] text-muted-foreground font-bold uppercase ml-1">អត្ថបទរៀបរាប់ (Invitation Body)</Label>
-                                    <DebouncedTextarea className="min-h-[80px] rounded-xl bg-muted border-none shadow-sm" value={wedding.themeSettings?.invitationText || ""} onDebouncedChange={(val) => updateTheme('invitationText', val)} />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* 3. Location & Countdown */}
-                        <div className="space-y-4">
-                            <h4 className="text-[11px] font-black text-primary uppercase tracking-widest border-l-2 border-primary pl-2">Location & Time (ទីតាំង និងពេលវេលា)</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-1.5">
-                                    <Label className="text-[9px] text-muted-foreground font-bold uppercase ml-1">ចំណងជើងទីតាំង (Title)</Label>
-                                    <DebouncedInput className="h-11 rounded-xl bg-muted border-none shadow-sm" value={wedding.themeSettings?.customLabels?.locationTitle || ""} onDebouncedChange={(val) => updateLabel('locationTitle', val as string)} />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <Label className="text-[9px] text-muted-foreground font-bold uppercase ml-1">ចំណងជើងរងទីតាំង (Subtitle)</Label>
-                                    <DebouncedInput className="h-11 rounded-xl bg-muted border-none shadow-sm" value={wedding.themeSettings?.customLabels?.locationSubtitle || ""} onDebouncedChange={(val) => updateLabel('locationSubtitle', val as string)} />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <Label className="text-[9px] text-muted-foreground font-bold uppercase ml-1">ផ្លាកលើផែនទី (Map Label)</Label>
-                                    <DebouncedInput className="h-11 rounded-xl bg-muted border-none shadow-sm" value={wedding.themeSettings?.customLabels?.locationCardLabel || ""} onDebouncedChange={(val) => updateLabel('locationCardLabel', val as string)} />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <Label className="text-[9px] text-muted-foreground font-bold uppercase ml-1">អត្ថបទ Countdown (Label)</Label>
-                                    <DebouncedInput className="h-11 rounded-xl bg-muted border-none shadow-sm" value={wedding.themeSettings?.customLabels?.countdownLabel || ""} onDebouncedChange={(val) => updateLabel('countdownLabel', val as string)} />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* 4. Gallery & Editorial */}
-                        <div className="space-y-4">
-                            <h4 className="text-[11px] font-black text-primary uppercase tracking-widest border-l-2 border-primary pl-2">Gallery & Story (រូបភាព និងសាច់រឿង)</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-1.5">
-                                    <Label className="text-[9px] text-muted-foreground font-bold uppercase ml-1">ចំណងជើងអាល់ប៊ុម (Album Title)</Label>
-                                    <DebouncedInput className="h-11 rounded-xl bg-muted border-none shadow-sm" value={wedding.themeSettings?.customLabels?.gallery_title || ""} onDebouncedChange={(val) => updateLabel('gallery_title', val as string)} />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <Label className="text-[9px] text-muted-foreground font-bold uppercase ml-1">ចំណងជើងរងអាល់ប៊ុម (Subtitle)</Label>
-                                    <DebouncedInput className="h-11 rounded-xl bg-muted border-none shadow-sm" value={wedding.themeSettings?.customLabels?.gallerySubtitle || ""} onDebouncedChange={(val) => updateLabel('gallerySubtitle', val as string)} />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <Label className="text-[9px] text-muted-foreground font-bold uppercase ml-1">អត្ថបទរឿងរ៉ាវ ១ (Editorial 1)</Label>
-                                    <DebouncedInput className="h-11 rounded-xl bg-muted border-none shadow-sm" value={wedding.themeSettings?.editorialText1 || ""} onDebouncedChange={(val) => updateTheme('editorialText1', val)} />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <Label className="text-[9px] text-muted-foreground font-bold uppercase ml-1">អត្ថបទរឿងរ៉ាវ ២ (Editorial 2)</Label>
-                                    <DebouncedInput className="h-11 rounded-xl bg-muted border-none shadow-sm" value={wedding.themeSettings?.editorialText2 || ""} onDebouncedChange={(val) => updateTheme('editorialText2', val)} />
-                                </div>
-                                <div className="space-y-1.5 md:col-span-2">
-                                    <Label className="text-[9px] text-muted-foreground font-bold uppercase ml-1">អត្ថបទរឿងរ៉ាវ ៣ (Editorial 3)</Label>
-                                    <DebouncedInput className="h-11 rounded-xl bg-muted border-none shadow-sm" value={wedding.themeSettings?.editorialText3 || ""} onDebouncedChange={(val) => updateTheme('editorialText3', val)} />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* 5. Gift & RSVP */}
-                        <div className="space-y-4">
-                            <h4 className="text-[11px] font-black text-primary uppercase tracking-widest border-l-2 border-primary pl-2">Gift & RSVP (ចំណងដៃ និងការឆ្លើយតប)</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-1.5">
-                                    <Label className="text-[9px] text-muted-foreground font-bold uppercase ml-1">ចំណងជើងចំណងដៃ (Gift Title)</Label>
-                                    <DebouncedInput className="h-11 rounded-xl bg-muted border-none shadow-sm" value={wedding.themeSettings?.customLabels?.giftTitle || ""} onDebouncedChange={(val) => updateLabel('giftTitle', val as string)} />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <Label className="text-[9px] text-muted-foreground font-bold uppercase ml-1">ផ្លាកសញ្ញាចំណងដៃ (Badge)</Label>
-                                    <DebouncedInput className="h-11 rounded-xl bg-muted border-none shadow-sm" value={wedding.themeSettings?.customLabels?.giftBadge || ""} onDebouncedChange={(val) => updateLabel('giftBadge', val as string)} />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <Label className="text-[9px] text-muted-foreground font-bold uppercase ml-1">ប៊ូតុងចម្លង (Copy Button)</Label>
-                                    <DebouncedInput className="h-11 rounded-xl bg-muted border-none shadow-sm" value={wedding.themeSettings?.customLabels?.giftCopyBtn || ""} onDebouncedChange={(val) => updateLabel('giftCopyBtn', val as string)} />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <Label className="text-[9px] text-muted-foreground font-bold uppercase ml-1">អត្ថបទជោគជ័យ (Copied Text)</Label>
-                                    <DebouncedInput className="h-11 rounded-xl bg-muted border-none shadow-sm" value={wedding.themeSettings?.customLabels?.giftCopied || ""} onDebouncedChange={(val) => updateLabel('giftCopied', val as string)} />
-                                </div>
-                                <div className="space-y-1.5 md:col-span-2">
-                                    <Label className="text-[9px] text-muted-foreground font-bold uppercase ml-1">សារជូនពរឆ្លើយតប (RSVP Success)</Label>
-                                    <DebouncedInput className="h-11 rounded-xl bg-muted border-none shadow-sm" value={wedding.themeSettings?.customLabels?.rsvpSubmittedText || ""} onDebouncedChange={(val) => updateLabel('rsvpSubmittedText', val as string)} />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* 6. Finale & Thank You */}
-                        <div className="space-y-4">
-                            <h4 className="text-[11px] font-black text-primary uppercase tracking-widest border-l-2 border-primary pl-2">Finale & Thank You (សារបញ្ចប់)</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-1.5">
-                                    <Label className="text-[9px] text-muted-foreground font-bold uppercase ml-1">ចំណងជើងអរគុណ (Title)</Label>
-                                    <DebouncedInput className="h-11 rounded-xl bg-muted border-none shadow-sm" value={wedding.themeSettings?.customLabels?.thankYouTitle || ""} onDebouncedChange={(val) => updateLabel('thankYouTitle', val as string)} />
-                                </div>
-                                <div className="space-y-1.5">
-                                    <Label className="text-[9px] text-muted-foreground font-bold uppercase ml-1">ផ្លាកសញ្ញាបញ្ចប់ (Footer Badge)</Label>
-                                    <DebouncedInput className="h-11 rounded-xl bg-muted border-none shadow-sm" value={wedding.themeSettings?.customLabels?.footerBadge || ""} onDebouncedChange={(val) => updateLabel('footerBadge', val as string)} />
-                                </div>
-                                <div className="space-y-1.5 md:col-span-2">
-                                    <Label className="text-[9px] text-muted-foreground font-bold uppercase ml-1">សារថ្លែងអំណរគុណចុងក្រោយ (Thank You Message)</Label>
-                                    <DebouncedTextarea className="min-h-[80px] rounded-xl bg-muted border-none shadow-sm" value={wedding.themeSettings?.customLabels?.thankYouMessage || ""} onDebouncedChange={(val) => updateLabel('thankYouMessage', val as string)} />
-                                </div>
-                            </div>
-                        </div>
+                            </m.div>
+                        ))}
                     </div>
                 </AccordionItem>
 
                 <AccordionItem
                     icon={Clock}
-                    title="ប្រវត្តិនៃការកែប្រែ"
-                    subtitle="រក្សាទុក ឬត្រឡប់ទៅម៉ូដចាស់ៗ"
+                    title={t("wizard.steps.5.historyTitle")}
+                    subtitle={t("wizard.steps.5.historySubtitle")}
                     isOpen={activeAccordion === 'history'}
                     onClick={() => {
                         const isOpen = activeAccordion === 'history';
@@ -586,69 +645,92 @@ const Step5Extra: React.FC<Step5ExtraProps> = ({
                         if (!isOpen) fetchVersions();
                     }}
                 >
-                    <div className="space-y-4 pt-4">
-                        <div className="bg-muted/40 p-4 rounded-xl space-y-3 shadow-inner">
-                            <Label className="text-[10px] text-muted-foreground font-bold uppercase block">រក្សាទុកជា Version ថ្មី</Label>
-                            <div className="flex gap-2">
+                    <div className="space-y-8 pt-4">
+                        <m.div 
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="bg-slate-50/50 dark:bg-white/5 p-8 rounded-[2.5rem] border border-slate-100 dark:border-white/5 space-y-4 shadow-sm"
+                        >
+                            <Label className="text-[10px] font-black text-slate-400 dark:text-white/30 uppercase tracking-[0.2em] px-1 italic">— {t("wizard.steps.5.saveVersion")}</Label>
+                            <div className="flex gap-3">
                                 <Input
-                                    placeholder="ឈ្មោះ Version (ឧ. មុនដូរពណ៌...)"
+                                    placeholder={t("wizard.steps.5.versionPlaceholder")}
                                     value={newVersionTitle}
                                     onChange={(e) => setNewVersionTitle(e.target.value)}
-                                    className="h-10 text-xs rounded-lg border-none shadow-sm"
+                                    className="h-14 rounded-2xl border-none bg-white dark:bg-white/10 shadow-sm font-bold px-6 text-sm focus:ring-2 ring-rose-500/10 flex-1"
                                 />
-                                <Button
+                                <button
                                     onClick={handleSaveVersion}
                                     disabled={isSavingVersion || !newVersionTitle}
-                                    className="h-10 bg-primary hover:bg-primary/90 text-primary-foreground px-4 rounded-lg text-xs"
+                                    className="w-14 h-14 bg-rose-500 hover:bg-rose-600 disabled:bg-slate-200 dark:disabled:bg-white/10 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-rose-500/20 transition-all active:scale-95 shrink-0"
                                 >
-                                    {isSavingVersion ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-                                </Button>
+                                    {isSavingVersion ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} />}
+                                </button>
                             </div>
-                        </div>
+                        </m.div>
 
-                        <div className="space-y-2">
-                            <Label className="text-[10px] text-muted-foreground font-bold uppercase block px-1">បញ្ជី Version ដែលបានរក្សាទុក</Label>
+                        <div className="space-y-4">
+                            <Label className="text-[10px] font-black text-rose-500 uppercase tracking-widest px-1 flex items-center gap-3">
+                                <Clock size={14} /> {t("wizard.steps.5.savedList")}
+                            </Label>
+                            
                             {fetchingVersions ? (
-                                <div className="flex flex-col items-center py-8 gap-2">
-                                    <Loader2 className="w-6 h-6 animate-spin text-muted-foreground/50" />
-                                    <span className="text-[10px] text-muted-foreground/50 font-bold uppercase tracking-widest">កំពុងទាញយក...</span>
+                                <div className="flex flex-col items-center py-12 gap-4">
+                                    <div className="relative">
+                                        <div className="w-12 h-12 border-4 border-rose-500/10 border-t-rose-500 rounded-full animate-spin" />
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <Sparkles size={16} className="text-rose-500/20" />
+                                        </div>
+                                    </div>
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t("wizard.steps.5.loading")}</span>
                                 </div>
                             ) : templateVersions.length === 0 ? (
-                                <div className="text-center py-8 border-2 border-dashed border-border rounded-xl">
-                                    <p className="text-[10px] text-muted-foreground/50 font-bold uppercase">មិនទាន់មាន Version នៅឡើយទេ</p>
+                                <div className="bg-slate-50/50 dark:bg-white/5 py-12 rounded-[2.5rem] border border-dashed border-slate-200 dark:border-white/10 flex flex-col items-center gap-3">
+                                    <RotateCcw size={32} className="text-slate-200 dark:text-white/5" />
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t("wizard.steps.5.noVersions")}</span>
                                 </div>
                             ) : (
-                                <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 scrollbar-hide">
-                                    {templateVersions.map((ver) => (
-                                        <div key={ver.id} className="bg-card p-3 rounded-xl flex items-center justify-between group hover:shadow-md transition-all shadow-sm">
-                                            <div className="min-w-0">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-xs font-black text-foreground font-kantumruy truncate">{ver.versionName}</span>
-                                                    <span className="text-[8px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-full font-bold">រក្សាទុក</span>
+                                <div className="grid grid-cols-1 gap-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                    {templateVersions.map((ver, idx) => (
+                                        <m.div
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: idx * 0.05 }}
+                                            key={ver.id}
+                                            className="bg-white dark:bg-white/5 p-6 md:p-8 rounded-[2rem] border border-slate-100 dark:border-white/5 flex items-center justify-between shadow-sm hover:shadow-md transition-all group"
+                                        >
+                                            <div className="flex items-center gap-5 min-w-0">
+                                                <div className="w-12 h-12 rounded-2xl bg-slate-50/50 dark:bg-white/10 flex items-center justify-center text-slate-400 group-hover:text-rose-500 transition-colors shrink-0">
+                                                    <Clock size={20} />
                                                 </div>
-                                                <p className="text-[9px] text-muted-foreground mt-0.5">{mounted ? new Date(ver.createdAt).toLocaleString('km-KH', { timeZone: 'Asia/Phnom_Penh' }) : '...'}</p>
+                                                <div className="min-w-0">
+                                                    <h4 className="text-[13px] font-black text-slate-900 dark:text-white font-kantumruy tracking-tight truncate pr-4">{ver.versionName}</h4>
+                                                    <div className="flex items-center gap-3 mt-1.5 opacity-40">
+                                                        <span className="text-[9px] font-black uppercase tracking-widest">
+                                                            {mounted ? new Date(ver.createdAt).toLocaleString(t("common.constants.locale") || 'km-KH', { timeZone: 'Asia/Phnom_Penh' }) : '...'}
+                                                        </span>
+                                                        <span className="w-1 h-1 rounded-full bg-slate-400" />
+                                                        <span className="text-[9px] font-black uppercase tracking-widest">{t("common.actions.save")}</span>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
+                                            <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                                                <button
                                                     onClick={() => handleRollback(ver.id)}
-                                                    className="h-8 w-8 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 rounded-lg"
-                                                    title="Restore this version"
+                                                    className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 flex items-center justify-center hover:bg-emerald-500 hover:text-white hover:shadow-lg shadow-emerald-500/20 transition-all"
+                                                    title={t("wizard.steps.5.rollback")}
                                                 >
-                                                    <RotateCcw size={14} />
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
+                                                    <RotateCcw size={16} />
+                                                </button>
+                                                <button
                                                     onClick={() => handleDeleteVersion(ver.id)}
-                                                    className="h-8 w-8 text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg"
-                                                    title="Delete"
+                                                    className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-500/10 text-red-400 flex items-center justify-center hover:bg-red-500 hover:text-white hover:shadow-lg shadow-red-500/20 transition-all"
+                                                    title={t("wizard.steps.5.delete")}
                                                 >
-                                                    <Trash2 size={14} />
-                                                </Button>
+                                                    <Trash2 size={16} />
+                                                </button>
                                             </div>
-                                        </div>
+                                        </m.div>
                                     ))}
                                 </div>
                             )}

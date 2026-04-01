@@ -48,9 +48,10 @@ export async function POST(req: Request) {
         }
 
         const { email, password, turnstileToken, twoFactorToken } = body;
+        const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : email;
 
-        // Vercel / Cloudflare specific IP Headers
-        const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "127.0.0.1";
+        // Standardized IP Detection
+        const ip = getIP(req);
         const geoIp = req.headers.get("x-vercel-ip-country") || req.headers.get("cf-ipcountry") || "UNKNOWN";
         const userAgent = req.headers.get("user-agent") || "UNKNOWN";
 
@@ -99,8 +100,7 @@ export async function POST(req: Request) {
                 else await prisma.staff.update({ where: { id: account.id }, data: updateData });
 
                 if (newAttempts === 5) {
-                    // Fire and forget telegram alert
-                    sendTelegramAlert(`🚨 *SECURITY ALERT*\n\nType: Account Lockout Threshold\nAccount: \`${account.email}\`\nRole: \`${type}\`\nIP: \`${ip}\`\nCountry: \`${geoIp}\`\nAttempts: 5\nTime: ${new Date().toUTCString()}`).catch(console.error);
+                    sendTelegramAlert(`🚨 *SECURITY ALERT*...`).catch(console.error);
                 }
             }
 
@@ -112,15 +112,12 @@ export async function POST(req: Request) {
 
             if (ipRecord.failures >= 10) {
                 await prisma.ipSecurity.update({ where: { ip }, data: { blockedUntil: new Date(Date.now() + 30 * 60 * 1000) } });
-                // Fire and forget telegram alert
-                sendTelegramAlert(`🛑 *IP Temporarily Blocked*\n\nType: Threshold Exceeded\nIP: \`${ip}\`\nCountry: \`${geoIp}\`\nAttempts: 10\nDuration: 30 minutes\nTime: ${new Date().toUTCString()}`).catch(console.error);
             }
 
             await prisma.securityLog.create({
-                data: { event: "LOGIN_FAILED", ip, geoIp, userAgent, email, details: account ? `${type} failed attempt (#${newAttempts})${customError ? `: ${customError}` : ''}` : `Account not found` }
+                data: { event: "LOGIN_FAILED", ip, geoIp, userAgent, email: normalizedEmail, details: account ? `${type} failed attempt (#${newAttempts})${customError ? `: ${customError}` : ''}` : `Account not found` }
             });
 
-            // Exponential Backoff (Cap at 8 seconds)
             const delayMs = Math.min((Math.pow(2, newAttempts) * 250), 8000);
             await new Promise(r => setTimeout(r, delayMs));
 
@@ -131,7 +128,7 @@ export async function POST(req: Request) {
         let user;
         try {
             user = await prisma.user.findUnique({
-                where: { email },
+                where: { email: normalizedEmail },
                 select: {
                     id: true,
                     email: true,
@@ -246,8 +243,9 @@ export async function POST(req: Request) {
                 const token = await signToken({ userId: user.id, email: user.email, role }, { fingerprint });
                 const response = NextResponse.json({ success: true, user: { id: user.id, email: user.email, role } });
                 const cookieSecure = isSecureCookie(req);
-                const host = req.headers.get("host") || "";
-                console.log(`[Auth Debug] Signin Success - User: ${user.email}, Role: ${role}, Host: ${host}, IP: ${ip}, Secure: ${cookieSecure}, Env: ${process.env.NODE_ENV}`);
+                
+                // Hardened Logging: No PII (Email/IP/Headers) in success logs
+                console.log(`[Auth] Signin Success - UserID: ${user.id}, Role: ${role}, Secure: ${cookieSecure}`);
 
                 response.cookies.set("token", token, {
                     httpOnly: true,
@@ -264,7 +262,7 @@ export async function POST(req: Request) {
 
         // 2. Check STAFF
         const staff = await prisma.staff.findUnique({
-            where: { email },
+            where: { email: normalizedEmail },
             include: { 
                 wedding: {
                     include: {

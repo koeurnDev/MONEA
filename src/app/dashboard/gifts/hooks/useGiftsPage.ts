@@ -1,9 +1,12 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
+import { useTranslation } from "@/i18n/LanguageProvider";
 import { useGiftsData } from "./useGiftsData";
+import { moneaClient } from "@/lib/api-client";
 
 export function useGiftsPage(onSuccess: () => void) {
+    const { t } = useTranslation();
     const {
         wedding,
         gifts,
@@ -36,11 +39,12 @@ export function useGiftsPage(onSuccess: () => void) {
 
         for (const gift of queue) {
             try {
-                const res = await fetch("/api/gifts", {
-                    method: "POST",
-                    body: JSON.stringify(gift),
-                });
-                if (!res.ok) failed.push(gift);
+                const res = await moneaClient.post<any>("/api/gifts", gift);
+                if (!res.error) {
+                    // Success (handled by refresh)
+                } else {
+                    failed.push(gift);
+                }
             } catch (e) {
                 failed.push(gift);
             }
@@ -96,32 +100,48 @@ export function useGiftsPage(onSuccess: () => void) {
     const exportExcel = async () => {
         const XLSX = await import("xlsx");
         
-        // Manual Khmer Date Formatter
+        // Manual Khmer Date Formatter (Keep for Khmer locale, use standard for others)
         const formatKhmerDate = (date: Date | string | undefined) => {
             if (!date) return "";
             const d = new Date(date);
-            const khmerDays = ["អាទិត្យ", "ច័ន្ទ", "អង្គារ", "ពុធ", "ព្រហស្បតិ៍", "សុក្រ", "សៅរ៍"];
-            const khmerMonths = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
-            const khmerDigits = ["០", "១", "២", "៣", "៤", "៥", "៦", "៧", "៨", "៩"];
+            if (t("common.language") !== "km") {
+                return d.toLocaleDateString("en-US", { month: '2-digit', day: '2-digit', year: 'numeric' });
+            }
+            const khmerDays = t("common.calendar.days", { returnObjects: true }) as string[];
+            const khmerMonths = t("common.calendar.months", { returnObjects: true }) as string[];
+            const khmerDigits = t("common.calendar.digits", { returnObjects: true }) as string[];
             const toKhmerNum = (num: number) => String(num).split('').map(digit => khmerDigits[parseInt(digit)] || digit).join('');
-            return `ថ្ងៃ${khmerDays[d.getDay()]} ទី${toKhmerNum(d.getDate())} ខែ${khmerMonths[d.getMonth()]} ឆ្នាំ${toKhmerNum(d.getFullYear())}`;
+            return `${t("common.calendar.day")}${khmerDays[d.getDay()]} ${t("common.calendar.number")}${toKhmerNum(d.getDate())} ${t("common.calendar.month")}${khmerMonths[d.getMonth()]} ${t("common.calendar.year")}${toKhmerNum(d.getFullYear())}`;
         };
 
-        const title = `បញ្ជីចំណងដៃ - ${wedding?.groomName || '...'} និង ${wedding?.brideName || '...'}`;
-        const dateStr = formatKhmerDate(wedding?.date);
-        const summary = `កាលបរិច្ឆេទ: ${dateStr}  |  សរុបភ្ញៀវ: ${gifts.length} នាក់`;
-        const moneySummary = `សរុប (USD): $${totals.usd.toLocaleString()}  |  សរុប (KHR): ${totals.khr.toLocaleString()} ៛`;
+        const weddingAny = wedding as any;
+        const title = `${t("gifts.export.title")} - ${weddingAny?.groomName || '...'} ${t("gifts.export.and")} ${weddingAny?.brideName || '...'}`;
+        const dateStr = formatKhmerDate(weddingAny?.date);
+        const summary = `${t("gifts.export.date")}: ${dateStr}  |  ${t("gifts.export.totalGuests")}: ${gifts.length} ${t("gifts.export.guestsCount")}`;
+        const moneySummary = `${t("gifts.export.totalUsd")}: $${totals.usd.toLocaleString()}  |  ${t("gifts.export.totalKhr")}: ${totals.khr.toLocaleString()} ៛`;
 
-        const headers = ["ល.រ", "ឈ្មោះភ្ញៀវ", "មកពីណា", "ចំនួនទឹកប្រាក់", "រូបិយប័ណ្ណ", "វិធីសាស្ត្រ", "កាលបរិច្ឆេទ"];
-        const rows = gifts.sort((a: any, b: any) => (a.sequenceNumber || 0) - (b.sequenceNumber || 0)).map((g: any, idx: number) => [
-            g.sequenceNumber || (idx + 1),
-            g.guest?.name || "មិនស្គាល់",
-            g.guest?.group && g.guest.group !== "None" ? g.guest.group : (g.guest?.source && g.guest.source !== "GIFT_ENTRY" && g.guest.source !== "None" ? g.guest.source : "ទូទៅ"),
-            g.amount.toLocaleString(),
-            g.currency,
-            g.method || "សាច់ប្រាក់",
-            new Date(g.createdAt).toLocaleDateString("en-US", { month: '2-digit', day: '2-digit', year: 'numeric' })
-        ]);
+        const headers = [
+            t("gifts.export.headers.no"),
+            t("gifts.export.headers.guestName"),
+            t("gifts.export.headers.from"),
+            t("gifts.export.headers.amount"),
+            t("gifts.export.headers.currency"),
+            t("gifts.export.headers.method"),
+            t("gifts.export.headers.date")
+        ];
+
+        const rows = gifts.sort((a: any, b: any) => (a.sequenceNumber || 0) - (b.sequenceNumber || 0)).map((g: any, idx: number) => {
+            const methodDisplay = (g.method === "Cash" || g.method === "CASH") ? t("gifts.export.cash") : (g.method || t("gifts.export.cash"));
+            return [
+                g.sequenceNumber || (idx + 1),
+                g.guest?.name || t("gifts.export.unknown"),
+                g.guest?.group && g.guest.group !== "None" ? g.guest.group : (g.guest?.source && g.guest.source !== "GIFT_ENTRY" && g.guest.source !== "None" ? g.guest.source : t("gifts.export.general")),
+                g.amount.toLocaleString(),
+                g.currency,
+                methodDisplay,
+                new Date(g.createdAt).toLocaleDateString("en-US", { month: '2-digit', day: '2-digit', year: 'numeric' })
+            ];
+        });
 
         const aoa = [
             [title],
@@ -145,8 +165,8 @@ export function useGiftsPage(onSuccess: () => void) {
         ];
 
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "បញ្ជីចំណងដៃ");
-        const fileName = `MONEA_GiftList_${wedding?.groomName || 'Wedding'}.xlsx`;
+        XLSX.utils.book_append_sheet(workbook, worksheet, t("gifts.export.sheetName"));
+        const fileName = `MONEA_GiftList_${weddingAny?.groomName || 'Wedding'}.xlsx`;
         XLSX.writeFile(workbook, fileName);
     };
 
@@ -158,21 +178,18 @@ export function useGiftsPage(onSuccess: () => void) {
     };
 
     const toggleShowGifts = async () => {
-        if (!wedding) return;
-        const currentShow = wedding.themeSettings?.showGiftAmounts !== false;
+        const weddingAny = wedding as any;
+        if (!weddingAny) return;
+        const currentShow = weddingAny.themeSettings?.showGiftAmounts !== false;
         const newShow = !currentShow;
 
         mutateWedding({
-            ...wedding,
-            themeSettings: { ...wedding.themeSettings, showGiftAmounts: newShow }
+            ...weddingAny,
+            themeSettings: { ...weddingAny.themeSettings, showGiftAmounts: newShow }
         }, { revalidate: false });
 
         try {
-            await fetch("/api/wedding", {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ themeSettings: { showGiftAmounts: newShow } })
-            });
+            await moneaClient.put("/api/wedding", { themeSettings: { showGiftAmounts: newShow } });
             refresh();
         } catch (e) {
             refresh();

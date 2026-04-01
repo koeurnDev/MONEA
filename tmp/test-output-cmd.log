@@ -1,0 +1,33 @@
+Starting GiftService test...
+Testing with wedding ID: cmn5oj3xs00038i2ufsrv4vhj
+CRITICAL ERROR during test: PrismaClientValidationError: 
+Invalid `prisma.gift.create()` invocation:
+
+{
+  data: {
+    id: "db697c00-e008-489c-92a2-b159d695ca02",
+    weddingId: "cmn5oj3xs00038i2ufsrv4vhj",
+    guestId: "6e3edcd2-ee5d-4704-beab-bc1a64412fb0",
+    amount: 10,
+    currency: "USD",
+    method: "CASH",
+            ~~~~~~
+    sequenceNumber: 1
+  },
+  include: {
+    guest: true
+  }
+}
+
+Invalid value for argument `method`. Expected PaymentMethod.
+    at wn (D:\MONEA\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (D:\MONEA\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (D:\MONEA\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (D:\MONEA\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (D:\MONEA\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async <anonymous> (D:\MONEA\src\services\GiftService.ts:108:26)
+    at async Proxy._transactionWithCallback (D:\MONEA\node_modules\@prisma\client\runtime\library.js:130:8000)
+    at async GiftService.createGift (D:\MONEA\src\services\GiftService.ts:66:16)
+    at async test (D:\MONEA\tmp\test-gift.ts:17:22) {
+  clientVersion: '5.22.0'
+}

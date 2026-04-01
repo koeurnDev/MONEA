@@ -4,7 +4,7 @@ import { v2 as cloudinary } from 'cloudinary';
 import { NextResponse } from 'next/server';
 import { getServerUser } from '@/lib/auth';
 import { ROLES } from '@/lib/constants';
-import { prisma } from '@/lib/prisma';
+import { prisma, queryRaw } from '@/lib/prisma';
 
 cloudinary.config({
     cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
@@ -33,11 +33,14 @@ export async function POST(request: Request) {
         // 2. Platform Owner bypass
         if (user.role !== ROLES.PLATFORM_OWNER) {
             // 3. Database Ownership Check (Trust the DB, not just the prefix)
-            const file = await prisma.galleryItem.findFirst({
-                where: { publicId: public_id }
-            });
+            const files = await queryRaw('SELECT "weddingId" FROM "GalleryItem" WHERE "publicId" = $1 LIMIT 1', public_id);
+            const file = files[0];
 
-            const weddingId = user.weddingId || (await prisma.wedding.findFirst({ where: { userId: user.id } }))?.id;
+            let weddingId = user.weddingId;
+            if (!weddingId) {
+                const weddingResults = await queryRaw('SELECT id FROM "Wedding" WHERE "userId" = $1 LIMIT 1', user.id);
+                weddingId = weddingResults[0]?.id;
+            }
 
             if (!file) {
                 // If not in galleryItem, check if it starts with wedding folder (legacy)

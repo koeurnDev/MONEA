@@ -35,15 +35,16 @@ export async function GET(req: Request) {
                 include
             });
         } else if (id) {
-            // Fetch specific wedding, ensure owner match or admin
+            // Fetch specific wedding, ensure owner match
             wedding = await prisma.wedding.findUnique({
                 where: { id, userId: user.userId },
                 include
             });
         } else {
-            // Default to first wedding for backward compatibility
+            // Fallback: Fetch the most recent wedding for this user
             wedding = await prisma.wedding.findFirst({
                 where: { userId: user.userId },
+                orderBy: { createdAt: 'desc' },
                 include
             });
         }
@@ -82,7 +83,8 @@ export async function GET(req: Request) {
 
         return NextResponse.json(responseData);
     } catch (error: any) {
-        console.error(`[Wedding API Debug] GET CRASH: ${error.message}`, error);
+        const errorLog = `[${new Date().toISOString()}] Wedding GET ERROR: ${error.message}\nStack: ${error.stack}\n`;
+        require('fs').appendFileSync('tmp/api-errors.log', errorLog);
         return errorResponse("Internal Server Error in Wedding GET", 500, error.message);
     }
 }
@@ -94,6 +96,15 @@ export async function POST(req: Request) {
         console.log(`[Wedding API Debug] POST. UserRole: ${user?.role}`);
 
         if (!user) return errorResponse("Unauthorized", 401);
+
+        // Check if user already has a wedding (MONEA allows 1 per user for now)
+        const existingWedding = await prisma.wedding.findFirst({
+            where: { userId: user.userId }
+        });
+        
+        if (existingWedding) {
+            return errorResponse("Wedding already exists", 409);
+        }
 
         const { data, error } = await validateRequest(req, weddingSchema);
         if (error) return error;
@@ -146,9 +157,6 @@ export async function PUT(req: Request) {
         } else if (weddingId) {
             // Targeted update
             wedding = await prisma.wedding.findUnique({ where: { id: weddingId, userId: user.userId } });
-        } else {
-            // Fallback for old clients
-            wedding = await prisma.wedding.findFirst({ where: { userId: user.userId } });
         }
 
         if (!wedding) {

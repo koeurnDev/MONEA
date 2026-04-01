@@ -23,27 +23,33 @@ export async function GET() {
             });
         }
 
-        // For admin/owner users, fetch full profile
-        const dbUser = await prisma.user.findUnique({
-            where: { id: user.userId },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                role: true,
-                createdAt: true,
-                twoFactorEnabled: true,
-                _count: {
-                    select: { weddings: true }
-                }
-            }
-        });
+        // For admin/owner users, fetch full profile using Raw SQL to bypass Prisma Client issues
+        const results = await (prisma as any).$queryRawUnsafe(`
+            SELECT 
+                id, name, email, role, "createdAt", "twoFactorEnabled"
+            FROM "User" 
+            WHERE id = $1 
+            LIMIT 1
+        `, user.userId);
+
+        const dbUser = results[0];
 
         if (!dbUser) {
             return NextResponse.json({ error: "User not found" }, { status: 404 });
         }
 
-        return NextResponse.json({ ...dbUser, type: "admin" });
+        // Use standard Prisma count
+        const weddingCount = await prisma.wedding.count({
+            where: { userId: user.userId }
+        });
+        
+        const responseData = {
+            ...dbUser,
+            type: "admin",
+            _count: { weddings: weddingCount }
+        };
+
+        return NextResponse.json(responseData);
     } catch (error) {
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }

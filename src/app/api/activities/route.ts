@@ -10,13 +10,7 @@ export async function GET() {
     const user = await getServerUser();
     if (!user) return errorResponse("Unauthorized", 401);
 
-    let weddingId = null;
-    if (user.role === "STAFF") {
-        weddingId = (user as any).weddingId;
-    } else {
-        const wedding = await prisma.wedding.findFirst({ where: { userId: user.userId } });
-        if (wedding) weddingId = wedding.id;
-    }
+    const weddingId = user.weddingId || (await prisma.wedding.findFirst({ where: { userId: user.id } }))?.id;
 
     if (!weddingId) return NextResponse.json([]);
 
@@ -43,18 +37,12 @@ export async function POST(req: Request) {
     if (title.length > 100) return errorResponse("Title too long (Max 100)", 400);
     if (description && description.length > 1000) return errorResponse("Description too long (Max 1000)", 400);
 
-    let wedding;
-    if (user.role === "STAFF") {
-        wedding = await prisma.wedding.findUnique({ where: { id: (user as any).weddingId } });
-    } else {
-        wedding = await prisma.wedding.findFirst({ where: { userId: user.userId } });
-    }
-
-    if (!wedding) return errorResponse("Wedding not found", 404);
+    const weddingId = user.weddingId || (await prisma.wedding.findFirst({ where: { userId: user.id } }))?.id;
+    if (!weddingId) return errorResponse("Wedding not found", 404);
 
     // Get next order
     const lastActivity = await prisma.activity.findFirst({
-        where: { weddingId: wedding.id },
+        where: { weddingId },
         orderBy: { order: 'desc' }
     });
     const newOrder = (lastActivity?.order || 0) + 1;
@@ -66,11 +54,11 @@ export async function POST(req: Request) {
             description,
             icon,
             order: newOrder,
-            weddingId: wedding.id,
+            weddingId: weddingId,
         },
     });
 
-    await createLog(wedding.id, "CREATE", `Created activity: ${title}`, user.email || user.role);
+    await createLog(weddingId, "CREATE", `Created activity: ${title}`, user.email || user.role);
 
     return NextResponse.json(activity);
 }

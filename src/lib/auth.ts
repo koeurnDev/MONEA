@@ -1,8 +1,11 @@
 import { SignJWT, jwtVerify, type JWTPayload } from "jose";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { COOKIE_NAMES, JWT_CONFIG, ROLES } from "./constants";
 
 import redis from "./redis";
+import { prisma } from "./prisma";
+import { getIP } from "./utils";
+
 
 const JWT_SECRET_DEV_FALLBACK = "monea-dev-secret-do-not-use-in-prod-1234567890";
 const SECRET_STR = process.env.JWT_SECRET || (process.env.NODE_ENV === "development" ? JWT_SECRET_DEV_FALLBACK : "");
@@ -27,8 +30,13 @@ export async function revokeToken(jti: string, exp: number) {
  * Checks if a token JTI is in the revocation list.
  */
 export async function isTokenRevoked(jti: string): Promise<boolean> {
-  const res = await redis.get(`revoked:${jti}`);
-  return !!res;
+  try {
+    const res = await redis.get(`revoked:${jti}`);
+    return !!res;
+  } catch (e) {
+    console.error("[Auth] Redis revocation check failed (fail-safe to false):", e);
+    return false;
+  }
 }
 
 /**
@@ -65,15 +73,10 @@ export async function generateTokenPair(payload: any, options: {
  * Generates a cryptographic fingerprint hash for the current request (User-Agent + IP).
  * Standardized between login route and middleware for consistent token binding.
  */
-export async function generateFingerprint(req: { headers: Headers; ip: string } | any): Promise<string> {
+export async function generateFingerprint(req: any): Promise<string> {
     const headers = req.headers instanceof Headers ? req.headers : new Headers(req.headers || {});
     const userAgent = headers.get("user-agent") || "unknown";
-    let ip = req.ip || "unknown";
-
-    // Normalize IPv6 localhost to IPv4 for consistency in local development
-    if (process.env.NODE_ENV === "development") {
-        if (ip === "::1" || ip === "::ffff:127.0.0.1") ip = "127.0.0.1";
-    }
+    const ip = getIP(req);
 
     const data = new TextEncoder().encode(`${userAgent}|${ip}`);
     const hashBuffer = await crypto.subtle.digest("SHA-256", data);
@@ -109,27 +112,28 @@ export async function signToken(payload: any, options: { fingerprint?: string; e
  * Checks if the request should use secure cookies based on protocol and environment.
  */
 export function isSecureCookie(req: Request | any): boolean {
-    if (process.env.NODE_ENV === "production") return true;
+    const headers = req instanceof Request ? req.headers : new Headers(req.headers);
+    const host = headers.get("host") || "";
     
     // In development, allow HTTP on localhost
-    const host = req.headers.get("host") || "";
     if (host.includes("localhost") || host.includes("127.0.0.1")) return false;
 
-    const proto = req.headers.get("x-forwarded-proto");
+    if (process.env.NODE_ENV === "production") return true;
+
+    const proto = headers.get("x-forwarded-proto");
     return proto === "https";
 }
+
+import { AuthUser } from "@/types/auth";
 
 /**
  * Retrieves the current authenticated user from cookies (Server-side).
  */
-export async function getServerUser() {
+export async function getServerUser(): Promise<AuthUser | null> {
     const cookieStore = cookies();
     const token = cookieStore.get(COOKIE_NAMES.TOKEN)?.value || cookieStore.get(COOKIE_NAMES.STAFF_TOKEN)?.value;
     
-    if (!token) {
-        if (process.env.NODE_ENV === "development") console.log("[Auth Debug] getServerUser: No token found in cookies.");
-        return null;
-    }
+    if (!token) return null;
 
     try {
         const secret = new TextEncoder().encode(SECRET_STR);
@@ -137,16 +141,63 @@ export async function getServerUser() {
             issuer: JWT_CONFIG.ISSUER,
         });
 
+        // Anti-replay fingerprint validation (Consistency with Middleware)
+        if (payload.fingerprint && process.env.NODE_ENV !== "development") {
+            const fingerprint = await generateFingerprint({ headers: headers() });
+            if (payload.fingerprint !== fingerprint) {
+                console.warn(`[Auth] Fingerprint mismatch detected in getServerUser. Remote: ${fingerprint}`);
+                return null;
+            }
+        }
+
+        const userId = (payload.userId || payload.id || payload.staffId) as string;
+        const iat = payload.iat ? new Date(payload.iat * 1000) : null;
+
+        let dbUser: any = null;
+        try {
+            if (payload.staffId) {
+                const results: any[] = await prisma.$queryRaw`SELECT "sessionsRevokedAt", role FROM "Staff" WHERE id = ${userId} LIMIT 1`;
+                dbUser = results[0];
+            } else {
+                const results: any[] = await prisma.$queryRaw`SELECT "sessionsRevokedAt", role FROM "User" WHERE id = ${userId} LIMIT 1`;
+                dbUser = results[0];
+            }
+        } catch (e: any) {
+            console.error("[Auth] Database check failed (Raw SQL):", e.message);
+            if (e.message.includes("Can't reach database server")) {
+                require('fs').appendFileSync('auth-debug.log', `[${new Date().toISOString()}] CRITICAL: DB UNREACHABLE - ${e.message}\n`);
+            }
+            // If the DB check fails completely, we must assume the session is invalid for safety
+            // But we log it for the developer to see
+            return null;
+        }
+
+        if (!dbUser) {
+            return null;
+        }
+
+        if (dbUser.sessionsRevokedAt && iat && iat < new Date(dbUser.sessionsRevokedAt)) {
+            return null;
+        }
+
+        const currentRole = dbUser.role || payload.role;
+        let userType: "admin" | "user" | "staff" = "user";
+        if (currentRole === ROLES.PLATFORM_OWNER) {
+            userType = "admin";
+        } else if (currentRole === ROLES.EVENT_STAFF) {
+            userType = "staff";
+        }
+
         return {
-            id: (payload.userId || payload.staffId) as string,
-            userId: (payload.userId || payload.staffId) as string,
+            id: userId,
+            userId: userId,
             email: payload.email as string,
             name: (payload.name as string) || null,
-            role: payload.role as string,
+            role: currentRole as string,
             weddingId: payload.weddingId as string | undefined,
-            type: payload.role === ROLES.PLATFORM_OWNER ? "admin" : "user"
+            type: userType
         };
-    } catch (error) {
+    } catch (error: any) {
         return null;
     }
 }

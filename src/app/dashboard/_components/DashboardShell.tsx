@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { DashboardSidebar } from "./DashboardSidebar";
 import { BroadcastBanner } from "./BroadcastBanner";
+import { NotificationBell } from "./NotificationBell";
 import MobileBottomNav from "./MobileBottomNav";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -12,7 +13,8 @@ import { LoadingBar } from "@/components/ui/LoadingBar";
 import { cn } from "@/lib/utils";
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { User, Settings, LogOut, LifeBuoy } from "lucide-react";
+import { User, Settings, LogOut, LifeBuoy, ShieldCheck } from "lucide-react";
+import { ROLES } from "@/lib/constants";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -28,6 +30,8 @@ import {
     AvatarImage,
 } from "@/components/ui/avatar";
 import useSWR from "swr";
+import { useTranslation } from "@/i18n/LanguageProvider";
+import { LanguageToggle } from "@/components/LanguageToggle";
 
 const fetcher = async (url: string) => {
     const res = await fetch(url);
@@ -47,6 +51,7 @@ interface DashboardShellProps {
 }
 
 export function DashboardShell({ children, isStaff, isAdmin, initialUser }: DashboardShellProps) {
+    const { t } = useTranslation();
     const { data: user, error } = useSWR("/api/auth/me", fetcher, {
         fallbackData: initialUser,
         revalidateOnFocus: false,
@@ -75,9 +80,10 @@ export function DashboardShell({ children, isStaff, isAdmin, initialUser }: Dash
         }
     }, [error, initialUser]);
 
-    // REDIRECTION LOGIC: Force new users to create their first wedding
+    // REDIRECTION LOGIC: Consolidated to Server Components (DashboardPage) to avoid loops
+    /*
     React.useEffect(() => {
-        if (!mounted || !user || isStaff || isAdmin === false) return; // Admin/Owner only check
+        if (!mounted || !user || isStaff || isAdmin === false) return;
 
         const weddingCount = user._count?.weddings ?? 0;
         const isCreating = pathname === "/dashboard/create";
@@ -90,6 +96,7 @@ export function DashboardShell({ children, isStaff, isAdmin, initialUser }: Dash
             router.push("/dashboard");
         }
     }, [mounted, user, pathname, isStaff, isAdmin, router]);
+    */
 
     const isDesignPage = pathname?.includes("/dashboard/design");
     const isLivePage = pathname?.includes("/dashboard/gifts/live");
@@ -100,13 +107,23 @@ export function DashboardShell({ children, isStaff, isAdmin, initialUser }: Dash
         } catch (e) {
             console.error("Logout API failed", e);
         }
-        window.location.href = "/login";
+        window.location.href = "/sign-in";
     };
 
     // Memoize the Sidebar to prevent re-renders when 'user' state changes
     const memoizedSidebar = React.useMemo(() => (
         <DashboardSidebar isStaff={isStaff} isAdmin={isAdmin} />
     ), [isStaff, isAdmin]);
+
+    // Role-based title and subtitle for the header identity
+    const isPlatformAdmin = user?.role === ROLES.PLATFORM_OWNER || user?.role === ROLES.EVENT_STAFF;
+    const userName = user?.name || (user?.email ? user.email.split('@')[0] : "");
+    const resolvedTitle = isPlatformAdmin 
+        ? t('admin.header.role') 
+        : (userName || "MONEA User");
+    const resolvedSubtitle = isPlatformAdmin
+        ? t('admin.header.platform')
+        : (user?.email || "MONEA User");
 
     if (isLivePage) {
         return <main className="w-full min-h-screen">{children}</main>;
@@ -115,7 +132,7 @@ export function DashboardShell({ children, isStaff, isAdmin, initialUser }: Dash
     return (
         <div className="flex min-h-screen w-full bg-background font-sans text-foreground print:!bg-white print:!text-black">
             {/* Desktop Sidebar */}
-            <aside className="w-[280px] bg-card hidden md:flex flex-col fixed h-full z-20 shadow-[4px_0_40px_rgba(0,0,0,0.04)] dark:shadow-none print:hidden border-none accelerate-gpu">
+            <aside className="w-[280px] bg-card hidden md:flex flex-col fixed h-full z-20 shadow-sm dark:shadow-none print:hidden border-r border-border/50 accelerate-gpu">
                 {memoizedSidebar}
             </aside>
 
@@ -129,19 +146,19 @@ export function DashboardShell({ children, isStaff, isAdmin, initialUser }: Dash
                 {!isDesignPage && (
                     <header className={cn(
                         "h-16 md:h-20 sticky top-0 z-30 flex items-center px-4 md:px-10 justify-between print:hidden accelerate-gpu",
-                        "bg-card/90 backdrop-blur-sm shadow-[0_4px_24px_rgba(0,0,0,0.03)] dark:shadow-none"
+                        "bg-card border-b border-border/50"
                     )}>
                         <div className="flex items-center gap-4">
                             <div className="hidden md:flex flex-col text-left">
                                 <h2 className="text-xl font-bold text-foreground tracking-tight font-kantumruy">
-                                    {pathname === "/dashboard" ? "ទិដ្ឋភាពទូទៅ" :
-                                        pathname.includes("/guests") ? "គ្រប់គ្រងភ្ញៀវ" :
-                                            pathname.includes("/gifts") ? "បញ្ជីចំណងដៃ" :
-                                                pathname.includes("/schedule") ? "កាលវិភាគ" :
-                                                    pathname.includes("/settings") ? "ការកំណត់" : "ផ្ទាំងគ្រប់គ្រង"}
+                                    {pathname === "/dashboard" ? t("dashboard.nav.overview") :
+                                        pathname.includes("/guests") ? t("dashboard.nav.guests") :
+                                            pathname.includes("/gifts") ? t("dashboard.nav.gifts") :
+                                                pathname.includes("/schedule") ? t("dashboard.nav.schedule") :
+                                                    pathname.includes("/settings") ? t("dashboard.nav.settings") : t("dashboard.title")}
                                 </h2>
                                 <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-[0.2em] leading-none mt-1.5 font-kantumruy">
-                                    ព័ត៌មានទូទៅ
+                                    {t("dashboard.nav.generalInfo")}
                                 </p>
                             </div>
 
@@ -150,18 +167,20 @@ export function DashboardShell({ children, isStaff, isAdmin, initialUser }: Dash
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2 md:gap-4">
+                            <LanguageToggle className="bg-zinc-100 dark:bg-white/5 border border-border/50" />
                             <ThemeToggle />
+                            <NotificationBell isAuthenticated={!!user} />
 
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                     <button className="group flex items-center gap-3 pl-4 outline-none transition-opacity focus-visible:opacity-80 active:scale-95 duration-200">
                                         <div className="hidden sm:flex flex-col items-end">
                                             <span className="text-sm font-black text-foreground font-kantumruy leading-none group-hover:text-red-600 transition-colors">
-                                                {!mounted ? "កំពុងទាញយក..." : (user?.name || (user?.email ? user.email.split('@')[0] : "MONEA User"))}
+                                                {!mounted ? t("common.loading.fetching") : resolvedTitle}
                                             </span>
                                             <span className="text-[9px] text-zinc-500 font-bold tracking-[0.1em] uppercase mt-1.5 opacity-60">
-                                                {!mounted ? "MONEA User" : (user?.email || "MONEA User")}
+                                                {!mounted ? "MONEA User" : resolvedSubtitle}
                                             </span>
                                         </div>
                                         <Avatar className="w-10 h-10 rounded-2xl bg-muted/30 group-hover:bg-red-600/5 transition-all shadow-sm border-none">
@@ -174,53 +193,52 @@ export function DashboardShell({ children, isStaff, isAdmin, initialUser }: Dash
                                         </Avatar>
                                     </button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent className="w-64 mt-2 p-2 rounded-[1.5rem] bg-card/80 backdrop-blur-xl border-border/40 shadow-2xl" align="end">
-                                    <DropdownMenuLabel className="px-4 py-3">
-                                        <div className="flex flex-col gap-1 text-left">
-                                            <p className="text-sm font-black font-kantumruy text-foreground">កម្រងព័ត៌មាន</p>
-                                            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest opacity-60">Account Settings</p>
+                                <DropdownMenuContent className="w-72 mt-3 p-3 rounded-2xl bg-card border border-border shadow-xl dark:shadow-none" align="end">
+                                    <DropdownMenuLabel className="px-5 py-4 mb-2">
+                                        <div className="flex flex-col gap-2 text-left">
+                                            <p className="text-base font-black font-kantumruy text-foreground tracking-tight">{t("dashboard.user.profile")}</p>
+                                            <p className="text-[10px] text-muted-foreground/60 font-bold uppercase tracking-[0.2em] leading-none">{t("dashboard.user.accountSettings")}</p>
                                         </div>
                                     </DropdownMenuLabel>
-                                    <DropdownMenuSeparator className="bg-border/40 mx-2" />
-                                    <DropdownMenuGroup className="p-1">
+                                    <DropdownMenuSeparator className="bg-border/40 mx-3 mb-2" />
+                                    <DropdownMenuGroup className="p-1 space-y-1">
                                         <Link href="/dashboard/account">
-                                            <DropdownMenuItem className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer focus:bg-red-600/5 focus:text-red-600 transition-colors group">
-                                                <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center group-focus:bg-red-600/10 transition-colors">
-                                                    <User className="w-4 h-4" />
+                                            <DropdownMenuItem className="flex items-center gap-4 px-4 py-3.5 rounded-2xl cursor-pointer focus:bg-red-600/5 focus:text-red-700 dark:focus:text-red-400 transition-all duration-200 group">
+                                                <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-white/5 flex items-center justify-center group-focus:bg-red-600/10 transition-colors shadow-sm">
+                                                    <User className="w-5 h-5" />
                                                 </div>
-                                                <span className="text-sm font-bold font-kantumruy">ការកំណត់គណនី</span>
+                                                <span className="text-sm font-bold font-kantumruy">{t("dashboard.user.accountSettings")}</span>
                                             </DropdownMenuItem>
                                         </Link>
                                         <Link href="/dashboard/design">
-                                            <DropdownMenuItem className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer focus:bg-red-600/5 focus:text-red-600 transition-colors group">
-                                                <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center group-focus:bg-red-600/10 transition-colors">
-                                                    <Settings className="w-4 h-4" />
+                                            <DropdownMenuItem className="flex items-center gap-4 px-4 py-3.5 rounded-2xl cursor-pointer focus:bg-red-600/5 focus:text-red-700 dark:focus:text-red-400 transition-all duration-200 group">
+                                                <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-white/5 flex items-center justify-center group-focus:bg-red-600/10 transition-colors shadow-sm">
+                                                    <Settings className="w-5 h-5" />
                                                 </div>
-                                                <span className="text-sm font-bold font-kantumruy">រចនា & ការកំណត់</span>
+                                                <span className="text-sm font-bold font-kantumruy">{t("dashboard.user.designSettings")}</span>
                                             </DropdownMenuItem>
                                         </Link>
                                         <Link href="/dashboard/support">
-                                            <DropdownMenuItem className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer focus:bg-red-600/5 focus:text-red-600 transition-colors group">
-                                                <div className="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center group-focus:bg-red-600/10 transition-colors">
-                                                    <LifeBuoy className="w-4 h-4" />
+                                            <DropdownMenuItem className="flex items-center gap-4 px-4 py-3.5 rounded-2xl cursor-pointer focus:bg-red-600/5 focus:text-red-700 dark:focus:text-red-400 transition-all duration-200 group">
+                                                <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-white/5 flex items-center justify-center group-focus:bg-red-600/10 transition-colors shadow-sm">
+                                                    <LifeBuoy className="w-5 h-5" />
                                                 </div>
-                                                <span className="text-sm font-bold font-kantumruy">ជំនួយ & ការគាំទ្រ</span>
+                                                <span className="text-sm font-bold font-kantumruy">{t("dashboard.user.helpSupport")}</span>
                                             </DropdownMenuItem>
                                         </Link>
                                     </DropdownMenuGroup>
-                                    <DropdownMenuSeparator className="bg-border/40 mx-2" />
-                                    <div className="p-1">
+                                    <div className="p-1 mt-2">
                                         <DropdownMenuItem
                                             onSelect={(e) => {
                                                 e.preventDefault();
                                                 setIsLogoutModalOpen(true);
                                             }}
-                                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer focus:bg-red-600 focus:text-white transition-colors group text-red-600 font-bold"
+                                            className="flex items-center gap-4 px-4 py-3.5 rounded-2xl cursor-pointer focus:bg-zinc-100 dark:focus:bg-white/5 transition-all duration-200 group text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 font-bold"
                                         >
-                                            <div className="w-8 h-8 rounded-lg bg-red-50 dark:bg-red-950/20 flex items-center justify-center group-focus:bg-white/20 transition-colors">
-                                                <LogOut className="w-4 h-4" />
+                                            <div className="w-10 h-10 rounded-xl bg-zinc-50 dark:bg-white/5 flex items-center justify-center transition-colors group-focus:scale-95 duration-200 shadow-sm">
+                                                <LogOut className="w-5 h-5 text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300" />
                                             </div>
-                                            <span className="text-sm font-kantumruy">ចាកចេញពីកម្មវិធី</span>
+                                            <span className="text-sm font-kantumruy">{t("common.auth.logout")}</span>
                                         </DropdownMenuItem>
                                     </div>
                                 </DropdownMenuContent>
@@ -243,7 +261,7 @@ export function DashboardShell({ children, isStaff, isAdmin, initialUser }: Dash
                 {/* Content Container */}
                 <div className={cn(
                     "w-full mx-auto print:p-0 print:max-w-none",
-                    !isDesignPage && "p-3 pb-28 md:pb-10 md:p-10 max-w-7xl",
+                    !isDesignPage && "p-5 pb-28 md:pb-10 md:p-10 max-w-7xl",
                     isDesignPage && "p-0 m-0 max-w-none h-full flex flex-col"
                 )}>
                     {!isDesignPage && <div className="print:hidden"><BroadcastBanner isAuthenticated={!!user} /></div>}
@@ -259,10 +277,10 @@ export function DashboardShell({ children, isStaff, isAdmin, initialUser }: Dash
                     open={isLogoutModalOpen}
                     onClose={() => setIsLogoutModalOpen(false)}
                     onConfirm={handleLogout}
-                    title="ចាកចេញពីគណនី?"
-                    description="តើអ្នកពិតជាចង់ចាកចេញពីគណនីរបស់អ្នកមែនទេ? អ្នកនឹងត្រូវបញ្ចូលលេខសម្ងាត់ម្តងទៀតនៅពេលចូលប្រើប្រាស់លើកក្រោយ។"
-                    confirmLabel="ចាកចេញ"
-                    cancelLabel="បោះបង់"
+                    title={t("dashboard.logout.confirmTitle")}
+                    description={t("dashboard.logout.confirmDescription")}
+                    confirmLabel={t("common.actions.logout")}
+                    cancelLabel={t("common.actions.cancel")}
                     variant="danger"
                 />
             </main>

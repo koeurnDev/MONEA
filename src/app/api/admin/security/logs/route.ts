@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma, queryRaw } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
 
 export async function GET() {
@@ -10,15 +10,12 @@ export async function GET() {
     }
 
     try {
-        const logs = await prisma.securityLog.findMany({
-            where: user.role === "SUPERADMIN" ? {} : {
-                email: user.email
-            },
-            orderBy: {
-                createdAt: 'desc'
-            },
-            take: 20
-        });
+        const logs = await queryRaw(`
+            SELECT * FROM "SecurityLog" 
+            WHERE $1 = 'SUPERADMIN' OR email = $2
+            ORDER BY "createdAt" DESC 
+            LIMIT 20
+        `, user.role, user.email);
 
         return NextResponse.json(logs);
     } catch (error) {

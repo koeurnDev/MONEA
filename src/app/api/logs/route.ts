@@ -2,8 +2,6 @@ export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
-import fs from 'fs';
-
 
 // Legacy getUser removed in favor of getServerUser
 
@@ -12,11 +10,11 @@ export async function GET() {
         const user = await getServerUser();
         if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-        const wedding = await prisma.wedding.findFirst({ where: { userId: user.userId } });
-        if (!wedding) return NextResponse.json([]);
+        const weddingId = (user as any).weddingId || (await prisma.wedding.findFirst({ where: { userId: user.userId } }))?.id;
+        if (!weddingId) return NextResponse.json([]);
 
         const logs = await prisma.log.findMany({
-            where: { weddingId: wedding.id },
+            where: { weddingId: weddingId },
             orderBy: { createdAt: "desc" },
             take: 50
         });

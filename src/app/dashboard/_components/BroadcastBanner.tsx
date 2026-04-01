@@ -3,49 +3,46 @@ import * as React from "react";
 import { Megaphone, X, ExternalLink } from "lucide-react";
 import { m, AnimatePresence } from 'framer-motion';
 import { cn } from "@/lib/utils";
+import useSWR from "swr";
+
+const fetcher = (url: string) => fetch(url, { cache: 'no-store' }).then(r => r.json());
 
 export function BroadcastBanner({ isAuthenticated = true }: { isAuthenticated?: boolean }) {
-    const [broadcasts, setBroadcasts] = React.useState<any[]>([]);
     const [dismissed, setDismissed] = React.useState<string[]>([]);
-
     const [mounted, setMounted] = React.useState(false);
 
     React.useEffect(() => {
         setMounted(true);
-        if (!isAuthenticated) return;
+        try {
+            const stored = localStorage.getItem("monea_dismissed_banners");
+            if (stored) setDismissed(JSON.parse(stored));
+        } catch (e) { }
+    }, []);
 
-        let isMounted = true;
-        // Simple cache to prevent double-fetching on rapid mounts
-        if ((window as any)._broadcastFetched) return;
+    const handleDismiss = (id: string) => {
+        const newDismissed = [...dismissed, id];
+        setDismissed(newDismissed);
+        localStorage.setItem("monea_dismissed_banners", JSON.stringify(newDismissed));
+    };
 
-        fetch("/api/broadcast")
-            .then(async res => {
-                if (res.status === 401) return;
-                if (!res.ok) return;
-                try {
-                    const data = await res.json();
-                    const active = Array.isArray(data) ? data.filter((b: any) => b.active) : [];
-                    if (isMounted) {
-                        setBroadcasts(active);
-                        (window as any)._broadcastFetched = true;
-                    }
-                } catch (e) {
-                }
-            })
-            .catch(() => { });
+    const { data: rawData } = useSWR(isAuthenticated ? "/api/broadcast" : null, fetcher, {
+        refreshInterval: 5000, // Poll every 5s for near-instant delivery
+        revalidateOnFocus: true
+    });
 
-        return () => { isMounted = false; };
-    }, [isAuthenticated]);
+    const broadcasts = React.useMemo(() => {
+        return Array.isArray(rawData) ? rawData.filter((b: any) => b.active) : [];
+    }, [rawData]);
 
     const activeBroadcasts = broadcasts.filter(b => !dismissed.includes(b.id));
 
-    if (activeBroadcasts.length === 0) return null;
+    if (!mounted || activeBroadcasts.length === 0) return null;
 
     // Detect mobile for zero-animation mode - guarded by mount
     const isMobile = mounted ? (typeof window !== "undefined" && (window.innerWidth < 768 || navigator.maxTouchPoints > 0)) : false;
 
     return (
-        <div className="space-y-2 mb-6">
+        <div className="space-y-4 mb-6 min-h-[1px]">
             <AnimatePresence>
                 {activeBroadcasts.map((b) => (
                     <m.div
@@ -74,7 +71,7 @@ export function BroadcastBanner({ isAuthenticated = true }: { isAuthenticated?: 
                             </div>
                         </div>
                         <button
-                            onClick={() => setDismissed([...dismissed, b.id])}
+                            onClick={() => handleDismiss(b.id)}
                             className="absolute top-4 right-4 p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
                         >
                             <X size={16} />

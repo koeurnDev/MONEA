@@ -2,6 +2,7 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface GuestDeleteDialogProps {
     deleteId: string | null;
@@ -10,21 +11,33 @@ interface GuestDeleteDialogProps {
 }
 
 export function GuestDeleteDialog({ deleteId, onOpenChange, onConfirm }: GuestDeleteDialogProps) {
+    const { t } = useTranslation();
+
     return (
         <Dialog open={!!deleteId} onOpenChange={onOpenChange}>
-            <DialogContent className="rounded-[2rem] border-none shadow-2xl max-w-sm bg-card">
-                <DialogHeader>
-                    <DialogTitle className="text-xl font-black font-kantumruy">បញ្ជាក់ការលុប</DialogTitle>
-                    <DialogDescription className="font-kantumruy">
-                        តើអ្នកពិតជាចង់លុបភ្ញៀវនេះមែនទេ? សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ។
+            <DialogContent className="w-[92vw] max-w-[400px] rounded-[1.5rem] md:rounded-[2rem] border-none shadow-2xl bg-card p-6 md:p-10">
+                <DialogHeader className="text-center">
+                    <DialogTitle className="text-xl md:text-2xl font-black font-kantumruy mb-2">
+                        {t("guests.delete.title")}
+                    </DialogTitle>
+                    <DialogDescription className="font-kantumruy text-sm md:text-base text-muted-foreground/70 leading-relaxed px-2">
+                        {t("guests.delete.description")}
                     </DialogDescription>
                 </DialogHeader>
-                <div className="flex justify-end gap-3 mt-6">
-                    <Button variant="ghost" onClick={() => onOpenChange(false)} className="rounded-xl font-kantumruy font-bold h-11 flex-1">
-                        បោះបង់
+                <div className="flex flex-col sm:flex-row gap-3 mt-8">
+                    <Button 
+                        variant="ghost" 
+                        onClick={() => onOpenChange(false)} 
+                        className="rounded-xl md:rounded-2xl font-kantumruy font-bold h-12 md:h-14 flex-1 order-2 sm:order-1 border border-white/5 hover:bg-white/5 transition-all"
+                    >
+                        {t("common.actions.cancel")}
                     </Button>
-                    <Button variant="destructive" onClick={onConfirm} className="rounded-xl font-kantumruy font-bold h-11 flex-1 bg-red-600 hover:bg-red-700">
-                        លុប
+                    <Button 
+                        variant="destructive" 
+                        onClick={onConfirm} 
+                        className="rounded-xl md:rounded-2xl font-kantumruy font-bold h-12 md:h-14 flex-1 order-1 sm:order-2 bg-red-600 hover:bg-red-700 shadow-lg shadow-red-600/20 transition-all"
+                    >
+                        {t("common.actions.delete")}
                     </Button>
                 </div>
             </DialogContent>

@@ -1,9 +1,9 @@
 "use client";
-
 import React, { useState, useRef, useEffect } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
 import { Music2, Volume2, VolumeX, Disc } from 'lucide-react';
 import { WeddingData } from '../types';
+import { useTranslation } from '@/i18n/LanguageProvider';
 
 interface BackgroundMusicProps {
     wedding: WeddingData;
@@ -13,6 +13,7 @@ interface BackgroundMusicProps {
 }
 
 export function BackgroundMusic({ wedding, isPlaying, setIsPlaying, audioRef }: BackgroundMusicProps) {
+    const { t } = useTranslation();
     const audioUrl = wedding.themeSettings?.musicUrl;
 
     const togglePlay = () => {
@@ -46,7 +47,7 @@ export function BackgroundMusic({ wedding, isPlaying, setIsPlaying, audioRef }: 
     if (!audioUrl) return null;
 
     return (
-        <div className="fixed bottom-8 right-8 z-[100]">
+        <div className="fixed top-8 right-8 z-[100]">
             <m.div 
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -95,8 +96,8 @@ export function BackgroundMusic({ wedding, isPlaying, setIsPlaying, audioRef }: 
                     {/* Hover Tooltip */}
                     <div className="absolute right-full mr-4 top-1/2 -translate-y-1/2 px-4 py-2 bg-stone-900 text-gold text-[10px] font-black tracking-widest uppercase rounded-full border border-gold/20 opacity-0 group-hover/btn:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
                         {isPlaying 
-                            ? (wedding.themeSettings?.customLabels?.musicPauseLabel || "បិទតន្ត្រី") 
-                            : (wedding.themeSettings?.customLabels?.musicPlayLabel || "ចាក់តន្ត្រី")}
+                            ? (wedding.themeSettings?.customLabels?.musicPauseLabel || t("template.khmerLegacy.musicPauseLabel")) 
+                            : (wedding.themeSettings?.customLabels?.musicPlayLabel || t("template.khmerLegacy.musicPlayLabel"))}
                     </div>
                 </m.button>
 

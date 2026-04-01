@@ -1,19 +1,25 @@
 "use client";
+import * as React from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Users, Settings, LogOut, Shield, Heart, Menu, X, Bell, Search, Activity, Zap } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { LayoutDashboard, Users, Settings, LogOut, Shield, Menu, Activity, Bell, Megaphone, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { m, AnimatePresence } from 'framer-motion';
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import { AdminLanguageToggle } from "@/components/AdminLanguageToggle";
 import { ToastProvider } from "@/components/ui/Toast";
+import { useTranslation } from "@/i18n/LanguageProvider";
+import AdminHealthPulse from "@/components/admin/AdminHealthPulse";
+import dynamic from "next/dynamic";
+
+const ConfirmModal = dynamic(() => import("@/components/ui/ConfirmModal").then(m => m.ConfirmModal), { ssr: false });
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+    const { t, locale } = useTranslation();
     const pathname = usePathname();
-    const router = useRouter();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [logoutConfirm, setLogoutConfirm] = useState(false);
@@ -29,7 +35,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         setLogoutLoading(true);
         try {
             await fetch("/api/auth/logout", { method: "POST" });
-            window.location.href = "/login";
+            window.location.href = "/sign-in";
         } catch (e) {
             console.error(e);
             setLogoutLoading(false);
@@ -37,29 +43,28 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
 
     const navItems = [
-        { href: "/admin", label: "ទិដ្ឋភាពទូទៅ", icon: LayoutDashboard },
-        { href: "/admin/weddings", label: "មង្គលការទាំងអស់", icon: Heart },
-        { href: "/admin/users", label: "អ្នកប្រើប្រាស់", icon: Users },
-        { href: "/admin/settings", label: "ការកំណត់ប្រព័ន្ធ", icon: Settings },
+        { href: "/admin", label: t("admin.sidebar.overview"), icon: LayoutDashboard },
+        { href: "/admin/weddings", label: t("admin.sidebar.weddings"), icon: Globe },
+        { href: "/admin/users", label: t("admin.sidebar.users"), icon: Users },
+        { href: "/admin/master/broadcast", label: locale === 'km' ? "ផ្សព្វផ្សាយសារ" : "Broadcasts", icon: Megaphone },
+        { href: "/admin/master/settings", label: t("admin.sidebar.settings"), icon: Settings },
     ];
 
     const SidebarContent = () => (
-        <div className="flex flex-col h-full bg-card relative overflow-hidden text-foreground">
-            {/* Subtle Gradient Accents for Depth */}
-            <div className="absolute top-0 -left-24 w-48 h-48 bg-red-400/10 dark:bg-red-900/10 blur-[100px] rounded-full pointer-events-none" />
-            <div className="absolute bottom-0 -right-24 w-48 h-48 bg-blue-400/10 dark:bg-blue-900/10 blur-[100px] rounded-full pointer-events-none" />
+        <div className="flex flex-col h-full bg-white dark:bg-slate-950 relative overflow-hidden text-slate-500 dark:text-slate-400">
+            <div className="absolute top-0 -left-20 w-64 h-64 bg-red-600/5 dark:bg-red-600/10 blur-[100px] rounded-full pointer-events-none" />
+            <div className="absolute bottom-0 -right-20 w-64 h-64 bg-blue-600/5 blur-[100px] rounded-full pointer-events-none" />
 
-            {/* Logo Area */}
-            <div className="p-8 pb-10">
-                <Link href="/" className="flex items-center gap-4 group">
-                    <MoneaLogo showText size="md" />
+            <div className="p-10 pb-12 relative z-10">
+                <Link href="/" className="flex items-center gap-4 group transition-transform hover:scale-[1.02]">
+                    <MoneaLogo showText size="md" className="dark:invert dark:brightness-200" />
                 </Link>
             </div>
 
-            {/* Navigation Section */}
-            <nav className="flex-1 px-4 space-y-1">
-                <div className="px-4 py-3 text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2 border-b border-transparent">
-                    តាមដានប្រព័ន្ធ
+            <nav className="flex-1 px-6 space-y-2 relative z-10 transition-all duration-500">
+                <div className="px-5 py-4 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.3em] mb-4 border-b border-slate-100 dark:border-white/5 flex items-center gap-2">
+                    <Activity size={10} className="text-red-500" />
+                    {t("admin.sidebar.governance")}
                 </div>
                 {navItems.map((item) => {
                     const isActive = pathname === item.href;
@@ -67,56 +72,44 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <Link
                             key={item.href}
                             href={item.href}
-                            onClick={() => setIsMobileMenuOpen(false)}
+                            onClick={() => isMobileMenuOpen && setIsMobileMenuOpen(false)}
                             className={cn(
-                                "flex items-center gap-3 w-full px-4 py-4 rounded-2xl transition-all duration-300 text-base font-medium relative group",
+                                "flex items-center gap-4 w-full px-5 py-4 rounded-[1.5rem] transition-all duration-500 shadow-sm active:scale-95 text-sm font-bold relative group",
                                 isActive
-                                    ? "bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 shadow-sm"
-                                    : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                                    ? "bg-slate-900 dark:bg-white/10 text-white dark:text-white shadow-xl dark:shadow-[0_10px_30px_rgba(0,0,0,0.5)] border border-slate-800 dark:border-white/10"
+                                    : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-white/5"
                             )}
                         >
+                            {isActive && (
+                                <m.div 
+                                    layoutId="sidebar-active"
+                                    className="absolute left-1 w-1 h-6 bg-red-600 rounded-full"
+                                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                />
+                            )}
                             <div className={cn(
-                                "p-2 rounded-xl transition-all duration-300",
-                                isActive ? "bg-card text-red-600 dark:text-red-400 shadow-sm" : "bg-transparent text-muted-foreground group-hover:text-foreground"
+                                "p-2 rounded-xl transition-all duration-500",
+                                isActive ? "bg-red-600 text-white shadow-lg shadow-red-600/20" : "bg-slate-50 dark:bg-white/5 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300"
                             )}>
-                                <item.icon className="h-4 w-4" />
+                                <item.icon size={16} strokeWidth={2.5} />
                             </div>
-                            <span className="font-kantumruy font-bold tracking-tight">{item.label}</span>
+                            <span className="font-kantumruy tracking-tight truncate">{item.label}</span>
                         </Link>
                     )
                 })}
             </nav>
 
-            {/* System Info Highlight */}
-            <div className="mx-6 my-8 p-6 rounded-3xl bg-muted/50 border border-border">
-                <div className="flex items-center gap-2 mb-3">
-                    <div className="relative flex items-center justify-center">
-                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
-                        <div className="absolute w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping opacity-40" />
-                    </div>
-                    <span className="text-[10px] font-black text-foreground/70 uppercase tracking-widest">System Operational</span>
-                </div>
-                <div className="w-full bg-accent h-1.5 rounded-full overflow-hidden">
-                    <m.div
-                        initial={{ width: "0%" }}
-                        animate={{ width: "100%" }}
-                        transition={{ duration: 1.5, ease: "easeOut" }}
-                        className="bg-emerald-500 h-full"
-                    />
-                </div>
-                <p className="text-[10px] text-muted-foreground mt-3 font-bold uppercase tracking-widest text-center">Engine v0.1.0-stable</p>
-            </div>
+            <AdminHealthPulse />
 
-            {/* Logout Action */}
-            <div className="p-6 border-t border-border">
+            <div className="p-6 border-t border-slate-100 dark:border-white/5 relative z-10">
                 <button
-                    className="flex items-center gap-3 w-full px-4 py-4 rounded-2xl transition-all duration-300 text-sm font-bold text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 group"
+                    className="flex items-center gap-4 w-full px-5 py-4 rounded-[1.5rem] transition-all duration-500 text-xs font-black text-slate-400 dark:text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/5 group"
                     onClick={() => setLogoutConfirm(true)}
                 >
-                    <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center group-hover:bg-red-100 dark:group-hover:bg-red-900/40 transition-all border border-border">
-                        <LogOut className="h-4 w-4" />
+                    <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center group-hover:bg-red-600 group-hover:text-white transition-all shadow-sm border border-slate-100 dark:border-white/5">
+                        <LogOut size={16} strokeWidth={2.5} />
                     </div>
-                    <span className="font-kantumruy">ចាកចេញ</span>
+                    <span className="font-kantumruy uppercase tracking-widest">{t("admin.sidebar.logout")}</span>
                 </button>
             </div>
         </div>
@@ -124,32 +117,32 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     return (
         <ToastProvider>
-            <div className="flex min-h-screen w-full bg-background text-foreground font-kantumruy">
-                <ConfirmModal
-                    open={logoutConfirm}
-                    onClose={() => setLogoutConfirm(false)}
-                    onConfirm={confirmLogout}
-                    loading={logoutLoading}
-                    title="ចាកចេញពីប្រព័ន្ធ"
-                    description="តើអ្នកប្រាកដថាចង់ចាកចេញពី SuperAdmin? អ្នកនឹងត្រូវវិលត្រឡប់ទៅកាន់ទំព័រចូល (Login) ។"
-                    confirmLabel="ចាកចេញ"
-                    cancelLabel="បន្ត"
-                    variant="warning"
-                />
-                {/* Desktop Sidebar */}
-                <aside className="w-[280px] border-r border-border hidden md:flex flex-col fixed h-full z-40 bg-card">
+            <div className="flex min-h-screen w-full bg-slate-50 dark:bg-slate-950 text-foreground font-kantumruy">
+                {logoutConfirm && (
+                    <ConfirmModal
+                        open={logoutConfirm}
+                        onClose={() => setLogoutConfirm(false)}
+                        onConfirm={confirmLogout}
+                        loading={logoutLoading}
+                        title={t("admin.logout.title")}
+                        description={t("admin.logout.description")}
+                        confirmLabel={t("admin.logout.confirm")}
+                        cancelLabel={t("admin.logout.cancel")}
+                        variant="warning"
+                    />
+                )}
+                <aside className="w-[300px] border-r border-slate-100 dark:border-border hidden lg:flex flex-col fixed h-full z-40 bg-white dark:bg-slate-950 shadow-2xl shadow-slate-200/50 dark:shadow-black/50">
                     <SidebarContent />
                 </aside>
 
-                {/* Mobile Sidebar Overlay */}
                 <AnimatePresence>
                     {isMobileMenuOpen && (
-                        <div className="fixed inset-0 z-50 md:hidden flex">
+                        <div className="fixed inset-0 z-50 lg:hidden flex">
                             <m.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
-                                className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm"
+                                className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
                                 onClick={() => setIsMobileMenuOpen(false)}
                             />
                             <m.aside
@@ -157,7 +150,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                 animate={{ x: 0 }}
                                 exit={{ x: "-100%" }}
                                 transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                                className="relative w-[280px] flex flex-col h-full z-10 shadow-2xl"
+                                className="relative w-[300px] flex flex-col h-full z-10 shadow-2xl"
                             >
                                 <SidebarContent />
                             </m.aside>
@@ -165,9 +158,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     )}
                 </AnimatePresence>
 
-                {/* Main Content Area */}
-                <main className="flex-1 flex flex-col md:ml-[280px] min-h-screen relative">
-                    {/* Header */}
+                <main className="flex-1 flex flex-col lg:ml-[300px] min-h-screen relative">
                     <header className={cn(
                         "h-20 sticky top-0 z-30 flex items-center px-6 md:px-10 justify-between transition-all duration-300",
                         scrolled ? "bg-card/80 backdrop-blur-md border-b border-border shadow-sm" : "bg-transparent"
@@ -175,22 +166,29 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <div className="flex items-center gap-4">
                             <button
                                 onClick={() => setIsMobileMenuOpen(true)}
-                                className="p-2 text-muted-foreground hover:bg-accent rounded-xl md:hidden"
+                                className="p-2.5 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl lg:hidden border border-border/50"
                             >
                                 <Menu size={20} />
                             </button>
 
-                            <div className="hidden md:flex flex-col">
-                                <h2 className="text-xl font-bold text-foreground tracking-tight">
-                                    {navItems.find(i => pathname === i.href)?.label || "ទិដ្ឋភាពទូទៅ"}
+                            <div className="hidden lg:flex flex-col">
+                                <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
+                                    {navItems.find(i => pathname === i.href)?.label || t("admin.sidebar.overview")}
                                 </h2>
-                                <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest leading-none mt-1.5">
-                                    Admin Dashboard Portal
-                                </p>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">
+                                        {t("admin.header.portal")}
+                                    </span>
+                                    <div className="w-1 h-1 rounded-full bg-slate-300" />
+                                    <span className="text-[9px] font-black text-red-500 uppercase tracking-widest leading-none">
+                                        {t("admin.header.version")}
+                                    </span>
+                                </div>
                             </div>
                         </div>
 
                         <div className="flex items-center gap-4">
+                            <AdminLanguageToggle />
                             <ThemeToggle />
                             <button className="p-2.5 bg-muted border border-border rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent transition-all">
                                 <Bell size={18} />
@@ -198,8 +196,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
                             <div className="flex items-center gap-3 pl-4 border-l border-border">
                                 <div className="hidden sm:flex flex-col items-end">
-                                    <span className="text-sm font-bold text-foreground">Administrator</span>
-                                    <span className="text-xs text-red-600 dark:text-red-400 font-bold tracking-widest uppercase">MONEA Platform</span>
+                                    <span className="text-sm font-bold text-foreground">{t("admin.header.role")}</span>
+                                    <span className="text-xs text-red-600 dark:text-red-400 font-bold tracking-widest uppercase">{t("admin.header.platform")}</span>
                                 </div>
                                 <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground border border-border">
                                     <Shield size={20} />
@@ -216,4 +214,3 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </ToastProvider>
     )
 }
-

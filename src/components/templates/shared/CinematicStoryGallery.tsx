@@ -91,7 +91,7 @@ const CinematicStoryGallery = React.memo(({ items, labels, theme = 'light' }: Ci
     const safeItems = React.useMemo(() => {
         const imageItems = (items || []).filter(i => i?.type === 'IMAGE');
         // If no images at all, fallback to a default
-        if (imageItems.length === 0) return Array(24).fill({ url: '/images/couple.jpg', type: 'IMAGE' });
+        if (imageItems.length === 0) return Array(24).fill({ url: '/images/couple.webp', type: 'IMAGE' });
 
         // Use all available items, repeating only if necessary to fill the cinematic slots
         const list = [...imageItems];

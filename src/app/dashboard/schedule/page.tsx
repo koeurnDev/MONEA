@@ -13,6 +13,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { ActivityForm } from "./activity-form";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 const KHMER_ICONS_MAP: Record<string, any> = {
     scissors: Scissors,
@@ -27,13 +28,14 @@ const KHMER_ICONS_MAP: Record<string, any> = {
 };
 
 export default function SchedulePage() {
+    const { t } = useTranslation();
     const [activities, setActivities] = useState<any[]>([]);
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(true);
     const [editActivity, setEditActivity] = useState<any | null>(null);
 
     async function handleDelete(id: string) {
-        if (!confirm("តើអ្នកពិតជាចង់លុបសកម្មភាពនេះមែនទេ?")) return;
+        if (!confirm(t("dashboard.schedule.deleteConfirm"))) return;
         try {
             const res = await fetch(`/api/activities/${id}`, { method: "DELETE" });
             if (res.ok) {
@@ -67,32 +69,34 @@ export default function SchedulePage() {
                 <div className="space-y-1">
                     <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-red-600 mb-1">
                         <Calendar size={12} />
-                        Wedding Rundown
+                        {t("dashboard.schedule.rundown")}
                     </div>
                     <h2 className="text-3xl font-black tracking-tight text-foreground font-kantumruy">
-                        កាលវិភាគកម្មវិធី
+                        {t("dashboard.schedule.title")}
                     </h2>
                     <p className="text-muted-foreground font-medium font-kantumruy text-sm">
-                        រៀបចំ និងគ្រប់គ្រងពេលវេលានៃពិធីមង្គលការរបស់អ្នកឱ្យមានរបៀបរៀបរយ។
+                        {t("dashboard.schedule.subtitle")}
                     </p>
                 </div>
 
-                <Dialog open={open} onOpenChange={setOpen}>
-                    <DialogTrigger asChild>
-                        <Button onClick={() => setEditActivity(null)} className="h-11 px-8 bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-md transition-all font-kantumruy font-bold">
-                            <Plus className="mr-2 h-4 w-4" /> បន្ថែមកម្មវិធី
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[500px] rounded-[2rem] border-none shadow-2xl p-0 overflow-hidden">
-                        <DialogHeader className="p-8 pb-4">
-                            <DialogTitle className="text-2xl font-black font-kantumruy tracking-tight text-foreground">បន្ថែមសកម្មភាពថ្មី</DialogTitle>
-                            <DialogDescription className="text-muted-foreground font-medium font-kantumruy">បំពេញទម្រង់ខាងក្រោមដើម្បីបន្ថែមសកម្មភាពថ្មីទៅក្នុងកាលវិភាគ។</DialogDescription>
-                        </DialogHeader>
-                        <div className="p-8 pt-4">
-                            <ActivityForm initialData={editActivity} onSuccess={() => { setOpen(false); fetchActivities(); }} />
-                        </div>
-                    </DialogContent>
-                </Dialog>
+                {!loading && activities.length > 0 && (
+                    <Dialog open={open} onOpenChange={setOpen}>
+                        <DialogTrigger asChild>
+                            <Button onClick={() => setEditActivity(null)} className="h-11 px-8 bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-md transition-all font-kantumruy font-bold">
+                                <Plus className="mr-2 h-4 w-4" /> {t("dashboard.schedule.addActivity")}
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[500px] rounded-[2rem] border-none shadow-2xl p-0 overflow-hidden bg-card">
+                            <DialogHeader className="p-8 pb-4">
+                                <DialogTitle className="text-2xl font-black font-kantumruy tracking-tight text-foreground">{t("dashboard.schedule.newActivity")}</DialogTitle>
+                                <DialogDescription className="text-muted-foreground font-medium font-kantumruy">{t("dashboard.schedule.form.subtitle")}</DialogDescription>
+                            </DialogHeader>
+                            <div className="p-8 pt-4">
+                                <ActivityForm initialData={editActivity} onSuccess={() => { setOpen(false); fetchActivities(); }} />
+                            </div>
+                        </DialogContent>
+                    </Dialog>
+                )}
             </div>
 
             {/* Timeline View */}
@@ -104,21 +108,21 @@ export default function SchedulePage() {
                     {loading ? (
                         <div className="p-20 text-center">
                             <div className="w-8 h-8 border-4 border-red-600/20 border-t-red-600 rounded-full animate-spin mx-auto mb-4" />
-                            <span className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-widest">កំពុងផ្ទុក...</span>
+                            <span className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-widest">{t("dashboard.schedule.loading")}</span>
                         </div>
                     ) : activities.length === 0 ? (
                         <div className="max-w-md mx-auto bg-muted/50 border-2 border-dashed border-border rounded-[2.5rem] p-12 text-center group hover:border-red-200 transition-all">
                             <div className="w-20 h-20 bg-background shadow-[0_8px_30px_rgba(0,0,0,0.04)] rounded-full flex items-center justify-center text-muted-foreground/30 mx-auto mb-6 group-hover:scale-110 transition-transform duration-500">
                                 <Activity size={40} />
                             </div>
-                            <h3 className="text-xl font-black text-foreground mb-2 font-kantumruy">មិនទាន់មានកម្មវិធី</h3>
-                            <p className="text-muted-foreground mb-10 font-medium font-kantumruy">ចាប់ផ្តើមរៀបចំកាលវិភាគអាពាហ៍ពិពាហ៍របស់អ្នកឥឡូវនេះ។</p>
+                            <h3 className="text-xl font-black text-foreground mb-2 font-kantumruy">{t("dashboard.schedule.emptyTitle")}</h3>
+                            <p className="text-muted-foreground mb-10 font-medium font-kantumruy">{t("dashboard.schedule.emptySubtitle")}</p>
 
                             <Button
                                 onClick={() => { setEditActivity(null); setOpen(true); }}
                                 className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-12 px-10 font-bold shadow-md transition-all font-kantumruy"
                             >
-                                បង្កើតថ្មី
+                                <Plus className="mr-2 h-4 w-4" /> {t("dashboard.schedule.createNew")}
                             </Button>
                         </div>
                     ) : (
@@ -127,7 +131,7 @@ export default function SchedulePage() {
                                 {/* Bullet */}
                                 <div className="absolute left-7 top-10 w-4 h-4 rounded-full bg-background border-[3px] border-red-600 z-10 transition-all duration-500 group-hover:scale-125 group-hover:bg-red-600 hidden sm:block shadow-sm" />
 
-                                <Card className="border-none shadow-[0_4px_20px_rgba(0,0,0,0.05)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.2)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all rounded-[2rem] bg-card overflow-hidden group-hover:-translate-y-1 duration-300">
+                                <Card className="border-none shadow-[0_4px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.1)] transition-all rounded-3xl bg-card overflow-hidden group-hover:-translate-y-1 duration-300">
                                     <div className="flex flex-col md:flex-row items-center">
                                         {/* Time Box */}
                                         <div className="w-full md:w-40 p-8 flex flex-col items-center justify-center bg-muted/20 md:border-r border-transparent">
@@ -138,7 +142,7 @@ export default function SchedulePage() {
                                                 })()}
                                             </div>
                                             <span className="text-xl font-black text-foreground font-mono tracking-tight">{item.time}</span>
-                                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">Scheduled Time</span>
+                                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">{t("dashboard.schedule.status.scheduled")}</span>
                                         </div>
 
                                         {/* Content Box */}
@@ -148,7 +152,7 @@ export default function SchedulePage() {
                                                     <h3 className="text-xl font-black text-foreground font-kantumruy leading-tight">{item.title}</h3>
                                                     {index === 0 && (
                                                         <span className="px-3 py-1 rounded-full bg-red-500/10 text-red-600 text-[10px] font-black uppercase tracking-widest">
-                                                            Starting Event
+                                                            {t("dashboard.schedule.status.starting")}
                                                         </span>
                                                     )}
                                                 </div>

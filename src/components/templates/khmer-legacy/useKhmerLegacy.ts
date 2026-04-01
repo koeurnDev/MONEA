@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { WeddingData } from "../types";
 import { useImagePan } from "../shared/CinematicComponents";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 const FALLBACK_IMAGES = [
     "https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=2000&auto=format&fit=crop",
@@ -25,7 +26,10 @@ export const useSmartColor = (imageUrl: string) => {
         img.crossOrigin = "Anonymous";
         img.src = imageUrl;
 
-        img.onload = () => {
+        img.onload = async () => {
+            // Helper to yield to main thread (the "Good" pattern from INP Guide)
+            const yieldToMain = () => new Promise(resolve => setTimeout(resolve, 0));
+
             try {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
@@ -41,6 +45,10 @@ export const useSmartColor = (imageUrl: string) => {
                     r += data[i];
                     g += data[i + 1];
                     b += data[i + 2];
+                    
+                    // Yield every 100 pixels to prevent main-thread bottlenecking
+                    // even on a small 10x10 canvas to ensure 100% responsiveness
+                    if (i % 400 === 0) await yieldToMain();
                 }
                 r = Math.floor(r / (data.length / 4));
                 g = Math.floor(g / (data.length / 4));
@@ -53,7 +61,9 @@ export const useSmartColor = (imageUrl: string) => {
                 const darkG = Math.floor(g * 0.3);
                 const darkB = Math.floor(b * 0.3);
                 const darkHex = "#" + ((1 << 24) + (darkR << 16) + (darkG << 8) + darkB).toString(16).slice(1);
-
+                
+                // Final yield before state update
+                await yieldToMain();
                 setColors({ primary: hex, secondary: '#FFFFFF', dark: darkHex });
             } catch (e) {
                 console.error("Color sync failed", e);
@@ -65,6 +75,7 @@ export const useSmartColor = (imageUrl: string) => {
 };
 
 export function useKhmerLegacy(wedding: WeddingData) {
+    const { locale } = useTranslation();
     const [revealed, setRevealed] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
     const [mounted, setMounted] = useState(false);
@@ -115,26 +126,31 @@ export function useKhmerLegacy(wedding: WeddingData) {
     // Prevent scrolling while overlay is active
     useEffect(() => {
         if (!revealed) {
-            document.body.style.overflow = 'hidden';
+            if (typeof document !== 'undefined') {
+                document.body.style.overflow = 'hidden';
+            }
         } else {
-            document.body.style.overflow = 'unset';
+            if (typeof document !== 'undefined') {
+                document.body.style.overflow = 'unset';
+            }
             window.scrollTo(0, 0);
             // Auto-play music when revealed if a URL exists
             if (musicUrl) {
                 setIsPlaying(true);
             }
         }
-        return () => { document.body.style.overflow = 'unset'; };
+        return () => { 
+            if (typeof document !== 'undefined') {
+                document.body.style.overflow = 'unset'; 
+            }
+        };
     }, [revealed, musicUrl]);
 
     const heroImage = wedding.themeSettings?.heroImage || galleryImages[0] || "";
     const smartColors = useSmartColor(heroImage);
 
-    const heroPan = useImagePan(wedding.themeSettings?.heroImageX || '50%', wedding.themeSettings?.heroImagePosition || '99%', 'heroImageX', 'heroImagePosition');
-    const groomPan = useImagePan(wedding.themeSettings?.groomImageX || '50%', wedding.themeSettings?.groomImagePosition || '50%', 'groomImageX', 'groomImagePosition');
-    const bridePan = useImagePan(wedding.themeSettings?.brideImageX || '50%', wedding.themeSettings?.brideImagePosition || '50%', 'brideImageX', 'brideImagePosition');
+    const heroPan = useImagePan(wedding.themeSettings?.heroImageX || '50%', wedding.themeSettings?.heroImagePosition || '0%', 'heroImageX', 'heroImagePosition');
     const englishPan = useImagePan(wedding.themeSettings?.englishImageX || '50%', wedding.themeSettings?.englishImagePosition || '50%', 'englishImageX', 'englishImagePosition');
-    const bannerPan = useImagePan(wedding.themeSettings?.bannerImageX || '50%', wedding.themeSettings?.bannerImagePosition || '50%', 'bannerImageX', 'bannerImagePosition');
     
     // Editorial Pans
     const editorialPan1 = useImagePan(wedding.themeSettings?.editorialPan1X || '50%', wedding.themeSettings?.editorialPan1Y || '50%', 'editorialPan1X', 'editorialPan1Y');
@@ -149,7 +165,6 @@ export function useKhmerLegacy(wedding: WeddingData) {
 
     const hubPan = useImagePan(wedding.themeSettings?.hubImageX || '50%', wedding.themeSettings?.hubImageY || '50%', 'hubImageX', 'hubImageY');
     const mapPan = useImagePan(wedding.themeSettings?.mapImageX || '50%', wedding.themeSettings?.mapImageY || '50%', 'mapImageX', 'mapImageY');
-    const galleryPan = useImagePan(wedding.themeSettings?.galleryImageX || '50%', wedding.themeSettings?.galleryImageY || '50%', 'galleryImageX', 'galleryImageY');
 
     const preWeddingPan1 = useImagePan(wedding.themeSettings?.preWeddingPan1X || '50%', wedding.themeSettings?.preWeddingPan1Y || '50%', 'preWeddingPan1X', 'preWeddingPan1Y');
     const preWeddingPan2 = useImagePan(wedding.themeSettings?.preWeddingPan2X || '50%', wedding.themeSettings?.preWeddingPan2Y || '50%', 'preWeddingPan2X', 'preWeddingPan2Y');
@@ -188,13 +203,29 @@ export function useKhmerLegacy(wedding: WeddingData) {
         } catch (e) { return ""; }
     };
 
+    const formatEnglishDate = (date: string | Date, long: boolean = false) => {
+        if (!date) return "";
+        try {
+            const d = new Date(date);
+            if (isNaN(d.getTime())) return "";
+            
+            const options: Intl.DateTimeFormatOptions = long 
+                ? { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }
+                : { year: 'numeric', month: 'long', day: 'numeric' };
+            
+            return d.toLocaleDateString('en-US', options);
+        } catch (e) { return ""; }
+    };
+
     const formattedDateHero = useMemo(() => {
-        return formatKhmerDate(wedding.date);
-    }, [wedding.date]);
+        return locale === 'km' ? formatKhmerDate(wedding.date) : formatEnglishDate(wedding.date);
+    }, [wedding.date, locale]);
 
     const formattedDateInvitation = useMemo(() => {
-        return formatKhmerDate(wedding.date, true).toUpperCase();
-    }, [wedding.date]);
+        return locale === 'km' 
+            ? formatKhmerDate(wedding.date, true).toUpperCase() 
+            : formatEnglishDate(wedding.date, true).toUpperCase();
+    }, [wedding.date, locale]);
 
 
     return {
@@ -209,10 +240,7 @@ export function useKhmerLegacy(wedding: WeddingData) {
         heroImage,
         smartColors,
         heroPan,
-        groomPan,
-        bridePan,
         englishPan,
-        bannerPan,
         editorialPan1,
         editorialPan2,
         editorialPan3,
@@ -222,7 +250,6 @@ export function useKhmerLegacy(wedding: WeddingData) {
         signaturePan3,
         hubPan,
         mapPan,
-        galleryPan,
         preWeddingPan1,
         preWeddingPan2,
         preWeddingPan3,

@@ -18,6 +18,7 @@
 
 .font-khmer-m1 {
   font-family: "Khmer M1", var(--font-kantumruy), sans-serif;
+  line-height: 1.6;
 }
 
 .font-gisha {
@@ -30,6 +31,7 @@
 
 .font-khmer {
   font-family: var(--font-kantumruy);
+  line-height: 1.6;
 }
 
 .font-script {

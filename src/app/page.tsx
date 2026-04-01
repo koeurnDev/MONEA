@@ -14,7 +14,10 @@ const Pricing = dynamic(() => import("@/components/landing/LandingSections").the
 const Testimonials = dynamic(() => import("@/components/landing/LandingSections").then(mod => mod.Testimonials));
 const FAQ = dynamic(() => import("@/components/landing/LandingSections").then(mod => mod.FAQ));
 const FinalCTA = dynamic(() => import("@/components/landing/LandingSections").then(mod => mod.FinalCTA));
-
+ 
+// Revalidate this page every hour (ISR) for maximum performance
+export const revalidate = 3600;
+ 
 // --- Main Landing Page ---
 // This is now a Server Component, drastically reducing the main bundle size.
 export default function LandingPage() {

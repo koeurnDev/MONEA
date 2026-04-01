@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { moneaClient } from "@/lib/api-client";
 
 const formSchema = z.object({
     groomName: z.string().min(2, "សូមបញ្ចូលឈ្មោះកូនកំលោះ"),
@@ -67,21 +68,16 @@ export default function CreateWeddingPage() {
         }
 
         try {
-            const res = await fetch("/api/wedding", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(formData),
-            });
+            const res = await moneaClient.post<any>("/api/wedding", formData);
 
-            if (res.ok) {
+            if (res.status === 200 || res.status === 201) {
                 await mutate("/api/auth/me");
                 router.push("/dashboard");
                 router.refresh();
             } else {
-                const errorData = await res.json().catch(() => ({}));
-                console.error(`Failed to create wedding: Status ${res.status}`, errorData);
+                console.error(`Failed to create wedding: Status ${res.status}`, res.error);
                 
-                if (errorData.error === "Wedding already exists") {
+                if (res.error === "Wedding already exists" || res.status === 409) {
                     await mutate("/api/auth/me");
                     router.push("/dashboard");
                 }

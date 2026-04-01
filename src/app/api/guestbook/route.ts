@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
-import { prisma } from "@/lib/prisma";
+import { queryRaw } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
 import { sanitizeObject } from "@/lib/sanitize";
 import { errorResponse, validateRequest } from "@/lib/api-utils";
@@ -17,24 +17,19 @@ export async function GET(req: Request) {
         if (!weddingId) {
             const user = await getServerUser();
             if (!user) return errorResponse("Unauthorized", 401);
-
-            let wedding;
-            if (user.role === "STAFF") {
-                wedding = await prisma.wedding.findUnique({ where: { id: (user as any).weddingId } });
-            } else {
-                wedding = await prisma.wedding.findFirst({ where: { userId: user.userId } });
+            
+            weddingId = user.weddingId || null;
+            if (!weddingId) {
+                const results = await queryRaw('SELECT id FROM "Wedding" WHERE "userId" = $1 LIMIT 1', user.userId);
+                weddingId = results[0]?.id || null;
             }
-            if (wedding) weddingId = wedding.id;
         }
 
         if (!weddingId) {
             return NextResponse.json({ error: 'Wedding ID is required or Wedding not found' }, { status: 400 });
         }
 
-        const wishes = await prisma.guestbookEntry.findMany({
-            where: { weddingId },
-            orderBy: { createdAt: 'desc' },
-        });
+        const wishes = await queryRaw('SELECT * FROM "GuestbookEntry" WHERE "weddingId" = $1 ORDER BY "createdAt" DESC', weddingId);
 
         return NextResponse.json(wishes);
     } catch (error) {
@@ -63,19 +58,17 @@ export async function POST(req: Request) {
             return NextResponse.json({ id: "dummy", createdAt: new Date() });
         }
 
-        // Verify Wedding existence
-        const wedding = await prisma.wedding.findUnique({ where: { id: weddingId } });
-        if (!wedding) return errorResponse("Wedding not found", 404);
+        // Verify Wedding existence using Raw SQL
+        const weddings = await queryRaw('SELECT id FROM "Wedding" WHERE id = $1 LIMIT 1', weddingId);
+        if (!weddings.length) return errorResponse("Wedding not found", 404);
 
-        const newWish = await prisma.guestbookEntry.create({
-            data: {
-                guestName,
-                message,
-                weddingId,
-            },
-        });
+        const results = await queryRaw(`
+            INSERT INTO "GuestbookEntry" ("guestName", message, "weddingId", "createdAt")
+            VALUES ($1, $2, $3, NOW())
+            RETURNING *
+        `, guestName, message, weddingId);
 
-        return NextResponse.json(newWish);
+        return NextResponse.json(results[0]);
     } catch (error) {
         console.error('Error adding wish:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

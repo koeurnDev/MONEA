@@ -7,9 +7,10 @@ export async function POST(request: Request) {
 
     const response = NextResponse.json({ success: true });
 
+    const isDev = referer.includes("localhost") || referer.includes("127.0.0.1");
     const cookieOptions = {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: process.env.NODE_ENV === "production" && !isDev,
         expires: new Date(0),
         path: "/",
         sameSite: "strict" as const

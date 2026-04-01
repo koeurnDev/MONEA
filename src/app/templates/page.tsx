@@ -6,6 +6,7 @@ import { m, AnimatePresence } from 'framer-motion';
 import { X, Smartphone, Monitor, Check, ExternalLink, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { AUTH_URLS } from '@/lib/constants';
 
 // Template Data (Mirrored from Dashboard)
 const TEMPLATES = [
@@ -42,7 +43,7 @@ export default function TemplateGalleryPage() {
                             </button>
                         ))}
                     </div>
-                    <Link href="/register">
+                    <Link href={AUTH_URLS.SIGN_UP}>
                         <Button className="bg-slate-900 text-white hover:bg-black rounded-full px-8">
                             Start Creating
                         </Button>

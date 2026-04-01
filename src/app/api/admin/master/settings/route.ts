@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
 import { ROLES } from "@/lib/constants";
 import { SystemGovernance, GOVERNANCE_ACTIONS } from "@/lib/governance";
+import redis from "@/lib/redis";
 
 export async function GET() {
     try {
@@ -36,20 +37,28 @@ export async function POST(req: Request) {
         }
 
         const body = await req.json();
-        const { maintenanceMode, allowNewSignups, globalCheckIn } = body;
+        const { maintenanceMode, allowNewSignups, globalCheckIn, stadPrice, proPrice, maintenanceStart, maintenanceEnd } = body;
 
         const config = await (prisma as any).systemConfig.upsert({
             where: { id: "GLOBAL" },
             update: {
                 maintenanceMode,
+                maintenanceStart: maintenanceStart ? new Date(maintenanceStart) : null,
+                maintenanceEnd: maintenanceEnd ? new Date(maintenanceEnd) : null,
                 allowNewSignups,
-                globalCheckIn
+                globalCheckIn,
+                stadPrice: parseFloat(stadPrice),
+                proPrice: parseFloat(proPrice)
             },
             create: {
                 id: "GLOBAL",
                 maintenanceMode,
+                maintenanceStart: maintenanceStart ? new Date(maintenanceStart) : null,
+                maintenanceEnd: maintenanceEnd ? new Date(maintenanceEnd) : null,
                 allowNewSignups,
-                globalCheckIn
+                globalCheckIn,
+                stadPrice: parseFloat(stadPrice),
+                proPrice: parseFloat(proPrice)
             }
         });
 
@@ -68,13 +77,20 @@ export async function POST(req: Request) {
 
         const response = NextResponse.json(config);
 
-        // Sync maintenance mode cookie for fast edge-middleware reads (no blocking fetch needed)
-        response.cookies.set("maintenance_mode", maintenanceMode ? "true" : "false", {
-            httpOnly: false, // readable by middleware
-            path: "/",
-            maxAge: 60 * 60 * 24 * 365, // 1 year
-            sameSite: "lax"
-        });
+        // Sync maintenance mode to Edge Redis for global middleware enforcement
+        await redis.set("GLOBAL_MAINTENANCE", maintenanceMode ? "true" : "false");
+        
+        if (maintenanceStart) {
+            await redis.set("MAINTENANCE_START", new Date(maintenanceStart).getTime().toString());
+        } else {
+            await redis.del("MAINTENANCE_START");
+        }
+        
+        if (maintenanceEnd) {
+            await redis.set("MAINTENANCE_END", new Date(maintenanceEnd).getTime().toString());
+        } else {
+            await redis.del("MAINTENANCE_END");
+        }
 
         return response;
     } catch (error) {

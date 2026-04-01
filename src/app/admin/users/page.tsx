@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Loader2, Users, Heart, Search, Filter, Mail, User, ShieldAlert, Save, Trash2, ArrowRight, Clock, Fingerprint } from "lucide-react";
+import { Loader2, Users, Globe, Search, Filter, Mail, User, ShieldAlert, Save, Trash2, ArrowRight, Clock, Fingerprint } from "lucide-react";
 
 import { ROLES, ROLE_LABELS } from "@/lib/constants";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -274,7 +274,9 @@ export default function AdminUsersPage() {
                                     </span>
                                 </TableCell>
                                 <TableCell>
-                                    {user.weddings && user.weddings[0] ? (
+                                    {user.role === ROLES.PLATFORM_OWNER ? (
+                                        <span className="text-muted-foreground/50 italic text-[10px] font-kantumruy font-bold uppercase tracking-widest">N/A (System)</span>
+                                    ) : user.weddings && user.weddings[0] ? (
                                         <div className="flex flex-col gap-0.5">
                                             <span className="text-xs text-foreground font-black font-kantumruy">
                                                 {user.weddings[0].groomName} & {user.weddings[0].brideName}
@@ -418,7 +420,7 @@ export default function AdminUsersPage() {
                                     {/* Linked Data */}
                                     <div className="space-y-6">
                                         <h3 className="text-sm font-black text-foreground font-kantumruy uppercase tracking-widest flex items-center gap-2">
-                                            <Heart size={16} className="text-rose-500" />
+                                            <Globe size={16} className="text-blue-500" />
                                             Linked Weddings
                                         </h3>
                                         <div className="grid grid-cols-1 gap-3">
@@ -430,8 +432,8 @@ export default function AdminUsersPage() {
                                                         onClick={() => window.location.href = `/admin/weddings/${w.id}`}
                                                     >
                                                         <div className="flex items-center gap-4">
-                                                            <div className="w-10 h-10 rounded-xl bg-white border border-border flex items-center justify-center text-rose-500 shadow-sm group-hover:bg-rose-500 group-hover:text-white transition-all">
-                                                                <Heart size={16} strokeWidth={2.5} />
+                                                            <div className="w-10 h-10 rounded-xl bg-white border border-border flex items-center justify-center text-blue-500 shadow-sm group-hover:bg-blue-500 group-hover:text-white transition-all">
+                                                                <Globe size={16} strokeWidth={2.5} />
                                                             </div>
                                                             <div className="flex flex-col">
                                                                 <span className="text-sm font-black text-foreground font-kantumruy">

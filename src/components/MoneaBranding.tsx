@@ -15,7 +15,7 @@ export const MoneaBranding = ({ packageType }: { packageType?: string | null }) 
                 <motion.div
                     animate={{ y: [0, -5, 0], opacity: [0, 1, 0] }}
                     transition={{ duration: 3, repeat: Infinity }}
-                    className="absolute top-10 right-10 text-pink-400 text-sm"
+                    className="absolute inset-0 flex items-center justify-center text-pink-400 text-sm"
                 >
                     ✦
                 </motion.div>

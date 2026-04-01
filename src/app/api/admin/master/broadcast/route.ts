@@ -7,11 +7,11 @@ import { ROLES } from "@/lib/constants";
 export async function GET() {
     try {
         const user = await getServerUser();
-        if (!user || user.role !== ROLES.PLATFORM_OWNER) {
+        if (!user || (user.role !== ROLES.PLATFORM_OWNER && user.role !== ROLES.EVENT_MANAGER)) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const broadcasts = await (prisma as any).broadcast.findMany({
+        const broadcasts = await prisma.broadcast.findMany({
             orderBy: { createdAt: "desc" }
         });
         return NextResponse.json(broadcasts);
@@ -23,18 +23,19 @@ export async function GET() {
 export async function POST(req: Request) {
     try {
         const user = await getServerUser();
-        if (!user || user.role !== ROLES.PLATFORM_OWNER) {
+        if (!user || (user.role !== ROLES.PLATFORM_OWNER && user.role !== ROLES.EVENT_MANAGER)) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const body = await req.json();
-        const { title, message, type, expiresAt } = body;
+        const { title, message, type, expiresAt, scheduledAt } = body;
 
-        const broadcast = await (prisma as any).broadcast.create({
+        const broadcast = await prisma.broadcast.create({
             data: {
                 title,
                 message,
                 type: type || "INFO",
+                scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
                 expiresAt: expiresAt ? new Date(expiresAt) : null,
                 active: true
             }
@@ -49,7 +50,7 @@ export async function POST(req: Request) {
 export async function DELETE(req: Request) {
     try {
         const user = await getServerUser();
-        if (!user || user.role !== ROLES.PLATFORM_OWNER) {
+        if (!user || (user.role !== ROLES.PLATFORM_OWNER && user.role !== ROLES.EVENT_MANAGER)) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
@@ -57,7 +58,7 @@ export async function DELETE(req: Request) {
         const id = searchParams.get("id");
         if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
 
-        await (prisma as any).broadcast.delete({ where: { id } });
+        await prisma.broadcast.delete({ where: { id } });
         return NextResponse.json({ success: true });
     } catch (error) {
         return NextResponse.json({ error: "Failed to delete broadcast" }, { status: 500 });

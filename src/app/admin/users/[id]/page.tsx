@@ -4,7 +4,7 @@ import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Loader2, User, Save, ShieldAlert, Trash2, Heart, Clock, Mail, Fingerprint } from "lucide-react";
+import { ArrowLeft, Loader2, User, Save, ShieldAlert, Trash2, Globe, Clock, Mail, Fingerprint } from "lucide-react";
 import { DeleteUserAdminDialog } from "../components/DeleteUserAdminDialog";
 import { useToast } from "@/components/ui/Toast";
 
@@ -286,7 +286,7 @@ export default function UserManagementPage() {
                     <div className="bg-card rounded-[2.5rem] border border-border p-10 shadow-sm relative overflow-hidden">
                         <h3 className="text-xl font-black text-foreground font-kantumruy mb-8 flex items-center justify-between">
                             <span className="flex items-center gap-3">
-                                <Heart size={24} className="text-rose-500" />
+                                <Globe size={24} className="text-blue-500" />
                                 មង្គលការរបស់គណនីនេះ
                             </span>
                             <Badge variant="secondary" className="bg-muted text-foreground px-3 py-1 rounded-lg text-sm font-bold">{user.weddings?.length || 0}</Badge>
@@ -302,7 +302,7 @@ export default function UserManagementPage() {
                                     >
                                         <div className="flex items-center gap-4">
                                             <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center border border-border group-hover:bg-red-500 group-hover:text-white transition-colors shadow-sm">
-                                                <Heart size={20} />
+                                                <Globe size={20} />
                                             </div>
                                             <div className="flex flex-col gap-0.5">
                                                 <span className="text-lg font-black text-foreground font-kantumruy transition-colors">
@@ -326,7 +326,7 @@ export default function UserManagementPage() {
                         ) : (
                             <div className="p-16 text-center bg-muted/20 rounded-[2rem] border-2 border-dashed border-border flex flex-col items-center gap-4">
                                 <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center text-muted-foreground opacity-50">
-                                    <Heart size={32} />
+                                    <Globe size={32} />
                                 </div>
                                 <p className="text-sm font-kantumruy text-muted-foreground font-bold">គណនីនេះមិនទាន់មានមង្គលការនៅឡើយទេ</p>
                             </div>

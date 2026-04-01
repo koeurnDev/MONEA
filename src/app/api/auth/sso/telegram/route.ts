@@ -6,6 +6,8 @@ import { prisma } from "@/lib/prisma";
 import { verifyTelegramAuth } from "@/lib/telegram-auth";
 import { signToken, generateFingerprint, isSecureCookie } from "@/lib/auth";
 import { ROLES } from "@/lib/constants";
+import { getIP } from "@/lib/utils";
+
 
 export async function GET(req: Request) {
     try {
@@ -19,14 +21,14 @@ export async function GET(req: Request) {
         // 1. Verify Telegram Auth Data
         if (!verifyTelegramAuth(data)) {
             console.error("[Telegram SSO] Verification failed");
-            return NextResponse.redirect(new URL("/login?error=telegram_failed", req.url));
+            return NextResponse.redirect(new URL("/sign-in?error=telegram_failed", req.url));
         }
 
         // 2. Check for Auth Expiration (optional but recommended: 24h)
         const authDate = parseInt(data.auth_date);
         const now = Math.floor(Date.now() / 1000);
         if (now - authDate > 86400) {
-            return NextResponse.redirect(new URL("/login?error=telegram_expired", req.url));
+            return NextResponse.redirect(new URL("/sign-in?error=telegram_expired", req.url));
         }
 
         // 3. Find or Create User
@@ -60,8 +62,9 @@ export async function GET(req: Request) {
         }
 
         // 4. Create Session
-        const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "127.0.0.1";
+        const ip = getIP(req);
         const fingerprint = await generateFingerprint({ headers: req.headers, ip });
+
         const token = await signToken({
             userId: user.id,
             email: user.email,
@@ -83,6 +86,6 @@ export async function GET(req: Request) {
 
     } catch (error) {
         console.error("[Telegram SSO Callback Error]", error);
-        return NextResponse.redirect(new URL("/login?error=sso_failed", req.url));
+        return NextResponse.redirect(new URL("/sign-in?error=sso_failed", req.url));
     }
 }

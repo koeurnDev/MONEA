@@ -4,6 +4,7 @@ import * as React from 'react';
 import { AnimatePresence, m } from 'framer-motion';
 import { Users, Activity, TrendingUp, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface LiveRecentGiftsProps {
     recentGifts: any[];
@@ -22,6 +23,8 @@ const LiveRecentGiftsComponent = ({
     listRef,
     onInteraction
 }: LiveRecentGiftsProps) => {
+    const { t, locale } = useTranslation();
+
     return (
         <div className="w-full landscape:lg:w-[400px] landscape:xl:w-[450px] flex flex-col h-[400px] portrait:flex-1 portrait:min-h-0 landscape:lg:h-full bg-neutral-900/50 backdrop-blur-lg rounded-[3rem] md:rounded-[4rem] border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_20px_40px_rgba(0,0,0,0.3)] p-6 md:p-8 relative overflow-hidden group shrink-0">
             <div className="absolute top-0 right-0 w-48 h-48 bg-[radial-gradient(circle,rgba(245,158,11,0.1)_0%,transparent_70%)] rounded-full group-hover:opacity-100 opacity-50 transition-opacity duration-1000" />
@@ -32,25 +35,25 @@ const LiveRecentGiftsComponent = ({
                         <Users className="w-5 h-5 text-amber-500" />
                     </div>
                     <div>
-                        <span className="text-[10px] text-zinc-500 font-black uppercase tracking-wider leading-none block mb-1.5 opacity-60 font-kantumruy">GUESTS ARRIVED</span>
+                        <span className="text-[10px] text-zinc-500 font-black uppercase tracking-wider leading-none block mb-1.5 opacity-60 font-kantumruy">{t("gifts.live.guestsArrived")}</span>
                         <div translate="no" className="text-2xl font-black text-white leading-none tracking-tighter flex items-baseline gap-2 tabular-nums notranslate">
                             {guestCount} <span className="text-[10px] text-white/20 font-bold uppercase tracking-widest">/ {totalGuests}</span>
                         </div>
                     </div>
                 </div>
                 <div className="flex flex-col items-end">
-                    <span className="text-[10px] text-zinc-500 font-black uppercase tracking-wider leading-none mb-1.5 opacity-60 font-kantumruy">STATUS</span>
+                    <span className="text-[10px] text-zinc-500 font-black uppercase tracking-wider leading-none mb-1.5 opacity-60 font-kantumruy">{t("gifts.live.status")}</span>
                     <div className="flex items-center gap-2">
                         <Activity className="w-3 h-3 text-emerald-500 animate-pulse" />
-                        <span className="text-[10px] font-black text-white tracking-widest">LIVE</span>
+                        <span className="text-[10px] font-black text-white tracking-widest">{t("gifts.actions.live").toUpperCase()}</span>
                     </div>
                 </div>
             </div>
 
             <div className="mb-6 flex items-center justify-between px-2 relative z-10">
                 <div>
-                    <h3 className="text-lg font-black text-white uppercase tracking-tight leading-none mb-1">បញ្ជីភ្ញៀវ</h3>
-                    <p className="text-[10px] text-zinc-500 font-black uppercase tracking-wider opacity-60">RECENT GUESTS</p>
+                    <h3 className="text-lg font-black text-white uppercase tracking-tight leading-none mb-1 font-kantumruy">{t("gifts.live.guestsList")}</h3>
+                    <p className="text-[10px] text-zinc-500 font-black uppercase tracking-wider opacity-60">{t("gifts.live.recentGuests")}</p>
                 </div>
                 <div className="p-3 bg-white/5 rounded-2xl">
                     <TrendingUp className="w-4 h-4 text-white/40" />
@@ -79,11 +82,11 @@ const LiveRecentGiftsComponent = ({
                                 </div>
                                 <div>
                                     <div className="text-lg font-bold text-white mb-0.5 tracking-tight font-kantumruy group-hover/item:text-amber-400 transition-colors">
-                                        {gift.guest?.name || "ភ្ញៀវកិត្តិយស"}
+                                        {gift.guest?.name || t("gifts.live.guestOfHonor")}
                                     </div>
                                     <div className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest flex items-center gap-2 opacity-80 mt-1">
                                         <Clock size={10} className="text-amber-500/50" />
-                                        <span>{new Date(gift.createdAt).toLocaleTimeString('km-KH', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Phnom_Penh' })}</span>
+                                        <span>{new Date(gift.createdAt).toLocaleTimeString(locale === 'km' ? 'km-KH' : 'en-US', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Phnom_Penh' })}</span>
                                         {gift.guest?.source && (
                                             <>
                                                 <span className="w-1 h-1 rounded-full bg-zinc-700" />

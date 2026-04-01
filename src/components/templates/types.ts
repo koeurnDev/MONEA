@@ -113,6 +113,8 @@ export interface WeddingData {
         giftRegistry?: GiftRegistryItem[];
         locationQrUrl?: string;
         locationQrPublicId?: string;
+        passcode?: string;
+        socialPreviewImage?: string;
     } | null;
     templateId?: string | null;
     eventType?: 'wedding' | 'anniversary';

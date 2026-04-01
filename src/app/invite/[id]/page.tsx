@@ -1,65 +1,48 @@
-import { prisma } from "@/lib/prisma";
+import { queryRaw } from "@/lib/prisma";
 import { Metadata } from 'next';
 import { notFound } from "next/navigation";
 import { WeddingData } from "@/components/templates/types";
 import dynamic from 'next/dynamic';
-const KhmerLegacy = dynamic(() => import("@/components/templates/KhmerLegacy"), { ssr: false });
+const KhmerLegacy = dynamic(() => import("@/components/templates/KhmerLegacy"));
 
 import { unstable_cache } from "next/cache";
 
 const getWedding = unstable_cache(
     async (id: string) => {
-        const wedding = await prisma.wedding.findUnique({
-            where: { id },
-            select: {
-                id: true,
-                groomName: true,
-                brideName: true,
-                location: true,
-                date: true,
-                eventType: true,
-                templateId: true,
-                themeSettings: true,
-                status: true,
-                createdAt: true,
-                activities: {
-                    orderBy: { order: 'asc' },
-                    select: {
-                        id: true,
-                        title: true,
-                        time: true,
-                        description: true,
-                        order: true,
-                        icon: true
-                    }
-                },
-                galleryItems: {
-                    orderBy: { createdAt: 'desc' },
-                    take: 24,
-                    select: {
-                        url: true,
-                        type: true,
-                        caption: true
-                    }
+        try {
+            // Fetch in parallel using stable Raw SQL
+            const [weddings, activities, galleryItems] = await Promise.all([
+                queryRaw('SELECT * FROM "Wedding" WHERE id = $1 LIMIT 1', id),
+                queryRaw('SELECT * FROM "Activity" WHERE "weddingId" = $1 ORDER BY "order" ASC', id),
+                queryRaw('SELECT * FROM "GalleryItem" WHERE "weddingId" = $1 ORDER BY "createdAt" DESC LIMIT 24', id)
+            ]);
+
+            if (!weddings.length) return null;
+
+            const wedding = weddings[0];
+
+            // Parse themeSettings if it's a string
+            let themeSettings = {};
+            if (wedding.themeSettings && typeof wedding.themeSettings === 'string') {
+                try {
+                    themeSettings = JSON.parse(wedding.themeSettings);
+                } catch (e) {
+                    console.error("Failed to parse themeSettings", e);
                 }
+            } else if (typeof wedding.themeSettings === 'object') {
+                themeSettings = wedding.themeSettings || {};
             }
-        });
 
-        if (!wedding) return null;
-
-        // Parse themeSettings if it's a string
-        let themeSettings = {};
-        if (wedding.themeSettings && typeof wedding.themeSettings === 'string') {
-            try {
-                themeSettings = JSON.parse(wedding.themeSettings);
-            } catch (e) {
-                console.error("Failed to parse themeSettings", e);
-            }
-        } else if (typeof wedding.themeSettings === 'object') {
-            themeSettings = wedding.themeSettings || {};
+            return {
+                ...wedding,
+                themeSettings,
+                activities,
+                galleryItems
+            } as unknown as WeddingData;
+        } catch (e) {
+            console.error("[getWedding Invite] Raw SQL fetch failed:", e);
+            return null;
         }
-
-        return { ...wedding, themeSettings } as unknown as WeddingData;
     },
     ['wedding-invite'],
     { revalidate: 3600 }

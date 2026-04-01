@@ -9,10 +9,14 @@ import { DangerZone } from "./components/DangerZone";
 import { DeleteAccountDialog } from "./components/DeleteAccountDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { m, AnimatePresence } from 'framer-motion';
-import { User, Shield } from "lucide-react";
+import { User, Shield, Settings2 } from "lucide-react";
 import { TwoFactorSetup } from "@/components/admin/TwoFactorSetup";
+import { PreferencesTab } from "./components/PreferencesTab";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 export default function AccountSettingsPage() {
+    const { t } = useTranslation();
+
     const {
         user,
         mutate,
@@ -77,14 +81,13 @@ export default function AccountSettingsPage() {
                 className="mb-14 text-center md:text-left"
             >
                 <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-primary/5 text-primary text-[10px] font-black tracking-[0.3em] uppercase mb-6 shadow-sm">
-                    <User size={16} /> PERSONAL ACCOUNT SETTINGS
+                    <User size={16} /> {t("account.badge")}
                 </div>
                 <h1 className="text-5xl md:text-7xl font-black text-foreground tracking-tight font-kantumruy uppercase mb-5 leading-[1.1]">
-                    Account Settings<br />
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-600">ការកំណត់គណនី</span>
+                    {t("account.title")}
                 </h1>
                 <p className="text-lg text-muted-foreground font-medium font-kantumruy max-w-3xl leading-relaxed">
-                    គ្រប់គ្រងព័ត៌មានផ្ទាល់ខ្លួន និងការកំណត់សុវត្ថិភាពសម្រាប់គណនី MONEA របស់អ្នក ដើម្បីធានាបាននូវសុវត្ថិភាព និងភាពងាយស្រួល។
+                    {t("account.subtitle")}
                 </p>
             </m.div>
 
@@ -92,10 +95,13 @@ export default function AccountSettingsPage() {
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-10">
                 <TabsList className="bg-muted/30 backdrop-blur-md border border-border/10 h-auto p-1.5 rounded-[2rem] inline-flex shadow-sm mb-4">
                     <TabsTrigger value="profile" className="rounded-[1.5rem] px-8 py-4 font-bold text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:text-foreground data-[state=active]:shadow-lg transition-all gap-3 font-kantumruy group">
-                        <User size={18} className="group-data-[state=active]:text-primary transition-colors" /> កម្រងព័ត៌មាន
+                        <User size={18} className="group-data-[state=active]:text-primary transition-colors" /> {t("account.tabs.profile")}
                     </TabsTrigger>
                     <TabsTrigger value="security" className="rounded-[1.5rem] px-8 py-4 font-bold text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:text-foreground data-[state=active]:shadow-lg transition-all gap-3 font-kantumruy group">
-                        <Shield size={18} className="group-data-[state=active]:text-red-500 transition-colors" /> សុវត្ថិភាព
+                        <Shield size={18} className="group-data-[state=active]:text-red-500 transition-colors" /> {t("account.tabs.security")}
+                    </TabsTrigger>
+                    <TabsTrigger value="preferences" className="rounded-[1.5rem] px-8 py-4 font-bold text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:text-foreground data-[state=active]:shadow-lg transition-all gap-3 font-kantumruy group">
+                        <Settings2 size={18} className="group-data-[state=active]:text-primary transition-colors" /> {t("account.tabs.preferences")}
                     </TabsTrigger>
                 </TabsList>
 
@@ -124,6 +130,14 @@ export default function AccountSettingsPage() {
                                     onShow2FASetup={() => setShow2FASetup(true)}
                                     onShowDisable2FA={() => setShowDisable2FA(true)}
                                 />
+                            </m.div>
+                        </TabsContent>
+                    )}
+
+                    {activeTab === "preferences" && (
+                        <TabsContent key="preferences" value="preferences" className="mt-0 outline-none">
+                            <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
+                                <PreferencesTab />
                             </m.div>
                         </TabsContent>
                     )}

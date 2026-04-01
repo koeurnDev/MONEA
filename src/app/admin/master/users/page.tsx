@@ -15,7 +15,7 @@ import {
     Loader2,
     Mail,
     Calendar,
-    Heart
+    Globe
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -126,7 +126,7 @@ export default function MasterUsersPage() {
                                                     </div>
                                                     <div className="flex items-center gap-4 text-xs font-bold text-slate-400 uppercase tracking-widest">
                                                         <span className="flex items-center gap-1"><Mail size={12} /> {u.email}</span>
-                                                        <span className="flex items-center gap-1"><Heart size={12} className="text-red-500" /> {u._count.weddings} Weddings</span>
+                                                        <span className="flex items-center gap-1"><Globe size={12} className="text-blue-500" /> {u._count.weddings} Weddings</span>
                                                     </div>
                                                 </div>
                                             </div>

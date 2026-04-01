@@ -5,6 +5,7 @@ import { m } from 'framer-motion';
 import { Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CinematicText } from "./CinematicText";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface MainGiftCardProps {
     latestGift: any;
@@ -12,13 +13,15 @@ interface MainGiftCardProps {
 }
 
 const MainGiftCardComponent = ({ latestGift, showAmounts }: MainGiftCardProps) => {
+    const { t } = useTranslation();
+
     if (!latestGift) {
         return (
             <div className="flex flex-col items-center gap-6 opacity-40">
                 <div className="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center animate-pulse">
                     <span className="text-white/20">🎁</span>
                 </div>
-                <span className="text-xs font-black uppercase tracking-[0.2em] font-kantumruy">Waiting for flow...</span>
+                <span className="text-xs font-black uppercase tracking-[0.2em] font-kantumruy">{t("gifts.live.waitingForFlow")}</span>
             </div>
         );
     }
@@ -43,9 +46,9 @@ const MainGiftCardComponent = ({ latestGift, showAmounts }: MainGiftCardProps) =
 
                         <div className="space-y-12 w-full">
                             <div className="space-y-4">
-                                <span className="text-amber-500 font-bold tracking-widest uppercase text-[10px] md:text-xs opacity-80 font-kantumruy drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]">GIFT RECEIVED FROM</span>
+                                <span className="text-amber-500 font-bold tracking-widest uppercase text-[10px] md:text-xs opacity-80 font-kantumruy drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]">{t("gifts.live.giftReceivedFrom")}</span>
                                 <div className="text-4xl sm:text-5xl md:text-6xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-white/70 leading-tight font-kantumruy tracking-tighter pb-1 drop-shadow-lg">
-                                    <CinematicText text={latestGift.guest?.name || "ភ្ញៀវកិត្តិយស"} />
+                                    <CinematicText text={latestGift.guest?.name || t("gifts.live.guestOfHonor")} />
                                 </div>
                             </div>
 
@@ -59,7 +62,7 @@ const MainGiftCardComponent = ({ latestGift, showAmounts }: MainGiftCardProps) =
                                     !showAmounts && "bg-neutral-900/50"
                                 )}
                             >
-                                <div className="text-sm md:text-base text-white/40 font-bold uppercase tracking-widest mb-2 md:mb-4 font-kantumruy">GIFT AMOUNT</div>
+                                <div className="text-sm md:text-base text-white/40 font-bold uppercase tracking-widest mb-2 md:mb-4 font-kantumruy">{t("gifts.live.giftAmount")}</div>
                                 <div translate="no" className={cn(
                                     "flex items-end gap-2 md:gap-4 text-transparent bg-clip-text bg-gradient-to-b from-amber-300 to-amber-600 transition-all duration-700 notranslate",
                                     !showAmounts && "blur-2xl opacity-20 scale-95"
@@ -73,7 +76,7 @@ const MainGiftCardComponent = ({ latestGift, showAmounts }: MainGiftCardProps) =
                                 {!showAmounts && (
                                     <div className="absolute inset-0 flex items-center justify-center">
                                         <div className="px-6 py-2 bg-amber-500/20 rounded-full border border-amber-500/30 text-amber-500 font-black text-xs uppercase tracking-widest">
-                                            PRIVATE
+                                            {t("gifts.live.private")}
                                         </div>
                                     </div>
                                 )}

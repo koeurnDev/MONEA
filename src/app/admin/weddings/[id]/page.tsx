@@ -3,9 +3,12 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Loader2, Heart, Users, MapPin, Calendar, Clock, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Loader2, Globe, Users, MapPin, Calendar, Clock, Image as ImageIcon, Sparkles, Share2 } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { QRCodeCard } from "@/components/QRCodeCard";
+import { useToast } from "@/components/ui/Toast";
+import { m } from "framer-motion";
 
 export default function AdminWeddingDetailsPage() {
     const params = useParams();
@@ -13,6 +16,7 @@ export default function AdminWeddingDetailsPage() {
 
     const [wedding, setWedding] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const { showToast } = useToast();
 
     useEffect(() => {
         fetch(`/api/admin/weddings/${params.id}`)
@@ -20,16 +24,25 @@ export default function AdminWeddingDetailsPage() {
                 if (res.ok) {
                     res.json().then(result => setWedding(result.data));
                 } else {
-                    alert("Error fetching wedding: Could not load details.");
-                    router.push("/admin/users");
+                    showToast({
+                        title: "Error fetching wedding",
+                        description: "Could not load wedding details. Please try again.",
+                        type: "info"
+                    });
+                    router.push("/admin/weddings");
                 }
             })
             .catch(err => {
                 console.error(err);
-                router.push("/admin/users");
+                showToast({
+                    title: "Network Error",
+                    description: "Failed to connect to the server.",
+                    type: "info"
+                });
+                router.push("/admin/weddings");
             })
             .finally(() => setLoading(false));
-    }, [params.id, router]);
+    }, [params.id, router, showToast]);
 
     if (loading) {
         return (
@@ -67,7 +80,7 @@ export default function AdminWeddingDetailsPage() {
                                     className="object-cover" 
                                 />
                             ) : (
-                                <Heart size={32} strokeWidth={2.5} />
+                                <Globe size={32} strokeWidth={2.5} />
                             )}
                         </div>
                         <div>
@@ -96,62 +109,94 @@ export default function AdminWeddingDetailsPage() {
 
                     {/* Quick Overview */}
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="p-6 bg-white border border-slate-100 rounded-3xl shadow-sm flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                                <Users size={24} />
+                        <m.div 
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="p-8 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2rem] shadow-sm flex items-center gap-6 group hover:shadow-md transition-all duration-500"
+                        >
+                            <div className="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center transition-transform group-hover:scale-110 duration-500">
+                                <Users size={28} />
                             </div>
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">ភ្ញៀវសរុប</p>
-                                <p className="text-2xl font-black text-slate-900">{wedding._count?.guests || 0}</p>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">ភ្ញៀវសរុប</p>
+                                <p className="text-3xl font-black text-slate-900 dark:text-white leading-none">{wedding._count?.guests || 0}</p>
                             </div>
-                        </div>
-                        <div className="p-6 bg-white border border-slate-100 rounded-3xl shadow-sm flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
-                                <ImageIcon size={24} />
+                        </m.div>
+                        <m.div 
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 }}
+                            className="p-8 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2rem] shadow-sm flex items-center gap-6 group hover:shadow-md transition-all duration-500"
+                        >
+                            <div className="w-16 h-16 rounded-2xl bg-purple-50 dark:bg-purple-900/20 text-purple-600 flex items-center justify-center transition-transform group-hover:scale-110 duration-500">
+                                <Sparkles size={28} />
                             </div>
                             <div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Template</p>
-                                <p className="text-lg font-black text-slate-900 capitalize truncate" title={wedding.templateId}>{wedding.templateId}</p>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Template</p>
+                                <p className="text-xl font-black text-slate-900 dark:text-white capitalize truncate max-w-[120px]" title={wedding.templateId}>{wedding.templateId}</p>
                             </div>
-                        </div>
+                        </m.div>
                     </div>
 
                     {/* Schedule / Activities */}
-                    <div className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm">
-                        <h3 className="text-lg font-black text-slate-900 font-kantumruy mb-6 flex items-center justify-between">
-                            <span>កម្មវិធី (Events)</span>
-                            <Badge variant="secondary" className="bg-slate-100 text-slate-700">{wedding.activities?.length || 0}</Badge>
+                    <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 p-10 shadow-sm relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 blur-3xl rounded-full -mr-16 -mt-16" />
+                        
+                        <h3 className="text-xl font-black text-slate-900 dark:text-white font-kantumruy mb-8 flex items-center justify-between">
+                            <span className="flex items-center gap-3">
+                                <Calendar size={20} className="text-red-600" />
+                                កម្មវិធី (Events)
+                            </span>
+                            <Badge variant="secondary" className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg px-3 py-1">
+                                {wedding.activities?.length || 0}
+                            </Badge>
                         </h3>
 
                         {wedding.activities && wedding.activities.length > 0 ? (
-                            <div className="space-y-4">
-                                {wedding.activities.map((evt: any) => (
-                                    <div key={evt.id} className="p-5 rounded-2xl border border-slate-100 bg-slate-50/50 flex flex-col gap-3">
+                            <div className="grid grid-cols-1 gap-6">
+                                {wedding.activities.map((evt: any, i: number) => (
+                                    <m.div 
+                                        key={evt.id} 
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: i * 0.1 }}
+                                        className="group p-6 rounded-3xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/20 hover:bg-white dark:hover:bg-slate-800 hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-none transition-all duration-500 flex flex-col gap-4 relative"
+                                    >
                                         <div className="flex justify-between items-start">
-                                            <h4 className="font-bold text-slate-900 font-kantumruy text-base">{evt.title}</h4>
+                                            <h4 className="font-black text-slate-900 dark:text-white font-kantumruy text-lg group-hover:text-red-600 transition-colors">{evt.title}</h4>
+                                            <div className="px-3 py-1 rounded-full bg-white dark:bg-slate-950 text-[10px] font-bold text-slate-500 border border-slate-100 dark:border-slate-800 shadow-sm">
+                                                Event {i + 1}
+                                            </div>
                                         </div>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
-                                            <div className="flex items-center gap-2 text-sm text-slate-600 font-kantumruy">
-                                                <Clock size={14} className="text-slate-400 shrink-0" />
-                                                <span className="truncate">{evt.time}</span>
+                                        <div className="flex flex-wrap gap-6 items-center">
+                                            <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400 font-kantumruy">
+                                                <div className="w-8 h-8 rounded-lg bg-white dark:bg-slate-950 flex items-center justify-center border border-slate-100 dark:border-slate-800 shadow-sm">
+                                                    <Clock size={16} className="text-red-500" />
+                                                </div>
+                                                <span className="font-bold">{evt.time}</span>
                                             </div>
                                             {evt.locationName && (
-                                                <div className="flex items-center gap-2 text-sm text-slate-600 font-kantumruy">
-                                                    <MapPin size={14} className="text-slate-400 shrink-0" />
-                                                    <span className="truncate" title={evt.locationName}>{evt.locationName}</span>
+                                                <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400 font-kantumruy">
+                                                    <div className="w-8 h-8 rounded-lg bg-white dark:bg-slate-950 flex items-center justify-center border border-slate-100 dark:border-slate-800 shadow-sm">
+                                                        <MapPin size={16} className="text-blue-500" />
+                                                    </div>
+                                                    <span className="font-bold truncate max-w-[180px]" title={evt.locationName}>{evt.locationName}</span>
                                                 </div>
                                             )}
                                         </div>
                                         {evt.description && (
-                                            <p className="text-sm text-slate-500 font-kantumruy italic border-l-2 border-slate-200 pl-3">
+                                            <div className="mt-2 p-4 rounded-2xl bg-white/50 dark:bg-slate-950/30 text-sm text-slate-500 dark:text-slate-400 font-kantumruy italic border-l-4 border-red-500/20">
                                                 {evt.description}
-                                            </p>
+                                            </div>
                                         )}
-                                    </div>
+                                    </m.div>
                                 ))}
                             </div>
                         ) : (
-                            <div className="p-8 text-center bg-slate-50 rounded-2xl border border-slate-100 border-dashed">
+                            <div className="p-16 text-center bg-slate-50 dark:bg-slate-800/30 rounded-[2rem] border border-slate-100 dark:border-slate-800 border-dashed">
+                                <div className="w-16 h-16 bg-white dark:bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-slate-100 dark:border-slate-800">
+                                    <Calendar className="text-slate-300" size={24} />
+                                </div>
                                 <p className="text-sm font-kantumruy text-slate-500 font-medium">មិនទាន់មានកម្មវិធីនៅឡើយទេ</p>
                             </div>
                         )}
@@ -160,29 +205,35 @@ export default function AdminWeddingDetailsPage() {
 
                 {/* Sidebar Info */}
                 <div className="space-y-6">
-                    <div className="bg-white rounded-3xl border border-slate-100 p-6 shadow-sm">
-                        <h3 className="text-sm font-black text-slate-900 font-kantumruy mb-4 uppercase tracking-wider border-b border-slate-100 pb-4">ព័ត៌មានលម្អិត</h3>
+                    {/* Share Section */}
+                    <QRCodeCard weddingId={wedding.id} />
 
-                        <div className="space-y-5">
+                    <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 p-8 shadow-sm">
+                        <h3 className="text-xs font-black text-slate-900 dark:text-white font-kantumruy mb-6 uppercase tracking-[0.2em] border-b border-slate-100 dark:border-slate-800 pb-4 flex items-center gap-2">
+                            <Share2 size={14} className="text-slate-400" />
+                            ព័ត៌មានលម្អិត
+                        </h3>
+
+                        <div className="space-y-6">
                             <div>
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1.5 mb-1">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2 mb-2">
                                     <Calendar size={12} /> ថ្ងៃមង្គលការ
                                 </label>
-                                <p className="text-sm font-bold text-slate-700 font-kantumruy">{formattedDate}</p>
+                                <p className="text-base font-black text-slate-700 dark:text-slate-300 font-kantumruy ml-5">{formattedDate}</p>
                             </div>
 
-                            <div className="pt-4 border-t border-slate-100">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 block">គណនីគ្រប់គ្រង (Owner)</label>
+                            <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3 block">គណនីគ្រប់គ្រង (Owner)</label>
                                 {wedding.user ? (
                                     <div
-                                        className="flex flex-col p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer border border-slate-100"
-                                        onClick={() => router.push("/admin/users")}  // Or direct modal trigger if we had it via query param
+                                        className="flex flex-col p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all cursor-pointer border border-slate-100 dark:border-slate-800 group"
+                                        onClick={() => router.push("/admin/users")}
                                     >
-                                        <span className="text-xs font-mono font-bold text-slate-700 truncate">{wedding.user.email}</span>
-                                        <span className="text-[10px] text-slate-500 uppercase mt-1">{wedding.user.role}</span>
+                                        <span className="text-xs font-mono font-bold text-slate-700 dark:text-slate-300 truncate group-hover:text-red-600 transition-colors uppercase tracking-tight">{wedding.user.email}</span>
+                                        <span className="text-[10px] text-slate-400 font-black uppercase mt-1 tracking-widest">{wedding.user.role}</span>
                                     </div>
                                 ) : (
-                                    <p className="text-xs text-slate-500 italic">មិនមានម្ចាស់</p>
+                                    <p className="text-xs text-slate-500 italic ml-1">មិនមានម្ចាស់</p>
                                 )}
                             </div>
                         </div>

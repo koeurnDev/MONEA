@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { useLoading } from "@/components/providers/LoadingProvider";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface DashboardSidebarProps {
     onCloseMobile?: () => void;
@@ -44,6 +45,7 @@ const NavLink = React.memo(({ item, isActive, onClick, onNavClick }: { item: any
 NavLink.displayName = "NavLink";
 
 export const DashboardSidebar = React.memo(function DashboardSidebar({ onCloseMobile, isStaff = false, isAdmin = false }: DashboardSidebarProps) {
+    const { t } = useTranslation();
     const pathname = usePathname();
     const router = useRouter();
     const { startLoading } = useLoading();
@@ -55,28 +57,28 @@ export const DashboardSidebar = React.memo(function DashboardSidebar({ onCloseMo
         } catch (e) {
             console.error("Logout API failed", e);
         }
-        window.location.href = "/login";
+        window.location.href = "/sign-in";
     };
 
     const mainNav = React.useMemo(() => [
-        { href: "/dashboard/gifts", label: "ចំណងដៃ", icon: Gift, hidden: !isStaff },
-        { href: "/dashboard", label: "ទំព័រដើម", icon: Home, hidden: isStaff },
-        { href: "/dashboard/guests", label: "ភ្ញៀវ", icon: Users, hidden: isStaff },
-        { href: "/dashboard/gifts", label: "ចំណងដៃ", icon: Gift, hidden: isStaff },
-    ], [isStaff]);
+        { href: "/dashboard/gifts", label: t("dashboard.menu.gifts"), icon: Gift, hidden: !isStaff },
+        { href: "/dashboard", label: t("dashboard.nav.overview"), icon: Home, hidden: isStaff },
+        { href: "/dashboard/guests", label: t("dashboard.menu.guests"), icon: Users, hidden: isStaff },
+        { href: "/dashboard/gifts", label: t("dashboard.menu.gifts"), icon: Gift, hidden: isStaff },
+    ], [isStaff, t]);
 
     const weddingNav = React.useMemo(() => [
-        { href: "/dashboard/design", label: "រចនា & ការកំណត់", icon: Palette, hidden: isStaff },
-        { href: "/dashboard/schedule", label: "កាលវិភាគកម្មវិធី", icon: Clock, hidden: isStaff },
-        { href: "/dashboard/notes", label: "កំណត់ត្រា", icon: BookOpen, hidden: isStaff },
-        { href: "/dashboard/staff", label: "បុគ្គលិក", icon: UserCog, hidden: isStaff },
-    ], [isStaff]);
+        { href: "/dashboard/design", label: t("dashboard.user.designSettings"), icon: Palette, hidden: isStaff },
+        { href: "/dashboard/schedule", label: t("dashboard.menu.schedule"), icon: Clock, hidden: isStaff },
+        { href: "/dashboard/notes", label: t("dashboard.menu.notes"), icon: BookOpen, hidden: isStaff },
+        { href: "/dashboard/staff", label: t("dashboard.menu.staff"), icon: UserCog, hidden: isStaff },
+    ], [isStaff, t]);
 
     const adminNav = React.useMemo(() => [
-        { href: "/dashboard/reports", label: "របាយការណ៍", icon: FileText, hidden: isStaff },
-        { href: "/dashboard/support", label: "ជំនួយ & ការគាំទ្រ", icon: HelpCircle, hidden: isStaff },
-        { href: "/dashboard/upgrade", label: "ដំឡើងកញ្ចប់", icon: Crown, hidden: isStaff },
-    ], [isStaff]);
+        { href: "/dashboard/reports", label: t("dashboard.menu.reports"), icon: FileText, hidden: isStaff },
+        { href: "/dashboard/support", label: t("dashboard.user.helpSupport"), icon: HelpCircle, hidden: isStaff },
+        { href: "/dashboard/upgrade", label: t("dashboard.upgrade.cta"), icon: Crown, hidden: isStaff },
+    ], [isStaff, t]);
 
     return (
         <div className="flex flex-col h-full bg-card relative accelerate-gpu">
@@ -91,7 +93,7 @@ export const DashboardSidebar = React.memo(function DashboardSidebar({ onCloseMo
 
             <nav className="flex-1 px-3 py-2 space-y-4 overflow-y-auto scrollbar-none relative">
                 <div className="space-y-1">
-                    <p className="px-4 text-[10px] font-black font-kantumruy text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-3">ទូទៅ</p>
+                    <p className="px-4 text-[10px] font-black font-kantumruy text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-3">{t("dashboard.menu.general")}</p>
                     {mainNav.map(item => !item.hidden && (
                         <NavLink key={item.href} item={item} isActive={pathname === item.href} onClick={onCloseMobile} onNavClick={startLoading} />
                     ))}
@@ -99,7 +101,7 @@ export const DashboardSidebar = React.memo(function DashboardSidebar({ onCloseMo
 
                 {!isStaff && (
                     <div className="space-y-1">
-                        <p className="px-4 text-[10px] font-black font-kantumruy text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-3">រៀបចំពិធី</p>
+                        <p className="px-4 text-[10px] font-black font-kantumruy text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-3">{t("dashboard.menu.setup")}</p>
                         {weddingNav.map(item => !item.hidden && (
                             <NavLink key={item.href} item={item} isActive={pathname === item.href} onClick={onCloseMobile} onNavClick={startLoading} />
                         ))}
@@ -108,7 +110,7 @@ export const DashboardSidebar = React.memo(function DashboardSidebar({ onCloseMo
 
                 {!isStaff && (
                     <div className="space-y-1">
-                        <p className="px-4 text-[10px] font-black font-kantumruy text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-3">ផ្សេងៗ</p>
+                        <p className="px-4 text-[10px] font-black font-kantumruy text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-3">{t("dashboard.menu.others")}</p>
                         {adminNav.map(item => !item.hidden && (
                             <NavLink key={item.href} item={item} isActive={pathname === item.href} onClick={onCloseMobile} onNavClick={startLoading} />
                         ))}
@@ -123,7 +125,7 @@ export const DashboardSidebar = React.memo(function DashboardSidebar({ onCloseMo
                     onClick={() => setIsLogoutModalOpen(true)}
                 >
                     <LogOut className="h-4 w-4" />
-                    <span className="text-xs font-bold uppercase tracking-wider font-kantumruy">ចាកចេញ</span>
+                    <span className="text-xs font-bold uppercase tracking-wider font-kantumruy">{t("common.auth.logout")}</span>
                 </Button>
             </div>
 
@@ -131,10 +133,10 @@ export const DashboardSidebar = React.memo(function DashboardSidebar({ onCloseMo
                 open={isLogoutModalOpen}
                 onClose={() => setIsLogoutModalOpen(false)}
                 onConfirm={handleLogout}
-                title="ចាកចេញពីគណនី?"
-                description="តើអ្នកពិតជាចង់ចាកចេញពីគណនីរបស់អ្នកមែនទេ? អ្នកនឹងត្រូវបញ្ចូលលេខសម្ងាត់ម្តងទៀតនៅពេលចូលប្រើប្រាស់លើកក្រោយ។"
-                confirmLabel="ចាកចេញ"
-                cancelLabel="បោះបង់"
+                title={t("dashboard.logout.confirmTitle")}
+                description={t("dashboard.logout.confirmDescription")}
+                confirmLabel={t("common.actions.logout")}
+                cancelLabel={t("common.actions.cancel")}
                 variant="danger"
             />
         </div>

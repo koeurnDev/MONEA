@@ -4,9 +4,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useState, useEffect } from "react";
+import { useTranslation } from "@/i18n/LanguageProvider";
+import { moneaClient } from "@/lib/api-client";
 
-export const giftFormSchema = z.object({
-    amount: z.string().min(1, "សូមបញ្ចូលចំនួនទឹកប្រាក់"),
+export const createGiftFormSchema = (t: any) => z.object({
+    amount: z.string().min(1, t("gifts.form.amountRequired") || "Please enter amount"),
     currency: z.enum(["USD", "KHR"]),
     method: z.string().optional(),
     guestId: z.string().optional(),
@@ -14,9 +16,10 @@ export const giftFormSchema = z.object({
     source: z.string().optional(),
 });
 
-export type GiftFormValues = z.infer<typeof giftFormSchema>;
+export type GiftFormValues = z.infer<ReturnType<typeof createGiftFormSchema>>;
 
 export function useGiftForm({ onSuccess, onDone, defaultCreate = false }: { onSuccess: () => void; onDone: () => void; defaultCreate?: boolean }) {
+    const { t } = useTranslation();
     const [loading, setLoading] = useState(false);
     const [guests, setGuests] = useState<any[]>([]);
     const [error, setError] = useState<string | null>(null);
@@ -40,7 +43,7 @@ export function useGiftForm({ onSuccess, onDone, defaultCreate = false }: { onSu
     const PREF_KEY = 'gift_form_prefs';
 
     const form = useForm<GiftFormValues>({
-        resolver: zodResolver(giftFormSchema),
+        resolver: zodResolver(createGiftFormSchema(t)),
         defaultValues: {
             amount: "",
             currency: "USD",
@@ -61,13 +64,14 @@ export function useGiftForm({ onSuccess, onDone, defaultCreate = false }: { onSu
 
     useEffect(() => {
         // Load Guests
-        fetch("/api/guests")
-            .then(res => res.json())
-            .then(data => {
-                if (Array.isArray(data)) {
-                    setGuests(data);
+        moneaClient.get<any>("/api/guests?limit=1000")
+            .then(res => {
+                if (res.data?.items) {
+                    setGuests(res.data.items);
+                } else if (Array.isArray(res.data)) {
+                    setGuests(res.data);
                 } else {
-                    console.error("Guests API Error:", data);
+                    console.error("Guests API Error:", res.error || res.data);
                     setGuests([]);
                 }
             })
@@ -77,11 +81,10 @@ export function useGiftForm({ onSuccess, onDone, defaultCreate = false }: { onSu
             });
 
         // Load QR Code Settings
-        fetch("/api/wedding")
-            .then(res => res.json())
-            .then(data => {
-                if (data?.themeSettings?.paymentQrUrl) {
-                    setPaymentQrUrl(data.themeSettings.paymentQrUrl);
+        moneaClient.get<any>("/api/wedding")
+            .then(res => {
+                if (res.data?.themeSettings?.paymentQrUrl) {
+                    setPaymentQrUrl(res.data.themeSettings.paymentQrUrl);
                 }
             })
             .catch(err => console.error("Failed to load settings", err));
@@ -97,6 +100,7 @@ export function useGiftForm({ onSuccess, onDone, defaultCreate = false }: { onSu
         if (defaultCreate) {
             setIsCreatingNew(true);
             form.setValue("guestId", "new");
+            form.setValue("guestName", "");
         } else if (savedDraft) {
             try {
                 const draft = JSON.parse(savedDraft);
@@ -168,13 +172,9 @@ export function useGiftForm({ onSuccess, onDone, defaultCreate = false }: { onSu
 
         for (const item of currentQueue) {
             try {
-                const res = await fetch("/api/gifts", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(item),
-                });
+                const res = await moneaClient.post<any>("/api/gifts", item);
 
-                if (res.ok) {
+                if (!res.error) {
                     successCount++;
                 } else {
                     failedQueue.push(item);
@@ -193,9 +193,9 @@ export function useGiftForm({ onSuccess, onDone, defaultCreate = false }: { onSu
             setOfflineMode(false);
             setError(null);
             onSuccess();
-            alert(`បានបញ្ចូលទិន្នន័យបាន ${successCount} ជោគជ័យ! 🎉`);
+            alert(t("gifts.form.syncSuccess", { count: successCount }));
         } else {
-            setError(`បានបញ្ចូល ${successCount} កាដូ។ នៅសល់ ${failedQueue.length} ទៀតបរាជ័យ។`);
+            setError(t("gifts.form.syncPartial", { success: successCount, failed: failedQueue.length }));
         }
     };
 
@@ -211,25 +211,14 @@ export function useGiftForm({ onSuccess, onDone, defaultCreate = false }: { onSu
         };
 
         try {
-            // Add timeout for better UX
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+            const res = await moneaClient.post<any>("/api/gifts", payload);
 
-            const res = await fetch("/api/gifts", {
-                method: "POST",
-                body: JSON.stringify(payload),
-                signal: controller.signal
-            });
-            
-            clearTimeout(timeoutId);
-
-            if (!res.ok) {
-                const errorData = await res.json().catch(() => ({}));
-                console.error("Server Error Response:", errorData);
-                throw new Error(errorData.error || `Server error (${res.status})`);
+            if (res.error) {
+                console.error("Server Error Response:", res.error);
+                throw new Error(res.error);
             }
 
-            const gift = await res.json();
+            const gift = res.data;
             localStorage.removeItem(DRAFT_KEY);
 
             const newPrefs = { currency: values.currency, method: values.method || "Cash" };
@@ -239,7 +228,7 @@ export function useGiftForm({ onSuccess, onDone, defaultCreate = false }: { onSu
             onSuccess();
 
             setReceiptData({
-                name: values.guestName || "ភ្ញៀវមិនស្គាល់ឈ្មោះ",
+                name: values.guestName || t("gifts.table.unknown"),
                 amount: values.amount,
                 currency: values.currency,
                 source: values.source,
@@ -269,7 +258,7 @@ export function useGiftForm({ onSuccess, onDone, defaultCreate = false }: { onSu
 
             setOfflineQueue(currentQueue);
             setOfflineMode(true);
-            setError("ដាច់អ៊ីនធឺណិត! កាដូត្រូវបានរក្សាទុកក្នុងទូរស័ព្ទ");
+            setError(t("gifts.form.offlineAlert"));
         } finally {
             setLoading(false);
         }

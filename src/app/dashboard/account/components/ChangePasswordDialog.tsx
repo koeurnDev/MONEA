@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { KeyRound, Lock, Eye, EyeOff, Save, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface ChangePasswordDialogProps {
     open: boolean;
@@ -37,6 +38,8 @@ export function ChangePasswordDialog({
     changingPassword,
     pwError
 }: ChangePasswordDialogProps) {
+    const { t } = useTranslation();
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[440px] p-0 overflow-hidden border-none rounded-[2rem] bg-card shadow-2xl">
@@ -44,9 +47,9 @@ export function ChangePasswordDialog({
                     <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/30 flex items-center justify-center text-indigo-600 mb-4">
                         <KeyRound size={24} />
                     </div>
-                    <DialogTitle className="text-2xl font-black font-kantumruy">ប្តូរលេខសម្ងាត់ថ្មី</DialogTitle>
+                    <DialogTitle className="text-2xl font-black font-kantumruy">{t("account.dialogs.changePassword.title")}</DialogTitle>
                     <DialogDescription className="text-sm font-medium font-kantumruy opacity-60">
-                        សូមបំពេញព័ត៌មានខាងក្រោមដើម្បីផ្លាស់ប្ដូរលេខសម្ងាត់របស់អ្នក។
+                        {t("account.dialogs.changePassword.description")}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -59,7 +62,7 @@ export function ChangePasswordDialog({
 
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">លេខសម្ងាត់បច្ចុប្បន្ន</Label>
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">{t("account.dialogs.changePassword.labels.current")}</Label>
                             <div className="relative group">
                                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground opacity-40 group-focus-within:text-indigo-500 transition-colors">
                                     <Lock size={16} />
@@ -68,7 +71,7 @@ export function ChangePasswordDialog({
                                     type={showPasswords ? "text" : "password"}
                                     value={currentPassword}
                                     onChange={(e) => setCurrentPassword(e.target.value)}
-                                    placeholder="••••••••"
+                                    placeholder={t("account.dialogs.changePassword.placeholders.password")}
                                     className="h-12 pl-11 pr-11 bg-muted/40 border-none rounded-xl font-bold focus:ring-2 focus:ring-indigo-500/20 transition-all"
                                     required
                                 />
@@ -76,7 +79,7 @@ export function ChangePasswordDialog({
                         </div>
 
                         <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">លេខសម្ងាត់ថ្មី</Label>
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">{t("account.dialogs.changePassword.labels.new")}</Label>
                             <div className="relative group">
                                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground opacity-40 group-focus-within:text-indigo-500 transition-colors">
                                     <KeyRound size={16} />
@@ -85,7 +88,7 @@ export function ChangePasswordDialog({
                                     type={showPasswords ? "text" : "password"}
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
-                                    placeholder="••••••••"
+                                    placeholder={t("account.dialogs.changePassword.placeholders.password")}
                                     className="h-12 pl-11 pr-11 bg-muted/40 border-none rounded-xl font-bold focus:ring-2 focus:ring-indigo-500/20 transition-all"
                                     required
                                 />
@@ -100,7 +103,7 @@ export function ChangePasswordDialog({
                         </div>
 
                         <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">បញ្ជាក់លេខសម្ងាត់ថ្មី</Label>
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">{t("account.dialogs.changePassword.labels.confirm")}</Label>
                             <div className="relative group">
                                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground opacity-40 group-focus-within:text-indigo-500 transition-colors">
                                     <CheckCircle2 size={16} />
@@ -109,7 +112,7 @@ export function ChangePasswordDialog({
                                     type={showPasswords ? "text" : "password"}
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
-                                    placeholder="••••••••"
+                                    placeholder={t("account.dialogs.changePassword.placeholders.password")}
                                     className="h-12 pl-11 bg-muted/40 border-none rounded-xl font-bold focus:ring-2 focus:ring-indigo-500/20 transition-all"
                                     required
                                 />
@@ -126,7 +129,7 @@ export function ChangePasswordDialog({
                             {changingPassword ? (
                                 <RefreshCw className="w-4 h-4 animate-spin" />
                             ) : (
-                                <>រក្សាទុកការផ្លាស់ប្តូរ <Save size={18} /></>
+                                <>{t("account.dialogs.changePassword.submit")} <Save size={18} /></>
                             )}
                         </Button>
                     </DialogFooter>

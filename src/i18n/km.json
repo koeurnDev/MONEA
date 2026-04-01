@@ -1,0 +1,1727 @@
+{
+  "common": {
+    "auth": {
+      "signIn": "ចូលប្រើប្រាស់",
+      "signUp": "ចុះឈ្មោះ",
+      "getStarted": "ចាប់ផ្ដើមឥឡូវនេះ",
+      "logout": "ចាកចេញ",
+      "email": "អាសយដ្ឋានអ៊ីមែល",
+      "password": "លេខសម្ងាត់",
+      "confirmPassword": "បញ្ជាក់លេខសម្ងាត់",
+      "forgotPassword": "ភ្លេចលេខសម្ងាត់?",
+      "forgotPasswordShort": "ភ្លេច?",
+      "loginTitle": "ចូលប្រើប្រាស់",
+      "loginSubtitle": "សូមបញ្ចូលព័ត៌មានសម្ងាត់របស់អ្នកដើម្បីបន្ត",
+      "registerTitle": "បង្កើតគណនី",
+      "registerSubtitle": "ចាប់ផ្ដើមដំណើរការរបស់អ្នកដោយឥតគិតថ្លៃ",
+      "fullName": "ឈ្មោះពេញរបស់អ្នក",
+      "verifyCaptcha": "សូមផ្ទៀងផ្ទាត់ CAPTCHA",
+      "twoFactorTitle": "ការផ្ទៀងផ្ទាត់អត្តសញ្ញាណ ២ ជាន់ (2FA)",
+      "twoFactorSubtitle": "សូមបញ្ចូលលេខកូដពីកម្មវិធី Authenticator របស់អ្នក",
+      "returnToPassword": "ត្រឡប់ទៅការចូលដោយប្រើលេខសម្ងាត់",
+      "orContinueWith": "ឬបន្តជាមួយ",
+      "noAccount": "មិនទាន់មានគណនីមែនទេ?",
+      "hasAccount": "មានគណនីរួចហើយមែនទេ?",
+      "signUpNow": "ចុះឈ្មោះឥឡូវនេះ",
+      "signInNow": "ចូលប្រើគណនីរបស់អ្នក",
+      "back": "ត្រឡប់ក្រោយ",
+      "forgotPasswordTitle": "ភ្លេចលេខសម្ងាត់?",
+      "forgotPasswordSubtitle": "បញ្ចូលអ៊ីមែលរបស់អ្នកដើម្បីទទួលតំណភ្ជាប់កំណត់លេខសម្ងាត់ឡើងវិញ",
+      "sendLink": "ផ្ញើតំណភ្ជាប់កំណត់ឡើងវិញ",
+      "rememberPassword": "ចងចាំលេខសម្ងាត់របស់អ្នកមែនទេ?",
+      "backToSignIn": "ត្រឡប់ទៅការចូលប្រើប្រាស់",
+      "backToHome": "ត្រឡប់ទៅទំព័រដើម",
+      "resetLinkSent": "តំណភ្ជាប់កំណត់លេខសម្ងាត់ឡើងវិញត្រូវបានផ្ញើទៅកាន់អ៊ីមែលរបស់អ្នកហើយ។ សូមពិនិត្យ!",
+      "resetPasswordTitle": "កំណត់លេខសម្ងាត់ឡើងវិញ",
+      "resetPasswordSubtitle": "សូមបញ្ចូលលេខសម្ងាត់ថ្មីរបស់អ្នកខាងក្រោម។",
+      "newPassword": "លេខសម្ងាត់ថ្មី",
+      "confirmNewPassword": "បញ្ជាក់លេខសម្ងាត់ថ្មី",
+      "resetButton": "កំណត់លេខសម្ងាត់ឡើងវិញ",
+      "passwordMismatched": "លេខសម្ងាត់មិនត្រូវគ្នាទេ"
+    },
+    "constants": {
+      "brandName": "MONEA",
+      "brandDomain": "monea.app",
+      "googleMaps": "Google Maps",
+      "qrCode": "QR Code",
+      "locale": "en-US"
+    },
+    "loading": {
+      "preparing": "កំពុងរៀបចំប្រព័ន្ធ...",
+      "creating": "កំពុងបង្កើតការអញ្ជើញ...",
+      "saving": "កំពុងរក្សាទុកការផ្លាស់ប្តូរ...",
+      "guestlist": "កំពុងទាញយកបញ្ជីភ្ញៀវ...",
+      "dashboard": "កំពុងទាញយកផ្ទាំងគ្រប់គ្រង...",
+      "wishes": "កំពុងទាញយកពាក្យជូនពរ...",
+      "fetching": "កំពុងដំណើរការ..."
+    },
+    "success": {
+      "saved": "Saved successfully",
+      "thankYou": "Thank you!",
+      "responseReceived": "Response received"
+    },
+    "empty": {
+      "generic": "No data available",
+      "guests": "No guests yet",
+      "images": "No images uploaded",
+      "activities": "No activities scheduled",
+      "wishes": "No wishes yet. Be the first to share your blessing!"
+    },
+    "validation": {
+      "required": "This field is required",
+      "invalidEmail": "Invalid email address",
+      "tooShort": "Value is too short"
+    },
+    "actions": {
+      "save": "រក្សាទុក",
+      "cancel": "បោះបង់",
+      "delete": "លុប",
+      "edit": "កែសម្រួល",
+      "back": "ថយក្រោយ",
+      "next": "បន្តទៅមុខ",
+      "previous": "ថយក្រោយ",
+      "confirm": "បញ្ជាក់",
+      "retry": "Retry",
+      "finish": "រួចរាល់",
+      "tryAgain": "Try Again",
+      "import": "Import",
+      "export": "Export",
+      "logout": "ចាកចេញ",
+      "continue": "បន្តទៅមុខទៀត"
+    },
+    "labels": {
+      "mr": "Mr.",
+      "mrs": "Mrs.",
+      "you": "You",
+      "sending": "Sending...",
+      "scrollExplore": "Scroll to explore",
+      "wedding": "Wedding",
+      "anniversary": "Anniversary",
+      "premium": "Premium",
+      "free": "Free"
+    },
+    "navigation": {
+      "home": "ទំព័រដើម",
+      "features": "មុខងារ",
+      "howItWorks": "របៀបប្រើប្រាស់",
+      "templates": "គំរូឌីហ្សាញ",
+      "pricing": "តម្លៃ",
+      "schedule": "កាលវិភាគ",
+      "map": "ផែនទី",
+      "rsvp": "RSVP / ចូលរួម",
+      "login": "ចូលប្រើ",
+      "dashboard": "ផ្ទាំងគ្រប់គ្រង"
+    },
+    "calendar": {
+      "day": "ថ្ងៃ",
+      "number": "លេខ",
+      "month": "ខែ",
+      "year": "ឆ្នាំ",
+      "days": [
+        "អាទិត្យ",
+        "ច័ន្ទ",
+        "អង្គារ",
+        "ពុធ",
+        "ព្រហស្បតិ៍",
+        "សុក្រ",
+        "សៅរ៍"
+      ],
+      "months": [
+        "មករា",
+        "កុម្ភៈ",
+        "មីនា",
+        "មេសា",
+        "ឧសភា",
+        "មិថុនា",
+        "កក្កដា",
+        "សីហា",
+        "កញ្ញា",
+        "តុលា",
+        "វិច្ឆិកា",
+        "ធ្នូ"
+      ],
+      "digits": [
+        "០",
+        "១",
+        "២",
+        "៣",
+        "៤",
+        "៥",
+        "៦",
+        "៧",
+        "៨",
+        "៩"
+      ]
+    },
+    "errors": {
+      "unexpected": "An unexpected error occurred.",
+      "technical": "There was a technical issue while fetching data. Please try again.",
+      "oops": "Oops!"
+    },
+    "footer": {
+      "home": "Home",
+      "features": "Features",
+      "howItWorks": "How It Works",
+      "templates": "Templates",
+      "contact": "Contact",
+      "copyright": "All Rights Reserved © 2026 MONEA",
+      "privacyPolicy": "Privacy Policy",
+      "termsOfUse": "Terms of Use"
+    },
+    "partners": {
+      "subtitle": "Supporting local banks for digital gifts"
+    },
+    "terms": {
+      "title": "Terms of Use (Terms & Conditions)",
+      "lastUpdated": "Last Updated: 3/19/2026",
+      "s1": {
+        "title": "1. Agreement to Terms",
+        "p1": "These Terms of Use constitute a legally binding agreement made between you, whether personally or on behalf of an entity (“you”) and MONEA (“we”, “us”, or “our”), concerning your access to and use of our website as well as any other media form, media channel, mobile website or mobile application related, linked, or otherwise connected thereto (collectively, the “Site”)."
+      },
+      "s2": {
+        "title": "2. Intellectual Property Rights",
+        "p1": "Unless otherwise indicated, the Site is our proprietary property and all source code, databases, functionality, software, website designs, audio, video, text, photographs, and graphics on the Site (collectively, the “Content”) and the trademarks, service marks, and logos contained therein (the “Marks”) are owned or controlled by us or licensed to us, and are protected by copyright and trademark laws and various other intellectual property rights and unfair competition laws."
+      },
+      "s3": {
+        "title": "3. User Representations",
+        "p1": "By using the Site, you represent and warrant that:",
+        "items": [
+          "all registration information you submit will be true, accurate, current, and complete;",
+          "you will maintain the accuracy of such information and promptly update such registration information as necessary;",
+          "you have the legal capacity and you agree to comply with these Terms of Use;",
+          "you are not a minor in the jurisdiction in which you reside;",
+          "you will not access the Site through automated or non-human means, whether through a bot, script or otherwise;",
+          "you will not use the Site for any illegal or unauthorized purpose; and",
+          "your use of the Site will not violate any applicable law or regulation."
+        ]
+      },
+      "s4": {
+        "title": "4. User Registration",
+        "p1": "You may be required to register with the Site. You agree to keep your password confidential and will be responsible for all use of your account and password. We reserve the right to remove, reclaim, or change a username you select if we determine, in our sole discretion, that such username is inappropriate, obscene, or otherwise objectionable."
+      },
+      "s5": {
+        "title": "5. Prohibited Activities",
+        "p1": "You may not access or use the Site for any purpose other than that for which we make the Site available. The Site may not be used in connection with any commercial endeavors except those that are specifically endorsed or approved by us.",
+        "p2": "As a user of the Site, you agree not to:",
+        "items": [
+          "Systematically retrieve data or other content from the Site to create or compile, directly or indirectly, a collection, compilation, database, or directory without written permission from us.",
+          "Trick, defraud, or mislead us and other users, especially in any attempt to learn sensitive account information such as user passwords.",
+          "Circumvent, disable, or otherwise interfere with security-related features of the Site.",
+          "Disparage, tarnish, or otherwise harm, in our opinion, us and/or the Site.",
+          "Use any information obtained from the Site in order to harass, abuse, or harm another person."
+        ]
+      },
+      "s6": {
+        "title": "6. Modifications and Interruptions",
+        "p1": "We reserve the right to change, modify, or remove the contents of the Site at any time or for any reason at our sole discretion without notice. However, we have no obligation to update any information on our Site. We also reserve the right to modify or discontinue all or part of the Site without notice at any time. We will not be liable to you or any third party for any modification, price change, suspension, or discontinuance of the Site."
+      },
+      "s7": {
+        "title": "7. Contact Us",
+        "p1": "In order to resolve a complaint regarding the Site or to receive further information regarding use of the Site, please contact us at:",
+        "email": "Email: support@monea.com",
+        "phone": "Phone: +855 (0) 12 345 678"
+      }
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "lastUpdated": "Last Updated: 3/19/2026",
+      "s1": {
+        "title": "1. Introduction",
+        "p1": "Welcome to MONEA (“we”, “our”, or “us”). We respect your privacy and are committed to protecting your personal data. This privacy policy will inform you as to how we look after your personal data when you visit our website (regardless of where you visit it from) and tell you about your privacy rights and how the law protects you."
+      },
+      "s2": {
+        "title": "2. The Data We Collect About You",
+        "p1": "Personal data, or personal information, means any information about an individual from which that person can be identified. We may collect, use, store and transfer different kinds of personal data about you which we have grouped together as follows:",
+        "items": [
+          "Identity Data includes first name, last name, username or similar identifier.",
+          "Contact Data includes email address and telephone numbers.",
+          "Technical Data includes internet protocol (IP) address, your login data, browser type and version, time zone setting and location.",
+          "Profile Data includes your username and password, purchases or orders made by you, your interests, feedback and survey responses.",
+          "Event Data includes details about events (e.g., weddings) you create using our platform, including guest lists and event details."
+        ]
+      },
+      "s3": {
+        "title": "3. How We Use Your Personal Data",
+        "p1": "We will only use your personal data when the law allows us to. Most commonly, we will use your personal data in the following circumstances:",
+        "items": [
+          "Where we need to perform the contract we are about to enter into or have entered into with you (e.g., providing our digital invitation services).",
+          "Where it is necessary for our legitimate interests (or those of a third party) and your interests and fundamental rights do not override those interests.",
+          "Where we need to comply with a legal obligation."
+        ]
+      },
+      "s4": {
+        "title": "4. Data Security",
+        "p1": "We have put in place appropriate security measures to prevent your personal data from being accidentally lost, used or accessed in an unauthorized way, altered or disclosed. In addition, we limit access to your personal data to those employees, agents, contractors and other third parties who have a business need to know. They will only process your personal data on our instructions and they are subject to a duty of confidentiality."
+      },
+      "s5": {
+        "title": "5. Data Retention",
+        "p1": "We will only retain your personal data for as long as reasonably necessary to fulfill the purposes we collected it for, including for the purposes of satisfying any legal, regulatory, tax, accounting or reporting requirements. We may retain your personal data for a longer period in the event of a complaint or if we reasonably believe there is a prospect of litigation in respect to our relationship with you."
+      },
+      "s6": {
+        "title": "6. Your Legal Rights",
+        "p1": "Under certain circumstances, you have rights under data protection laws in relation to your personal data, including the right to:",
+        "items": [
+          "Request access to your personal data.",
+          "Request correction of your personal data.",
+          "Request erasure of your personal data.",
+          "Object to processing of your personal data.",
+          "Request restriction of processing your personal data.",
+          "Request transfer of your personal data.",
+          "Right to withdraw consent."
+        ]
+      },
+      "s7": {
+        "title": "7. Contact Us",
+        "p1": "If you have any questions about this privacy policy or our privacy practices, please contact us at:",
+        "email": "Email: privacy@monea.com",
+        "phone": "Phone: +855 (0) 12 345 678"
+      }
+    },
+    "upgrade": {
+      "special_offer": "ការផ្តល់ជូនពិសេស៖ បញ្ចុះតម្លៃ ៥០%",
+      "subtitle": "បង្កើនភាពប្រណីតនៃពិធីមង្គលការរបស់អ្នកជាមួយមុខងារអាជីពរបស់យើង។",
+      "title": "ជ្រើសរើស កម្លាំង របស់អ្នក",
+      "free_name": "FREE MASTER",
+      "pro_name": "PRO MASTER",
+      "premium_name": "PREMIUM MASTER",
+      "current_plan": "គម្រោងបច្ចុប្បន្ន",
+      "best_value": "តម្លៃល្អបំផុត",
+      "already_active": "សកម្មរួចហើយ",
+      "upgrade_now": "តម្លើងគម្រោងឥឡូវនេះ",
+      "unlock_elite": "តម្លើងទៅ Elite",
+      "secure_payment": "ការទូទាត់ប្រកបដោយសុវត្ថិភាព",
+      "scan_khqr": "ស្កេនជាមួយកម្មវិធីធនាគាររបស់អ្នកតាម KHQR",
+      "payable_amount": "ចំនួនត្រូវបង់",
+      "time_remaining": "ពេលវេលានៅសល់",
+      "do_not_close": "សូមកុំបិទផ្ទាំងនេះ រហូតដល់ការទូទាត់ត្រូវបានរកឃើញ។",
+      "payment_received": "ទទួលបានការទូទាត់រួចហើយ!",
+      "upgrading_wait": "កំពុងតម្លើងប្រព័ន្ធរបស់អ្នក សូមរង់ចាំ...",
+      "digital_receipt": "វិក្កយបត្រឌីជីថល",
+      "trans_success": "ប្រតិបត្តិការជោគជ័យ",
+      "receipt_order": "លេខបញ្ជាទិញ",
+      "receipt_package": "កញ្ចប់សេវាកម្ម",
+      "receipt_amount": "ចំនួនទឹកប្រាក់ដែលបានបង់",
+      "continue_btn": "បន្តទៅផ្ទាំងគ្រប់គ្រង"
+    }
+  },
+  "support": {
+    "title": "មជ្ឈមណ្ឌលជំនួយ",
+    "titleKm": "មជ្ឈមណ្ឌលជំនួយ",
+    "subtitle": "តើអ្នកកំពុងជួបបញ្ហាបច្ចេកទេស ឬចង់បានមុខងារបន្ថែមមែនទេ? ផ្ញើសារមកយើងដោយផ្ទាល់។ ក្រុមការងារ MONEA ត្រៀមខ្លួនជានិច្ចដើម្បីជួយអ្នក។",
+    "center": "មជ្ឈមណ្ឌលជំនួយ",
+    "form": {
+      "subject": "ប្រធានបទ",
+      "subjectPlaceholder": "តើអ្នកត្រូវការជំនួយអ្វីខ្លះ?",
+      "priority": "កម្រិតអាទិភាព",
+      "priorityNormal": "ធម្មតា",
+      "priorityHigh": "អាទិភាពខ្ពស់",
+      "message": "សាររបស់អ្នក",
+      "messagePlaceholder": "សូមរៀបរាប់ពីបញ្ហា ឬសំណូមពររបស់អ្នកឱ្យបានលម្អិត...",
+      "submit": "ផ្ញើសារឥឡូវនេះ",
+      "success": {
+        "title": "ផ្ញើសារបានជោគជ័យ!",
+        "desc": "សំណើរបស់អ្នកត្រូវបានបង្កើតរួចរាល់ហើយ។ ក្រុមការងាររបស់យើងនឹងពិនិត្យ និងឆ្លើយតបទៅអ្នកវិញក្នុងពេលឆាប់ៗតាមរយៈអ៊ីមែល។",
+        "back": "ត្រឡប់ទៅផ្ទាំងគ្រប់គ្រង"
+      }
+    },
+    "urgentHelp": {
+      "title": "ជំនួយបន្ទាន់?",
+      "desc": "សម្រាប់ករណីបន្ទាន់បំផុត អ្នកអាចឆាតដោយផ្ទាល់ជាមួយក្រុមការងារគាំទ្ររបស់យើងតាម Telegram ដើម្បីទទួលបានការឆ្លើយតបកាន់តែរហ័ស។",
+      "telegram": "ឆាតតាម Telegram"
+    },
+    "whyContact": {
+      "title": "ហេតុអ្វីត្រូវទាក់ទងមកយើង?",
+      "solve": "ដោះស្រាយបញ្ហាបច្ចេកទេស",
+      "request": "ស្នើសុំមុខងារបន្ថែម",
+      "help": "ជំនួយក្នុងការរៀបចំកម្មវិធីមង្គលការ"
+    }
+  },
+  "nav": {
+    "home": "ទំព័រដើម",
+    "features": "មុខងារពិសេស",
+    "howItWorks": "របៀបប្រើប្រាស់",
+    "templates": "គំរូឌីហ្សាញ",
+    "pricing": "ជម្រើសតម្លៃ",
+    "signIn": "ចូលប្រើប្រាស់",
+    "signUp": "ចុះឈ្មោះ"
+  },
+  "hero": {
+    "badge": "MONEA Digital: យុគសម័យថ្មីនៃពិធីមង្គលការឌីជីថល",
+    "title1": "ការចាប់ផ្តើមដ៏ស្រស់ស្អាត",
+    "title2": "ចាប់ផ្តើមនៅទីនេះ",
+    "description": "បង្កើតបទពិសោធន៍អញ្ជើញឌីជីថលដ៏ប្រណីត គ្រប់គ្រងបញ្ជីភ្ញៀវដោយងាយស្រួល និងទទួលពាក្យជូនពរព្រមទាំងអំណោយ — ទាំងអស់ក្នុងប្រព័ន្ធតែមួយ។",
+    "ctaRegister": "ចាប់ផ្តើមឥឡូវនេះ",
+    "ctaTemplates": "មើលគំរូឌីហ្សាញ",
+    "scrollDown": "អូសចុះក្រោម"
+  },
+  "features": {
+    "badge": "Features",
+    "title": "What MONEA Offers",
+    "subtitle": "A complete digital system designed to make your wedding planning effortless and modern.",
+    "card1Title": "Premium Design",
+    "card1Desc": "Exquisite, modern, and highly customizable templates that create a lasting impression for your guests.",
+    "card2Title": "Guest Management (RSVP)",
+    "card2Desc": "Track attendance, organize tables, and manage responses effortlessly in one centralized system.",
+    "card3Title": "Digital Gifts (QR)",
+    "card3Desc": "Securely link your bank account so guests can send digital gifts and blessings with a quick QR scan.",
+    "card4Title": "Maps & Location",
+    "card4Desc": "Integrated Google Maps ensures your guests can navigate to your venue seamlessly.",
+    "howBadge": "Easy Steps",
+    "howTitle": "How It Works",
+    "howSubtitle": "Just 4 simple steps to your exquisite digital invitation.",
+    "step1Title": "Sign Up",
+    "step1Desc": "Create a free account and start your wedding project in minutes.",
+    "step2Title": "Choose Template",
+    "step2Desc": "Browse our collection of stunning templates and customize them to your style.",
+    "step3Title": "Add Details",
+    "step3Desc": "Input guest details, event schedule, and location coordinates.",
+    "step4Title": "Share Invitation",
+    "step4Desc": "Send your invitation link to guests and await their responses."
+  },
+  "stats": {
+    "couples": "Happy Couples",
+    "templates": "Design Templates",
+    "guests": "Guests Attended",
+    "events": "Live Events"
+  },
+  "pricing": {
+    "badge": "ជម្រើសតម្លៃ",
+    "title": "គម្រោងរបស់យើង",
+    "subtitle": "ជ្រើសរើសគម្រោងដែលសាកសមសម្រាប់អ្នកបំផុត។",
+    "freeName": "Free",
+    "freePrice": "0$",
+    "freeDesc": "ល្អសម្រាប់សាកល្បងមុខងារសំខាន់ៗ",
+    "freeF1": "១ គំរូ (Template)",
+    "freeF2": "ភ្ញៀវ ៥០ នាក់",
+    "freeF3": "សុពលភាព ២ សប្តាហ៍",
+    "proName": "Pro",
+    "proPrice": "9$",
+    "proDesc": "តម្លៃល្អបំផុតសម្រាប់គូស្នេហ៍",
+    "proF1": "គ្រប់គំរូទាំងអស់",
+    "proF2": "ភ្ញៀវមិនកំណត់",
+    "proF3": "ប្រើប្រាស់រយៈពេល ៣០ ថ្ងៃ",
+    "proF4": "អំណោយឌីជីថល (KHQR)",
+    "proF5": "ផែនទី Google Maps",
+    "proHighlight": "ល្អបំផុត",
+    "bizName": "Business",
+    "bizPrice": "49$",
+    "bizDesc": "សម្រាប់អ្នករៀបចំកម្មវិធីអាជីព",
+    "bizF1": "អត្តសញ្ញាណប៊្រេនផ្ទាល់ខ្លួន",
+    "bizF2": "API Access",
+    "bizF3": "ជំនួយពិសេស ២៤/៧",
+    "priceSuffix": "ក្នុងមួយខែ",
+    "cta": "ជាវជាប្រចាំខែ"
+  },
+  "testimonials": {
+    "badge": "Testimonials",
+    "title": "Real Impressions",
+    "t1Name": "Sokha & Sreyleak",
+    "t1Role": "Married Oct 2025",
+    "t1Text": "MONEA is so easy to use! Our guests loved the modern look of our invitations. Managing the guest list has never been this simple.",
+    "t2Name": "Ousaphea & Kanhha",
+    "t2Role": "Married Dec 2025",
+    "t2Text": "The QR gift feature is my favorite. It's secure and convenient for guests who couldn't attend in person. Saved us so much time!",
+    "t3Name": "Vicheka & Pich",
+    "t3Role": "Married Jan 2026",
+    "t3Text": "Beautiful templates with so many options. Quick setup and very professional. I highly recommend it to all new couples!",
+    "quote": "Genuine Feedback"
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "q1": "Can I edit my invitation after sending it?",
+    "a1": "Yes! You can update your date, location, or time anytime. The guest link will update automatically.",
+    "q2": "How secure is the Digital Gift (QR) feature?",
+    "a2": "It is highly secure. We simply display your direct bank QR code. Transactions occur directly between the guest's bank app and yours; MONEA does not process the funds.",
+    "q3": "How long is the Free package valid?",
+    "a3": "The free package allows you to test core features for 2 weeks with a guest limit of up to 50 people.",
+    "q4": "Can I add background music to my invitation?",
+    "a4": "Yes, Pro and Business plans allow you to select or upload romantic background music for your invitations."
+  },
+  "cta": {
+    "title1": "Ready to create your",
+    "title2": "digital invitation?",
+    "description": "Join hundreds of happy couples who chose MONEA to make their special day even more unforgettable.",
+    "button": "Start Your Wedding Invitation"
+  },
+  "wizard": {
+    "steps": {
+      "1": {
+        "wedding": "មង្គលការ",
+        "anniversary": "ខួបអាពាហ៍ពិពាហ៍",
+        "popularTemplates": "គំរូពេញនិយម",
+        "templates": {
+          "khmer-legacy": {
+            "title": "កេរដំណែលខ្មែរ",
+            "description": "រចនាប័ទ្មបែបបញ្ឈរ ស្អាត និងថ្លៃថ្នូរ។"
+          },
+          "modern": {
+            "title": "ភាពយន្តអមតៈ",
+            "description": "ពេញអេក្រង់ មានតន្ត្រី វីដេអូ និងចលនា។"
+          },
+          "khmer": {
+            "title": "រាជហត្ថលេខា",
+            "description": "រចនាប័ទ្មបែបប្រពៃណី ពណ៌លឿង និងក្រហម។"
+          },
+          "minimal": {
+            "title": "ភាពសាមញ្ញបំផុត",
+            "description": "ស្អាត សាមញ្ញ ផ្ដោតលើអត្ថបទ។"
+          },
+          "floral": {
+            "title": "បុប្ផាស្រស់បំព្រង",
+            "description": "ផ្កាដ៏ស្រស់ស្អាត ទន់ភ្លន់ និងរ៉ូមែនទិក។"
+          },
+          "luxury": {
+            "title": "ភាពប្រណីត",
+            "description": "ពណ៌មាស និងខ្មៅ គុណភាពខ្ពស់។"
+          },
+          "pastel": {
+            "title": "ផ្កាទន់ភ្លន់",
+            "description": "ផ្កាស្រស់ពណ៌ស្រាល ឡាវេនឌ័រ។"
+          },
+          "legacy": {
+            "title": "កេរដំណែលខ្មែរ",
+            "description": "រចនាប័ទ្មបែបបញ្ឈរ ស្អាត និងថ្លៃថ្នូរ។"
+          },
+          "visionary": {
+            "title": "ទំនើបប្លែកភ្នែក",
+            "description": "រចនាប័ទ្មអនាគត ពណ៌ខៀវចាស់ និងចលនាអស្ចារ្យ។"
+          },
+          "celestial": {
+            "title": "ភាពឆើតឆាយនៃលំហ",
+            "description": "រចនាប័ទ្មលំហអាកាស ពណ៌ខ្មៅប្រណីត និងចលនាផ្កាយ។"
+          }
+        },
+        "title": "ជ្រើសរើសគំរូ",
+        "header": "ជំហានទី ១: ជ្រើសរើសគំរូឌីហ្សាញ",
+        "description": "ជ្រើសរើសការរចនាដ៏ល្អឥតខ្ចោះសម្រាប់ថ្ងៃពិសេសរបស់អ្នក។"
+      },
+      "2": {
+        "coupleSubtitle": "ព័ត៌មានលម្អិតរបស់កូនក្រមុំ និងកូនកំលោះ",
+        "groomPlaceholder": "បញ្ចូលឈ្មោះកូនកំលោះ",
+        "bridePlaceholder": "បញ្ចូលឈ្មោះកូនក្រមុំ",
+        "photo": "រូបភាពប្រវត្តិរូប",
+        "uploadGroom": "បញ្ចូលរូបកូនកំលោះ",
+        "uploadBride": "បញ្ចូលរូបកូនក្រមុំ",
+        "mediaTitle": "ប្រព័ន្ធផ្សព្វផ្សាយមង្គលការ",
+        "mediaSubtitle": "រូបភាពចម្បង និងបដា",
+        "heroLabel": "រូបភាពក្រប (បដាផ្នែកខាងលើ)",
+        "vowsTitle": "ពាក្យសច្ចា និងសម្រង់សម្តី",
+        "vowsSubtitle": "ពាក្យសន្យារបស់គូស្នេហ៍ និងសម្រង់សម្តីដែលចូលចិត្ត",
+        "vowPlaceholder": "សរសេរពាក្យសច្ចារបស់អ្នកនៅទីនេះ...",
+        "quoteLabel": "សម្រង់សម្តីស្នេហា (បង្ហាញលើទំព័រដើម)",
+        "quotePlaceholder": "\"ស្នេហាគឺការអត់ធ្មត់ ស្នេហាគឺសេចក្តីសប្បុរស...\"",
+        "parentsTitle": "ព័ត៌មានគ្រួសារ",
+        "parentsSubtitle": "ព័ត៌មានឪពុកម្តាយ និងសាច់ញាតិ",
+        "groomSide": "ខាងកូនកំលោះ",
+        "brideSide": "ខាងកូនក្រមុំ",
+        "father": "ឪពុក",
+        "mother": "ម្តាយ",
+        "fatherPlaceholder": "ឈ្មោះឪពុក",
+        "motherPlaceholder": "ឈ្មោះម្តាយ",
+        "settingsTitle": "ការគ្រប់គ្រងផ្នែកផ្សេងៗ",
+        "settingsSubtitle": "កែសម្រួលចំណងជើងផ្នែក",
+        "editorialLabel": "ចំណងជើងផ្នែករឿងរ៉ាវ",
+        "editorialPlaceholder": "ឧ. រឿងរ៉ាវសំខាន់ៗ",
+        "galleryLabel": "ចំណងជើងផ្នែកវិចិត្រសាល",
+        "galleryPlaceholder": "ឧ. ការចងចាំដ៏មានតម្លៃ",
+        "giftLabel": "ចំណងជើងផ្នែកចំណងដៃ",
+        "giftPlaceholder": "ឧ. សប្បុរសធម៌",
+        "title": "ព័ត៌មានផ្ទាល់ខ្លួន",
+        "coupleTitle": "ព័ត៌មានគូស្វាមីភរិយា",
+        "groomName": "ឈ្មោះកូនកំលោះ",
+        "brideName": "ឈ្មោះកូនក្រមុំ"
+      },
+      "3": {
+        "description": "កំណត់កាលវិភាគ និងទីតាំងសម្រាប់ភ្ញៀវរបស់អ្នក។",
+        "datetimeTitle": "កាលបរិច្ឆេទ & ទីតាំង",
+        "datetimeSubtitle": "ពេលវេលា និងទីកន្លែងនៃមង្គលការ",
+        "eventDate": "ថ្ងៃកម្មវិធី",
+        "lunarDate": "កាលបរិច្ឆេទចន្ទគតិ",
+        "lunarPlaceholder": "ឧ. ថ្ងៃ ១៥ កើត ខែ...",
+        "venuePlaceholder": "ឧ. សណ្ឋាគារ រ៉ូសវូដ ភ្នំពេញ",
+        "mapHowTo": "របៀបយកតំណភ្ជាប់?",
+        "mapPlaceholder": "ចម្លងតំណភ្ជាប់ 'Share' ពី Google Maps មកដាក់ទីនេះ...",
+        "bannerLabel": "បដាអញ្ជើញ (១៦:៩)",
+        "locationQr": "កូដ QR ទីតាំង (បើមាន)",
+        "scheduleTitle": "កាលវិភាគកម្មវិធី",
+        "scheduleSubtitle": "រៀបចំលំដាប់លំដោយនៃកម្មវិធី",
+        "headerBtn": "ចំណងជើងផ្នែក",
+        "headerBtnTooltip": "បើក/បិទ ចំណងជើងក្រុម",
+        "headerLabel": "ចំណងជើងក្រុម (ឧ. កម្មវិធីពេលព្រឹក)",
+        "activityTime": "០៨:០០ ព្រឹក",
+        "activityTitle": "ចំណងជើងកម្មវិធី",
+        "activityDesc": "ការពិពណ៌នាកម្មវិធី (បើមាន)",
+        "addActivity": "បន្ថែមកម្មវិធីថ្មី",
+        "title": "កាលបរិច្ឆេទ & ទីតាំង",
+        "venue": "ឈ្មោះទីតាំងកម្មវិធី",
+        "mapLabel": "ទីតាំងលើ Google Maps"
+      },
+      "4": {
+        "description": "បញ្ចូលរូបភាពដ៏ស្រស់ស្អាត និងតន្ត្រីផ្ទៃក្រោយរបស់អ្នក។",
+        "mediaNote": "សូមបញ្ចូលរូបភាពរបស់អ្នក។ ទីតាំងរូបភាពក្នុងគំរូត្រូវបានកំណត់តាមការរចនា ចំណែកឯវិចិត្រសាលទូទៅគឺសម្រាប់រូបភាពបន្ថែម។",
+        "bannerCategory": "បដា & រូបភាពចម្បង",
+        "bannerCategoryDesc": "រូបភាពធំសម្រាប់ផ្នែកខាងលើ និងផ្នែកផែនទី",
+        "storyCategory": "រឿងរ៉ាវស្នេហារបស់យើង",
+        "storyCategoryDesc": "រូបភាពដែលអមជាមួយដំណើរជីវិតរួមគ្នា",
+        "portraitCategory": "រូបភាពបញ្ឈរ & ហត្ថលេខា",
+        "portraitCategoryDesc": "កូនកំលោះ កូនក្រមុំ និងរូបភាពអនុស្សាវរីយ៍",
+        "bondTitle": "សម្ព័ន្ធភាពស្នេហាដ៏ពិសិដ្ឋ",
+        "bondSubtitle": "បង្ហាញនៅខាងក្រោមផែនទីសម្រាប់អនុស្សាវរីយ៍ដ៏មានន័យ",
+        "uploadBond": "បញ្ចូលរូបភាពសម្ព័ន្ធភាពពិសិដ្ឋ",
+        "albumTitle": "អាល់ប៊ុមរូបភាពទូទៅ",
+        "albumSubtitle": "បន្ថែមរូបភាពមិនកំណត់ទៅកាន់វិចិត្រសាល",
+        "bulkUpload": "គាំទ្រការបញ្ចូលរូបភាពច្រើនក្នុងពេលតែមួយ",
+        "galleryStyle": "រចនាប័ទ្មបង្ហាញវិចិត្រសាល",
+        "masonry": "រូបចម្រុះ (Masonry)",
+        "slider": "ស្លាយ (Slider)",
+        "polaroid": "ប៉ូឡារ៉ូអ៊ីត (Polaroid)",
+        "audioVideoTitle": "តន្ត្រី & វីដេអូ",
+        "audioVideoSubtitle": "បន្ថែមបរិយាកាសរ៉ូមែនទិកទៅក្នុងធៀបការរបស់អ្នក",
+        "bgMusic": "តន្ត្រីផ្ទៃក្រោយ",
+        "youtubeTitle": "វីដេអូ YouTube",
+        "youtubePlaceholder": "បិទភ្ជាប់តំណ YouTube ទីនេះ...",
+        "cropperTitle": "កាត់តម្រូវរូបភាព",
+        "slots": {
+          "hero": "បដាធំផ្នែកខាងលើ (Top)",
+          "editorial1": "រូបភាពរឿងរ៉ាវស្នេហា ១",
+          "editorial2": "រូបភាពរឿងរ៉ាវស្នេហា ២",
+          "editorial3": "រូបភាពរឿងរ៉ាវស្នេហា ៣",
+          "editorial4": "រូបភាពរឿងរ៉ាវស្នេហា ៤",
+          "map": "បដាផ្នែកផែនទី",
+          "sig1": "រូបភាពហត្ថលេខា ១",
+          "sig2": "រូបភាពហត្ថលេខា ២",
+          "sig3": "រូបភាពហត្ថលេខា ៣",
+          "groom": "រូបភាពបញ្ឈរកូនកំលោះ",
+          "bride": "រូបភាពបញ្ឈរកូនក្រមុំ"
+        },
+        "title": "វិចិត្រសាលរូបភាព",
+        "addImage": "បន្ថែមរូបភាព",
+        "recommendSize": "ទំហំដែលណែនាំ: Landscape (16:9)"
+      },
+      "5": {
+        "subtitle": "ការចែករំលែកសង្គម និងការកំណត់កម្រិតខ្ពស់",
+        "socialTitle": "ការបង្ហាញលើបណ្តាញសង្គម",
+        "socialSubtitle": "របៀបដែលធៀបការរបស់អ្នកបង្ហាញពេលចែករំលែក",
+        "socialPreviewDesc": "សូមចូលរួមអបអរសាទរថ្ងៃមង្គលការរបស់យើង...",
+        "socialPreviewDomain": "monea.app",
+        "uploadPreview": "បញ្ចូលរូបភាពបង្ហាញលើបណ្តាញសង្គម",
+        "searchTitle": "ចំណងជើងសម្រាប់ម៉ាស៊ីនស្វែងរក (SEO)",
+        "searchPlaceholder": "ឧ. មង្គលការរបស់ (ឈ្មោះកូនកំលោះ) និង (ឈ្មោះកូនក្រមុំ)",
+        "passcodePlaceholder": "ទុកឱ្យនៅទំនេរបើមិនប្រើលេខកូដ",
+        "themeTitle": "ពណ៌ & ម៉ាកសញ្ញា",
+        "themeSubtitle": "ជ្រើសរើសពណ៌ចម្បងសម្រាប់មង្គលការរបស់អ្នក",
+        "colorLabel": "ពណ៌ចម្បង",
+        "premiumColorUnlockHint": "ដំឡើងទៅគម្រោង Pro ដើម្បីជ្រើសរើសពណ៌តាមចិត្ត!",
+        "premiumBadge": "Pro",
+        "storyTitle": "រឿងរ៉ាវរៀងខ្លួន",
+        "storySubtitle": "សារស្វាគមន៍ និងរឿងរ៉ាវស្នេហា",
+        "thankYou": "សារអរគុណ",
+        "thankYouPlaceholder": "សរសេរសារសម្រាប់ភ្ញៀវរបស់អ្នក...",
+        "welcome": "សារស្វាគមន៍",
+        "welcomePlaceholder": "សូមស្វាគមន៍មកកាន់ពិធីមង្គលការរបស់យើង...",
+        "loveStory": "រឿងរ៉ាវស្នេហារបស់យើង",
+        "groomStory": "រឿងរ៉ាវខាងកូនកំលោះ",
+        "groomStoryPlaceholder": "រៀបរាប់ពីរឿងរ៉ាវរបស់អ្នក...",
+        "brideStory": "រឿងរ៉ាវខាងកូនក្រមុំ",
+        "brideStoryPlaceholder": "រៀបរាប់ពីរឿងរ៉ាវរបស់អ្នក...",
+        "socialMediaTitle": "តំណភ្ជាប់បណ្តាញសង្គម",
+        "socialMediaSubtitle": "WhatsApp, Facebook ឬ Telegram សម្រាប់ទាក់ទង",
+        "facebook": "គណនី Facebook",
+        "facebookPlaceholder": "បិទភ្ជាប់តំណប្រវត្តិរូប...",
+        "telegram": "ឈ្មោះអ្នកប្រើ Telegram",
+        "telegramPlaceholder": "បញ្ចូល @username...",
+        "displayTitle": "ការបង្ហាញ & ហ្វុនអក្សរ",
+        "displaySubtitle": "បើក/បិទផ្នែកផ្សេងៗ និងប្តូរហ្វុនអក្សរ",
+        "visStory": "បង្ហាញផ្នែករឿងរ៉ាវស្នេហា",
+        "visGallery": "បង្ហាញវិចិត្រសាលរូបភាព",
+        "visTimeline": "បង្ហាញកាលវិភាគកម្មវិធី",
+        "visGuestbook": "បង្ហាញផ្នែកសៀវភៅពាក្យជូនពរ",
+        "typography": "រចនាប័ទ្មហ្វុនអក្សរ",
+        "fontStandard": "ការបង្ហាញស្តង់ដារ",
+        "fontKantumruy": "ទំនើបបែបសាមញ្ញ",
+        "fontSuwannaphum": "បែបបុរាណថ្លៃថ្នូរ",
+        "fontBattambang": "ទំនើបដិតច្បាស់",
+        "fontPreahvihear": "បែបបេតិកភណ្ឌ",
+        "paymentTitle": "អំណោយ & ចំណងដៃ",
+        "paymentSubtitle": "ព័ត៌មានធនាគារសម្រាប់ទទួលចំណងដៃឌីជីថល",
+        "qrLabel": "កូដ QR សម្រាប់ទូទាត់",
+        "accOwner": "ម្ចាស់គណនី",
+        "bank": "ឈ្មោះធនាគារ",
+        "otherBank": "ផ្សេងៗ",
+        "bothSides": "ទាំងសងខាង",
+        "accName": "ឈ្មោះគណនី",
+        "accNumber": "លេខគណនី",
+        "addBank": "បន្ថែមគណនីធនាគារ",
+        "labelsTitle": "កែសម្រួលអត្ថបទដោយផ្ទាល់",
+        "labelsSubtitle": "ប្តូរគ្រប់ស្លាកអត្ថបទលើធៀបការរបស់អ្នក",
+        "labelBannerSection": "បដា & អត្ថបទអញ្ជើញ",
+        "labelLocationSection": "ទីតាំង & ពិធីបុណ្យ",
+        "labelGallerySection": "វិចិត្រសាល & អំណោយ",
+        "labelInviteHeader": "ចំណងជើងផ្នែកខាងលើ (បង្ហាញធំ)",
+        "labelHeroSubtitle": "ចំណងជើងរងផ្នែកខាងលើ",
+        "labelHeroButton": "ឈ្មោះប៊ូតុងបើក",
+        "labelAndLabel": "ពាក្យតភ្ជាប់ (ឧ. &)",
+        "labelInvitationBadge": "ស្លាកសញ្ញាអញ្ជើញ",
+        "labelInvitationTitle": "ចំណងជើងអញ្ជើញ",
+        "labelInvitationHonorTitle": "គោរមងារអញ្ជើញ",
+        "labelInvitationText": "ខ្លឹមសារអញ្ជើញចម្បង",
+        "labelLocationTitle": "ចំណងជើងកាតទីតាំង",
+        "labelLocationSubtitle": "ចំណងជើងរងកាតទីតាំង",
+        "labelLocationCardLabel": "ស្លាកអត្ថបទលើផែនទី",
+        "labelCountdownLabel": "ចំណងជើងរាប់ថយក្រោយ",
+        "labelGalleryTitle": "ចំណងជើងទំព័រវិចិត្រសាល",
+        "labelGallerySubtitle": "ចំណងជើងរងទំព័រវិចិត្រសាល",
+        "labelGiftTitle": "ចំណងជើងផ្នែកអំណោយ",
+        "labelGiftBadge": "ស្លាកសញ្ញាផ្នែកអំណោយ",
+        "labelGiftCopyBtn": "ប៊ូតុងចម្លងលេខគណនី",
+        "labelRsvpSubmittedText": "សារជោគជ័យ (ក្រោយឆ្លើយតប)",
+        "historyTitle": "ប្រវត្តិការកែសម្រួល",
+        "historySubtitle": "ការគ្រប់គ្រងកំណែ និងការត្រឡប់ក្រោយ",
+        "saveVersion": "រក្សាទុកកំណែបច្ចុប្បន្ន",
+        "versionPlaceholder": "ឧ. មុនពេលប្តូរពណ៌...",
+        "savedList": "បញ្ជីកំណែដែលបានរក្សាទុក",
+        "loading": "កំពុងទាញយកកំណែ...",
+        "noVersions": "រកមិនឃើញកំណែដែលបានរក្សាទុកទេ",
+        "rollback": "ត្រឡប់ទៅប្រើកំណែនេះ",
+        "delete": "លុបកំណែចេញ",
+        "title": "ការកំណត់កម្រិតខ្ពស់",
+        "passcode": "លេខកូដការពារ (បើមាន)"
+      }
+    },
+    "title": "រចនាការអញ្ជើញរបស់អ្នក",
+    "designer": "កម្មវិធីរៀបចំប្រព័ន្ធ",
+    "liveEdit": "មើលការផ្លាស់ប្តូរផ្ទាល់"
+  },
+  "invitation": {
+    "rsvp": {
+      "title": "តើអ្នកនឹងអញ្ជើញចូលរួមមែនទេ?",
+      "confirm": "បាទ/ចាស ខ្ញុំនឹងចូលរួម",
+      "decline": "សូមអភ័យទោស ខ្ញុំមិនអាចចូលរួមបានទេ",
+      "adults": "មនុស្សធំ",
+      "children": "កុមារ",
+      "guestCount_one": "ភ្ញៀវ ១ នាក់",
+      "guestCount_other": "ភ្ញៀវ {count} នាក់",
+      "guestCount": "ចំនួនភ្ញៀវសរុប",
+      "notes": "ពាក្យជូនពរ ឬសារផ្សេងៗ",
+      "notesPlaceholder": "សូមជូនពរក្នុងថ្ងៃមង្គលការរបស់អ្នក...",
+      "submit": "បញ្ជូនចម្លើយ",
+      "success": "សូមអរគុណ!",
+      "successConfirmed": "ជួបគ្នាក្នុងថ្ងៃមង្គលការ! ចម្លើយរបស់អ្នកត្រូវបានរក្សាទុក។",
+      "successDeclined": "ទោះបីជាអ្នកមិនអាចចូលរួមបាន ប៉ុន្តែយើងសូមអរគុណចំពោះការជូនដំណឹង!",
+      "back": "ត្រឡប់ទៅការជ្រើសរើស",
+      "registeredGuest": "អ្នកនឹងចូលរួមជាភ្ញៀវឈ្មោះ {name}។",
+      "badge": "ទម្រង់បែបបទឆ្លើយតប",
+      "received": "យើងទទួលបានចម្លើយពី {name} រួចហើយ។",
+      "wishWedding": "សង្ឃឹមថានឹងបានជួបអ្នកក្នុងថ្ងៃមង្គលការរបស់យើង!",
+      "wishAnniversary": "សង្ឃឹមថានឹងបានជួបអ្នកក្នុងថ្ងៃខួបអាពាហ៍ពិពាហ៍របស់យើង!",
+      "closing": "ដោយក្ដីស្រឡាញ់ និងការដឹងគុណ",
+      "subtitle": "សូមប្រាប់ឱ្យយើងដឹងប្រសិនបើអ្នកអាចចូលរួមបាន។"
+    },
+    "guestbook": {
+      "title": "សៀវភៅពាក្យជូនពរ",
+      "subtitle": "ពាក្យជូនពរដ៏កក់ក្ដៅពីមនុស្សជាទីស្រឡាញ់របស់យើង",
+      "name": "ឈ្មោះ",
+      "message": "សារ",
+      "submit": "ផ្ញើពាក្យជូនពរ",
+      "loading": "កំពុងផ្ទុកពាក្យជូនពរ...",
+      "noWishes": "មិនទាន់មានពាក្យជូនពរនៅឡើយទេ។ ក្លាយជាអ្នកដំបូងដែលចែករំលែកសេចក្ដីសុខ!",
+      "namePlaceholder": "ឈ្មោះរបស់អ្នក",
+      "msgPlaceholder": "សរសេរពាក្យជូនពររបស់អ្នកទីនេះ...",
+      "emptyBadge": "រង់ចាំទទួល",
+      "emptyTitle": "រង់ចាំពាក្យជូនពរ",
+      "empty": "មិនទាន់មានពាក្យជូនពរនៅឡើយទេ។ ក្លាយជាអ្នកដំបូងដែលចែករំលែកសេចក្ដីសុខ!"
+    },
+    "countdown": {
+      "title": "រាប់ថយក្រោយដល់ថ្ងៃពិសេសរបស់យើង",
+      "days": "ថ្ងៃ",
+      "hours": "ម៉ោង",
+      "minutes": "នាទី",
+      "seconds": "វិនាទី",
+      "badge": "ការរាប់ថយក្រោយចុងក្រោយ"
+    },
+    "location": {
+      "venue": "ទីតាំងកម្មវិធី",
+      "googleMaps": "ចុចទីនេះសម្រាប់ Google Maps",
+      "soon": "ព័ត៌មានទីតាំងនឹងមកដល់ក្នុងពេលឆាប់ៗ",
+      "giftBadge": "ចំណងដៃមង្គលការ",
+      "giftThanks": "សូមអរគុណចំពោះសប្បុរសធម៌របស់អ្នក!",
+      "title": "ទីតាំងនៃកម្មវិធី"
+    },
+    "calendar": {
+      "saveTheDate": "រក្សាកាលបរិច្ឆេទ",
+      "eventTitle": "ពិធីមង្គលការ",
+      "eventDetails": "មង្គលការរបស់ {groom} & {bride}"
+    }
+  },
+  "template": {
+    "khmerLegacy": {
+      "familyTitle": "មើមឈើ និងគ្រួសារ",
+      "familySubtitle": "គ្រឹះនៃសេចក្ដីស្រឡាញ់",
+      "heroSubtitle": "សំបុត្រអញ្ជើញមង្គលការផ្លូវការ",
+      "heroButton": "រក្សាទុកក្នុងប្រតិទិន",
+      "schedule": "កម្មវិធីបុណ្យ",
+      "scheduleSubtitle": "លំដាប់លំដោយកម្មវិធី",
+      "galleryTitle": "ការចងចាំដ៏មានន័យ",
+      "gallerySubtitle": "អាល់ប៊ុមរូបថតមង្គលការ",
+      "invitationBadge": "សិរីសួស្ដីជ័យមង្គល",
+      "invitationTitle": "សំបុត្រអញ្ជើញ",
+      "invitationHonorTitle": "សូមគោរពអញ្ជើញចូលរួមជាអធិបតី",
+      "invitationBody": "សូមគោរពអញ្ជើញ ឯកឧត្តម លោកជំទាវ លោក លោកស្រី អ្នកនាងកញ្ញា និងញាតិមិត្តជិតឆ្ងាយទាំងអស់ មេត្តាចូលរួមជាអធិបតី និងផ្តល់កិត្តិយសក្នុងពិធីរៀបអាពាហ៍ពិពាហ៍របស់កូនៗយើងខ្ញុំ។",
+      "parentsGroom": "មាតាបិតាខាងប្រុស",
+      "parentsBride": "មាតាបិតាខាងស្រី",
+      "groomTitle": "កូនប្រុស",
+      "brideTitle": "កូនស្រី",
+      "receptionTitle": "ពិធីលៀងសាយភោជន៍",
+      "receptionBody": "យើងខ្ញុំមានកិត្តិយសសូមគោរពអញ្ជើញលោកអ្នកចូលរួមក្នុងពិធីលៀងសាយភោជន៍នៅថ្ងៃ {date}។\nទីតាំង: {location}",
+      "sacredBondBadge": "ចំណងអាពាហ៍ពិពាហ៍",
+      "sacredBondTitle": "សក្ខីភាពនៃសេចក្ដីស្រឡាញ់",
+      "sacredBondAnniversary": "ខួបអាពាហ៍ពិពាហ៍ជានិរន្តរ៍",
+      "eternalPromise": "- សន្យាដ៏ខ្ពង់ខ្ពស់ -",
+      "storyBadge": "ដំណើរនៃក្ដីស្រឡាញ់",
+      "storyTitle": "ប្រវត្តិស្នេហ៍របស់យើង",
+      "giftCheckHint": "ចុចលើស្រោមសំបុត្រដើម្បីពិនិត្យគណនី",
+      "giftCheckBtn": "ពិនិត្យគណនី",
+      "giftCopied": "បានចម្លង!",
+      "giftCopyBtn": "ចម្លងលេខគណនី",
+      "giftBlessing": "សូមឱ្យសប្បុរសធម៌របស់អ្នកនាំមកនូវភាពរីករាយ!",
+      "giftBadge": "សមានចិត្ត",
+      "giftTitle": "អំណោយឌីជីថល",
+      "giftSubtitleAnniversary": "លោកអ្នកអាចផ្ញើសារជូនពរ និងអំណោយផ្សេងៗដោយស្កេន QR កូដ ឬផ្ទេរមកគណនីខាងក្រោម។",
+      "giftSubtitleWedding": "លោកអ្នកអាចផ្ញើចំណងដៃមង្គលការដោយស្កេន QR កូដ ឬផ្ទេរមកគណនីខាងក្រោម។",
+      "giftThankYou": "សូមអរគុណចំពោះទឹកចិត្តសប្បុរសរបស់អ្នក!",
+      "giftsTitle": "ការចុះកិច្ចអំណោយ",
+      "giftsSubtitle": "វត្តមានរបស់អ្នកគឺជាអំណោយដ៏មានតម្លៃបំផុត។ ប្រសិនបើលោកអ្នកមានបំណងផ្ដល់ជាអំណោយ ដើម្បីជាចំណែកនៃអនាគតរបស់យើង យើងខ្ញុំសូមថ្លែងអំណរគុណយ៉ាងជ្រាលជ្រៅបំផុត។",
+      "thankYouTitle": "សូមអរគុណ!",
+      "thankYouMessage": "អរគុណដែលបានក្លាយជាផ្នែកមួយនៃដំណើរជីវិតរបស់យើង",
+      "ticketHeader": "សំបុត្រឌីជីថល",
+      "ticketSubtitle": "ប័ណ្ណចូលរួមកម្មវិធី",
+      "ticketInfo": "សូមបង្ហាញកូដ QR នេះទៅកាន់បុគ្គលិកនៅពេលមកដល់។",
+      "footerLabel": "ការរក្សាទុកាល់ការចងចាំ",
+      "footerThankYou": "យើងខ្ញុំសូមថ្លែងអំណរគុណយ៉ាងជ្រាលជ្រៅបំផុតចំពោះវត្តមានរបស់អ្នកក្នុងពិធីនេះ និងសូមជូនពរឱ្យទទួលបាននូវពុទ្ធពរទាំងបួនប្រការគឺ៖ អាយុ វណ្ណៈ សុខៈ ពលៈ កុំបីឃ្លៀងឃ្លាតឡើយ។",
+      "musicPauseLabel": "ផ្អាកតន្ត្រី",
+      "musicPlayLabel": "ចាក់តន្ត្រី",
+      "invitationBodyEn": "Cordially request the honour of your presence on the auspicious occasion of the wedding of our children",
+      "groomLabelEn": "Groom's",
+      "brideLabelEn": "Bride's",
+      "receptionBodyEn": "Which will be held on {date},\nAt {time}, at {location}.\nThank you!",
+      "overlaySubtitle": "អនុស្សាវរីយ៍នៃក្ដីស្រឡាញ់អមតៈ",
+      "overlayTitleWedding": "ពិធីរៀបអាពាហ៍ពិពាហ៍",
+      "overlayTitleAnniversary": "ខួបអាពាហ៍ពិពាហ៍",
+      "invitationGreeting": "សូមគោរពអញ្ជើញ",
+      "and": "និង",
+      "heroButtonWedding": "បើកសំបុត្រអញ្ជើញ",
+      "heroButtonAnniversary": "មើលខួបអាពាហ៍ពិពាហ៍",
+      "overlayHintInvitation": "សូមចុចដើម្បីបើកសំបុត្រអញ្ជើញឌីជីថល",
+      "overlayHintTicket": "សូមចុចដើម្បីទទួលសំបុត្រឌីជីថល",
+      "galleryWatermark": "វិចិត្រសាល"
+    }
+  },
+  "dashboard": {
+    "controlPanel": "ផ្ទាំងបញ្ជា",
+    "smartInsights": "ការវិភាគឆ្លាតវៃ",
+    "title": "ផ្ទាំងគ្រប់គ្រង",
+    "welcome": "សួស្ដី, {name}",
+    "adminWelcome": "សូមស្វាគមន៍មកកាន់មជ្ឈមណ្ឌលបញ្ជា",
+    "adminSubtitle": "តាមដាន និងគ្រប់គ្រងប្រតិបត្តិការវេទិកាទាំងមូល។",
+    "greeting": "តើមានអ្វីថ្មីសម្រាប់ថ្ងៃនេះ?",
+    "user": {
+      "profile": "ប្រវត្តិរូបអ្នកប្រើប្រាស់",
+      "accountSettings": "ការកំណត់គណនី",
+      "designSettings": "ការកំណត់រចនា",
+      "helpSupport": "ជំនួយ និងការគាំទ្រ"
+    },
+    "summary": "មើលទិន្នន័យសង្ខេបនៃមង្គលការរបស់អ្នក។",
+    "actions": {
+      "addGuest": "បន្ថែមភ្ញៀវថ្មី"
+    },
+    "empty": {
+      "message": "សូមរង់ចាំមួយភ្លែត ដើម្បីចាប់ផ្ដើមបង្កើតកម្មវិធីមង្គលការរបស់អ្នក។"
+    },
+    "nav": {
+      "overview": "ទិដ្ឋភាពទូទៅ",
+      "home": "ទំព័រដើម",
+      "menu": "ម៉ឺនុយ",
+      "guests": "គ្រប់គ្រងភ្ញៀវ",
+      "gifts": "បញ្ជីអំណោយ",
+      "schedule": "កាលវិភាគកម្មវិធី",
+      "settings": "ការកំណត់",
+      "generalInfo": "ព័ត៌មានទូទៅ"
+    },
+    "cards": {
+      "inviteCenter": "មជ្ឈមណ្ឌលអញ្ជើញ",
+      "dataExport": "ទាញយកទិន្នន័យ",
+      "quickActions": "សកម្មភាពរហ័ស"
+    },
+    "menu": {
+      "guests": "គ្រប់គ្រងភ្ញៀវ",
+      "gifts": "បញ្ជីអំណោយ",
+      "schedule": "កាលវិភាគកម្មវិធី",
+      "reports": "របាយការណ៍ហិរញ្ញវត្ថុ",
+      "notes": "កំណត់ចំណាំ",
+      "staff": "បុគ្គលិកជំនួយ",
+      "general": "ទូទៅ",
+      "setup": "ការកំណត់ប្រព័ន្ធ",
+      "others": "ផ្សេងៗ"
+    },
+    "stats": {
+      "guests": "ភ្ញៀវ",
+      "cashUSD": "សាច់ប្រាក់ $",
+      "cashKHR": "សាច់ប្រាក់ ៛",
+      "guestUnit": "នាក់",
+      "analysis": "ការវិភាគលទ្ធផល",
+      "openRate": "អត្រាការបើកមើល",
+      "openedCount": "មនុស្ស {count} នាក់បានបើកមើល",
+      "confirmedRSVPs": "ការឆ្លើយតបដែលបានបញ្ជាក់",
+      "respondedCount": "មនុស្ស {count} នាក់បានឆ្លើយតប"
+    },
+    "analytics": {
+      "noData": "មិនមានទិន្នន័យទេ",
+      "noDataSub": "ទិន្នន័យនឹងបង្ហាញនៅពេលមានការចូលមើល",
+      "totalViews": "ការចូលមើលសរុប",
+      "totalViewsSub": "ចំនួនអ្នកចូលមើលប្លែកៗ",
+      "mapClicks": "ការចុចមើលផែនទី",
+      "mapClicksSub": "អន្តរកម្មជាមួយផែនទី",
+      "saveDate": "រក្សាទុកកាលបរិច្ឆេទ",
+      "saveDateSub": "ការរក្សាទុកក្នុងប្រតិទិន",
+      "rsvpOpens": "ការបើក RSVP",
+      "rsvpOpensSub": "ការបើកផ្ទាំង RSVP",
+      "rsvpSubmits": "ការបញ្ជូន RSVP",
+      "rsvpSubmitsSub": "ការឆ្លើយតបដែលទទួលបាន",
+      "viewTrend": "និន្នាការនៃការចូលមើល",
+      "viewTrendSub": "ស្ថិតិនៃការចូលមើលក្នុងរយៈពេល ២១ ថ្ងៃចុងក្រោយ",
+      "liveFlow": "លំហូរផ្ទាល់",
+      "noFlowData": "មិនទាន់មានទិន្នន័យលំហូរនៅឡើយទេ",
+      "tooltip": "ភ្ញៀវ {count} នាក់ ({date})",
+      "devices": "ឧបករណ៍ដែលបានប្រើ",
+      "sessionsDetected": "រកឃើញ {count} វគ្គ",
+      "noDataYet": "មិនទាន់មានទិន្នន័យទេ",
+      "mobile": "ទូរស័ព្ទ",
+      "desktop": "កុំព្យូទ័រ"
+    },
+    "export": {
+      "guestListTitle": "បញ្ជីភ្ញៀវ - {groom} និង {bride}",
+      "giftListTitle": "បញ្ជីអំណោយ - {groom} និង {bride}",
+      "summary": "កាលបរិច្ឆេទ: {date} | សរុប: {count}",
+      "moneySummary": "សរុប (USD): {usd} | សរុប (KHR): {khr}",
+      "guestSheetName": "បញ្ជីភ្ញៀវ",
+      "giftSheetName": "បញ្ជីអំណោយ",
+      "error": "ការទាញយកបរាជ័យ! សូមព្យាយាមម្ដងទៀត។",
+      "unspecified": "មិនបានបញ្ជាក់",
+      "general": "ទូទៅ",
+      "unknown": "មិនស្គាល់",
+      "cash": "សាច់ប្រាក់",
+      "cols": {
+        "no": "ល.រ",
+        "name": "ឈ្មោះ",
+        "location": "ទីតាំង/មកពី",
+        "amount": "ចំនួន",
+        "currency": "រូបិយប័ណ្ណ",
+        "method": "វិធីសាស្ត្រ",
+        "date": "កាលបរិច្ឆេទ"
+      }
+    },
+    "quickActions": {
+      "inviteTitle": "ចែករំលែកតំណភ្ជាប់របស់អ្នក",
+      "copyLink": "ចម្លងតំណភ្ជាប់",
+      "copied": "បានចម្លង!",
+      "qrTitle": "កូដ QR អញ្ជើញ",
+      "qrDescription": "ស្កេនដើម្បីមើលការអញ្ជើញឌីជីថលរបស់អ្នក",
+      "downloadQR": "ទាញយក QR",
+      "guests": "បញ្ជីភ្ញៀវ",
+      "gifts": "បញ្ជីអំណោយ",
+      "shareInvite": "ផ្ញើការអញ្ជើញ",
+      "viewPublic": "មើលការអញ្ជើញសាធារណៈ",
+      "liveInvitation": "តំណភ្ជាប់ការអញ្ជើញផ្ទាល់"
+    },
+    "logout": {
+      "confirmTitle": "បញ្ជាក់ការចាកចេញ",
+      "confirmDescription": "តើអ្នកប្រាកដថាចង់ចាកចេញពីគណនីរបស់អ្នកមែនទេ?"
+    },
+    "schedule": {
+      "title": "កាលវិភាគកម្មវិធី",
+      "subtitle": "រៀបចំ និងគ្រប់គ្រងពេលវេលានៃមង្គលការរបស់អ្នក។",
+      "rundown": "លំដាប់លំដោយកម្មវិធីមង្គលការ",
+      "addActivity": "បន្ថែមសកម្មភាព",
+      "newActivity": "សកម្មភាពថ្មី",
+      "editActivity": "កែសម្រួលសកម្មភាព",
+      "deleteConfirm": "តើអ្នកប្រាកដថាចង់លុបសកម្មភាពនេះមែនទេ?",
+      "emptyTitle": "មិនទាន់មានសកម្មភាពនៅឡើយទេ",
+      "emptySubtitle": "ចាប់ផ្ដើមរៀបចំកាលវិភាគមង្គលការរបស់អ្នកឥឡូវនេះ។",
+      "createNew": "បង្កើតថ្មី",
+      "form": {
+        "time": "ពេលវេលា",
+        "timePlaceholder": "០៧:០០ ព្រឹក",
+        "title": "ចំណងជើងសកម្មភាព",
+        "titlePlaceholder": "ឧ. ក្បួនហែកូនកំលោះ",
+        "subtitle": "បំពេញទម្រង់ខាងក្រោមដើម្បីបន្ថែមសកម្មភាពថ្មីទៅក្នុងកាលវិភាគរបស់អ្នក។",
+        "icons": "ជ្រើសរើសរូបតំណាង",
+        "description": "ការពិពណ៌នា (ជម្រើស)",
+        "descriptionPlaceholder": "ព័ត៌មានលម្អិតអំពីសកម្មភាពនេះ...",
+        "save": "រក្សាទុកសកម្មភាព",
+        "saving": "កំពុងរក្សាទុក...",
+        "add": "បន្ថែមសកម្មភាព",
+        "edit": "កែសម្រួលសកម្មភាព",
+        "validation": {
+          "title": "សូមបញ្ចូលចំណងជើងសកម្មភាព",
+          "time": "សូមបញ្ចូលពេលវេលា"
+        }
+      },
+      "status": {
+        "starting": "ចាប់ផ្ដើមកម្មវិធី",
+        "scheduled": "ពេលវេលាដែលបានកំណត់"
+      },
+      "loading": "កំពុងផ្ទុក...",
+      "icons": {
+        "scissors": "កាត់សក់",
+        "heart": "ពិធីចងដៃ",
+        "flower": "ព្រះសង្ឃ",
+        "users": "ក្បួនហែ",
+        "utensils": "ម៉ោងអាហារ",
+        "camera": "ថតរូប",
+        "music": "តន្ត្រីទទួលភ្ញៀវ",
+        "glass": "ពិធីជប់លៀង",
+        "landmark": "ផ្ទះកូនស្រី"
+      }
+    },
+    "upgrade": {
+      "cta": "ដំឡើងគម្រោង",
+      "titlePrefix": "គម្រោងសេវាកម្ម",
+      "subtitle": "ជ្រើសរើសកញ្ចប់ដែលសាកសមបំផុត ដើម្បីធ្វើឱ្យថ្ងៃពិសេសរបស់អ្នកកាន់តែមានន័យ។",
+      "promoBadge": "ដំឡើងគម្រោងរបស់អ្នក",
+      "promo": {
+        "removeLogo": "ចង់ដកស្លាកសញ្ញា MONEA ចេញមែនទេ?",
+        "moreFeatures": "ចង់បានមុខងារបន្ថែមទៀត?",
+        "description": "ដំឡើងគម្រោងរបស់អ្នកឥឡូវនេះ ដើម្បីទទួលបានបទពិសោធន៍ដ៏អស្ចារ្យ និងមុខងារមិនកំណត់។",
+        "toUpperPlan": "ដំឡើងទៅកម្រិត Premium",
+        "cta": "ដំឡើងឥឡូវនេះ"
+      },
+      "plans": {
+        "free": {
+          "name": "គម្រោងឥតគិតថ្លៃ",
+          "price": "0$",
+          "desc": "មុខងារចាំបាច់សម្រាប់ថ្ងៃពិសេសរបស់អ្នក។",
+          "features": [
+            "ភ្ញៀវ: រហូតដល់ ៥០ នាក់",
+            "គំរូ: ជម្រើសស្តង់ដារប៉ុណ្ណោះ",
+            "ការរក្សាទុក: ២ សប្តាហ៍ប៉ុណ្ណោះ"
+          ]
+        },
+        "pro": {
+          "name": "កញ្ចប់ស្តង់ដារ",
+          "price": "9$",
+          "desc": "ល្អឥតខ្ចោះសម្រាប់កម្មវិធីមង្គលការទូទៅ។",
+          "features": [
+            "ភ្ញៀវ: មិនកំណត់ចំនួន",
+            "គំរូ: គ្រប់ជម្រើសទាំងអស់",
+            "អំណោយ: ការតាមដានអំណោយ និងពាក្យជូនពរ",
+            "ការរក្សាទុក: ជារៀងរហូត"
+          ]
+        },
+        "premium": {
+          "name": "កញ្ចប់អាជីព",
+          "price": "19$",
+          "desc": "បទពិសោធន៍ White-label សម្រាប់ភាពល្អឥតខ្ចោះ។",
+          "features": [
+            "ដកស្លាកសញ្ញា: គ្មាន Watermark របស់ MONEA",
+            "ការកែសម្រួល: ពណ៌តាមចំណូលចិត្ត",
+            "របាយការណ៍: ទាញយកជា PDF/Excel",
+            "ការគាំទ្រ: ជំនួយអាទិភាព ២៤/៧"
+          ]
+        }
+      },
+      "labels": {
+        "popular": "ពេញនិយម",
+        "current": "គម្រោងបច្ចុប្បន្ន",
+        "upgrade": "ដំឡើងឥឡូវនេះ",
+        "cta": "ចាប់ផ្ដើម",
+        "select": "ជ្រើសរើស Premium",
+        "ready": "រួចរាល់",
+        "free": "គម្រោងមូលដ្ឋាន",
+        "evt": "/ កម្មវិធី",
+        "alreadyPaid": "ខ្ញុំបានបង់ប្រាក់រួចហើយ (ធ្វើបច្ចុប្បន្នភាពស្ថានភាព)",
+        "checkAccount": "ពិនិត្យគណនី"
+      },
+      "help": {
+        "text": "ត្រូវការជំនួយ?",
+        "telegram": "ជំនួយតាម Telegram"
+      },
+      "payment": {
+        "title": "ស្កេនដើម្បីបង់ប្រាក់",
+        "method": "ការបង់ប្រាក់តាម ABA / Wing / KHQR",
+        "subtitle": "ការបង់ប្រាក់តាម ABA Mobile KHQR",
+        "auto": "ការដំឡើងស្វ័យប្រវត្តិ",
+        "autoTitle": "ការដំឡើងស្វ័យប្រវត្តិ",
+        "autoDesc": "គណនីរបស់អ្នកនឹងទទួលបានមុខងារថ្មីៗភ្លាមៗ បន្ទាប់ពីការបង់ប្រាក់ជោគជ័យ។",
+        "confirm": "ខ្ញុំបានបង់ប្រាក់រួចហើយ",
+        "paid": "ខ្ញុំបានបង់ប្រាក់រួចហើយ",
+        "cancel": "បោះបង់ការបង់ប្រាក់",
+        "success": "ការបង់ប្រាក់ជោគជ័យ! បានដំឡើងគម្រោងរួចរាល់។",
+        "errorTitle": "ការបង់ប្រាក់បរាជ័យ",
+        "errorRetry": "សូមព្យាយាមម្ដងទៀត",
+        "techError": "បញ្ហាបច្ចេកទេស! សូមព្យាយាមម្ដងទៀតនៅពេលក្រោយ។"
+      },
+      "messages": {
+        "success": "ការបង់ប្រាក់ជោគជ័យ! គម្រោងរបស់អ្នកត្រូវបានដំឡើង។",
+        "verifying": "កំពុងផ្ទៀងផ្ទាត់ការបង់ប្រាក់របស់អ្នក...",
+        "activated": "បទពិសោធន៍ Premium របស់អ្នកត្រូវបានបើកដំណើរការ!"
+      },
+      "noWedding": {
+        "title": "រួចរាល់ដើម្បីចាប់ផ្ដើម?",
+        "desc": "មើលទៅហាក់ដូចជាអ្នកមិនទាន់បានបង្កើតគម្រោងមង្គលការនៅឡើយទេ។ ចូរចាប់ផ្ដើមទាំងអស់គ្នា!"
+      }
+    },
+    "notes": {
+      "title": "កំណត់ចំណាំ",
+      "subtitle": "កំណត់ចំណាំសម្រាប់រៀបចំពិធីមង្គលការរបស់អ្នក។",
+      "organizerOnly": "សម្រាប់អ្នករៀបចំកម្មវិធីប៉ុណ្ណោះ",
+      "badge": "កំណត់ចំណាំ",
+      "saved": "បានរក្សាទុក",
+      "save": "រក្សាទុក",
+      "saving": "កំពុងរក្សាទុក...",
+      "pdf": "PDF",
+      "placeholder": "សរសេរព័ត៌មានសំខាន់ៗនៅទីនេះ (ឧ. លេខទូរស័ព្ទជាងថតរូប បញ្ជីឈ្មោះអ្នកជួយការ ឬការចងចាំផ្សេងៗ...)",
+      "loading": "កំពុងផ្ទុកកំណត់ចំណាំ...",
+      "error": {
+        "fetch": "មិនអាចទាញយកទិន្នន័យបានទេ។",
+        "save": "ការរក្សាទុកបរាជ័យ។",
+        "connection": "បញ្ហាការភ្ជាប់។"
+      },
+      "workspace": "កន្លែងធ្វើការព័ត៌មានសំខាន់ៗ",
+      "persistence": {
+        "title": "ការរក្សាទុក",
+        "description": "រាល់កំណត់ចំណាំរបស់អ្នកត្រូវបានរក្សាទុកដោយស្វ័យប្រវត្តិតាមរយៈ cloud ដែលមានសុវត្ថិភាព។"
+      },
+      "usage": {
+        "title": "ការប្រើប្រាស់",
+        "description": "ប្រើប្រាស់វាសម្រាប់លេខទូរស័ព្ទ បញ្ជីអ្វីដែលត្រូវធ្វើ ឬការណែនាំរបស់អ្នកសម្របសម្រួល។"
+      },
+      "premium": "Monea Premium",
+      "adminCenter": "មជ្ឈមណ្ឌលគ្រប់គ្រងផ្ទៃក្នុង",
+      "print": {
+        "header": "កំណត់ចំណាំការរៀបចំមង្គលការ",
+        "weddingLabel": "មង្គលការ:",
+        "generated": "បានបង្កើតនៅ:"
+      }
+    },
+    "staff": {
+      "title": "ការគ្រប់គ្រងបុគ្គលិក",
+      "subtitle": "គ្រប់គ្រងអ្នកដែលជួយកត់ត្រាអំណោយ ឬស្កេនភ្ញៀវក្នុងកម្មវិធីរបស់អ្នក។",
+      "accessManagement": "ការគ្រប់គ្រងការចូលប្រើប្រាស់",
+      "addStaff": "បន្ថែមបុគ្គលិក",
+      "dialog": {
+        "title": "បន្ថែមបុគ្គលិកថ្មី",
+        "description": "បង្កើតគណនីសម្រាប់អ្នកជំនួយ។ ពួកគេនឹងប្រើ អ៊ីមែល និងលេខសម្ងាត់ ដើម្បីចូលប្រើ។",
+        "nameLabel": "ឈ្មោះបុគ្គលិក",
+        "namePlaceholder": "ឧ. ហេង ប៊ុណ្ណា",
+        "emailLabel": "អ៊ីមែល (សម្រាប់ចូលប្រើ)",
+        "emailPlaceholder": "staff@example.com",
+        "passwordLabel": "លេខសម្ងាត់",
+        "passwordPlaceholder": "••••••••",
+        "securityTitle": "ព័ត៌មានសុវត្ថិភាព",
+        "securityDesc": "បុគ្គលិកម្នាក់ៗនឹងមាន PIN ផ្ទាល់ខ្លួនសម្រាប់សុវត្ថិភាពទិន្នន័យ។",
+        "submit": "បញ្ជាក់ការបង្កើត",
+        "creating": "កំពុងផ្ទុក...",
+        "qrTitle": "ស្កេនដើម្បីចូលប្រើ",
+        "qrSubtitle": "សម្រាប់តែ {name} ប៉ុណ្ណោះ",
+        "qrFooter": "បុគ្គលិកអាចស្កេនកូដ QR នេះដើម្បីចូលប្រើដោយផ្ទាល់។"
+      },
+      "table": {
+        "name": "ឈ្មោះ",
+        "role": "តួនាទី",
+        "emailPin": "អ៊ីមែល / PIN",
+        "actions": "សកម្មភាព",
+        "empty": {
+          "title": "មិនទាន់មានបុគ្គលិកនៅឡើយទេ",
+          "description": "បន្ថែមបុគ្គលិកដើម្បីជួយសម្រួលការងាររបស់អ្នក។",
+          "button": "បន្ថែមឥឡូវនេះ"
+        }
+      },
+      "delete": {
+        "title": "លុបគណនីបុគ្គលិក",
+        "description": "តើអ្នកប្រាកដថាចង់លុបគណនីបុគ្គលិកនេះមែនទេ? សកម្មភាពនេះមិនអាចត្រឡប់ក្រោយវិញបានទេ។",
+        "confirm": "លុបគណនី",
+        "success": "បុគ្គលិកត្រូវបានលុបដោយជោគជ័យ",
+        "error": "បរាជ័យក្នុងការលុບບុគ្គលិក"
+      },
+      "copyMagicLink": "ចម្លងតំណភ្ជាប់ពិសេស",
+      "showQrCode": "បង្ហាញកូដ QR",
+      "error": {
+        "create": "ការបង្កើតគណនីបរាជ័យ"
+      }
+    }
+  },
+  "design": {
+    "title": "កម្មវិធីរចនា",
+    "publish": "បោះពុម្ពផ្សាយ",
+    "saving": "កំពុងរក្សាទុក...",
+    "success": "រក្សាទុកដោយជោគជ័យ",
+    "locked": {
+      "title": "ការកែសម្រួលត្រូវបានចាក់សោ",
+      "description": "គម្រោងឥតគិតថ្លៃរបស់អ្នកបានផុតកំណត់រយៈពេលកែសម្រួល ៣ ថ្ងៃហើយ។ សូមដំឡើងគម្រោងរបស់អ្នកដើម្បីបន្តបង្កើតការអញ្ជើញដ៏អស្ចារ្យ ឬទាក់ទងក្រុមការងារ MONEA។",
+      "updateBtn": "ដំឡើងគម្រោងឥឡូវនេះ",
+      "backBtn": "ត្រឡប់ទៅផ្ទាំងគ្រប់គ្រង"
+    },
+    "wizard": {
+      "waiting": "សូមរង់ចាំ...",
+      "fetching": "កំពុងទាញយកទិន្នន័យមង្គលការ...",
+      "step": "ជំហាន {current} / {total}",
+      "next": "បន្ទាប់",
+      "back": "ត្រឡប់ក្រោយ",
+      "editor": "រចនា",
+      "preview": "មើលជាមុន",
+      "viewPublic": "មើលជាសាធារណៈ",
+      "previewMode": {
+        "mobile": "មើលតាមទូរស័ព្ទ",
+        "desktop": "មើលតាមកុំព្យូទ័រ"
+      }
+    }
+  },
+  "guests": {
+    "title": "បញ្ជីភ្ញៀវ",
+    "subtitle": "ប្រព័ន្ធគ្រប់គ្រងភ្ញៀវ",
+    "managementTitle": "ការគ្រប់គ្រងភ្ញៀវ",
+    "archivedLabel": "ដែលបានរក្សាទុក",
+    "descriptionLabel": "គ្រប់គ្រងបញ្ជីភ្ញៀវ និងតំណភ្ជាប់ការអញ្ជើញរបស់អ្នក។",
+    "upgradeHint": "ដំឡើងទៅ Premium ដើម្បីទាញយក!",
+    "loading": "កំពុងផ្ទុក...",
+    "empty": "រកមិនឃើញទិន្នន័យភ្ញៀវទេ",
+    "showMore": "បង្ហាញបន្ថែម ({count})",
+    "copyLink": "ចម្លងតំណភ្ជាប់",
+    "copied": "បានចម្លង",
+    "general": "ទូទៅ",
+    "personUnit": "នាក់",
+    "notSpecified": "មិនបានបញ្ជាក់",
+    "deleteError": "ការលុបបរាជ័យ! សូមព្យាយាមម្ដងទៀត។",
+    "exportTitle": "បញ្ជីភ្ញៀវ",
+    "summaryDate": "កាលបរិច្ឆេទ: {date}",
+    "summaryTotal": "ភ្ញៀវសរុប: {count} {unit}",
+    "delete": {
+      "title": "បញ្ជាក់ការលុប",
+      "description": "តើអ្នកប្រាកដថាចង់លុបភ្ញៀវនេះមែនទេ? សកម្មភាពនេះមិនអាចត្រឡប់ក្រោយវិញបានទេ។"
+    },
+    "import": {
+      "title": "នាំចូលបញ្ជីភ្ញៀវ",
+      "description": "សូមជ្រើសរើសឯកសារ Excel (.xlsx) ដែលមានជួរឈរ: **ឈ្មោះភ្ញៀវ** និង **មកពី/ទីតាំង**។",
+      "noNote": "* លេខរៀងនឹងត្រូវបានកំណត់ដោយស្វ័យប្រវត្តិតាមរយៈប្រព័ន្ធ។",
+      "downloadTemplate": "ទាញយកគំរូឯកសារ",
+      "clickToSelect": "ចុចទីនេះដើម្បីជ្រើសរើសឯកសារ Excel",
+      "allowedFiles": "ឯកសារដែលអនុញ្ញាត: .xlsx, .xls",
+      "importing": "កំពុងនាំចូលទិន្នន័យ...",
+      "success": "នាំចូលដោយជោគជ័យ!",
+      "failed": "ការនាំចូលបរាជ័យ: {error}"
+    },
+    "cols": {
+      "no": "ល.រ",
+      "name": "ឈ្មោះភ្ញៀវ",
+      "location": "មកពី/ទីតាំង",
+      "actions": "សកម្មភាព"
+    },
+    "print": {
+      "header": "របាយការណ៍សង្ខេប និងបញ្ជីភ្ញៀវ",
+      "weddingOf": "មង្គលការរបស់ {groom} និង {bride}",
+      "totalGuests": "ភ្ញៀវសរុប",
+      "personUnit": "នាក់",
+      "reportStatus": "ស្ថានភាពរបាយការណ៍",
+      "official": "ផ្លូវការ",
+      "reportDate": "កាលបរិច្ឆេទរបាយការណ៍",
+      "validity": "សុពលភាពឯកសារ",
+      "officialReport": "របាយការណ៍ភ្ញៀវផ្លូវការ - ប្រព័ន្ធ MONEA",
+      "footerNote": "ឯកសារនេះត្រូវបានបង្កើតឡើងដោយស្វ័យប្រវត្តិតាមរយៈប្រព័ន្ធ MONEA និងជាកំណត់ត្រាផ្លូវការនៃមង្គលការ។"
+    },
+    "total": "សរុប",
+    "search": "ស្វែងរកតាមឈ្មោះ ឬទីតាំង...",
+    "form": {
+      "title": "បន្ថែម/កែសម្រួលភ្ញៀវ",
+      "description": "បំពេញព័ត៌មានលម្អិតរបស់ភ្ញៀវ",
+      "addBtn": "បន្ថែមភ្ញៀវ",
+      "sectionTitle": "ព័ត៌មានភ្ញៀវ",
+      "sectionSubtitle": "ព័ត៌មានអត្តសញ្ញាណភ្ញៀវ",
+      "nameLabel": "ឈ្មោះភ្ញៀវ",
+      "namePlaceholder": "ដារ៉ា សុខ...",
+      "locationLabel": "មកពី / ទីតាំង",
+      "locationPlaceholder": "ភ្នំពេញ, មិត្តភក្តិកូនស្រី...",
+      "saveBtn": "រក្សាទុកព័ត៌មានភ្ញៀវ",
+      "editBtn": "ធ្វើបច្ចុប្បន្នភាពព័ត៌មានភ្ញៀវ",
+      "saving": "កំពុងរក្សាទុក...",
+      "validation": {
+        "name": "សូមបញ្ចូលឈ្មោះភ្ញៀវ"
+      }
+    }
+  },
+  "gifts": {
+    "title": "ការតាមដានអំណោយ",
+    "subtitle": "ប្រព័ន្ធគ្រប់គ្រងអំណោយ និងភ្ញៀវ",
+    "totalGuests": "ភ្ញៀវសរុប",
+    "cashUSD": "សាច់ប្រាក់ (USD)",
+    "cashKHR": "សាច់ប្រាក់ (KHR)",
+    "personUnit": "នាក់",
+    "print": {
+      "header": "របាយការណ៍សង្ខេប និងបញ្ជីអំណោយ",
+      "weddingOf": "មង្គលការរបស់ {groom} និង {bride}",
+      "reportDate": "កាលបរិច្ឆេទរបាយការណ៍",
+      "validity": "សុពលភាពឯកសារ",
+      "officialReport": "របាយការណ៍អំណោយផ្លូវការ - ប្រព័ន្ធ MONEA",
+      "footerNote": "ឯកសារនេះត្រូវបានបង្កើតឡើងដោយស្វ័យប្រវត្តិតាមរយៈប្រព័ន្ធ MONEA និងជាកំណត់ត្រាផ្លូវការនៃមង្គលការ។"
+    },
+    "actions": {
+      "showAmount": "បង្ហាញចំនួន",
+      "hideAmount": "លាក់ចំនួន",
+      "addNew": "បន្ថែមថ្មី",
+      "live": "បន្តផ្ទាល់",
+      "excel": "Excel",
+      "pdf": "PDF"
+    },
+    "form": {
+      "title": "បន្ថែមអំណោយថ្មី",
+      "description": "បំពេញព័ត៌មានលម្អិតដើម្បីបន្ថែមការកត់ត្រាអំណោយថ្មី",
+      "name": "ឈ្មោះភ្ញៀវ",
+      "namePlaceholder": "ឧ: លោក សុវណ្ណ...",
+      "number": "លេខរៀងភ្ញៀវ (ជម្រើស)",
+      "amount": "ចំនួន",
+      "currency": "រូបិយប័ណ្ណ",
+      "date": "កាលបរិច្ឆេទ",
+      "note": "ចំណាំ",
+      "saving": "កំពុងកត់ត្រា...",
+      "success": "បានកត់ត្រាអំណោយដោយជោគជ័យ!",
+      "error": "បរាជ័យក្នុងការកត់ត្រាអំណោយ។ សូមព្យាយាមម្ដងទៀត។",
+      "save": "រក្សាទុកអំណោយ",
+      "cancel": "បោះបង់",
+      "amountRequired": "សូមបញ្ចូលចំនួនទឹកប្រាក់",
+      "syncSuccess": "បានធ្វើសមកាលកម្មអំណោយ {count} ដោយជោគជ័យ! 🎉",
+      "syncPartial": "បានធ្វើសមកាលកម្មអំណោយ {success}។ បរាជ័យ {failed}។",
+      "offlineAlert": "គ្មានអ៊ីនធឺណិត! អំណោយត្រូវបានរក្សាទុកក្នុងម៉ាស៊ីន។",
+      "guestIdentity": "អត្តសញ្ញាណភ្ញៀវ",
+      "guestInfo": "ព័ត៌មានភ្ញៀវ",
+      "sourcePlaceholder": "ឧ: កំពត...",
+      "memberExists": "សមាជិកដែលមានស្រាប់",
+      "giftDetails": "ព័ត៌មានលម្អិតនៃអំណោយ",
+      "receivedVia": "ទទួលបានតាមរយៈ",
+      "saveAndAddMore": "រក្សាទុក និងបន្ថែមទៀត",
+      "saveAndClose": "រក្សាទុក និងបិទ",
+      "cashPlus": "សាច់ប្រាក់",
+      "khqr": "បាគង (KHQR)"
+    },
+    "receipt": {
+      "success": "ទទួលបានដោយជោគជ័យ",
+      "recorded": "អំណោយត្រូវបានកត់ត្រាក្នុងប្រព័ន្ធរួចរាល់",
+      "from": "ទទួលបានពី",
+      "closeAndNext": "បិទ និងភ្ញៀវបន្ទាប់"
+    },
+    "qr": {
+      "title": "កូដ QR សម្រាប់ស្កេន",
+      "scan": "ស្កេនដើម្បីបង់ប្រាក់",
+      "description": "បង្ហាញកូដ QR នេះទៅកាន់ភ្ញៀវប្រសិនបើពួកគេចង់ផ្ទេរប្រាក់",
+      "enlarge": "ស្កេនកូដ QR",
+      "zoom": "ពង្រីកកូដ QR សម្រាប់ការទូទាត់"
+    },
+    "sync": {
+      "offlineData": "មិនទាន់បានរក្សាទុកទិន្នន័យក្រៅប្រព័ន្ធ",
+      "pendingGifts": "អ្នកមានអំណោយ {count} ដែលត្រូវធ្វើសមកាលកម្ម",
+      "clear": "សម្អាត",
+      "syncNow": "ធ្វើសមកាលកម្មឥឡូវនេះ",
+      "syncing": "កំពុងធ្វើសមកាលកម្ម..."
+    },
+    "live": {
+      "clickToStart": "ចុចប៊ូតុងខាងក្រោមដើម្បីចាប់ផ្ដើមបង្ហាញ <br /> កិត្តិយសភ្ញៀវ និងពាក្យជូនពរអំណោយថ្មីៗ",
+      "start": "ចាប់ផ្ដើមដំណើរការ",
+      "guestsArrived": "ភ្ញៀវដែលបានមកដល់",
+      "status": "ស្ថានភាព",
+      "guestsList": "បញ្ជីភ្ញៀវ",
+      "recentGuests": "ភ្ញៀវថ្មីៗ",
+      "guestOfHonor": "ភ្ញៀវកិត្តិយស",
+      "giftReceivedFrom": "ទទួលបានអំណោយពី",
+      "giftAmount": "ចំនួនអំណោយ",
+      "waitingForFlow": "កំពុងរង់ចាំលំហូរទិន្នន័យ...",
+      "private": "ឯកជន",
+      "newGift": "អំណោយថ្មី!",
+      "thankYou": "សូមអរគុណ",
+      "thankYouCelebration": "សូមអរគុណសម្រាប់ការចូលរួមអបអរសាទរ",
+      "syncingFeed": "កំពុងធ្វើសមកាលកម្ម Live Feed..."
+    },
+    "export": {
+      "title": "បញ្ជីអំណោយ",
+      "and": "និង",
+      "date": "កាលបរិច្ឆេទ",
+      "totalGuests": "ភ្ញៀវសរុប",
+      "guestsCount": "ភ្ញៀវ",
+      "totalUsd": "សរុប (USD)",
+      "totalKhr": "សរុប (KHR)",
+      "headers": {
+        "no": "ល.រ",
+        "guestName": "ឈ្មោះភ្ញៀវ",
+        "from": "មកពី",
+        "amount": "ចំនួន",
+        "currency": "រូបិយប័ណ្ណ",
+        "method": "វិធីសាស្ត្រ",
+        "date": "កាលបរិច្ឆេទ"
+      },
+      "unknown": "មិនស្គាល់",
+      "general": "ទូទៅ",
+      "cash": "សាច់ប្រាក់",
+      "sheetName": "បញ្ជីអំណោយ"
+    },
+    "search": "ស្វែងរកតាមឈ្មោះ ឬលេខរៀង...",
+    "empty": "មិនទាន់មានការកត់ត្រាអំណោយនៅឡើយទេ។",
+    "viewMore": "មើលបន្ថែម",
+    "table": {
+      "no": "#",
+      "name": "ឈ្មោះ",
+      "source": "ប្រភព",
+      "amount": "ចំនួន",
+      "method": "វិធីសាស្ត្រ",
+      "time": "ពេលវេលា",
+      "unknown": "មិនស្គាល់",
+      "notSpecified": "មិនបានបញ្ជាក់",
+      "cash": "សាច់ប្រាក់"
+    }
+  },
+  "meta": {
+    "title": "MONEA | Premium Digital Wedding Invitations & Guest Management",
+    "description": "Craft luxurious digital wedding invitations, manage your guest list effortlessly, and receive digital blessings and gifts in one elegant platform."
+  },
+  "reports": {
+    "title": "របាយការណ៍ និងស្ថិតិ",
+    "subtitle": "តាមដាន និងវិភាគទិន្នន័យមង្គលការរបស់អ្នកក្នុងពេលជាក់ស្តែង។",
+    "analytics": "ការវិភាគវេទិកា",
+    "stats": {
+      "totalGuests": "ភ្ញៀវសរុប",
+      "checkIn": "ការឆែកចូល: {count}",
+      "usdGifts": "អំណោយ USD",
+      "totalCount": "សរុប {count} នាក់",
+      "khrGifts": "អំណោយ KHR",
+      "wishes": "ពាក្យជូនពរ",
+      "fromGuests": "ពីភ្ញៀវកិត្តិយស"
+    },
+    "detailed": "សកម្មភាព និងស្ថិតិលម្អិត",
+    "activity": {
+      "title": "សកម្មភាពចុងក្រោយ",
+      "stream": "លំហូរសកម្មភាពក្នុងពេលជាក់ស្តែង",
+      "live": "បន្តផ្ទាល់",
+      "empty": "មិនទាន់មានសកម្មភាពទេ",
+      "justNow": "មុននេះបន្តិច",
+      "m_ago": "{count} នាទីមុន",
+      "h_ago": "{count} ម៉ោងមុន"
+    },
+    "location": {
+      "title": "ស្ថិតិតាមទីតាំង",
+      "unspecified": "មិនបានបញ្ជាក់",
+      "people": "{count} នាក់",
+      "empty": "មិនទាន់មានទិន្នន័យទេ"
+    },
+    "print": {
+      "header": "របាយការណ៍សង្ខេប និងសកម្មភាពមង្គលការ",
+      "weddingOf": "មង្គលការរបស់ {groom} និង {bride}",
+      "official": "របាយការណ៍ផ្លូវការសម្រាប់អ្នករៀបចំ",
+      "guestStats": "ស្ថិតិនៃការចូលរួមរបស់ភ្ញៀវ",
+      "joined": "ភ្ញៀវដែលបានចូលរួមកម្មវិធី",
+      "totalWishes": "ពាក្យជូនពរសរុប",
+      "guestWritings": "សំណេរពីភ្ញៀវកិត្តិយស",
+      "totalCashGifts": "អំណោយសាច់ប្រាក់សរុប",
+      "reportDate": "កាលបរិច្ឆេទបង្កើតរបាយការណ៍",
+      "validity": "សុពលភាពឯកសារ",
+      "officialMonea": "របាយការណ៍ផ្លូវការ - ប្រព័ន្ធ MONEA",
+      "autoGenerated": "ឯកសារនេះត្រូវបានបង្កើតឡើងដោយស្វ័យប្រវត្តិតាមរយៈប្រព័ន្ធ MONEA និងជាកំណត់ត្រាផ្លូវការនៃស្ថិតិមង្គលការ។"
+    }
+  },
+  "account": {
+    "badge": "ការកំណត់គណនី",
+    "title": "ការកំណត់គណនី",
+    "subtitle": "គ្រប់គ្រងប្រវត្តិរូប ការកំណត់សុវត្ថិភាព និងចំណូលចិត្តរបស់អ្នក។",
+    "tabs": {
+      "profile": "ប្រវត្តិរូប",
+      "security": "សុវត្ថិភាព",
+      "preferences": "ចំណូលចិត្ត"
+    },
+    "preferences": {
+      "title": "ចំណូលចិត្តប្រព័ន្ធ",
+      "description": "កំណត់បទពិសោធន៍របស់អ្នកនៅលើវេទិកា។",
+      "language": {
+        "title": "ភាសាបង្ហាញ",
+        "description": "ជ្រើសរើសភាសាដែលអ្នកចង់ប្រើសម្រាប់ចំណុចប្រទាក់។",
+        "en": "អង់គ្លេស",
+        "km": "ខ្មែរ"
+      }
+    },
+    "profile": {
+      "title": "ព័ត៌មានទូទៅ",
+      "description": "ព័ត៌មានមូលដ្ឋានអំពីគណនីរបស់អ្នក។",
+      "labels": {
+        "username": "ឈ្មោះអ្នកប្រើប្រាស់",
+        "email": "អាសយដ្ឋានអ៊ីមែល"
+      },
+      "changePassword": {
+        "title": "ផ្លាស់ប្តូរពាក្យសម្ងាត់",
+        "description": "វាជាគំនិតល្អក្នុងការប្រើពាក្យសម្ងាត់ខ្លាំងដែលអ្នកមិនប្រើនៅកន្លែងផ្សេង។",
+        "button": "ធ្វើបច្ចុប្បន្នភាពពាក្យសម្ងាត់"
+      }
+    },
+    "security": {
+      "title": "ការកំណត់សុវត្ថិភាព",
+      "description": "រក្សាគណនីរបស់អ្នកឱ្យមានសុវត្ថិភាពជាមួយ 2FA និងការគ្រប់គ្រងវគ្គចូលប្រើ។",
+      "twoFactor": {
+        "title": "ការផ្ទៀងផ្ទាត់ពីរជាន់ (2FA)",
+        "description": "បន្ថែមស្រទាប់សុវត្ថិភាពបន្ថែមទៅកាន់គណនីរបស់អ្នក។",
+        "enabled": "2FA ត្រូវបានបើកសម្រាប់គណនីរបស់អ្នក។",
+        "disabled": "ការផ្ទៀងផ្ទាត់ពីរជាន់មិនទាន់ត្រូវបានបើកទេ។ យើងសូមណែនាំឱ្យបើកវា។",
+        "enableBtn": "រៀបចំ 2FA ឥឡូវនេះ",
+        "disableBtn": "បិទ 2FA"
+      },
+      "sessions": {
+        "title": "វគ្គចូលប្រើដែលកំពុងសកម្ម",
+        "description": "គ្រប់គ្រងវគ្គចូលប្រើដែលកំពុងសកម្មរបស់អ្នកនៅលើគ្រប់ឧបករណ៍ទាំងអស់។",
+        "revokeBtn": "ចាកចេញពីគ្រប់ឧបករណ៍ទាំងអស់",
+        "confirm": "តើអ្នកប្រាកដថាចង់ចាកចេញពីគ្រប់ឧបករណ៍ទាំងអស់មែនទេ?",
+        "success": "បានចាកចេញពីគ្រប់ឧបករណ៍ដោយជោគជ័យ។ អ្នកត្រូវចូលប្រើម្តងទៀត។",
+        "error": "បរាជ័យក្នុងការលុបចោលវគ្គចូលប្រើ"
+      },
+      "logs": {
+        "title": "សកម្មភាពសុវត្ថិភាព",
+        "description": "ព្រឹត្តិការណ៍សុវត្ថិភាពថ្មីៗទាក់ទងនឹងគណនីរបស់អ្នក។",
+        "loading": "កំពុងផ្ទុក...",
+        "empty": "មិនទាន់មានកំណត់ត្រាសុវត្ថិភាពទេ។",
+        "types": {
+          "LOGIN_SUCCESS": "ការចូលប្រើជោគជ័យ",
+          "LOGIN_FAILED": "ការព្យាយាមចូលប្រើបរាជ័យ",
+          "PASSWORD_CHANGE": "ពាក្យសម្ងាត់ត្រូវបានផ្លាស់ប្តូរ",
+          "TWO_FACTOR_ENABLED": "បានបើក 2FA",
+          "TWO_FACTOR_DISABLED": "បានបិទ 2FA"
+        }
+      }
+    },
+    "dangerZone": {
+      "badge": "សកម្មភាពរសើប",
+      "title": "តំបន់គ្រោះថ្នាក់",
+      "description": "សកម្មភាពដែលមិនអាចត្រឡប់ក្រោយបានសម្រាប់គណនីរបស់អ្នក។",
+      "deleteTitle": "លុបគណនី",
+      "deleteDescription": "លុបគណនីរបស់អ្នក និងទិន្នន័យពាក់ព័ន្ធទាំងអស់ជាអចិន្ត្រៃយ៍។",
+      "deleteBtn": "លុបគណនីរបស់ខ្ញុំ"
+    },
+    "dialogs": {
+      "changePassword": {
+        "title": "ផ្លាស់ប្តូរពាក្យសម្ងាត់",
+        "description": "សូមបញ្ចូលពាក្យសម្ងាត់បច្ចុប្បន្ន និងពាក្យសម្ងាត់ថ្មីរបស់អ្នក។",
+        "currentLabel": "ពាក្យសម្ងាត់បច្ចុប្បន្ន",
+        "currentPlaceholder": "បញ្ចូលពាក្យសម្ងាត់បច្ចុប្បន្ន",
+        "newLabel": "ពាក្យសម្ងាត់ថ្មី",
+        "newPlaceholder": "បញ្ចូលពាក្យសម្ងាត់ថ្មី",
+        "confirmLabel": "បញ្ជាក់ពាក្យសម្ងាត់ថ្មី",
+        "confirmPlaceholder": "បញ្ចូលពាក្យសម្ងាត់ថ្មីម្តងទៀត",
+        "submit": "ផ្លាស់ប្តូរពាក្យសម្ងាត់",
+        "submitting": "កំពុងធ្វើបច្ចុប្បន្នភាព...",
+        "success": "ពាក្យសម្ងាត់ត្រូវបានផ្លាស់ប្តូរដោយជោគជ័យ។ ដើម្បីសុវត្ថិភាព អ្នកត្រូវចូលប្រើម្តងទៀត។",
+        "errors": {
+          "mismatch": "ពាក្យសម្ងាត់ថ្មីមិនស៊ីគ្នាទេ",
+          "length": "ពាក្យសម្ងាត់ថ្មីត្រូវមានយ៉ាងហោចណាស់ ៨ តួអក្សរ",
+          "general": "បរាជ័យក្នុងការផ្លាស់ប្តូរពាក្យសម្ងាត់",
+          "tech": "មានបញ្ហាបច្ចេកទេសកើតឡើង"
+        }
+      },
+      "disable2fa": {
+        "title": "បិទ 2FA",
+        "description": "តើអ្នកប្រាកដថាចង់បិទ 2FA មែនទេ? វានឹងធ្វើឱ្យគណនីរបស់អ្នកមានសុវត្ថិភាពតិចជាងមុន។",
+        "passwordLabel": "បញ្ជាក់ពាក្យសម្ងាត់",
+        "passwordPlaceholder": "បញ្ចូលពាក្យសម្ងាត់ដើម្បីបញ្ជាក់",
+        "submit": "បិទ 2FA",
+        "submitting": "កំពុងបិទ...",
+        "success": "ការផ្ទៀងផ្ទាត់ពីរជាន់ត្រូវបានបិទ។",
+        "errors": {
+          "general": "បរាជ័យក្នុងការបិទ 2FA",
+          "tech": "មានបញ្ហាបច្ចេកទេសកើតឡើង"
+        }
+      },
+      "deleteAccount": {
+        "title": "លុបគណនី",
+        "description": "សកម្មភាពនេះជាអចិន្ត្រៃយ៍ និងមិនអាចដកវិញបានទេ។ ទិន្នន័យទាំងអស់របស់អ្នកនឹងត្រូវបានលុបចោល។",
+        "passwordLabel": "បញ្ជាក់ពាក្យសម្ងាត់",
+        "passwordPlaceholder": "បញ្ចូលពាក្យសម្ងាត់ដើម្បីបញ្ជាក់ការលុប",
+        "submit": "លុបគណនីរបស់ខ្ញុំ",
+        "submitting": "កំពុងលុប...",
+        "success": "គណនីរបស់អ្នកត្រូវបានលុបដោយជោគជ័យ។",
+        "errors": {
+          "general": "បរាជ័យក្នុងការលុបគណនី",
+          "tech": "មានបញ្ហាបច្ចេកទេសកើតឡើង"
+        }
+      }
+    }
+  },
+  "admin": {
+    "settings": {
+      "support": {
+        "return": "មើលកំណត់ត្រានៃប្រតិបត្តិការ Master",
+        "title": "តុគាំទ្រអតិថិជន",
+        "subtitle": "គ្រប់គ្រង និងដោះស្រាយរាល់សំណើរបស់អតិថិជន",
+        "refresh": "ធ្វើបច្ចុប្បន្នភាព",
+        "noTickets": "មិនមានសំណើដែលកំពុងសកម្មទេ",
+        "syncing": "កំពុងធ្វើសមកាលកម្មទិន្នន័យ...",
+        "ticket": {
+          "resolved": "ដោះស្រាយរួចរាល់",
+          "reopen": "បើកសំណើឡើងវិញ",
+          "affiliated": "ភាគីពាក់ព័ន្ធ",
+          "unknown": "អ្នកប្រើប្រាស់មិនស្គាល់អត្តសញ្ញាណ",
+          "masterControl": "មេបញ្ជាការប្រព័ន្ធ"
+        }
+      },
+      "securityAuthority": "សន្តិសុខ និងសិទ្ធិអំណាចប្រព័ន្ធ",
+      "masterController": "មេបញ្ជាការ",
+      "logsHistory": "កំណត់ត្រា និងប្រវត្តិ",
+      "saveSuccess": "ប្រព័ន្ធត្រូវបានធ្វើបច្ចុប្បន្នភាព",
+      "saveBtn": "រក្សាទុកការកំណត់ទាំងអស់",
+      "saveFailed": "ការរក្សាទុកបរាជ័យ",
+      "saveFailedDesc": "មិនអាចធ្វើបច្ចុប្បន្នភាពការកំណត់ប្រព័ន្ធបានទេ។",
+      "pricingTitle": "សេដ្ឋកិច្ចប្រព័ន្ធ",
+      "pricingSubtitle": "ការគ្រប់គ្រងកញ្ចប់សេវាកម្ម",
+      "activeSince": "សកម្មតាំងពី Alpha 1.0",
+      "standardTier": "កញ្ចប់ Standard",
+      "standardBadge": "កម្រិតសាធារណៈ Tier 02",
+      "proTier": "កញ្ចប់ Pro Master",
+      "proBadge": "សេវាកម្ម Premium White Label",
+      "2faTitle": "ឆ្មាំការពារការចូល",
+      "2faSubtitle": "ការពារអត្តសញ្ញាណ SuperAdmin ជាមួយការផ្ទៀងផ្ទាត់ TOTP ជាដាច់ខាត។",
+      "2faActive": "ការការពារអត្តសញ្ញាណត្រូវបានបើក",
+      "2faInit": "ចាប់ផ្តើមរៀបចំប្រព័ន្ធ 2FA",
+      "2faPlaceholder": "លេខកូដផ្ទៀងផ្ទាត់ ៦ ខ្ទង់",
+      "2faVerify": "ផ្ទៀងផ្ទាត់",
+      "2faInvalid": "លេខកូដមិនត្រឹមត្រូវ",
+      "2faCheckCode": "សូមពិនិត្យលេខកូដម្តងទៀត។",
+      "lockoutTitle": "ការបិទការចូល",
+      "lockoutSubtitle": "បញ្ជាបិទការស្កេនទូទាំងប្រព័ន្ធ",
+      "statusTitle": "ស្ថានភាពប្រព័ន្ធ",
+      "statusHalt": "បញ្ឈប់ប្រតិបត្តិការ",
+      "statusOnline": "សេវាកម្មសាធារណៈកំពុងដំណើរការ",
+      "maintenanceDesc": "ប្រព័ន្ធត្រូវបានបិទសម្រាប់ការថែទាំ។ មានតែ SuperAdmin ប៉ុណ្ណោះដែលអាចចូលប្រើប្រាស់បាន។",
+      "onlineDesc": "រាល់សេវាកម្មសាធារណៈ និងតារាងគ្រប់គ្រងរបស់អតិថិជនកំពុងដំណើរការជាធម្មតា។",
+      "onboardingTitle": "ការចុះឈ្មោះ",
+      "onboardingSubtitle": "លំហូរចុះឈ្មោះជាសាធារណៈ",
+      "engineTitle": "ម៉ាស៊ីន MONEA",
+      "engineVersion": "v1.4.2",
+      "engineVersionBadge": "Enterprise Edition",
+      "security": {
+        "title": "ការត្រួតពិនិត្យសុវត្ថិភាព",
+        "subtitle": "ការរកឃើញការគំរាមកំហែង និងការគ្រប់គ្រងការចូលប្រើ",
+        "return": "ត្រឡប់ទៅកាន់មជ្ឈមណ្ឌលបញ្ជា Master Audit",
+        "sync": "ធ្វើបច្ចុប្បន្នភាពទិន្នន័យ",
+        "revokeBtn": "ផ្តាច់ការចូលប្រើទាំងអស់",
+        "revokeConfirm": "តើអ្នកពិតជាចង់ផ្តាច់រាល់ការចូលប្រើរបស់បុគ្គលិក និងអ្នកប្រើប្រាស់ទាំងអស់មែនទេ? វានឹងធ្វើឱ្យគ្រប់គ្នាចាកចេញភ្លាមៗ។",
+        "revokeSuccess": "បានផ្តាច់រាល់ការចូលប្រើដោយជោគជ័យ។",
+        "stats": {
+          "locked": "គណនីដែលត្រូវបានចាក់សោ",
+          "blacklisted": "IP ដែលត្រូវបានហាមឃាត់",
+          "failedLogins": "ការចូលមិនបានសម្រេច (សកម្ម)"
+        },
+        "blacklist": {
+          "title": "ការគ្រប់គ្រងការចូលប្រើតាម IP",
+          "placeholder": "អាសយដ្ឋាន IP (ឧទាហរណ៍ 192.168.1.1)",
+          "reason": "មូលហេតុនៃការរារាំង",
+          "addBtn": "រារាំង IP",
+          "unblock": "ដោះលែង",
+          "unblocking": "កំពុងដោះលែង..."
+        },
+        "tables": {
+          "failedAccounts": "គណនីដែលមានការចូលមិនបានសម្រេច",
+          "blacklistedIps": "បញ្ជី IP ដែលត្រូវបានហាមឃាត់",
+          "noFailed": "មិនមានគណនីដែលមានការចូលមិនបានសម្រេចថ្មីៗនេះទេ។",
+          "noBlacklisted": "មិនមាន IP ដែលត្រូវបានហាមឃាត់ត្រូវបានរកឃើញទេ។",
+          "lockedBadge": "បានចាក់សោ"
+        }
+      },
+      "overrideTitle": "ពិធីការបញ្ជាលើសិទ្ធិអំណាចមេ",
+      "overrideDesc": "រាល់ការផ្លាស់ប្តូរនៅទីនេះនឹងជះឥទ្ធិពលភ្លាមៗដល់ប្រព័ន្ធទាំងមូល។ រាល់ការផ្លាស់ប្តូរត្រូវបានកត់ត្រាក្នុង Security Audit Feed។ សូមប្រើប្រាស់ដោយការប្រុងប្រយ័ត្នខ្ពស់បំផុត។"
+    },
+    "sidebar": {
+      "overview": "ទិដ្ឋភាពទូទៅ",
+      "weddings": "គម្រោងមង្គលការ",
+      "users": "អ្នកប្រើប្រាស់",
+      "settings": "ការកំណត់",
+      "pricing": "តម្លៃសេវាកម្ម",
+      "governance": "អភិបាលកិច្ចប្រព័ន្ធ",
+      "logout": "ចាកចេញ",
+      "pulse": "ចង្វាក់ប្រតិបត្តិការ",
+      "pulseStatus": "ដំណើរការ ៩៩.៩%"
+    },
+    "overview": {
+      "title": "មជ្ឈមណ្ឌលបញ្ជាមេ",
+      "subtitle": "ការគ្រប់គ្រងប្រព័ន្ធទូទៅ",
+      "systemLogs": "កំណត់ត្រាប្រព័ន្ធ",
+      "globalSettings": "ការកំណត់ទូទៅ",
+      "stats": {
+        "totalProjects": "គម្រោងសរុប",
+        "activeProjects": "គម្រោងសកម្ម",
+        "activeHirers": "អ្នកប្រើប្រាស់សរុប",
+        "totalRevenue": "ចំណូលសរុប (USD)",
+        "globalGuests": "ភ្ញៀវសរុប",
+        "ipBlacklist": "បញ្ជីខ្មៅ IP",
+        "securityAudit": "សវនកម្មសន្តិសុខ",
+        "activeDefenses": "ប្រព័ន្ធការពារសកម្ម",
+        "failures": "កំហុស",
+        "blocked": "បានរារាំង"
+      },
+      "recentWeddings": {
+        "title": "អ្នកជួលថ្មីៗ",
+        "subtitle": "ការចុះឈ្មោះប្រើប្រាស់ចុងក្រោយ",
+        "viewAll": "មើលទាំងអស់",
+        "table": {
+          "name": "ឈ្មោះគម្រោង",
+          "plan": "កញ្ចប់សេវា",
+          "status": "ស្ថានភាព",
+          "created": "ថ្ងៃបង្កើត"
+        }
+      },
+      "systemHealth": {
+        "title": "សុខភាពប្រព័ន្ធ",
+        "ipFirewalls": "របាំងការពារ IP",
+        "cdn": "ប្រព័ន្ធផ្ទុកឯកសារ (CDN)",
+        "database": "មូលដ្ឋានទិន្នន័យ (Database)",
+        "security": "សន្តិសុខ",
+        "diagnostics": "រោគវិនិច្ឆ័យប្រព័ន្ធ",
+        "export": "ទាញយកទិន្នន័យ",
+        "healthy": "ល្អប្រសើរ",
+        "active": "សកម្ម",
+        "connected": "បានភ្ជាប់",
+        "protected": "សុវត្ថិភាព"
+      },
+      "actions": {
+        "title": "សកម្មភាពសន្តិសុខ",
+        "paymentCenter": "មជ្ឈមណ្ឌលទូទាត់",
+        "userDirectory": "បញ្ជីអ្នកប្រើប្រាស់",
+        "broadcastCenter": "មជ្ឈមណ្ឌលផ្សព្វផ្សាយ",
+        "auditExplorer": "ការពិនិត្យកំណត់ត្រា",
+        "revenueGrowth": "ចំណូល និងការរីកចម្រើន",
+        "supportDesk": "តុគាំទ្រអតិថិជន",
+        "broadcast": "ផ្សព្វផ្សាយ",
+        "audit": "ត្រួតពិនិត្យ",
+        "revenue": "ចំណូល"
+      }
+    },
+    "header": {
+      "portal": "គេហទំព័រគ្រប់គ្រងប្រព័ន្ធ",
+      "version": "Intelligence v2.1",
+      "role": "មជ្ឈមណ្ឌលបញ្ជា",
+      "platform": "ម្ចាស់វេទិកា"
+    },
+    "logout": {
+      "title": "ចាកចេញពីប្រព័ន្ធ",
+      "description": "តើអ្នកប្រាកដថាចង់ចាកចេញពី SuperAdmin? អ្នកនឹងត្រូវវិលត្រឡប់ទៅកាន់ទំព័រចូល (Login) ។",
+      "confirm": "ចាកចេញ",
+      "cancel": "បន្ត"
+    },
+    "payments": {
+      "title": "មជ្ឈមណ្ឌលផ្ទៀងផ្ទាត់ការបង់ប្រាក់",
+      "subtitle": "សំណើដែលកំពុងរង់ចាំការបើក",
+      "awaitingApproval": "{count} កំពុងរង់ចាំការអនុម័ត",
+      "loading": "កំពុងទាញយកសំណើបង់ប្រាក់...",
+      "empty": "មិនមានសំណើបង់ប្រាក់ដែលមិនទាន់ដោះស្រាយ",
+      "emptyDesc": "រាល់គម្រោងមង្គលការទាំងអស់ត្រូវបានបើកដំណើរការរួចរាល់។",
+      "request": "សំណើកញ្ចប់សេវា {type}",
+      "registrationDate": "ថ្ងៃចុះឈ្មោះ",
+      "weddingId": "លេខសម្គាល់មង្គលការ",
+      "planCost": "តម្លៃកញ្ចប់សេវា",
+      "awaitingVerification": "កំពុងរង់ចាំការផ្ទៀងផ្ទាត់",
+      "approve": "អនុម័តការបង់ប្រាក់",
+      "preview": "មើលខ្លឹមសារមង្គលការ",
+      "syncing": "កំពុងធ្វើសមកាលកម្មការបង់ប្រាក់...",
+      "success": "ការបង់ប្រាក់ត្រូវបានអនុម័ត",
+      "successDesc": "មង្គលការត្រូវបានបើកដំណើរការដោយជោគជ័យ។",
+      "return": "ត្រឡប់ទៅមជ្ឈមណ្ឌលមេ"
+    }
+  }
+}

@@ -6,6 +6,7 @@ const loadXLSX = () => import("xlsx");
 import { Button } from "@/components/ui/button";
 import { Upload, FileSpreadsheet, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/i18n/LanguageProvider";
 import {
     Dialog,
     DialogContent,
@@ -16,6 +17,7 @@ import {
 } from "@/components/ui/dialog";
 
 export function GuestImport({ onSuccess, className }: { onSuccess: () => void, className?: string }) {
+    const { t } = useTranslation();
     const [loading, setLoading] = useState(false);
     const [open, setOpen] = useState(false);
 
@@ -37,8 +39,8 @@ export function GuestImport({ onSuccess, className }: { onSuccess: () => void, c
             // Map keys to expected format (Name, Phone, Group)
             // Assumes generic column matching or first row headers
             const formattedGuests = data.map((row: any) => ({
-                name: row["ឈ្មោះភ្ញៀវ"] || row["ឈ្មោះ"] || row["នាម និង គោតមនាម"] || row["Guest Name"] || row.Name || row.name || "Unknown",
-                group: row["មកពីណា / ទីតាំង"] || row["មកពីណា"] || row["ទីតាំង"] || row["អញ្ជើញមកពី"] || row["Location/Group"] || row.Group || row.group || "Friend",
+                name: row[t("guests.cols.name")] || row["ឈ្មោះភ្ញៀវ"] || row["ឈ្មោះ"] || row["នាម និង គោតមនាម"] || row["Guest Name"] || row.Name || row.name || "Unknown",
+                group: row[t("guests.cols.location")] || row["មកពីណា / ទីតាំង"] || row["មកពីណា"] || row["ទីតាំង"] || row["អញ្ជើញមកពី"] || row["Location/Group"] || row.Group || row.group || t("guests.general"),
             }));
 
             if (formattedGuests.length > 0) {
@@ -53,12 +55,12 @@ export function GuestImport({ onSuccess, className }: { onSuccess: () => void, c
                     } else {
                         const errorData = await res.json();
                         const fullError = errorData.message || errorData.error || 'Unknown error';
-                        alert(`Import failed: ${fullError}`);
+                        alert(t("guests.import.failed", { error: fullError }));
                         console.error("Full Import Error:", errorData);
                     }
                 } catch (error) {
                     console.error("Import error:", error);
-                    alert("A connection error occurred. Please check your internet and try again.");
+                    alert(t("common.errors.connection"));
                 }
             }
             setLoading(false);
@@ -69,7 +71,7 @@ export function GuestImport({ onSuccess, className }: { onSuccess: () => void, c
 
     const downloadTemplate = async () => {
         const XLSX = await loadXLSX();
-        const headers = ["ឈ្មោះភ្ញៀវ", "មកពីណា / ទីតាំង"];
+        const headers = [t("guests.cols.name"), t("guests.cols.location")];
         const sampleData = [
             ["សុក តារា", "កំពត"],
             ["កែវ មុន្នី", "ព្រៃវែង"]
@@ -92,18 +94,18 @@ export function GuestImport({ onSuccess, className }: { onSuccess: () => void, c
                         className
                     )}
                 >
-                    <FileSpreadsheet className="mr-1.5 h-3.5 w-3.5 text-emerald-600 shrink-0" /> នាំចូល
+                    <FileSpreadsheet className="mr-1.5 h-3.5 w-3.5 text-emerald-600 shrink-0" /> {t("common.actions.import")}
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px] rounded-[2rem] border-none shadow-2xl bg-card">
                 <DialogHeader className="pt-4 px-2 mb-2">
                     <DialogTitle className="text-3xl font-black font-kantumruy tracking-tight text-foreground">
-                        នាំចូលបញ្ជីភ្ញៀវ
+                        {t("guests.import.title")}
                     </DialogTitle>
                     <DialogDescription className="font-kantumruy font-medium text-muted-foreground text-base mt-2">
-                        សូមជ្រើររើសឯកសារ Excel (.xlsx) ដែលមានជួរឈរ៖ <strong className="text-foreground font-bold bg-muted px-2 py-0.5 rounded">ឈ្មោះភ្ញៀវ</strong> និង <strong className="text-foreground font-bold bg-muted px-2 py-0.5 rounded">មកពីណា / ទីតាំង</strong> ។
+                        {t("guests.import.description")}
                         <span className="block mt-2 text-sm text-amber-600 font-bold">
-                            * លេខរៀង (No.) នឹងត្រូវបានរៀបចំដោយស្វ័យប្រវត្តិដោយប្រព័ន្ធ។
+                            {t("guests.import.noNote")}
                         </span>
                         <span className="block mt-4">
                             <Button
@@ -111,7 +113,7 @@ export function GuestImport({ onSuccess, className }: { onSuccess: () => void, c
                                 onClick={downloadTemplate}
                                 className="p-0 h-auto text-blue-600 hover:text-blue-700 font-bold flex items-center gap-1"
                             >
-                                <Download className="w-4 h-4" /> ទាញយកឯកសារគំរូ (Download Sample Template)
+                                <Download className="w-4 h-4" /> {t("guests.import.downloadTemplate")}
                             </Button>
                         </span>
                     </DialogDescription>
@@ -123,9 +125,9 @@ export function GuestImport({ onSuccess, className }: { onSuccess: () => void, c
                                 <Upload className="h-8 w-8 text-red-600" />
                             </div>
                             <span className="text-lg font-bold text-foreground font-kantumruy">
-                                {loading ? "កំពុងទាញបញ្ចូលទិន្នន័យ..." : "ចុចទីនេះដើម្បីជ្រើសរើសឯកសារ Excel"}
+                                {loading ? t("guests.import.importing") : t("guests.import.clickToSelect")}
                             </span>
-                            <span className="text-sm text-muted-foreground font-kantumruy mt-2">អនុញ្ញាតត្រឹមឯកសារ: .xlsx, .xls</span>
+                            <span className="text-sm text-muted-foreground font-kantumruy mt-2">{t("guests.import.allowedFiles")}</span>
                             <input
                                 type="file"
                                 accept=".xlsx, .xls"

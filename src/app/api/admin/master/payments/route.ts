@@ -1,8 +1,10 @@
-export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma, queryRaw, executeRaw } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
 import { ROLES } from "@/lib/constants";
+import { SystemGovernance, GOVERNANCE_ACTIONS } from "@/lib/governance";
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
     try {
@@ -11,24 +13,38 @@ export async function GET() {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const pendingWeddings = await prisma.wedding.findMany({
-            where: {
-                OR: [
-                    { paymentStatus: "PENDING" },
-                    { paymentStatus: "AWAITING_VERIFICATION" }
-                ],
-                packageType: { not: "FREE" }
-            },
-            include: {
-                user: {
-                    select: { name: true, email: true }
-                }
-            },
-            orderBy: { createdAt: "desc" }
-        });
+        // Use raw query for config to prevent Prisma client lockups
+        const configs = await queryRaw('SELECT "stadPrice", "proPrice" FROM "SystemConfig" LIMIT 1');
+        const config = configs[0] || null;
 
-        return NextResponse.json(pendingWeddings);
+        // Use raw query for weddings specifically to bypass Prisma synchronization issues on Windows
+        const pendingWeddings = await queryRaw(`
+            SELECT 
+                w.id,
+                w."groomName",
+                w."brideName",
+                w."packageType",
+                w."paymentStatus",
+                w.status,
+                w."paymentHash",
+                w."bakongTrxId",
+                w."createdAt",
+                json_build_object('name', u.name, 'email', u.email) as user
+            FROM "Wedding" w
+            LEFT JOIN "User" u ON w."userId" = u.id
+            WHERE w."packageType" != 'FREE'
+            ORDER BY w."createdAt" DESC
+        `);
+
+        return NextResponse.json({
+            weddings: pendingWeddings || [],
+            pricing: {
+                standard: config?.stadPrice || 9,
+                pro: config?.proPrice || 19
+            }
+        });
     } catch (error) {
+        console.error("Payment Fetch Error:", error);
         return NextResponse.json({ error: "Failed to fetch payments" }, { status: 500 });
     }
 }
@@ -47,25 +63,41 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
         }
 
-        const updatedWedding = await prisma.wedding.update({
-            where: { id: weddingId },
-            data: {
-                paymentStatus: status, // "PAID"
-                packageType: packageType || undefined,
+        // Use raw SQL update with retry logic for total stability
+        let retries = 3;
+        while (retries > 0) {
+            try {
+                await executeRaw(`
+                    UPDATE "Wedding"
+                    SET "paymentStatus" = $1, "status" = 'ACTIVE', "packageType" = COALESCE($2, "packageType")
+                    WHERE "id" = $3
+                `, status, packageType || null, weddingId);
+                break;
+            } catch (err: any) {
+                retries--;
+                if (retries === 0) throw err;
+                await new Promise(r => setTimeout(r, 1000));
             }
-        });
+        }
 
-        // Log the administrative action
-        await prisma.log.create({
-            data: {
-                action: "PAYMENT_APPROVAL",
-                description: `Superadmin ${user.email} approved payment for wedding ${weddingId}. Plan: ${packageType}`,
-                actorName: (user as any).name || (user as any).email,
-                weddingId: weddingId
+        // Fetch back the updated wedding to return
+        const updatedWeddings = await queryRaw('SELECT * FROM "Wedding" WHERE id = $1 LIMIT 1', weddingId);
+        const updatedWedding = updatedWeddings[0];
+
+        // Use the centralized governance for auditing
+        await SystemGovernance.logAction(
+            user.id,
+            user.name || user.email || "Platform Owner",
+            GOVERNANCE_ACTIONS.CONFIG_UPDATE, 
+            { 
+                target: "WEDDING_PAYMENT",
+                weddingId, 
+                packageType, 
+                status 
             }
-        });
+        );
 
-        return NextResponse.json(updatedWedding);
+        return NextResponse.json(updatedWedding || { success: true });
     } catch (error) {
         console.error("Payment Verification Error:", error);
         return NextResponse.json({ error: "Failed to verify payment" }, { status: 500 });

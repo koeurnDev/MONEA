@@ -5,11 +5,13 @@ import useSWR from 'swr';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { m, AnimatePresence } from "framer-motion";
 import { Activity, Users, MousePointer2, Calendar, Smartphone, Monitor, Info, TrendingUp, BarChart3, Check } from "lucide-react";
+import { useTranslation } from '@/i18n/LanguageProvider';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 // Cache bust: 2026-03-10T22:40:00
 export function AnalyticsDashboard({ weddingId }: { weddingId: string }) {
+    const { t } = useTranslation();
     const [mounted, setMounted] = React.useState(false);
     const { data, error, isLoading } = useSWR(mounted ? `/api/wedding/analytics/stats?weddingId=${weddingId}` : null, fetcher);
 
@@ -38,8 +40,8 @@ export function AnalyticsDashboard({ weddingId }: { weddingId: string }) {
             <div className="w-16 h-16 bg-muted/50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-muted-foreground/30">
                 <Info size={32} />
             </div>
-            <h3 className="text-lg font-bold font-kantumruy text-foreground mb-1">គ្មានទិន្នន័យ (No Data Available)</h3>
-            <p className="text-sm text-muted-foreground font-medium italic">ទិន្នន័យនឹងបង្ហាញនៅពេលមានអ្នកចូលមើល (Data will appear once views are recorded)</p>
+            <h3 className="text-lg font-bold font-kantumruy text-foreground mb-1">{t("dashboard.analytics.noData")}</h3>
+            <p className="text-sm text-muted-foreground font-medium italic">{t("dashboard.analytics.noDataSub")}</p>
         </div>
     );
 
@@ -49,45 +51,45 @@ export function AnalyticsDashboard({ weddingId }: { weddingId: string }) {
 
     const stats = [
         {
-            title: "អ្នកចូលមើលសរុប",
+            title: t("dashboard.analytics.totalViews"),
             value: Number(data.totalViews) || 0,
-            sub: "Total Unique Views",
+            sub: t("dashboard.analytics.totalViewsSub"),
             icon: Users,
             color: "text-blue-600 dark:text-blue-400",
             bg: "bg-blue-50 dark:bg-blue-500/10",
             border: "group-hover:border-blue-500/30"
         },
         {
-            title: "ចុចមើលផែនទី",
+            title: t("dashboard.analytics.mapClicks"),
             value: Number(data.mapClicks) || 0,
-            sub: "Map Interactions",
+            sub: t("dashboard.analytics.mapClicksSub"),
             icon: MousePointer2,
             color: "text-rose-600 dark:text-rose-400",
             bg: "bg-rose-50 dark:bg-rose-500/10",
             border: "group-hover:border-rose-500/30"
         },
         {
-            title: "រក្សាទុកកាលបរិច្ឆេទ",
+            title: t("dashboard.analytics.saveDate"),
             value: Number(data.saveDateClicks) || 0,
-            sub: "Calendar Saves",
+            sub: t("dashboard.analytics.saveDateSub"),
             icon: Calendar,
             color: "text-amber-600 dark:text-amber-400",
             bg: "bg-amber-50 dark:bg-amber-500/10",
             border: "group-hover:border-amber-500/30"
         },
         {
-            title: "បើកមើល RSVP",
+            title: t("dashboard.analytics.rsvpOpens"),
             value: Number(data.rsvpOpens) || 0,
-            sub: "RSVP Modal Opens",
+            sub: t("dashboard.analytics.rsvpOpensSub"),
             icon: MousePointer2,
             color: "text-purple-600 dark:text-purple-400",
             bg: "bg-purple-50 dark:bg-purple-500/10",
             border: "group-hover:border-purple-500/30"
         },
         {
-            title: "បញ្ជូន RSVP",
+            title: t("dashboard.analytics.rsvpSubmits"),
             value: Number(data.rsvpSubmits) || 0,
-            sub: "Responses Received",
+            sub: t("dashboard.analytics.rsvpSubmitsSub"),
             icon: Check,
             color: "text-emerald-600 dark:text-emerald-400",
             bg: "bg-emerald-50 dark:bg-emerald-500/10",
@@ -137,20 +139,20 @@ export function AnalyticsDashboard({ weddingId }: { weddingId: string }) {
                                 <div className="p-2 bg-emerald-500/10 rounded-lg">
                                     <TrendingUp className="w-5 h-5 text-emerald-500" />
                                 </div>
-                                និន្នាការនៃការចូលមើល
+                                {t("dashboard.analytics.viewTrend")}
                             </CardTitle>
-                            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider ml-10 opacity-40 italic">ស្ថិតិនៃការចូលមើលក្នុងរយៈពេល ២១ ថ្ងៃចុងក្រោយ</p>
+                            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider ml-10 opacity-40 italic">{t("dashboard.analytics.viewTrendSub")}</p>
                         </div>
                         <div className="flex items-center gap-2 px-3 py-1.5 bg-muted/50 rounded-full border border-border/50">
                             <Activity className="w-3 h-3 text-emerald-500 animate-pulse" />
-                            <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Live Flow</span>
+                            <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">{t("dashboard.analytics.liveFlow")}</span>
                         </div>
                     </CardHeader>
 
                     <CardContent className="px-0 relative z-10 pt-4">
                         {dailyTrend.length === 0 ? (
                             <div className="h-56 flex items-center justify-center text-muted-foreground text-[10px] uppercase font-bold tracking-widest bg-muted/10 rounded-3xl border border-dashed border-border/30">
-                                មិនទាន់មានទិន្នន័យសម្រាប់ការបង្ហាញ (No flow data yet)
+                                {t("dashboard.analytics.noFlowData")}
                             </div>
                         ) : (() => {
                             const max = Math.max(...dailyTrend.map((x: any) => x.count), 1);
@@ -159,9 +161,9 @@ export function AnalyticsDashboard({ weddingId }: { weddingId: string }) {
                             const spacing = width / Math.max(dailyTrend.length - 1, 1);
 
                             // Calculate points
-                            const points = dailyTrend.map((t: any, i: number) => ({
+                            const points = dailyTrend.map((item: any, i: number) => ({
                                 x: i * spacing,
-                                y: height - (t.count / max) * height
+                                y: height - (item.count / max) * height
                             }));
 
                             // Create smooth path using cubic bezier
@@ -210,7 +212,7 @@ export function AnalyticsDashboard({ weddingId }: { weddingId: string }) {
 
                                             {/* Data Points */}
                                             {points.map((p: any, i: number) => {
-                                                const t = dailyTrend[i];
+                                                const item = dailyTrend[i];
                                                 const isToday = i === dailyTrend.length - 1;
                                                 return (
                                                     <m.g key={i}>
@@ -233,12 +235,12 @@ export function AnalyticsDashboard({ weddingId }: { weddingId: string }) {
 
                                         {/* Invisible Hover Zones for Tooltips */}
                                         <div className="absolute inset-0 flex">
-                                            {dailyTrend.map((t: any, i: number) => (
+                                            {dailyTrend.map((item: any, i: number) => (
                                                 <div key={i} className="flex-1 group/item relative">
                                                     <div className="opacity-0 group-hover/item:opacity-100 transition-all duration-300 absolute left-1/2 -translate-x-1/2 z-20 pointer-events-none" style={{ top: `${(points[i].y / height) * 100}%`, marginTop: '-40px' }}>
                                                         <div className="bg-foreground text-background text-[10px] font-black py-1 px-2.5 rounded-lg shadow-xl flex items-center gap-1.5 whitespace-nowrap">
                                                             <Users size={10} />
-                                                            {t.count} នាក់ ({t.date.split('-')[2]})
+                                                            {t("dashboard.analytics.tooltip", { count: item.count, date: item.date.split('-')[2] })}
                                                         </div>
                                                         <div className="w-2 h-2 bg-foreground rotate-45 transform -translate-y-1 mx-auto" />
                                                     </div>
@@ -252,15 +254,15 @@ export function AnalyticsDashboard({ weddingId }: { weddingId: string }) {
 
                                     {/* X-Axis Labels */}
                                     <div className="flex justify-between px-1">
-                                        {dailyTrend.filter((_: any, i: number) => i % 3 === 0 || i === dailyTrend.length - 1).map((t: any, i: number, arr: any[]) => {
-                                            const isToday = t.date === dailyTrend[dailyTrend.length - 1].date;
+                                        {dailyTrend.filter((_: any, i: number) => i % 3 === 0 || i === dailyTrend.length - 1).map((item: any, i: number, arr: any[]) => {
+                                            const isToday = item.date === dailyTrend[dailyTrend.length - 1].date;
                                             return (
                                                 <div key={i} className="flex flex-col items-center">
                                                     <span className={`text-[9px] font-black transition-colors ${isToday ? 'text-emerald-500' : 'text-muted-foreground/40'}`}>
-                                                        {t.date.split('-')[2]}
+                                                        {item.date.split('-')[2]}
                                                     </span>
                                                     <span className="text-[7px] text-muted-foreground/20 font-bold uppercase scale-75">
-                                                        {mounted ? new Date(t.date).toLocaleString('en-US', { month: 'short' }).toUpperCase() : "..."}
+                                                        {mounted ? new Date(item.date).toLocaleString('en-US', { month: 'short' }).toUpperCase() : "..."}
                                                     </span>
                                                 </div>
                                             );
@@ -279,7 +281,7 @@ export function AnalyticsDashboard({ weddingId }: { weddingId: string }) {
                             <div className="p-2 bg-indigo-500/10 rounded-lg group-hover:bg-indigo-500/20 transition-colors duration-500">
                                 <BarChart3 className="w-5 h-5 text-indigo-500" />
                             </div>
-                            ឧបករណ៍ដែលប្រើប្រាស់
+                            {t("dashboard.analytics.devices")}
                         </CardTitle>
                         <Monitor size={16} className="text-muted-foreground/20" />
                     </CardHeader>
@@ -305,8 +307,10 @@ export function AnalyticsDashboard({ weddingId }: { weddingId: string }) {
                                         <div className="flex-1 space-y-2">
                                             <div className="flex justify-between items-end">
                                                 <div className="space-y-0.5">
-                                                    <span className="text-xs font-black font-kantumruy uppercase tracking-wide">{ds.type}</span>
-                                                    <p className="text-[10px] text-muted-foreground font-bold italic opacity-60">{ds.count} sessions detected</p>
+                                                    <span className="text-xs font-black font-kantumruy uppercase tracking-wide">
+                                                        {ds.type === 'MOBILE' ? t("dashboard.analytics.mobile") : t("dashboard.analytics.desktop")}
+                                                    </span>
+                                                    <p className="text-[10px] text-muted-foreground font-bold italic opacity-60">{t("dashboard.analytics.sessionsDetected", { count: ds.count })}</p>
                                                 </div>
                                                 <div className="flex items-baseline gap-1">
                                                     <span className="text-xl font-black tabular-nums">{percentage}</span>
@@ -328,7 +332,7 @@ export function AnalyticsDashboard({ weddingId }: { weddingId: string }) {
                         ) : (
                             <div className="h-full min-h-[160px] flex flex-col items-center justify-center text-muted-foreground gap-3 bg-muted/5 rounded-3xl border border-dashed border-border/30">
                                 <Monitor size={40} className="text-muted-foreground/10" />
-                                <span className="text-[10px] uppercase font-black tracking-[0.2em] opacity-30">គ្មានទិន្នន័យនៅឡើយ</span>
+                                <span className="text-[10px] uppercase font-black tracking-[0.2em] opacity-30">{t("dashboard.analytics.noDataYet")}</span>
                             </div>
                         )}
                     </CardContent>

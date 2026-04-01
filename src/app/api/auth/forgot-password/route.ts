@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { errorResponse } from "@/lib/api-utils";
+import { sendPasswordResetEmail } from "@/lib/mail";
+import crypto from "crypto";
 
 export async function POST(req: Request) {
     try {
@@ -29,11 +31,31 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: true, message: "If an account exists, a reset link has been sent." });
         }
 
-        // In a real application, you would generate a token and send an email here.
-        // For MONEA, we'll simulate success.
-        console.log(`[Forgot Password] Reset request for: ${email}`);
+        // Check for existing tokens to prevent spam
+        const existingToken = await prisma.passwordResetToken.findFirst({
+            where: { email },
+            orderBy: { createdAt: 'desc' }
+        });
 
-        return NextResponse.json({ success: true, message: "តំណភ្ជាប់សម្រាប់ប្តូរពាក្យសម្ងាត់ត្រូវបានផ្ញើទៅកាន់អ៊ីមែលរបស់អ្នក។" });
+        if (existingToken && existingToken.createdAt.getTime() > Date.now() - 1000 * 60 * 2) {
+            // Rate limit: 1 email per 2 minutes
+             return errorResponse("Please wait a few minutes before requesting another reset link.", 429);
+        }
+
+        const token = crypto.randomBytes(32).toString("hex");
+
+        await prisma.passwordResetToken.create({
+            data: {
+                email,
+                token,
+                expiresAt: new Date(Date.now() + 1000 * 60 * 60), // 1 hour
+            },
+        });
+
+        await sendPasswordResetEmail(email, token);
+        console.log(`[Forgot Password] Reset token sent for: ${email}`);
+
+        return NextResponse.json({ success: true, message: "A password reset link has been sent to your email." });
 
     } catch (error) {
         console.error("Forgot Password Error:", error);

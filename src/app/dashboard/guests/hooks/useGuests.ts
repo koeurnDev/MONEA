@@ -2,13 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { moneaClient } from "@/lib/api-client";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 export function useGuests() {
+    const { t, locale } = useTranslation();
     // 1. Core Data State
     const [guests, setGuests] = useState<any[]>([]);
     const [filteredGuests, setFilteredGuests] = useState<any[]>([]);
     const [wedding, setWedding] = useState<any>(null);
     const [cachedPackageType, setCachedPackageType] = useState<string | null>(null);
+
+    const [pagination, setPagination] = useState<any>(null);
 
     // 2. UI Control State
     const [search, setSearch] = useState("");
@@ -25,13 +29,16 @@ export function useGuests() {
         setLoading(true);
         try {
             const [guestsRes, weddingRes] = await Promise.all([
-                moneaClient.get<any[]>("/api/guests"),
+                moneaClient.get<any>("/api/guests?limit=1000"), // Fetch more for initial view to maintain UX
                 moneaClient.get<any>("/api/wedding")
             ]);
 
             if (guestsRes.data) {
-                setGuests(guestsRes.data);
-                setFilteredGuests(guestsRes.data);
+                const data = guestsRes.data;
+                const items = data.items || [];
+                setGuests(items);
+                setFilteredGuests(items);
+                setPagination(data.pagination || null);
             }
             if (weddingRes.data) {
                 const wData = weddingRes.data;
@@ -61,18 +68,46 @@ export function useGuests() {
         loadData();
     }, []);
 
-    // Handle searching
+    // Handle searching with non-blocking pattern (INP Optimization)
     useEffect(() => {
-        if (!search) {
-            setFilteredGuests(guests);
-        } else {
+        let isCancelled = false;
+        
+        async function runFilteredSearch() {
+            if (!search) {
+                setFilteredGuests(guests);
+                return;
+            }
+
             const lower = search.toLowerCase();
-            setFilteredGuests(guests.filter((g: any) =>
-                g.name.toLowerCase().includes(lower) ||
-                (g.source && g.source.toLowerCase().includes(lower)) ||
-                (g.group && g.group.toLowerCase().includes(lower))
-            ));
+            const results: any[] = [];
+            const yieldToMain = () => new Promise(resolve => setTimeout(resolve, 0));
+
+            // Chunked filtering to prevent main-thread blocking
+            for (let i = 0; i < guests.length; i++) {
+                if (isCancelled) return;
+
+                const g = guests[i];
+                if (
+                    g.name.toLowerCase().includes(lower) ||
+                    (g.source && g.source.toLowerCase().includes(lower)) ||
+                    (g.group && g.group.toLowerCase().includes(lower))
+                ) {
+                    results.push(g);
+                }
+
+                // Yield to main thread every 200 items to keep UI responsive
+                if (i > 0 && i % 200 === 0) {
+                    await yieldToMain();
+                }
+            }
+
+            if (!isCancelled) {
+                setFilteredGuests(results);
+            }
         }
+
+        runFilteredSearch();
+        return () => { isCancelled = true; };
     }, [search, guests]);
 
     const exportCSV = async () => {
@@ -82,25 +117,35 @@ export function useGuests() {
         const formatKhmerDate = (date: Date | string | undefined) => {
             if (!date) return "";
             const d = new Date(date);
-            const khmerDays = ["អាទិត្យ", "ច័ន្ទ", "អង្គារ", "ពុធ", "ព្រហស្បតិ៍", "សុក្រ", "សៅរ៍"];
-            const khmerMonths = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
-            const khmerDigits = ["០", "១", "២", "៣", "៤", "៥", "៦", "៧", "៨", "៩"];
+            
+            if (locale === 'en') {
+                return d.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            }
+
+            const khmerDays = t("common.calendar.days", { returnObjects: true }) as string[];
+            const khmerMonths = t("common.calendar.months", { returnObjects: true }) as string[];
+            const khmerDigits = t("common.calendar.digits", { returnObjects: true }) as string[];
             const toKhmerNum = (num: number) => String(num).split('').map(digit => khmerDigits[parseInt(digit)] || digit).join('');
 
-            return `ថ្ងៃ${khmerDays[d.getDay()]} ទី${toKhmerNum(d.getDate())} ខែ${khmerMonths[d.getMonth()]} ឆ្នាំ${toKhmerNum(d.getFullYear())}`;
+            return `${t("common.calendar.day")}${khmerDays[d.getDay()]} ${t("common.calendar.number")}${toKhmerNum(d.getDate())} ${t("common.calendar.month")}${khmerMonths[d.getMonth()]} ${t("common.calendar.year")}${toKhmerNum(d.getFullYear())}`;
         };
 
         // 1. Prepare Title and Summary Rows
-        const title = `បញ្ជីឈ្មោះភ្ញៀវ - ${wedding?.groomName || '...'} និង ${wedding?.brideName || '...'}`;
+        const title = `${t("guests.exportTitle")} - ${wedding?.groomName || '...'} ${t("common.constants.and")} ${wedding?.brideName || '...'}`;
         const dateStr = formatKhmerDate(wedding?.date);
-        const summary = `កាលបរិច្ឆេទ: ${dateStr}  |  សរុបភ្ញៀវ: ${guests.length} នាក់`;
+        const summary = `${t("guests.summaryDate", { date: dateStr })}  |  ${t("guests.summaryTotal", { count: guests.length, unit: t("guests.personUnit") })}`;
         
         // 2. Prepare Table Headers and Data
-        const headers = ["ល.រ", "ឈ្មោះភ្ញៀវ", "មកពីណា / ទីតាំង"];
+        const headers = [t("guests.cols.no"), t("guests.cols.name"), t("guests.cols.location")];
         const rows = guests.sort((a: any, b: any) => (a.sequenceNumber || 0) - (b.sequenceNumber || 0)).map((g: any, idx: number) => [
             g.sequenceNumber || (idx + 1),
             g.name,
-            g.group || g.source || "មិនបានបញ្ជាក់"
+            g.group || g.source || t("guests.notSpecified")
         ]);
 
         // 3. Construct Final Data Sheet (Title + Spacer + Summary + Spacer + Table)
@@ -124,7 +169,7 @@ export function useGuests() {
 
         // 5. Create Workbook and Save
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "បញ្ជីឈ្មោះភ្ញៀវ");
+        XLSX.utils.book_append_sheet(workbook, worksheet, t("guests.title"));
         
         const fileName = `MONEA_GuestList_${wedding?.groomName || 'Wedding'}.xlsx`;
         XLSX.writeFile(workbook, fileName);
@@ -161,7 +206,7 @@ export function useGuests() {
             console.error(e);
             setGuests(previousGuests);
             setFilteredGuests(previousGuests);
-            alert("ការលុបមិនបានជោគជ័យ! សូមព្យាយាមម្ដងទៀត។");
+            alert(t("guests.deleteError"));
         }
     };
 

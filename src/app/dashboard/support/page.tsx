@@ -8,8 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { LifeBuoy, Send, CheckCircle2, Loader2, AlertCircle, ShieldCheck, Zap, Sparkles } from "lucide-react";
 import { AnimatePresence, m } from 'framer-motion';
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 function SupportForm() {
+    const { t } = useTranslation();
     const searchParams = useSearchParams();
     const weddingId = searchParams.get("weddingId");
 
@@ -64,16 +66,16 @@ function SupportForm() {
                 <div className="absolute inset-0 bg-green-400/20 blur-3xl rounded-full animate-pulse" />
             </div>
 
-            <h2 className="text-3xl font-black text-foreground mb-3 font-kantumruy tracking-tight">សំណើរបស់អ្នកត្រូវបានផ្ញើ!</h2>
+            <h2 className="text-3xl font-black text-foreground mb-3 font-kantumruy tracking-tight">{t("support.form.success.title")}</h2>
             <p className="text-muted-foreground font-medium font-kantumruy mb-10 max-w-sm leading-relaxed">
-                ក្រុមការងារ MONEA ទទួលបានសំណើរបស់អ្នកហើយ។ យើងនឹងពិនិត្យមើល និងដោះស្រាយជូនឆាប់ៗបំផុត។
+                {t("support.form.success.desc")}
             </p>
 
             <Button
                 onClick={() => window.location.href = `/dashboard?weddingId=${weddingId}`}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-[2rem] px-16 h-14 font-bold uppercase tracking-widest text-xs shadow-2xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
             >
-                ត្រឡប់ទៅផ្ទាំងដើម
+                {t("support.form.success.back")}
             </Button>
         </m.div>
     );
@@ -104,9 +106,9 @@ function SupportForm() {
                             </AnimatePresence>
 
                             <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-2 font-kantumruy">ប្រធានបទ / Subject</label>
+                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-2 font-kantumruy">{t("support.form.subject")}</label>
                                 <Input
-                                    placeholder="បញ្ហាបច្ចេកទេស, សំណើថែមមុខងារ..."
+                                    placeholder={t("support.form.subjectPlaceholder")}
                                     value={subject}
                                     onChange={e => setSubject(e.target.value)}
                                     className="h-14 rounded-2xl border-none bg-background/50 font-kantumruy text-foreground focus:ring-4 focus:ring-primary/5 focus:bg-background transition-all px-6 shadow-sm"
@@ -115,11 +117,11 @@ function SupportForm() {
                             </div>
 
                             <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-2 font-kantumruy">កម្រិតអាទិភាព / Priority</label>
+                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-2 font-kantumruy">{t("support.form.priority")}</label>
                                 <div className="grid grid-cols-2 gap-4">
                                     {[
-                                        { id: 'NORMAL', label: 'ធម្មតា', icon: Zap, color: 'text-blue-500' },
-                                        { id: 'HIGH', label: 'បន្ទាន់', icon: Sparkles, color: 'text-red-500' }
+                                        { id: 'NORMAL', label: t("support.form.priorityNormal"), icon: Zap, color: 'text-blue-500' },
+                                        { id: 'HIGH', label: t("support.form.priorityHigh"), icon: Sparkles, color: 'text-red-500' }
                                     ].map((p) => (
                                         <button
                                             key={p.id}
@@ -133,16 +135,16 @@ function SupportForm() {
                                             )}
                                         >
                                             <p.icon size={16} className={priority === p.id ? 'text-primary' : 'text-muted-foreground/40'} />
-                                            {p.id}
+                                            {p.label}
                                         </button>
                                     ))}
                                 </div>
                             </div>
 
                             <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-2 font-kantumruy">សារលម្អិត / Message</label>
+                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-2 font-kantumruy">{t("support.form.message")}</label>
                                 <Textarea
-                                    placeholder="សូមរាយការណ៍ពីបញ្ហាដែលលោកអ្នកបានជួបប្រទះ..."
+                                    placeholder={t("support.form.messagePlaceholder")}
                                     value={message}
                                     onChange={e => setMessage(e.target.value)}
                                     className="min-h-[200px] rounded-[2rem] border-none bg-background/50 p-6 font-kantumruy text-foreground focus:ring-4 focus:ring-primary/5 focus:bg-background transition-all shadow-sm"
@@ -154,7 +156,7 @@ function SupportForm() {
                                 className="h-16 w-full bg-primary text-primary-foreground rounded-[2rem] font-bold uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-4 shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all hover:scale-[1.01] active:scale-95 border-none"
                                 disabled={loading}
                             >
-                                {loading ? <Loader2 className="animate-spin" /> : <><Send size={18} /> ផ្ញើសំណើ (Send Request)</>}
+                                {loading ? <Loader2 className="animate-spin" /> : <><Send size={18} /> {t("support.form.submit")}</>}
                             </Button>
                         </form>
                     </div>
@@ -170,9 +172,9 @@ function SupportForm() {
                 <div className="p-10 rounded-[2.5rem] bg-gradient-to-br from-slate-900 to-black text-white shadow-2xl relative overflow-hidden group">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 blur-3xl rounded-full -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-700" />
                     <LifeBuoy className="mb-8 text-primary" size={40} />
-                    <h4 className="text-2xl font-black font-kantumruy uppercase tracking-tight mb-3">ជំនួយបន្ទាន់</h4>
+                    <h4 className="text-2xl font-black font-kantumruy uppercase tracking-tight mb-3">{t("support.urgentHelp.title")}</h4>
                     <p className="text-sm font-medium font-kantumruy opacity-70 leading-relaxed mb-8">
-                        លោកអ្នកក៏អាចទាក់ទងមកកាន់ពួកយើងផ្ទាល់តាមរយៈ Telegram សម្រាប់ករណីបច្ចេកទេសបន្ទាន់បំផុត។
+                        {t("support.urgentHelp.desc")}
                     </p>
                     <a
                         href="https://t.me/monea_support"
@@ -180,17 +182,17 @@ function SupportForm() {
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-3 px-8 h-14 bg-primary text-primary-foreground rounded-2xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-primary/10 hover:bg-primary/90 transition-all active:scale-95"
                     >
-                        Telegram Support <Send size={16} />
+                        {t("support.urgentHelp.telegram")} <Send size={16} />
                     </a>
                 </div>
 
                 <div className="p-10 rounded-[2.5rem] bg-card/30 backdrop-blur-md shadow-[0_4px_24px_rgba(0,0,0,0.03)] dark:shadow-none">
-                    <h4 className="text-xs font-black font-kantumruy uppercase tracking-widest text-muted-foreground mb-6">WHY CONTACT US?</h4>
+                    <h4 className="text-xs font-black font-kantumruy uppercase tracking-widest text-muted-foreground mb-6">{t("support.whyContact.title")}</h4>
                     <ul className="space-y-6">
                         {[
-                            { text: "ដោះស្រាយបញ្ហាបច្ចេកទេស", icon: ShieldCheck },
-                            { text: "សំណើបន្ថែមមុខងារថ្មីៗ", icon: Zap },
-                            { text: "ជំនួយក្នុងការរៀបចំធៀបការ", icon: Sparkles }
+                            { text: t("support.whyContact.solve"), icon: ShieldCheck },
+                            { text: t("support.whyContact.request"), icon: Zap },
+                            { text: t("support.whyContact.help"), icon: Sparkles }
                         ].map((item, i) => (
                             <li key={i} className="flex items-center gap-4 text-sm font-bold text-foreground font-kantumruy">
                                 <div className="w-8 h-8 rounded-xl bg-primary/5 text-primary flex items-center justify-center shrink-0 shadow-sm">
@@ -207,6 +209,7 @@ function SupportForm() {
 }
 
 export default function SupportPage() {
+    const { t, locale } = useTranslation();
     return (
         <div className="max-w-6xl mx-auto py-12 px-6 relative">
             {/* Background Glows */}
@@ -219,14 +222,15 @@ export default function SupportPage() {
                 className="mb-14 text-center md:text-left"
             >
                 <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-primary/5 text-primary text-[10px] font-black tracking-[0.3em] uppercase mb-6 shadow-sm">
-                    <ShieldCheck size={16} /> OFFICIAL MONEA HELP CENTER
+                    <ShieldCheck size={16} /> {t("support.center")}
                 </div>
                 <h1 className="text-5xl md:text-7xl font-black text-foreground tracking-tight font-kantumruy uppercase mb-5 leading-[1.1]">
-                    Support Center<br />
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-600">មជ្ឈមណ្ឌលជំនួយ</span>
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-600">
+                        {t("support.title")}
+                    </span>
                 </h1>
                 <p className="text-lg text-muted-foreground font-medium font-kantumruy max-w-3xl leading-relaxed">
-                    ជួបបញ្ហាបច្ចេកទេស ឬចង់បានមុខងារបន្ថែម? ផ្ញើសារមកកាន់ពួកយើងដោយផ្ទាល់។ ក្រុមការងារ MONEA ត្រៀមខ្លួនជានិច្ចដើម្បីជួយអ្នក។
+                    {t("support.subtitle")}
                 </p>
             </m.div>
 

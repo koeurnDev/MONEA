@@ -5,8 +5,10 @@ import { m } from 'framer-motion';
 import { Heart, Sparkles } from 'lucide-react';
 import { WeddingData } from '../types';
 import { RevealSection } from '../shared/CinematicComponents';
+import { useTranslation } from '@/i18n/LanguageProvider';
 
 export function LoveStorySection({ wedding }: { wedding: WeddingData }) {
+    const { t } = useTranslation();
     const story = wedding.themeSettings?.story;
     
     // Default placeholder text to check against
@@ -21,7 +23,7 @@ export function LoveStorySection({ wedding }: { wedding: WeddingData }) {
     const restOfStory = story.kh.slice(1);
 
     return (
-        <section id="our-story" className="py-24 md:py-48 bg-[#FDFBF7] relative overflow-hidden px-8">
+        <section id="our-story" className="py-16 md:py-24 bg-[#FDFBF7] relative overflow-hidden px-8">
             {/* PETAL FALL ANIMATION */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
                 {[...Array(15)].map((_, i) => (
@@ -58,49 +60,55 @@ export function LoveStorySection({ wedding }: { wedding: WeddingData }) {
 
             <div className="absolute inset-0 opacity-[0.03] pointer-events-none premium-texture" />
             
-            <div className="max-w-4xl mx-auto space-y-16 relative z-10">
-                    <div className="flex items-center justify-center gap-4 text-gold/30">
-                        <Sparkles size={20} />
-                        <p className="font-khmer text-[10px] md:text-sm tracking-[0.4em] text-gold/60 uppercase font-bold italic">
-                            {wedding.themeSettings?.customLabels?.storyBadge || "សាវតារនៃក្តីស្រលាញ់"}
-                        </p>
-                        <Sparkles size={20} />
+            <div className="max-w-4xl mx-auto space-y-12 relative z-10">
+                    <div className="flex flex-col items-center space-y-6">
+                        <div className="flex items-center gap-4 text-gold-main/30">
+                            <Sparkles size={20} />
+                            <p className="font-playfair text-[10px] md:text-xs tracking-[0.8em] text-gold-main/80 uppercase font-black italic">
+                                {wedding.themeSettings?.customLabels?.storyBadge || t("template.khmerLegacy.storyBadge")}
+                            </p>
+                            <Sparkles size={20} />
+                        </div>
+                        <h2 className="font-khmer-moul text-4xl md:text-6xl text-gold-gradient text-gold-embossed tracking-wider leading-relaxed">
+                            {wedding.themeSettings?.customLabels?.storyTitle || t("template.khmerLegacy.storyTitle")}
+                        </h2>
+                        <div className="w-24 h-[1px] bg-gradient-to-r from-transparent via-gold-main/20 to-transparent mx-auto" />
                     </div>
-                    <h2 className="font-khmer-moul text-3xl md:text-5xl text-gold-gradient text-gold-embossed whitespace-nowrap">
-                        {wedding.themeSettings?.customLabels?.storyTitle || "សាវតារនៃក្តីស្រលាញ់"}
-                    </h2>
 
                 <RevealSection>
-                    <div className="bg-white/40 backdrop-blur-xl border-lux p-12 md:p-24 rounded-[4rem] shadow-2xl relative overflow-hidden group text-center">
-                        <div className="absolute top-0 right-0 p-10 opacity-[0.03] group-hover:scale-110 transition-transform duration-1000">
-                            <Heart size={400} fill="currentColor" className="text-gold" />
+                    <div className="bg-white/60 backdrop-blur-2xl border border-white/60 p-8 md:p-16 rounded-[4rem] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.08)] relative overflow-hidden group text-center">
+                        <div className="absolute top-0 right-0 p-10 opacity-[0.03] group-hover:opacity-[0.06] group-hover:scale-110 transition-all duration-1000">
+                            <Heart size={400} fill="currentColor" className="text-gold-main" />
                         </div>
                         
-                        <div className="space-y-12 relative z-10">
-                            <div className="space-y-6">
-                                <p className="font-khmer-content text-[22px] md:text-[28px] leading-[2.4] text-gray-800 font-medium">
-                                    <span className="float-left text-6xl md:text-8xl font-khmer-moul text-gold mr-6 mt-2 leading-[0.8] drop-shadow-sm select-none">
+                        <div className="space-y-16 relative z-10">
+                            <div className="space-y-10">
+                                <p className="font-khmer-content text-2xl md:text-4xl leading-[2.6] text-slate-800 font-black italic">
+                                    <span className="float-left text-7xl md:text-9xl font-khmer-moul text-gold-main mr-8 mt-2 leading-[0.8] drop-shadow-sm select-none">
                                         {firstChar}
                                     </span>
                                     {restOfStory}
                                 </p>
                             </div>
                             
-                            <div className="h-[1px] w-32 bg-gradient-to-r from-transparent via-gold/30 to-transparent mx-auto" />
+                            <div className="h-[1.5px] w-48 bg-gradient-to-r from-transparent via-gold-main/20 to-transparent mx-auto" />
                             
                             {story.en && (
-                                <p className="font-playfair text-lg md:text-2xl text-gray-500 leading-relaxed max-w-2xl mx-auto italic">
+                                <p className="font-playfair text-xl md:text-3xl text-slate-600 leading-relaxed max-w-2xl mx-auto italic font-black">
                                     &ldquo;{story.en}&rdquo;
                                 </p>
                             )}
 
-                            <div className="pt-8">
+                            <div className="pt-12">
                                 <m.div 
-                                    animate={{ scale: [1, 1.1, 1] }}
-                                    transition={{ duration: 3, repeat: Infinity }}
-                                    className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gold/5 text-gold border border-gold/20 shadow-inner"
+                                    animate={{ 
+                                        scale: [1, 1.15, 1],
+                                        boxShadow: ["0 0 0px rgba(177,147,86,0)", "0 0 20px rgba(177,147,86,0.2)", "0 0 0px rgba(177,147,86,0)"]
+                                    }}
+                                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                                    className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gold-main/5 text-gold-main border border-gold-main/20 shadow-inner"
                                 >
-                                    <Heart size={28} fill="currentColor" className="drop-shadow-sm" />
+                                    <Heart size={32} fill="currentColor" className="drop-shadow-sm" />
                                 </m.div>
                             </div>
                         </div>

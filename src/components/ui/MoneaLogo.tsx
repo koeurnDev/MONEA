@@ -31,13 +31,15 @@ export function MoneaLogo({ className, showText = false, size = "md", variant = 
     return (
         <div className={cn("inline-flex items-center bg-transparent p-0 m-0 border-none shadow-none", className)}>
             {showText && (
-                <span className={cn(
-                    "font-kantumruy font-extrabold tracking-widest uppercase transition-colors duration-300",
+                <m.span 
+                    whileHover={{ scale: 1.05 }}
+                    className={cn(
+                    "font-outfit font-black tracking-[0.2em] uppercase transition-all duration-300 cursor-default select-none",
                     activeColor,
                     size === "sm" ? "text-sm" : size === "md" ? "text-lg" : size === "xl" ? "text-4xl" : size === "2xl" ? "text-5xl" : "text-2xl"
                 )}>
                     MONEA
-                </span>
+                </m.span>
             )}
         </div>
     );

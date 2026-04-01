@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
+import redis from "@/lib/redis";
 
 export async function GET() {
     try {
@@ -36,6 +37,9 @@ export async function POST(req: Request) {
             update: { reason }
         });
 
+        // Sync with Redis for middleware enforcement
+        await redis.set(`blacklist:ip:${ip}`, "1");
+
         return NextResponse.json(entry);
     } catch (error) {
         return NextResponse.json({ error: "Failed to update blacklist" }, { status: 500 });
@@ -53,7 +57,11 @@ export async function DELETE(req: Request) {
         const id = searchParams.get("id");
         if (!id) return NextResponse.json({ error: "ID is required" }, { status: 400 });
 
-        await (prisma as any).blacklistedIP.delete({ where: { id } });
+        const entry = await (prisma as any).blacklistedIP.findUnique({ where: { id } });
+        if (entry) {
+            await (prisma as any).blacklistedIP.delete({ where: { id } });
+            await redis.del(`blacklist:ip:${entry.ip}`);
+        }
 
         return NextResponse.json({ success: true });
     } catch (error) {

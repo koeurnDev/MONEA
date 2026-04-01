@@ -10,10 +10,12 @@ import { Button } from "@/components/ui/button";
 import { Search, Plus, Users } from "lucide-react";
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
 import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 import { GuestForm } from "./guest-form";
 
 export default function GuestPage() {
+    const { t, locale } = useTranslation();
     const {
         filteredGuests,
         wedding,
@@ -42,24 +44,28 @@ export default function GuestPage() {
     const formatKhmerDate = (date: Date | string | undefined) => {
         if (!date) return "";
         const d = new Date(date);
+        
+        if (locale === 'en') {
+            return d.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
         const day = d.getDate();
         const monthIndex = d.getMonth();
         const year = d.getFullYear();
         const dayOfWeek = d.getDay();
         
-        const khmerDays = [
-            "អាទិត្យ", "ច័ន្ទ", "អង្គារ", "ពុធ", "ព្រហស្បតិ៍", "សុក្រ", "សៅរ៍"
-        ];
+        const khmerDays = t("common.calendar.days", { returnObjects: true }) as string[];
+        const khmerMonths = t("common.calendar.months", { returnObjects: true }) as string[];
+        const khmerDigits = t("common.calendar.digits", { returnObjects: true }) as string[];
         
-        const khmerMonths = [
-            "មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា",
-            "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"
-        ];
-        
-        const khmerDigits = ["០", "១", "២", "៣", "៤", "៥", "៦", "៧", "៨", "៩"];
         const toKhmerNum = (num: number) => String(num).split('').map(digit => khmerDigits[parseInt(digit)] || digit).join('');
 
-        return `ថ្ងៃ${khmerDays[dayOfWeek]} ទី${toKhmerNum(day)} ខែ${khmerMonths[monthIndex]} ឆ្នាំ ${toKhmerNum(year)}`;
+        return `${t("common.calendar.day")}${khmerDays[dayOfWeek]} ${t("common.calendar.number")}${toKhmerNum(day)} ${t("common.calendar.month")}${khmerMonths[monthIndex]} ${t("common.calendar.year")}${toKhmerNum(year)}`;
     };
 
     return (
@@ -116,8 +122,8 @@ export default function GuestPage() {
             </div>
 
             <div className="hidden print:block mb-8 text-center pt-4">
-                <h1 className="text-3xl font-black text-slate-900 mb-2 font-kantumruy">សេចក្តីសង្ខេប និងបញ្ជីរាយនាមភ្ញៀវ</h1>
-                <p className="text-xl text-slate-500 font-bold font-kantumruy">អាពាហ៍ពិពាហ៍ {wedding?.groomName || '...'} និង {wedding?.brideName || '...'}</p>
+                <h1 className="text-3xl font-black text-slate-900 mb-2 font-kantumruy">{t("guests.print.header")}</h1>
+                <p className="text-xl text-slate-500 font-bold font-kantumruy">{t("guests.print.weddingOf", { groom: wedding?.groomName || '...', bride: wedding?.brideName || '...' })}</p>
                 {wedding?.date && (
                     <p className="text-lg text-slate-400 font-bold font-kantumruy mt-1">
                         {formatKhmerDate(wedding.date)}
@@ -128,14 +134,14 @@ export default function GuestPage() {
             <div className="hidden print:block mb-8">
                 <div className="grid grid-cols-2 gap-0 border border-slate-100 rounded-3xl overflow-hidden">
                     <div className="bg-rose-50/30 p-6 border-r border-slate-100">
-                        <p className="text-[10px] text-rose-400 font-black uppercase tracking-widest mb-1.5 font-kantumruy">សរុបភ្ញៀវទាំងអស់</p>
-                        <p className="text-2xl font-black text-slate-900 font-kantumruy">{filteredGuests.length} នាក់</p>
+                        <p className="text-[10px] text-rose-400 font-black uppercase tracking-widest mb-1.5 font-kantumruy">{t("guests.print.totalGuests")}</p>
+                        <p className="text-2xl font-black text-slate-900 font-kantumruy">{filteredGuests.length} {t("guests.print.personUnit")}</p>
                     </div>
                     <div className="bg-slate-50/50 p-6">
-                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1.5 font-kantumruy">ស្ថានភាពរបាយការណ៍</p>
+                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1.5 font-kantumruy">{t("guests.print.reportStatus")}</p>
                         <div className="flex items-center gap-2">
                             <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                            <p className="text-base font-black text-slate-900 font-kantumruy">ចេញជាផ្លូវការ</p>
+                            <p className="text-base font-black text-slate-900 font-kantumruy">{t("guests.print.official")}</p>
                         </div>
                     </div>
                 </div>
@@ -158,13 +164,13 @@ export default function GuestPage() {
                 <div className="p-4 md:p-6 flex flex-col sm:flex-row items-center gap-4 print:hidden">
                     {filteredGuests.length > 0 && (
                         <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                            សរុប: {filteredGuests.length} នាក់
+                            {t("guests.total")}: {filteredGuests.length} {t("guests.personUnit")}
                         </div>
                     )}
                     <div className="relative w-full sm:max-w-sm sm:ml-auto">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
                         <Input
-                            placeholder="ស្វែងរកតាមឈ្មោះ ឬទីតាំង..."
+                            placeholder={t("guests.search")}
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className="pl-10 h-10 bg-muted border-transparent focus-visible:ring-rose-600/20 rounded-xl font-kantumruy text-sm"
@@ -201,7 +207,7 @@ export default function GuestPage() {
             <div className="hidden print:flex flex-col mb-10 pt-8 px-10 mt-16 font-kantumruy border-t-2 border-slate-100">
                 <div className="flex justify-between items-end">
                     <div className="space-y-2">
-                        <p suppressHydrationWarning className="text-slate-400 uppercase tracking-[0.15em] text-[9px] font-black">កាលបរិច្ឆេទចេញរបាយការណ៍</p>
+                        <p suppressHydrationWarning className="text-slate-400 uppercase tracking-[0.15em] text-[9px] font-black">{t("guests.print.reportDate")}</p>
                         <p suppressHydrationWarning className="text-sm font-bold text-slate-900">
                             {formatKhmerDate(new Date())}
                         </p>
@@ -210,9 +216,9 @@ export default function GuestPage() {
                     <div className="text-right space-y-2">
                         <div className="flex items-center justify-end gap-2 mb-1">
                             <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                            <p className="text-slate-400 uppercase tracking-[0.15em] text-[9px] font-black">សុពលភាពឯកសារ</p>
+                            <p className="text-slate-400 uppercase tracking-[0.15em] text-[9px] font-black">{t("guests.print.validity")}</p>
                         </div>
-                        <p className="text-sm font-black text-slate-900">របាយការណ៍ភ្ញៀវផ្លូវការ - ប្រព័ន្ធ MONEA</p>
+                        <p className="text-sm font-black text-slate-900">{t("guests.print.officialReport")}</p>
                     </div>
                 </div>
                 
@@ -221,7 +227,7 @@ export default function GuestPage() {
                         MONEA PLATFORM • OFFICIAL WEDDING RECORD
                     </p>
                     <p className="text-[9px] text-slate-300 font-medium font-kantumruy">
-                        ឯកសារនេះត្រូវបានបង្កើតឡើងដោយស្វ័យប្រវត្តិតាមរយៈប្រព័ន្ធ MONEA និងជាកំណត់ត្រាផ្លូវការនៃពិធីមង្គលការ។
+                        {t("guests.print.footerNote")}
                     </p>
                 </div>
             </div>
@@ -242,9 +248,9 @@ export default function GuestPage() {
                         </DialogTrigger>
                         <DialogContent className="w-[94vw] max-w-[480px] rounded-3xl border-none shadow-2xl p-4 pt-10 bg-card">
                             <div className="sr-only">
-                                <DialogTitle>បន្ថែម/កែប្រែភ្ញៀវ (Add/Edit Guest - Mobile)</DialogTitle>
+                                <DialogTitle>{t("guests.form.title")}</DialogTitle>
                                 <DialogDescription>
-                                    បំពេញព័ត៌មានភ្ញៀវ (Fill in guest details)
+                                    {t("guests.form.description")}
                                 </DialogDescription>
                             </div>
                             <GuestForm

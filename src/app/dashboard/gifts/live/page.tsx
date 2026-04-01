@@ -2,6 +2,7 @@
 
 import { LazyMotion, domMax, m } from 'framer-motion';
 import { Sparkles, Loader2 } from "lucide-react";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 // Extracted Components
 import { LiveHeader } from "../components/LiveHeader";
@@ -14,6 +15,7 @@ import { LiveStartScreen } from "../components/LiveStartScreen";
 import { useLiveGifts } from "../hooks/useLiveGifts";
 
 export default function LiveDisplayPage() {
+    const { t } = useTranslation();
     const {
         wedding,
         latestGift,
@@ -43,7 +45,7 @@ export default function LiveDisplayPage() {
                     <Loader2 className="animate-spin text-amber-500" size={64} />
                     <Sparkles className="absolute -top-4 -right-4 text-amber-400 animate-pulse" size={24} />
                 </div>
-                <div className="text-amber-500/30 text-xs font-black uppercase tracking-[0.5em] animate-pulse font-kantumruy">Synchronizing Live Feed...</div>
+                <div className="text-amber-500/30 text-xs font-black uppercase tracking-[0.5em] animate-pulse font-kantumruy">{t("gifts.live.syncingFeed")}</div>
             </div>
         );
     }
@@ -82,12 +84,12 @@ export default function LiveDisplayPage() {
                             className="text-center mb-8 md:mb-12 mt-4 lg:mt-0 space-y-4 shrink-0"
                         >
                             <h2 className="text-white text-5xl md:text-7xl font-black leading-none tracking-tighter uppercase font-kantumruy drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
-                                សូមអរគុណ
+                                {t("gifts.live.thankYou")}
                             </h2>
                             <div className="flex items-center justify-center gap-6">
                                 <div className="h-[2px] w-24 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
                                 <p className="text-amber-500 text-lg font-black uppercase tracking-widest opacity-80">
-                                    ភ្ញៀវកិត្តិយស
+                                    {t("gifts.live.guestOfHonor")}
                                 </p>
                                 <div className="h-[2px] w-24 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
                             </div>

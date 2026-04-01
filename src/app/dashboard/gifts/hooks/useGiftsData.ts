@@ -3,7 +3,8 @@
 import useSWR from "swr";
 import { useState, useEffect, useCallback } from "react";
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+import { moneaClient } from "@/lib/api-client";
+const fetcher = (url: string) => moneaClient.get<any>(url).then((res) => res.data);
 
 interface UseGiftsDataOptions {
     refreshInterval?: number;
@@ -22,7 +23,7 @@ export function useGiftsData(options: UseGiftsDataOptions = {}) {
     );
 
     // Gifts data fetching
-    const giftsUrl = limit ? `/api/gifts?limit=${limit}` : "/api/gifts";
+    const giftsUrl = limit ? `/api/gifts?limit=${limit}` : "/api/gifts?limit=1000";
     const { data: giftsData, error, isLoading, mutate: mutateGifts } = useSWR(
         giftsUrl,
         fetcher,
@@ -36,8 +37,9 @@ export function useGiftsData(options: UseGiftsDataOptions = {}) {
         { refreshInterval: refreshInterval }
     );
 
-    const gifts = giftsData?.gifts || (Array.isArray(giftsData) ? giftsData : []);
+    const gifts = giftsData?.items || (Array.isArray(giftsData) ? giftsData : []);
     const userRole = giftsData?.role || null;
+    const pagination = giftsData?.pagination || null;
 
     // Derived totals (if stats API is not used or to verify)
     const totals = gifts.reduce(
@@ -57,9 +59,9 @@ export function useGiftsData(options: UseGiftsDataOptions = {}) {
     }, [mutateWedding, mutateGifts, mutateStats]);
 
     return {
-        wedding,
-        gifts,
-        stats: statsData,
+        wedding: wedding as any,
+        gifts: gifts as any[],
+        stats: statsData as any,
         userRole,
         isLoading,
         error,

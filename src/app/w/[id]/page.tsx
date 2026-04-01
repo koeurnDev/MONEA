@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { queryRaw } from "@/lib/prisma";
 import { Suspense } from "react";
 import { WeddingDataView } from "./_components/WeddingDataView";
 import { WeddingSkeleton } from "./_components/WeddingSkeleton";
@@ -9,10 +9,8 @@ export const revalidate = 60;
 
 const getWeddingMetadataOnly = unstable_cache(
     async (id: string) => {
-        return await prisma.wedding.findUnique({
-            where: { id },
-            select: { groomName: true, brideName: true, date: true, eventType: true, themeSettings: true }
-        });
+        const results = await queryRaw('SELECT "groomName", "brideName", date, "eventType", "themeSettings" FROM "Wedding" WHERE id = $1 LIMIT 1', id);
+        return results[0] || null;
     },
     ['wedding-metadata'],
     { revalidate: 3600, tags: ['wedding-metadata'] }

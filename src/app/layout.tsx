@@ -1,7 +1,7 @@
 import * as React from "react";
-// Full rebuild trigger v2
+// Full rebuild trigger v2.1
 import type { Metadata, Viewport } from "next";
-import { Kantumruy_Pro, Moul, Great_Vibes } from "next/font/google";
+import { Kantumruy_Pro, Moul, Great_Vibes, Outfit } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import PageTransition from "@/components/layout/PageTransition";
@@ -19,14 +19,20 @@ const moul = Moul({
   subsets: ["khmer"], 
   variable: "--font-moul", 
   display: 'swap',
-  preload: false 
+  preload: true 
 });
 const greatVibes = Great_Vibes({ 
   weight: "400", 
   subsets: ["latin"], 
   variable: "--font-great-vibes", 
   display: 'swap',
-  preload: false 
+  preload: true 
+});
+const outfit = Outfit({
+  subsets: ["latin"],
+  variable: "--font-outfit",
+  display: 'swap',
+  preload: true
 });
 
 export const metadata: Metadata = {
@@ -70,7 +76,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#D4AF37",
+  themeColor: "#000000",
 };
 
 import { AnimationProvider } from "@/components/providers/AnimationProvider";
@@ -78,7 +84,10 @@ import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { SWRProvider } from "@/components/providers/SWRProvider";
 import { LoadingProvider } from "@/components/providers/LoadingProvider";
 import { LoadingBar } from "@/components/ui/LoadingBar";
+import { LanguageProvider } from "@/i18n/LanguageProvider";
+import { getLocale } from "@/i18n/server";
 import Script from "next/script";
+import SystemStatusListener from "@/components/layout/SystemStatusListener";
 
 export default function RootLayout({
   children,
@@ -88,10 +97,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://res.cloudinary.com" />
         <link rel="preconnect" href="https://challenges.cloudflare.com" />
+        <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+        <link rel="dns-prefetch" href="https://challenges.cloudflare.com" />
         <link rel="icon" href="/favicon.png" type="image/png" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -104,7 +113,8 @@ export default function RootLayout({
           "min-h-screen bg-background font-sans antialiased",
           kantumruy.variable,
           moul.variable,
-          greatVibes.variable
+          greatVibes.variable,
+          outfit.variable
         )}
       >
         <ThemeProvider
@@ -116,8 +126,11 @@ export default function RootLayout({
           <SWRProvider>
             <LoadingProvider>
               <AnimationProvider>
-                <LoadingBar />
-                {children}
+                <LanguageProvider initialLocale={getLocale()}>
+                  <SystemStatusListener />
+                  <LoadingBar />
+                  {children}
+                </LanguageProvider>
                 <Script
                   id="sw-registration"
                   strategy="afterInteractive"
@@ -140,7 +153,7 @@ export default function RootLayout({
                         };
 
                         if (document.readyState === 'complete') {
-                          setTimeout(registerSW, 2000); // Defer until after load
+                          setTimeout(registerSW, 2000);
                         } else {
                           window.addEventListener('load', () => setTimeout(registerSW, 2000));
                         }

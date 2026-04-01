@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Plus, CheckCircle2, Copy, Edit, Trash2, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface MobileGuestListProps {
     loading: boolean;
@@ -27,11 +28,13 @@ export function MobileGuestList({
     onEdit,
     onDelete
 }: MobileGuestListProps) {
+    const { t } = useTranslation();
+
     if (loading) {
         return (
             <div className="h-64 flex flex-col items-center justify-center gap-4">
                 <div className="w-8 h-8 border-4 border-rose-600/20 border-t-rose-600 rounded-full animate-spin" />
-                <span className="text-[10px] font-black text-muted-foreground/30 uppercase tracking-widest">កំពុងផ្ទុក...</span>
+                <span className="text-[10px] font-black text-muted-foreground/30 uppercase tracking-widest">{t("guests.loading")}</span>
             </div>
         );
     }
@@ -40,27 +43,27 @@ export function MobileGuestList({
         return (
             <div className="h-64 flex flex-col items-center justify-center gap-2 opacity-30">
                 <Users size={40} className="mb-2" />
-                <p className="font-kantumruy font-bold">មិនមានទិន្នន័យភ្ញៀវឡើយ</p>
+                <p className="font-kantumruy font-bold">{t("guests.empty")}</p>
             </div>
         );
     }
 
     return (
-        <div className="md:hidden space-y-2 p-3 print:hidden">
-            <div className="grid px-4 pb-1.5" style={{ gridTemplateColumns: '1fr 1fr auto' }}>
-                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest opacity-50">ឈ្មោះភ្ញៀវ</span>
-                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest text-center opacity-50">មកពីណា / ទីតាំង</span>
-                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest text-right opacity-50">សកម្មភាព</span>
+        <div className="md:hidden space-y-3 p-4 print:hidden">
+            <div className="grid px-4 pb-2" style={{ gridTemplateColumns: '1.5fr 1fr auto' }}>
+                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-40">{t("guests.cols.name")}</span>
+                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest text-center opacity-40">{t("guests.cols.location")}</span>
+                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest text-right opacity-40">{t("guests.cols.actions")}</span>
             </div>
             {guests.slice(0, visibleCount).map((g: any) => (
-                <div key={g.id} className="bg-background rounded-2xl px-4 py-3 shadow-[0_2px_12px_rgba(0,0,0,0.06)] dark:shadow-[0_2px_12px_rgba(0,0,0,0.2)] grid items-center min-h-[52px]" style={{ gridTemplateColumns: '1fr 1fr auto' }}>
-                    <div className="min-w-0 flex items-center">
-                        <span className="font-bold text-foreground font-kantumruy text-sm truncate leading-tight">{g.name}</span>
+                <div key={g.id} className="bg-background rounded-3xl px-4 py-4 shadow-[0_4px_20px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.2)] grid items-center min-h-[72px] border border-black/[0.02] dark:border-white/[0.02]" style={{ gridTemplateColumns: '1.5fr 1fr auto' }}>
+                    <div className="min-w-0 pr-2">
+                        <span className="font-bold text-foreground font-kantumruy text-[15px] leading-tight line-clamp-2">{g.name}</span>
                     </div>
 
-                    <div className="flex justify-center items-center">
-                        <span className="px-2 py-0.5 rounded-md bg-muted text-muted-foreground text-[10px] font-semibold truncate max-w-full text-center">
-                            {g.group && g.group !== "None" ? g.group : (g.source && g.source !== "GIFT_ENTRY" && g.source !== "None" ? g.source : "ទូទៅ")}
+                    <div className="flex justify-center items-center px-1">
+                        <span className="px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800/80 text-muted-foreground text-[10px] font-bold truncate max-w-full text-center tracking-tight">
+                            {g.group && g.group !== "None" ? g.group : (g.source && g.source !== "GIFT_ENTRY" && g.source !== "None" ? g.source : t("guests.general"))}
                         </span>
                     </div>
 
@@ -70,16 +73,16 @@ export function MobileGuestList({
                             size="sm"
                             onClick={() => onCopyLink(g.name, g.id)}
                             className={cn(
-                                "h-8 px-3 rounded-xl font-kantumruy font-bold text-[10px] transition-all border-border",
+                                "h-9 px-3 rounded-xl font-kantumruy font-black text-[10px] transition-all border-none shadow-sm",
                                 copiedId === g.id
-                                    ? "bg-green-600 hover:bg-green-700 text-white border-transparent"
-                                    : "text-muted-foreground hover:text-rose-600 hover:border-rose-100 dark:hover:border-rose-900/50 hover:bg-muted/50"
+                                    ? "bg-green-600 hover:bg-green-700 text-white"
+                                    : "bg-muted/80 text-muted-foreground hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20"
                             )}
                         >
                             {copiedId === g.id ? (
-                                <span className="flex items-center gap-1.5"><CheckCircle2 size={12} /> ចំលង</span>
+                                <CheckCircle2 size={15} />
                             ) : (
-                                <span className="flex items-center gap-1.5"><Copy size={12} /> ចំលងតំណរ</span>
+                                <Copy size={15} />
                             )}
                         </Button>
                         {!isArchived && (
@@ -87,18 +90,18 @@ export function MobileGuestList({
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-8 w-8 text-muted-foreground hover:text-blue-600 hover:bg-muted rounded-xl"
+                                    className="h-10 w-10 text-muted-foreground hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/20 rounded-xl bg-muted/30 border-none"
                                     onClick={() => onEdit(g)}
                                 >
-                                    <Edit className="h-3.5 w-3.5" />
+                                    <Edit className="h-4 w-4" />
                                 </Button>
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-8 w-8 text-muted-foreground hover:text-rose-600 hover:bg-muted rounded-xl"
+                                    className="h-10 w-10 text-muted-foreground hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 rounded-xl bg-muted/30 border-none"
                                     onClick={() => onDelete(g.id)}
                                 >
-                                    <Trash2 className="h-3.5 w-3.5" />
+                                    <Trash2 className="h-4 w-4" />
                                 </Button>
                             </>
                         )}
@@ -112,7 +115,7 @@ export function MobileGuestList({
                         onClick={() => setVisibleCount((prev: number) => prev + 50)}
                         className="w-full h-12 rounded-2xl border-dashed border-2 border-border text-muted-foreground font-kantumruy font-bold hover:bg-muted/50"
                     >
-                        <Plus size={16} className="mr-2" /> បង្ហាញបន្ថែម ({guests.length - visibleCount})
+                        <Plus size={16} className="mr-2" /> {t("guests.showMore", { count: guests.length - visibleCount })}
                     </Button>
                 </div>
             )}

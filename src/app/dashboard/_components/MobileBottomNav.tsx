@@ -6,21 +6,23 @@ import { usePathname } from "next/navigation";
 import { Home, Users, Clock, Menu, Gift } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLoading } from "@/components/providers/LoadingProvider";
+import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface MobileBottomNavProps {
     onOpenMenu: () => void;
 }
 
 export default function MobileBottomNav({ onOpenMenu }: MobileBottomNavProps) {
+    const { t } = useTranslation();
     const pathname = usePathname();
     const { startLoading } = useLoading();
 
     const tabs = [
-        { href: "/dashboard", label: "ដើម", icon: Home },
-        { href: "/dashboard/guests", label: "ភ្ញៀវ", icon: Users },
-        { href: "menu", label: "Menu", icon: Menu, isAction: true },
-        { href: "/dashboard/gifts", label: "ចំណងដៃ", icon: Gift },
-        { href: "/dashboard/schedule", label: "កម្មវិធី", icon: Clock },
+        { href: "/dashboard", label: t("dashboard.nav.home"), icon: Home },
+        { href: "/dashboard/guests", label: t("dashboard.nav.guests"), icon: Users },
+        { href: "menu", label: t("dashboard.nav.menu"), icon: Menu, isAction: true },
+        { href: "/dashboard/gifts", label: t("dashboard.nav.gifts"), icon: Gift },
+        { href: "/dashboard/schedule", label: t("dashboard.nav.schedule"), icon: Clock },
     ];
 
     const activeIndex = tabs.findIndex(tab => pathname === tab.href);
@@ -49,24 +51,33 @@ export default function MobileBottomNav({ onOpenMenu }: MobileBottomNavProps) {
                                     }
                                 }}
                                 className={cn(
-                                    "relative flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200 w-full max-w-[80px]",
+                                    "relative flex flex-col items-center justify-center gap-1.5 px-3 h-full transition-all duration-300 w-full max-w-[84px]",
                                     isActive
-                                        ? "bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 border border-red-50/50 dark:border-red-900/50 shadow-sm"
-                                        : "text-muted-foreground"
+                                        ? "text-red-600 dark:text-red-400 font-bold"
+                                        : "text-muted-foreground/60"
                                 )}
                             >
-                                <div className="relative">
-                                    <tab.icon className={cn("w-[18px] h-[18px] transition-colors", isActive ? "text-red-600 dark:text-red-400" : "text-muted-foreground/60")} strokeWidth={isActive ? 2.5 : 2} />
-                                    {tab.isAction && (
-                                        <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-green-500 rounded-full border border-white dark:border-zinc-900 shadow-sm" />
-                                    )}
+                                <div className="relative flex flex-col items-center">
+                                    <tab.icon 
+                                        className={cn(
+                                            "w-5 h-5 transition-all duration-300", 
+                                            isActive ? "scale-110" : "opacity-70 group-hover:opacity-100"
+                                        )} 
+                                        strokeWidth={isActive ? 2.5 : 2} 
+                                    />
+                                    <span className={cn(
+                                        "text-[9px] font-bold uppercase tracking-[0.15em] font-kantumruy transition-all mt-1 text-center truncate w-full",
+                                        isActive ? "opacity-100 translate-y-0" : "opacity-60 translate-y-0.5"
+                                    )}>
+                                        {tab.label}
+                                    </span>
                                 </div>
-                                <span className={cn(
-                                    "text-[9px] font-bold uppercase tracking-wider font-kantumruy transition-all",
-                                    isActive ? "opacity-100" : "opacity-70"
-                                )}>
-                                    {tab.label}
-                                </span>
+                                {isActive && (
+                                    <m.div 
+                                        layoutId="bottom-nav-active"
+                                        className="absolute inset-0 bg-red-500/5 dark:bg-red-500/10 rounded-2xl -z-10"
+                                    />
+                                )}
                             </Link>
                         </div>
                     );
