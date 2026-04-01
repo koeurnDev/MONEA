@@ -19,6 +19,13 @@ function localStorageProvider() {
     return map as any;
 }
 
+const swrDefaultConfig = {
+    fetcher: (url: string) => fetch(url).then((res) => res.json()),
+    revalidateOnFocus: false,
+    dedupingInterval: 60000,
+    shouldRetryOnError: false,
+};
+
 export const SWRProvider = ({ children }: { children: ReactNode }) => {
     const [mounted, setMounted] = useState(false);
 
@@ -26,17 +33,10 @@ export const SWRProvider = ({ children }: { children: ReactNode }) => {
         setMounted(true);
     }, []);
 
-    const [swrConfig] = useState({
-        fetcher: (url: string) => fetch(url).then((res) => res.json()),
-        revalidateOnFocus: false,
-        dedupingInterval: 60000, // Increase deduping to 60s
-        shouldRetryOnError: false, // Don't spam retries
-    });
-
     return (
         <SWRConfig
             value={{
-                ...swrConfig,
+                ...swrDefaultConfig,
                 provider: mounted ? localStorageProvider : undefined,
             }}
         >
