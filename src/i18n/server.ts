@@ -6,14 +6,8 @@ type Locale = 'en' | 'km';
 const translations: Record<Locale, any> = { en, km };
 
 export function getLocale() {
-  try {
-    const cookieStore = cookies();
-    return (cookieStore.get('NEXT_LOCALE')?.value as Locale) || 'km';
-  } catch (e) {
-    // During static generation (prerendering), cookies may not be available.
-    // Fallback to default locale to allow the build to proceed.
-    return 'km';
-  }
+  const cookieStore = cookies();
+  return (cookieStore.get('NEXT_LOCALE')?.value as Locale) || 'km';
 }
 
 export function getTranslations(locale?: Locale) {

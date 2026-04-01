@@ -17,23 +17,19 @@ import redis from "./lib/redis";
 import { isValidCSRFToken } from "./lib/csrf";
 import * as Sentry from "@sentry/nextjs";
 
-const SECRET = process.env.JWT_SECRET || (process.env.NODE_ENV === "development" ? "monea-dev-secret-do-not-use-in-prod-1234567890" : "");
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
+const getSecret = () => process.env.JWT_SECRET || (process.env.NODE_ENV === "development" ? "monea-dev-secret-do-not-use-in-prod-1234567890" : "");
+const getEncryptionKey = () => process.env.ENCRYPTION_KEY;
 
-// Security Guard: Fail fast if secrets are missing or weak
-if (!SECRET || (process.env.NODE_ENV === "production" && SECRET.length < 32)) {
-    if (process.env.NODE_ENV === "production") {
-        throw new Error("[CRITICAL] JWT_SECRET is missing or too weak (min 32 chars required for HS256).");
-    } else {
-        console.warn("[Security] JWT_SECRET is missing or weak. Using fallback for development.");
+// Warn at module level instead of throwing, to prevent Next.js build from crashing
+// if secrets are missing during static generation (export phase).
+if (process.env.NODE_ENV === "production") {
+    if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+        console.warn("[Security Warning] JWT_SECRET is missing or weak at build/init time.");
     }
-}
-if (process.env.NODE_ENV === "production" && !ENCRYPTION_KEY) {
-    throw new Error("[CRITICAL] ENCRYPTION_KEY is missing in production!");
-}
-
-const ENCODED_SECRET = new TextEncoder().encode(SECRET);
- 
+    if (!process.env.ENCRYPTION_KEY) {
+        console.warn("[Security Warning] ENCRYPTION_KEY is missing at build/init time.");
+    }
+} 
 // --- Middleware In-Memory Cache (Short-lived for Performance) ---
 let cachedMaintenance: { value: boolean; expires: number } | null = null;
 let cachedBlacklist: Map<string, { value: boolean; expires: number }> = new Map();
@@ -122,8 +118,9 @@ async function validateCSRF(request: NextRequest): Promise<boolean> {
  * and optionally validates the browser fingerprint for anti-replay protection.
  */
 async function verifyJWT(token: string, fingerprint: string, options?: { audience?: string | string[]; issuer?: string; checkFingerprint?: boolean }): Promise<JWTPayload> {
-    const SECRET_KEY = process.env.JWT_SECRET || (process.env.NODE_ENV === "development" ? "monea-dev-secret-do-not-use-in-prod-1234567890" : "");
+    const SECRET_KEY = getSecret();
     const ENCODED = new TextEncoder().encode(SECRET_KEY);
+
     
     try {
         // Relax checks for development stability
@@ -222,6 +219,18 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     try {
         const path = request.nextUrl.pathname;
         const method = request.method;
+
+        // Security Guard: Fail fast at runtime if secrets are missing
+        if (process.env.NODE_ENV === "production") {
+            if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+                console.error("[CRITICAL] JWT_SECRET is missing or too weak. Halting request.");
+                return new NextResponse(JSON.stringify({ error: "System Configuration Error", message: "Security framework misconfigured." }), { status: 500 });
+            }
+            if (!process.env.ENCRYPTION_KEY) {
+                console.error("[CRITICAL] ENCRYPTION_KEY is missing in production! Halting request.");
+                return new NextResponse(JSON.stringify({ error: "System Configuration Error", message: "Encryption misconfigured." }), { status: 500 });
+            }
+        }
 
         // 0. IP Blacklist (Critical Security Layer with Caching)
         if (ip !== "unknown" && ip !== "127.0.0.1" && ip !== "::1") {
