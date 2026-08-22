@@ -8,6 +8,9 @@ import PageTransition from "@/components/layout/PageTransition";
 import SmoothScroll from "@/components/layout/SmoothScroll";
 import "@/lib/fetch-interceptor"; // Setup global fetch interceptor for API calls
 
+// Force Edge Runtime for Cloudflare Pages
+export const runtime = 'edge';
+
 const kantumruy = Kantumruy_Pro({
   weight: ["400", "500", "600", "700"],
   subsets: ["khmer", "latin"],

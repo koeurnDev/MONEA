@@ -30,6 +30,12 @@ yarn-error.log*
 .env.*
 .env*.local
 
+# Cloudflare secrets (DO NOT COMMIT)
+cloudflare-env.json
+setup-cloudflare-env.ps1
+deploy-env.ps1
+setup-env-cloudflare.sh
+
 # vercel
 .vercel
 
