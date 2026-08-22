@@ -32,7 +32,7 @@ export default async function GuestbookPage({ params }: { params: Promise<{ id: 
                 </div>
 
                 {/* Form Section */}
-                <GuestbookForm weddingId={params.id} />
+                <GuestbookForm weddingId={id} />
 
                 {/* Messages List */}
                 <div className="space-y-4">
@@ -78,7 +78,7 @@ export default async function GuestbookPage({ params }: { params: Promise<{ id: 
                 </div>
 
                 <div className="text-center pb-4">
-                    <a href={`/w/${params.id}`} className="text-xs font-medium text-gray-400 hover:text-rose-500 transition-colors uppercase tracking-widest">
+                    <a href={`/w/${id}`} className="text-xs font-medium text-gray-400 hover:text-rose-500 transition-colors uppercase tracking-widest">
                         ← Back to Wedding
                     </a>
                 </div>

@@ -10,14 +10,15 @@ async function getGalleryItems(weddingId: string) {
     });
 }
 
-export default async function GalleryPage({ params }: { params: { id: string } }) {
-    const items = await getGalleryItems(params.id);
+export default async function GalleryPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+    const items = await getGalleryItems(id);
 
     return (
         <div className="min-h-screen bg-[#FFFDF5] p-4 pb-24">
             <div className="flex items-center justify-between mb-6">
                 <h1 className="text-2xl font-moul text-red-900">កម្រងរូបភាព</h1>
-                <a href={`/w/${params.id}/gallery/live`} className="text-sm font-siemreap text-red-700 underline">
+                <a href={`/w/${id}/gallery/live`} className="text-sm font-siemreap text-red-700 underline">
                     មើលជា Slide (Live)
                 </a>
             </div>
@@ -50,7 +51,7 @@ export default async function GalleryPage({ params }: { params: { id: string } }
 
             {/* FAB for Upload */}
             <a
-                href={`/w/${params.id}/gallery/upload`}
+                href={`/w/${id}/gallery/upload`}
                 className="fixed bottom-6 right-6 w-14 h-14 bg-red-900 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-red-950 active:scale-90 transition-all z-50"
             >
                 <Plus className="w-8 h-8" />

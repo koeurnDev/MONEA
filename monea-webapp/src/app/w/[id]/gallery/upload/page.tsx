@@ -67,7 +67,7 @@ export default function UploadPage({ params }: { params: Promise<{ id: string }>
                     </Button>
 
                     <div className="text-center mt-4">
-                        <a href={`/w/${params.id}/gallery`} className="text-sm text-gray-400 font-siemreap underline">
+                        <a href={`/w/${weddingId}/gallery`} className="text-sm text-gray-400 font-siemreap underline">
                             ត្រឡប់ក្រោយ (Back)
                         </a>
                     </div>

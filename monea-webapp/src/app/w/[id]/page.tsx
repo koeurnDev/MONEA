@@ -51,15 +51,16 @@ export default async function Page({
     searchParams
 }: {
     params: Promise<{ id: string }>,
-    searchParams: { template?: string, guestId?: string }
+    searchParams: Promise<{ template?: string, guestId?: string }>
 }) {
     const { id } = await params;
+    const search = await searchParams;
     return (
         <Suspense fallback={<WeddingSkeleton />}>
             <WeddingDataView 
                 id={id} 
-                template={searchParams.template}
-                guestId={searchParams.guestId}
+                template={search.template}
+                guestId={search.guestId}
             />
         </Suspense>
     );
