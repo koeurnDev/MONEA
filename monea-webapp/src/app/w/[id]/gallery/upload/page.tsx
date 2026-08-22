@@ -1,15 +1,20 @@
 'use client'
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { uploadImage } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Image as ImageIcon, Upload } from "lucide-react";
 import Image from "next/image";
 
-export default function UploadPage({ params }: { params: { id: string } }) {
+export default function UploadPage({ params }: { params: Promise<{ id: string }> }) {
+    const [weddingId, setWeddingId] = useState<string>("");
     const [preview, setPreview] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        params.then(p => setWeddingId(p.id));
+    }, [params]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -27,7 +32,7 @@ export default function UploadPage({ params }: { params: { id: string } }) {
                 </h1>
 
                 <form action={uploadImage} onSubmit={() => setLoading(true)} className="space-y-6">
-                    <input type="hidden" name="weddingId" value={params.id} />
+                    <input type="hidden" name="weddingId" value={weddingId} />
 
                     <div className="flex flex-col items-center justify-center w-full">
                         <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-64 border-2 border-red-200 border-dashed rounded-lg cursor-pointer bg-red-50 hover:bg-red-100 transition-colors overflow-hidden">

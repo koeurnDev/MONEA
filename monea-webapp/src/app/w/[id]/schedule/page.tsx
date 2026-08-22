@@ -9,8 +9,9 @@ async function getActivities(weddingId: string) {
     });
 }
 
-export default async function SchedulePage({ params }: { params: { id: string } }) {
-    const activities = await getActivities(params.id);
+export default async function SchedulePage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+    const activities = await getActivities(id);
 
     return (
         <div className="min-h-screen bg-[#FFFDF5] p-4 pb-24">

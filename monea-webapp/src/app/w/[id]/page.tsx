@@ -15,8 +15,9 @@ const getWeddingMetadataOnly = unstable_cache(
     { revalidate: 3600, tags: ['wedding-metadata'] }
 );
 
-export async function generateMetadata({ params }: { params: { id: string } }) {
-    const wedding = await getWeddingMetadataOnly(params.id);
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+    const wedding = await getWeddingMetadataOnly(id);
 
     if (!wedding) {
         return {
@@ -49,13 +50,14 @@ export default async function Page({
     params,
     searchParams
 }: {
-    params: { id: string },
+    params: Promise<{ id: string }>,
     searchParams: { template?: string, guestId?: string }
 }) {
+    const { id } = await params;
     return (
         <Suspense fallback={<WeddingSkeleton />}>
             <WeddingDataView 
-                id={params.id} 
+                id={id} 
                 template={searchParams.template}
                 guestId={searchParams.guestId}
             />

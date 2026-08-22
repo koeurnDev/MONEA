@@ -13,8 +13,9 @@ async function getMessages(weddingId: string) {
     });
 }
 
-export default async function GuestbookPage({ params }: { params: { id: string } }) {
-    const messages = await getMessages(params.id);
+export default async function GuestbookPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+    const messages = await getMessages(id);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-orange-50 dark:from-gray-900 dark:via-black dark:to-gray-800 p-6 pb-28 font-siemreap">
