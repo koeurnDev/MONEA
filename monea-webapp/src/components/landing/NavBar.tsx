@@ -1,0 +1,166 @@
+"use client";
+import * as React from "react";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { m, AnimatePresence } from 'framer-motion';
+import { Menu, X } from "lucide-react";
+import { MoneaLogo } from "@/components/ui/MoneaLogo";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { useTranslation } from "@/i18n/LanguageProvider";
+import { useTheme } from "next-themes";
+
+export function NavBar() {
+    const { theme } = useTheme();
+    const [isScrolled, setIsScrolled] = React.useState(false);
+    const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+
+    React.useEffect(() => {
+        const handleScroll = () => setIsScrolled(window.scrollY > 50);
+        window.addEventListener("scroll", handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
+
+    const { t } = useTranslation();
+    const navItems = [
+        { name: t("nav.home"), href: "#" },
+        { name: t("nav.features"), href: "#features" },
+        { name: t("nav.howItWorks"), href: "#how-it-works" },
+        { name: t("nav.templates"), href: "#templates" },
+        { name: t("nav.pricing"), href: "#pricing" },
+    ];
+
+    const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+        if (href.startsWith("#")) {
+            e.preventDefault();
+            if (href === "#") {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+            } else {
+                const element = document.querySelector(href);
+                if (element) {
+                    element.scrollIntoView({ behavior: "smooth" });
+                }
+            }
+            setIsMenuOpen(false);
+        }
+    };
+
+    return (
+        <>
+            <header
+                className={cn(
+                    "fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-out pt-6 px-4 md:px-0",
+                    (isScrolled && !isMenuOpen) ? "pt-4" : ""
+                )}
+            >
+                <div className={cn(
+                    "max-w-6xl mx-auto flex items-center justify-between rounded-full transition-all duration-300",
+                    (isScrolled && !isMenuOpen)
+                        ? "bg-white/90 dark:bg-[#0A0A0A]/90 backdrop-blur-md py-3 px-6 shadow-sm border border-slate-200/50 dark:border-white/10"
+                        : "bg-transparent py-2 px-6",
+                    isMenuOpen && "!bg-transparent !backdrop-blur-none shadow-none"
+                )}>
+                    {/* Logo Section */}
+                    <Link href="/" onClick={() => setIsMenuOpen(false)} className="relative z-50 flex items-center shrink-0">
+                        <MoneaLogo
+                            showText={true}
+                            size={isScrolled && !isMenuOpen ? "sm" : "md"}
+                            variant="system"
+                            className="transition-all duration-300"
+                        />
+                    </Link>
+
+                    {/* Desktop Nav - Centered */}
+                    <nav className="hidden md:flex items-center justify-center gap-8 flex-1">
+                        {navItems.map((item) => (
+                            <Link
+                                key={item.name}
+                                href={item.href}
+                                onClick={(e) => handleNavClick(e, item.href)}
+                                className={cn(
+                                    "text-sm font-medium transition-all font-kantumruy hover:-translate-y-0.5",
+                                    isScrolled
+                                        ? "text-slate-500 dark:text-white/60 hover:text-slate-900 dark:hover:text-white"
+                                        : "text-slate-700 hover:text-slate-900 dark:text-white/80 dark:hover:text-white"
+                                )}
+                            >
+                                {item.name}
+                            </Link>
+                        ))}
+                    </nav>
+
+                    <div className="hidden md:flex items-center justify-end gap-3 shrink-0">
+                        <ThemeToggle className="mr-2" />
+                        <Link href="/sign-in" className={cn(
+                            "text-sm font-bold transition-colors font-kantumruy px-4 py-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-full",
+                            isScrolled
+                                ? "text-slate-700 dark:text-white/80 hover:text-slate-900 dark:hover:text-white"
+                                : "text-slate-800 hover:text-slate-900 dark:text-white/80 dark:hover:text-white"
+                        )}>
+                            {t("nav.signIn")}
+                        </Link>
+                        <Link href="/sign-up">
+                            <span className={cn(
+                                "group relative inline-flex h-10 items-center justify-center overflow-hidden rounded-full px-6 font-medium transition-all duration-300 hover:scale-105 shadow-sm active:scale-95",
+                                isScrolled
+                                    ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200"
+                                    : "bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200"
+                            )}>
+                                <span className={cn(
+                                    "font-kantumruy text-sm font-bold relative z-10 pt-0.5"
+                                )}>{t("nav.signUp")}</span>
+                            </span>
+                        </Link>
+                    </div>
+
+                    {/* Mobile Menu Button  */}
+                    <button
+                        onClick={() => setIsMenuOpen(!isMenuOpen)}
+                        className={cn(
+                            "md:hidden relative z-50 p-2 transition-colors ml-auto text-slate-600 hover:text-slate-900 dark:text-white/80 dark:hover:text-white"
+                        )}
+                    >
+                        {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                    </button>
+                </div>
+            </header>
+
+            {/* Full Screen Menu Overlay */}
+            <AnimatePresence>
+                {isMenuOpen && (
+                    <m.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-xl flex flex-col items-center justify-start overflow-y-auto pt-32 pb-12"
+                    >
+                        <div className="flex flex-col gap-8 text-center w-full max-w-sm px-6">
+                            {navItems.map((item, idx) => (
+                                <m.a
+                                    key={item.name}
+                                    href={item.href}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: idx * 0.1 }}
+                                    onClick={(e) => handleNavClick(e, item.href)}
+                                    className="text-xl md:text-3xl font-kantumruy text-slate-800 dark:text-white/80 hover:text-pink-600 dark:hover:text-white hover:scale-105 transition-all"
+                                >
+                                    {item.name}
+                                </m.a>
+                            ))}
+                            <div className="mt-8 flex flex-col gap-3">
+                                <Link href="/sign-in" onClick={() => setIsMenuOpen(false)} className="text-base text-slate-700 dark:text-white/80 font-kantumruy border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 py-3 rounded-2xl transition-all shadow-sm">{t("nav.signIn")}</Link>
+                                <Link href="/sign-up" onClick={() => setIsMenuOpen(false)} className="text-base bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-kantumruy font-bold py-3 rounded-2xl hover:scale-105 transition-all shadow-sm active:scale-95">{t("nav.signUp")}</Link>
+                            </div>
+                             <div className="mt-4 flex flex-col items-center justify-center gap-6">
+                                <div className="flex flex-col items-center gap-3">
+                                    <span className="text-slate-500 dark:text-white/50 text-[10px] uppercase tracking-widest font-kantumruy">រូបរាង</span>
+                                    <ThemeToggle className="scale-110 !bg-slate-100 dark:!bg-white/10 hover:!bg-slate-200 dark:hover:!bg-white/20 border border-slate-200 dark:border-white/20 [&_svg]:!text-slate-800 dark:[&_svg]:!text-white" />
+                                </div>
+                            </div>
+                        </div>
+                    </m.div>
+                )}
+            </AnimatePresence>
+        </>
+    );
+}

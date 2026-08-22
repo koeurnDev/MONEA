@@ -1,0 +1,127 @@
+import { queryRaw } from "@/lib/prisma";
+import { Metadata } from 'next';
+import { notFound } from "next/navigation";
+import { WeddingData } from "@/components/templates/types";
+import dynamic from 'next/dynamic';
+const KhmerLegacy = dynamic(() => import("@/components/templates/KhmerLegacy"));
+const ModernMinimal = dynamic(() => import("@/components/templates/ModernMinimal"));
+
+import { unstable_cache } from "next/cache";
+
+const getWedding = unstable_cache(
+    async (id: string) => {
+        try {
+            // Fetch in parallel using stable Raw SQL
+            const [weddings, activities, galleryItems] = await Promise.all([
+                queryRaw('SELECT * FROM "Wedding" WHERE id = $1 LIMIT 1', id),
+                queryRaw('SELECT * FROM "Activity" WHERE "weddingId" = $1 ORDER BY "order" ASC', id),
+                queryRaw('SELECT * FROM "GalleryItem" WHERE "weddingId" = $1 ORDER BY "createdAt" DESC LIMIT 24', id)
+            ]);
+
+            if (!weddings.length) return null;
+
+            const wedding = weddings[0];
+
+            // Parse themeSettings if it's a string
+            let themeSettings = {};
+            if (wedding.themeSettings && typeof wedding.themeSettings === 'string') {
+                try {
+                    themeSettings = JSON.parse(wedding.themeSettings);
+                } catch (e) {
+                    console.error("Failed to parse themeSettings", e);
+                }
+            } else if (typeof wedding.themeSettings === 'object') {
+                themeSettings = wedding.themeSettings || {};
+            }
+
+            return {
+                ...wedding,
+                themeSettings,
+                activities,
+                galleryItems
+            } as unknown as WeddingData;
+        } catch (e) {
+            console.error("[getWedding Invite] Raw SQL fetch failed:", e);
+            return null;
+        }
+    },
+    ['wedding-invite'],
+    { revalidate: 3600 }
+);
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+    const { id } = await params;
+    const wedding = await getWedding(id);
+    if (!wedding) return { title: 'Wedding Not Found' };
+
+    const title = `${wedding.groomName} & ${wedding.brideName} | អាពាហ៍ពិពាហ៍`;
+    const description = `យើងខ្ញុំមានកិត្តិយសសូមគោរពអញ្ជើញលោកអ្នកចូលរួមក្នុងកម្មវិធីមង្គលការរបស់យើងនៅថ្ងៃទី ${new Date(wedding.date).toLocaleDateString('km-KH', { timeZone: 'Asia/Phnom_Penh' })}.`;
+
+    // Better image handling
+    let imageUrl = '/images/share-cover.jpg';
+    if (wedding.themeSettings?.shareImage) {
+        imageUrl = wedding.themeSettings.shareImage;
+    } else if (wedding.themeSettings?.heroImage) {
+        imageUrl = wedding.themeSettings.heroImage;
+    } else if (wedding.galleryItems && wedding.galleryItems.length > 0) {
+        imageUrl = wedding.galleryItems[0].url;
+    }
+
+    // Ensure absolute URL for metadata images
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://monea.com';
+    const heroImage = wedding.themeSettings?.heroImage || '';
+    const ogImageUrl = `${baseUrl}/api/og?groom=${encodeURIComponent(wedding.groomName)}&bride=${encodeURIComponent(wedding.brideName)}&date=${encodeURIComponent(new Date(wedding.date).toISOString())}&type=${wedding.eventType || 'wedding'}&image=${encodeURIComponent(heroImage)}`;
+
+    return {
+        title,
+        description,
+        openGraph: {
+            title,
+            description,
+            images: [{ url: ogImageUrl, width: 1200, height: 630, alt: title }],
+            type: 'article',
+            siteName: 'MONEA Wedding',
+            locale: 'km_KH',
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title,
+            description,
+            images: [ogImageUrl],
+        },
+        alternates: {
+            canonical: `${baseUrl}/invite/${id}`,
+        }
+    };
+}
+
+// Client-side tracker component
+import { GuestViewTracker } from "@/components/analytics/GuestViewTracker";
+import { SafeBoundary } from "@/components/ui/SafeBoundary";
+
+export default async function InvitationPage({ params, searchParams }: { params: Promise<{ id: string }>, searchParams: Promise<{ to?: string, g?: string }> }) {
+    const { id } = await params;
+    const resolvedSearch = await searchParams;
+    const wedding = await getWedding(id);
+    const guestName = resolvedSearch?.to ? decodeURIComponent(resolvedSearch.to) : undefined;
+    const guestId = resolvedSearch?.g;
+
+    if (!wedding) {
+        return notFound();
+    }
+
+    const weddingData = (wedding as unknown) as WeddingData;
+
+    return (
+        <>
+            <GuestViewTracker weddingId={wedding.id} guestId={guestId} guestName={guestName} />
+            <SafeBoundary name={`Wedding Template (${weddingData.templateId})`} isSilent={true}>
+                {weddingData.templateId === 'modern-minimal' ? (
+                    <ModernMinimal wedding={weddingData} guestName={guestName} />
+                ) : (
+                    <KhmerLegacy wedding={weddingData} guestName={guestName} />
+                )}
+            </SafeBoundary>
+        </>
+    );
+}
