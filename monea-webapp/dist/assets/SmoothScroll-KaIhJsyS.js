@@ -1,2 +1,0 @@
-import{t as e}from"./react-BOjS57IJ.js";import{t}from"./jsx-dev-runtime-DM6VitsB.js";e();var n=t(),r=`D:/MONEA/monea-webapp/src/components/layout/SmoothScroll.tsx`;function i({children:e}){return(0,n.jsxDEV)(`div`,{className:`scroll-smooth`,children:e},void 0,!1,{fileName:r,lineNumber:8,columnNumber:12},this)}export{i as t};
-//# sourceMappingURL=SmoothScroll-KaIhJsyS.js.map

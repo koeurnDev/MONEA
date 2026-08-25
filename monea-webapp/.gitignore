@@ -36,8 +36,10 @@ setup-cloudflare-env.ps1
 deploy-env.ps1
 setup-env-cloudflare.sh
 
-# vercel
+# vercel & cloudflare
 .vercel
+.wrangler
+dist
 
 # typescript
 *.tsbuildinfo
