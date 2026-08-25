@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState, useRef } from "react";
 import { m, AnimatePresence } from "framer-motion";
 import useSWR from "swr";
@@ -131,7 +129,7 @@ export default function DisplayPage() {
                             {data?.wedding ? (
                                 <div className="space-y-8">
                                     <h2 className="text-4xl md:text-6xl font-khmer-content text-gold-main/80 italic font-black">
-                                        {isAnniversary ? "កម្មវិធីខួបអាពាហ៍ពិពាហ៍" : "កម្មវិធីមង្គលការរបស់យើងខ្ញុំ"}
+                                        {isAnniversary ? "កម្មវិធីភ្ជាប់ពាក្យ" : "កម្មវិធីមង្គលការរបស់យើងខ្ញុំ"}
                                     </h2>
                                     <div className="flex items-center justify-center gap-8 text-5xl md:text-8xl font-khmer-moul text-white drop-shadow-2xl">
                                         <span>{data.wedding.groomName}</span>

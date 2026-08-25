@@ -1,6 +1,4 @@
-"use client";
-
-import { useState } from "react";
+﻿import { useState } from "react";
 // Dynamic loading for XLSX to save bundle size
 const loadXLSX = () => import("xlsx");
 import { Button } from "@/components/ui/button";

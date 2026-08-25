@@ -1,4 +1,3 @@
-"use client";
 import * as React from 'react';
 import { Send, Heart, User, MessageSquare, Sparkles } from 'lucide-react';
 import { m } from 'framer-motion';
@@ -62,14 +61,14 @@ export default function GuestbookSection({ wedding, guestName }: { wedding: Wedd
                 >
                     <div className="flex flex-col items-center space-y-4">
                         <p className="font-playfair text-[10px] md:text-xs tracking-[0.8em] text-gold-main/80 uppercase font-black">
-                            {t("template.khmerLegacy.guestbook.badge")}
+                            {t("template.khmerLegacy.guestbook.badge", { defaultValue: "សៀវភៅជូនពរ" })}
                         </p>
                         <div className="w-16 h-[1.5px] bg-gradient-to-r from-transparent via-gold-main/30 to-transparent" />
                     </div>
                     
                     <div className="relative inline-block px-8">
                         <h2 className="font-khmer-moul text-4xl md:text-7xl text-gold-gradient text-gold-embossed tracking-wider leading-relaxed">
-                            {t("template.khmerLegacy.guestbook.title")}
+                            {t("template.khmerLegacy.guestbook.title", { defaultValue: "សៀវភៅភ្ញៀវកិត្តិយស" })}
                         </h2>
                         <m.div 
                             animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2] }}
@@ -88,7 +87,7 @@ export default function GuestbookSection({ wedding, guestName }: { wedding: Wedd
                     </div>
 
                     <p className="font-khmer-content text-slate-600 text-lg md:text-xl leading-relaxed font-black italic max-w-2xl mx-auto">
-                        {wedding.themeSettings?.customLabels?.wishesSubtitle || t("template.khmerLegacy.guestbook.subtitle")}
+                        {wedding.themeSettings?.customLabels?.wishesSubtitle || t("template.khmerLegacy.guestbook.subtitle", { defaultValue: "សូមបន្សល់ទុកនូវពាក្យជូនពរ និងប្រសិទ្ធិពរជ័យដ៏មានន័យសម្រាប់គូស្វាមីភរិយាថ្មី" })}
                     </p>
                 </m.div>
 
@@ -109,7 +108,7 @@ export default function GuestbookSection({ wedding, guestName }: { wedding: Wedd
                             </div>
                             <input
                                 type="text"
-                                placeholder={wedding.themeSettings?.customLabels?.wishesNamePlaceholder || t("template.khmerLegacy.guestbook.namePlaceholder")}
+                                placeholder={wedding.themeSettings?.customLabels?.wishesNamePlaceholder || t("template.khmerLegacy.guestbook.namePlaceholder", { defaultValue: "សូមបញ្ចូលឈ្មោះរបស់អ្នក..." })}
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 className="w-full h-18 bg-white/80 border border-slate-100 rounded-[1.25rem] pl-20 pr-6 font-khmer-content text-base font-black focus:ring-4 focus:ring-gold-main/5 focus:border-gold-main/30 outline-none transition-all duration-500 shadow-sm"
@@ -134,7 +133,7 @@ export default function GuestbookSection({ wedding, guestName }: { wedding: Wedd
                                 <MessageSquare size={18} />
                             </div>
                             <textarea
-                                placeholder={wedding.themeSettings?.customLabels?.wishesMsgPlaceholder || t("template.khmerLegacy.guestbook.msgPlaceholder")}
+                                placeholder={wedding.themeSettings?.customLabels?.wishesMsgPlaceholder || t("template.khmerLegacy.guestbook.msgPlaceholder", { defaultValue: "សរសេរពាក្យជូនពររបស់អ្នកនៅទីនេះ..." })}
                                 value={message}
                                 onChange={(e) => setMessage(e.target.value)}
                                 className="w-full h-48 bg-white/80 border border-slate-100 rounded-[1.25rem] pl-20 pr-6 pt-7 font-khmer-content text-base font-black focus:ring-4 focus:ring-gold-main/5 focus:border-gold-main/30 outline-none transition-all duration-500 shadow-sm resize-none"
@@ -150,7 +149,7 @@ export default function GuestbookSection({ wedding, guestName }: { wedding: Wedd
                             className="w-full h-20 bg-[#1c1917] text-gold-main font-khmer-moul text-xl rounded-[1.5rem] shadow-[0_20px_40px_rgba(0,0,0,0.2)] hover:bg-black transition-all duration-500 flex items-center justify-center gap-6 disabled:opacity-50 group/btn border border-white/5 overflow-hidden relative"
                         >
                             <span className="tracking-widest relative z-10">
-                                {isSubmitting ? t("common.sending") : (wedding.themeSettings?.customLabels?.wishesSubmitBtn || t("template.khmerLegacy.guestbook.submit"))}
+                                {isSubmitting ? t("common.sending", { defaultValue: "កំពុងផ្ញើ..." }) : (wedding.themeSettings?.customLabels?.wishesSubmitBtn || t("template.khmerLegacy.guestbook.submit", { defaultValue: "ផ្ញើសារជូនពរ" }))}
                             </span>
                             <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center group-hover/btn:bg-gold-main group-hover/btn:text-white transition-all duration-500 relative z-10">
                                 <Send size={22} className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
@@ -219,10 +218,10 @@ export default function GuestbookSection({ wedding, guestName }: { wedding: Wedd
                                 <div className="space-y-4 relative z-10">
                                     <p className="font-playfair text-[10px] md:text-xs tracking-[0.8em] text-gold-main/60 uppercase font-black">Ready to receive</p>
                                     <h4 className="font-khmer-moul text-xl md:text-2xl text-gold-gradient tracking-widest leading-relaxed">
-                                        {wedding.themeSettings?.customLabels?.wishesEmptyTitle || t("template.khmerLegacy.guestbook.emptyTitle")}
+                                        {wedding.themeSettings?.customLabels?.wishesEmptyTitle || t("template.khmerLegacy.guestbook.emptyTitle", { defaultValue: "មិនទាន់មានពាក្យជូនពរនៅឡើយទេ" })}
                                     </h4>
                                     <p className="font-khmer-content text-slate-500 text-lg md:text-xl font-black italic leading-relaxed">
-                                        {wedding.themeSettings?.customLabels?.wishesEmpty || t("template.khmerLegacy.guestbook.empty")}
+                                        {wedding.themeSettings?.customLabels?.wishesEmpty || t("template.khmerLegacy.guestbook.empty", { defaultValue: "សូមក្លាយជាមនុស្សដំបូងគេដែលផ្ញើសារជូនពរដ៏មានន័យដល់គូស្វាមីភរិយាថ្មី!" })}
                                     </p>
                                 </div>
                                 

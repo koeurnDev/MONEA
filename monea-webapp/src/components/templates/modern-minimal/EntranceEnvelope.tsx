@@ -1,20 +1,36 @@
-"use client";
 import React, { useState } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
+import { ArrowRight } from 'lucide-react';
 import { WeddingData } from "../types";
-import Image from 'next/image';
 import { useTranslation } from "@/i18n/LanguageProvider";
 
-export const EntranceEnvelope = ({ wedding, guestName, onReveal }: { wedding: WeddingData, guestName?: string, onReveal: () => void }) => {
+interface EntranceEnvelopeProps {
+    wedding: WeddingData;
+    guestName?: string;
+    onReveal: () => void;
+    onStartOpen?: () => void;
+    audioRef?: React.RefObject<HTMLAudioElement | null>;
+}
+
+export const EntranceEnvelope = ({ wedding, guestName, onReveal, onStartOpen, audioRef }: EntranceEnvelopeProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const { t } = useTranslation();
+    const heroImage = wedding.themeSettings?.heroImage || wedding.galleryItems?.[0]?.url || '/images/bg_tunnel.webp';
+    const isEngagement = wedding.eventType === 'anniversary';
 
     const handleOpen = () => {
+        if (audioRef?.current && wedding.themeSettings?.musicUrl) {
+            audioRef.current.play().catch((err) => {
+                console.log("Autoplay blocked:", err);
+            });
+        }
+        if (onStartOpen) {
+            onStartOpen();
+        }
         setIsOpen(true);
-        // Wait for envelope animation to finish before revealing the main site
         setTimeout(() => {
             onReveal();
-        }, 1200);
+        }, 800);
     };
 
     return (
@@ -24,93 +40,65 @@ export const EntranceEnvelope = ({ wedding, guestName, onReveal }: { wedding: We
                     key="envelope"
                     initial={{ opacity: 1 }}
                     exit={{ opacity: 0, scale: 1.05, filter: 'blur(10px)' }}
-                    transition={{ duration: 1.2, ease: [0.76, 0, 0.24, 1] }}
-                    className="fixed inset-0 z-[100] flex flex-col items-center justify-center text-center overflow-hidden bg-[#FDFBF7]"
+                    transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
+                    className="fixed inset-0 z-[100] flex flex-col justify-between items-center p-6 py-10 text-center select-none overflow-hidden bg-[#0A0D14]"
                     style={{ isolation: 'isolate' }}
                 >
-                    {/* Background Image Layer */}
-                    <div className="absolute inset-0 z-0">
-                        <Image
-                            src="/images/assets/overlay-bg.webp"
-                            fill
-                            className="object-cover"
-                            alt="Background"
-                            priority
+                    {/* Full-bleed Pre-Wedding Photo Background */}
+                    <div className="absolute inset-0 z-0 overflow-hidden">
+                        <img
+                            src={heroImage} 
+                            className="w-full h-full object-cover transform scale-100 filter brightness-[0.92] transition-transform duration-1000"
+                            alt="Pre-wedding Cover"
                         />
-                        {/* Light overlays for text contrast */}
-                        <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px]" />
-                        <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/40 to-white/80" />
+                        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/85" />
                     </div>
                     
-                    {/* The Content Card */}
+                    {/* Top: Minimalist Header */}
                     <m.div 
-                        exit={{ y: "-100vh", opacity: 0 }}
-                        transition={{ duration: 1.2, ease: [0.76, 0, 0.24, 1] }}
-                        className="relative z-10 w-full h-[100dvh] max-w-[480px] p-8 py-12 md:p-12 flex flex-col items-center justify-between overflow-y-auto"
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="relative z-10 pt-2"
                     >
-                        
-                        {/* Top Title */}
-                        <div className="space-y-4">
-                            <h1 className="font-khmer-moul text-[15px] md:text-lg text-[#9C7A3C] drop-shadow-sm tracking-[0.05em] leading-relaxed">
-                                {wedding.themeSettings?.customLabels?.invitationTitle || 
-                                 (wedding.eventType === 'anniversary' 
-                                    ? t("template.khmerLegacy.overlayTitleAnniversary") 
-                                    : t("template.khmerLegacy.overlayTitleWedding"))}
-                            </h1>
-                            <p className="font-sans text-[8px] md:text-[9px] tracking-[0.4em] text-[#8EA2B3] uppercase font-bold">THE WEDDING DAY</p>
+                        <h1 className="font-kantumruy font-bold text-base sm:text-lg text-white/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] tracking-wider">
+                            {isEngagement ? "សិរីមង្គលពិធីភ្ជាប់ពាក្យ" : "សិរីមង្គលអាពាហ៍ពិពាហ៍"}
+                        </h1>
+                    </m.div>
+
+                    {/* Middle: Open for couple photo */}
+                    <div className="flex-1" />
+
+                    {/* Bottom: Names + Clean Guest Pill + Sleek Button */}
+                    <m.div
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="relative z-10 w-full max-w-xs space-y-4 pb-2"
+                    >
+                        {/* Couple Names */}
+                        <div className="space-y-1">
+                            <h2 className="font-kantumruy font-black text-2xl sm:text-3xl text-white drop-shadow-[0_3px_12px_rgba(0,0,0,0.9)] tracking-tight">
+                                {wedding.groomName}
+                            </h2>
+                            <p className="text-xs text-white/60 font-serif italic">&</p>
+                            <h2 className="font-kantumruy font-black text-2xl sm:text-3xl text-white drop-shadow-[0_3px_12px_rgba(0,0,0,0.9)] tracking-tight">
+                                {wedding.brideName}
+                            </h2>
                         </div>
 
-                        {/* Names */}
-                        {(() => {
-                            const nameFontClass = wedding.themeSettings?.nameFont === 'moul' ? 'font-khmer-moul' : wedding.themeSettings?.nameFont === 'kantumruy' ? 'font-kantumruy font-bold' : 'font-suwannaphum';
-                            const nameSeparator = wedding.themeSettings?.nameSeparator === 'ampersand' ? '&' : wedding.themeSettings?.nameSeparator === 'heart' ? '♥' : t("template.khmerLegacy.and");
-                            return (
-                                <div className="space-y-4 w-full text-center">
-                                    <h2 className={`${nameFontClass} text-4xl md:text-5xl text-[#0A1226] tracking-[0.05em] drop-shadow-sm break-words whitespace-normal`}>
-                                        {wedding.groomName}
-                                    </h2>
-                                    <p className={`${nameFontClass} text-[#8EA2B3] text-base md:text-xl`}>{nameSeparator}</p>
-                                    <h2 className={`${nameFontClass} text-4xl md:text-5xl text-[#0A1226] tracking-[0.05em] drop-shadow-sm break-words whitespace-normal`}>
-                                        {wedding.brideName}
-                                    </h2>
-                                </div>
-                            );
-                        })()}
-                        
-                        {/* Divider */}
-                        <div className="h-[1px] w-12 bg-[#8EA2B3]/30" />
-
-                        {/* Invitation Text */}
-                        <div className="space-y-4 flex flex-col items-center">
-                            <p className="font-khmer-moul text-[#8EA2B3] text-[10px] md:text-xs tracking-[0.1em] uppercase">{t("template.khmerLegacy.invitationGreeting")}</p>
-                            
-                            {guestName ? (
-                                <h3 className="font-khmer-moul text-lg text-[#9C7A3C] tracking-wider drop-shadow-sm">
-                                    {guestName}
-                                </h3>
-                            ) : (
-                                <h3 className="font-khmer-content text-[13px] md:text-[14px] text-[#9C7A3C] tracking-wide max-w-[200px] leading-relaxed text-center">
-                                    ឯកឧត្តម លោកជំទាវ លោក លោកស្រី
-                                </h3>
-                            )}
+                        {/* Clean One-Line Guest Pill */}
+                        <div className="text-xs sm:text-sm text-white/90 bg-white/10 backdrop-blur-xl border border-white/20 px-4 py-2 rounded-full font-kantumruy shadow-lg drop-shadow-md">
+                            <span className="text-white/60 mr-1.5 font-light">សូមគោរពអញ្ជើញ៖</span>
+                            <span className="font-bold text-white">{guestName || "ឯកឧត្តម លោកជំទាវ លោក លោកស្រី"}</span>
                         </div>
                             
-                        {/* Open Button */}
-                        <m.div
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            className="w-full mt-2"
+                        {/* Ultra Clean Sleek Button */}
+                        <button
+                            onClick={handleOpen}
+                            className="w-full py-3.5 px-6 rounded-full font-bold font-kantumruy text-slate-950 bg-white hover:bg-slate-100 active:scale-95 transition-all text-sm shadow-[0_4px_25px_rgba(255,255,255,0.25)] flex items-center justify-center gap-2"
                         >
-                            <button
-                                onClick={handleOpen}
-                                className="w-full py-3.5 bg-[#0A1226] text-white rounded-full font-khmer-moul text-sm md:text-base tracking-[0.05em] transition-all shadow-md active:shadow-inner"
-                            >
-                                {wedding.eventType === 'anniversary' 
-                                    ? t("template.khmerLegacy.heroButtonAnniversary") 
-                                    : (wedding.themeSettings?.customLabels?.heroButton || t("template.khmerLegacy.heroButtonWedding"))}
-                            </button>
-                        </m.div>
-                        
+                            <span>សូមចុចបើកធៀប</span>
+                            <ArrowRight size={15} />
+                        </button>
                     </m.div>
                 </m.div>
             )}

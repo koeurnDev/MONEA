@@ -1,7 +1,5 @@
-"use client";
-
 import { m } from 'framer-motion';
-import Image from 'next/image';
+// next/image replaced with <img>;
 import { RevealSection, CinematicPlaceholder } from '../shared/CinematicComponents';
 import { useTranslation } from '@/i18n/LanguageProvider';
 
@@ -16,8 +14,8 @@ export function FamilyBanner({ galleryImages, bannerPan }: FamilyBannerProps) {
         <section className="w-full py-24 md:py-48 flex flex-col items-center bg-white space-y-16">
             <div className="max-w-6xl mx-auto w-full px-8">
                 <RevealSection>
-                    <div className="text-center space-y-6 mb-12 flex flex-col items-center">
-                        <div className="text-[10px] md:text-xs tracking-[1em] text-gold-main/60 font-black uppercase italic">{t("template.khmerLegacy.familySubtitle")}</div>
+                    <div className="text-center space-y-4 mb-12 flex flex-col items-center">
+                        <div className="text-xs md:text-sm text-gold-main/80 font-khmer-moul tracking-wide">{t("template.khmerLegacy.familySubtitle")}</div>
                         <div className="w-16 h-[1.5px] bg-gradient-to-r from-transparent via-gold-main/30 to-transparent" />
                     </div>
                 </RevealSection>
@@ -26,7 +24,7 @@ export function FamilyBanner({ galleryImages, bannerPan }: FamilyBannerProps) {
                 className="w-full aspect-[16/9] md:aspect-[21/7] overflow-hidden grayscale-[5%] hover:grayscale-0 transition-all duration-2000 bg-gold/5 flex items-center justify-center relative shadow-inner md:shadow-none"
             >
                 {galleryImages[6] ? (
-                    <Image 
+                    <img 
                         src={galleryImages[6]} 
                         className={`w-full h-full object-cover grayscale-[0.5] contrast-125 transition-all duration-1000 ${bannerPan.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-110'}`} 
                         style={{ 
@@ -38,8 +36,7 @@ export function FamilyBanner({ galleryImages, bannerPan }: FamilyBannerProps) {
                         onTouchStart={bannerPan.onStart}
                         draggable={false}
                         alt="Golden Legacy" 
-                        fill
-                        sizes="100vw"
+                        
                     />
                 ) : (
                     <CinematicPlaceholder label={t("template.khmerLegacy.familyTitle")} />

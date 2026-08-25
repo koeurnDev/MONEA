@@ -1,5 +1,4 @@
-"use client";
-import * as React from 'react';
+﻿import * as React from 'react';
 import { AnimatePresence, m } from 'framer-motion';
 
 interface WishElement {

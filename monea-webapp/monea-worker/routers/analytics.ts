@@ -57,7 +57,7 @@ analyticsRouter.post('/track', async (c) => {
 
 analyticsRouter.get('/summary', async (c) => {
     try {
-        const user = await getServerUser();
+        const user = await getServerUser(c.req.raw);
         if (!user) return c.json({ error: "Unauthorized" }, 401);
 
         const weddingId = (user as any).weddingId || (await prisma.wedding.findFirst({ where: { userId: user.userId || (user as any).id } }))?.id;

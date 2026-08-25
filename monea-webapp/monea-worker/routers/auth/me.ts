@@ -7,4 +7,8 @@ router.get('/', async (c) => {
     return await nextRoute.GET(c.req.raw);
 });
 
+router.put('/', async (c) => {
+    return await nextRoute.PUT(c.req.raw);
+});
+
 export default router;

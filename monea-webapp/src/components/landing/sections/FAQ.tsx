@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { m, AnimatePresence } from 'framer-motion';
 import { Plus, Minus } from "lucide-react";
@@ -12,10 +10,6 @@ export function FAQ() {
         {
             q: t("faq.q1"),
             a: t("faq.a1")
-        },
-        {
-            q: t("faq.q2"),
-            a: t("faq.a2")
         },
         {
             q: t("faq.q3"),

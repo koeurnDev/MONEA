@@ -1,10 +1,9 @@
-"use client";
-import * as React from "react";
+﻿import * as React from "react";
 import { AnimatePresence, m } from "framer-motion";
-import { usePathname } from "next/navigation";
+import { useLocation } from 'react-router-dom';
 
 export default function PageTransition({ children }: { children: React.ReactNode }) {
-    const pathname = usePathname();
+    const { pathname } = useLocation();
     const [mounted, setMounted] = React.useState(false);
     const [isMobile, setIsMobile] = React.useState(false);
 

@@ -1,6 +1,5 @@
-"use client";
 import React, { useEffect, useState, useCallback } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
     CreditCard,
@@ -17,14 +16,22 @@ import {
     RefreshCcw,
     Zap,
     TrendingUp,
-    Calendar
+    Calendar,
+    Image as ImageIcon,
+    Eye,
+    Check,
+    X,
+    Filter,
+    Crown,
+    FileCheck
 } from "lucide-react";
-import Link from "next/link";
+import { Link } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import { m, AnimatePresence } from "framer-motion";
 import { moneaClient } from "@/lib/api-client";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { useToast } from "@/components/ui/Toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 export default function MasterPaymentsPage() {
     const { t, locale } = useTranslation();
@@ -35,12 +42,23 @@ export default function MasterPaymentsPage() {
     const [pricing, setPricing] = useState({ standard: 9, pro: 19 });
     const [loading, setLoading] = useState(true);
     const [processing, setProcessing] = useState<string | null>(null);
+    const [selectedTab, setSelectedTab] = useState<'pending' | 'paid' | 'rejected' | 'all'>('pending');
+    
+    // Receipt Modal State
+    const [viewingReceipt, setViewingReceipt] = useState<{
+        imageUrl: string;
+        coupleName: string;
+        userEmail: string;
+        packageType: string;
+        amount: number;
+        date: string;
+        ref: string;
+    } | null>(null);
 
     const loadData = useCallback(async () => {
         setLoading(true);
         try {
             const res = await moneaClient.get("/api/admin/master/payments") as any;
-            // The global api-client will redirect to sign-in on 401. Don't show toast.
             if (res.status === 401) return;
             if (res.error || !res.data) throw new Error(res.error || "Failed");
             
@@ -49,7 +67,7 @@ export default function MasterPaymentsPage() {
         } catch (error) {
             showToast({
                 title: isKm ? "បរាជ័យក្នុងការទាញយកទិន្នន័យ" : "Sync Failed",
-                description: isKm ? "មិនអាចភ្ជាប់ទៅកាន់ប្រព័ន្ធបានទេ។" : "Could not connect to the verification engine.",
+                description: isKm ? "មិនអាចភ្ជាប់ទៅកាន់ប្រព័ន្ធបានទេ។" : "Could not connect to verification engine.",
                 type: "error"
             });
         } finally {
@@ -61,342 +79,420 @@ export default function MasterPaymentsPage() {
         loadData();
     }, [loadData]);
 
-    const handleApprove = async (weddingId: string, packageType: string) => {
+    const handleUpdatePayment = async (weddingId: string, status: 'PAID' | 'REJECTED' | 'PENDING', packageType?: string) => {
         setProcessing(weddingId);
         try {
-            await moneaClient.post("/api/admin/master/payments", { 
+            const res = await moneaClient.post("/api/admin/master/payments", { 
                 weddingId, 
-                status: "PAID", 
+                status, 
                 packageType 
             });
             
-            showToast({
-                title: t('admin.payments.success'),
-                description: t('admin.payments.successDesc'),
-                type: "success"
-            });
-            
-            // Refresh local state by removing the approved wedding
-            setWeddings(prev => prev.filter(w => w.id !== weddingId));
+            if (!res.error) {
+                showToast({
+                    title: status === 'PAID' ? "បានអនុម័ត និងដំឡើងកញ្ចប់ជោគជ័យ!" : (status === 'REJECTED' ? "បានបដិសេធវិក្កយបត្រ" : "បានផ្លាស់ប្តូរស្ថានភាព"),
+                    description: status === 'PAID' ? `កញ្ចប់សេវាត្រូវបានដំឡើងទៅជា ${packageType || 'PRO'} រួចរាល់។` : undefined,
+                    type: status === 'PAID' ? "success" : "info"
+                });
+                
+                // Update local state directly
+                setWeddings(prev => prev.map(w => {
+                    if (w.id === weddingId) {
+                        return {
+                            ...w,
+                            paymentStatus: status,
+                            packageType: packageType || w.packageType,
+                            status: status === 'PAID' ? 'ACTIVE' : w.status
+                        };
+                    }
+                    return w;
+                }));
+            } else {
+                showToast({ title: "បរាជ័យ", description: res.error, type: "error" });
+            }
         } catch (error) {
-            showToast({
-                title: "Approval Error",
-                description: "Critical failure during activation protocol.",
-                type: "error"
-            });
+            showToast({ title: "Error", description: "Operation failed", type: "error" });
         } finally {
             setProcessing(null);
         }
     };
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.1
-            }
-        }
-    };
+    // Filter weddings by tab
+    const pendingList = weddings.filter(w => w.paymentStatus === 'AWAITING_VERIFICATION' || w.paymentStatus === 'PENDING');
+    const paidList = weddings.filter(w => w.paymentStatus === 'PAID');
+    const rejectedList = weddings.filter(w => w.paymentStatus === 'REJECTED');
 
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0 }
-    };
+    const displayedWeddings = 
+        selectedTab === 'pending' ? pendingList :
+        selectedTab === 'paid' ? paidList :
+        selectedTab === 'rejected' ? rejectedList :
+        weddings;
+
+    const totalRevenue = paidList.reduce((acc, w) => {
+        const cost = w.packageType === 'PREMIUM' ? pricing.pro : (w.packageType === 'PRO' ? pricing.standard : 0);
+        return acc + cost;
+    }, 0);
 
     return (
-        <div className="min-h-screen bg-[#FDFCFB] dark:bg-[#0A0A0A] p-4 md:p-8">
-            <m.div 
-                initial="hidden"
-                animate="visible"
-                variants={containerVariants}
-                className="max-w-[1400px] mx-auto space-y-8"
-            >
-                {/* Header Section */}
-                <m.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div className="flex items-center gap-6">
-                        <Link href="/admin/master">
-                            <m.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                                <Button variant="ghost" size="icon" className="rounded-2xl h-12 w-12 border border-slate-100 dark:border-white/5 bg-white dark:bg-white/5 backdrop-blur-xl shadow-sm">
-                                    <ArrowLeft size={18} />
-                                </Button>
-                            </m.div>
+        <div className="w-full min-h-full font-kantumruy pb-16">
+            {/* Top Bar Header */}
+            <div className="bg-card/80 backdrop-blur-md border-b border-border/80 sticky top-0 z-20">
+                <div className="max-w-[1400px] mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <Link to="/admin/master">
+                            <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10 border border-border bg-card shadow-xs hover:bg-muted">
+                                <ArrowLeft size={17} className="text-muted-foreground" />
+                            </Button>
                         </Link>
                         <div>
-                            <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight font-kantumruy italic">
-                                {t('admin.payments.title')}
-                            </h1>
-                            <div className="flex items-center gap-2 mt-1">
-                                <span className={cn(
-                                    "text-[10px] font-black uppercase tracking-[0.2em]",
-                                    isKm ? "text-red-500" : "text-slate-400"
-                                )}>
-                                    {t('admin.payments.subtitle')}
-                                </span>
-                                <div className="h-1 w-1 rounded-full bg-slate-300 dark:bg-white/10" />
-                                <span className="text-[10px] font-bold text-slate-300 dark:text-white/20 uppercase tracking-widest font-mono">
-                                    VERIFICATION_v2.4
-                                </span>
+                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                                <ShieldCheck size={13} />
+                                <span>Verification Hub</span>
                             </div>
+                            <h1 className="text-lg sm:text-xl font-bold text-foreground">
+                                {isKm ? "មជ្ឈមណ្ឌលផ្ទៀងផ្ទាត់ការបង់ប្រាក់ & វិក្កយបត្រ" : "Payment & Slip Verification"}
+                            </h1>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                        <m.div 
-                            whileHover={{ y: -2 }}
-                            className="px-6 py-3 bg-white dark:bg-white/5 backdrop-blur-xl rounded-[1.5rem] border border-slate-100 dark:border-white/5 shadow-sm flex items-center gap-4"
-                        >
-                            <div className="flex -space-x-2">
-                                {[1, 2, 3].map(i => (
-                                    <div key={i} className="w-6 h-6 rounded-full border-2 border-white dark:border-[#0A0A0A] bg-slate-100 dark:bg-white/10 flex items-center justify-center overflow-hidden">
-                                        <div className="w-full h-full bg-gradient-to-tr from-slate-200 to-slate-50 dark:from-white/5 dark:to-white/20" />
-                                    </div>
-                                ))}
-                            </div>
-                            <div className="flex flex-col">
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">
-                                    {t('admin.payments.awaitingApproval', { count: '' }).replace('{count}', '').trim()}
-                                </span>
-                                <span className="text-sm font-black text-amber-600 dark:text-amber-400">
-                                    {weddings.length} {isKm ? "សំណើ" : "Requests"}
-                                </span>
-                            </div>
-                        </m.div>
-                        <Button 
+                    <div className="flex items-center gap-3">
+                        <Button
                             onClick={loadData}
-                            variant="ghost" 
-                            size="icon" 
-                            className="rounded-2xl h-12 w-12 border border-slate-100 dark:border-white/5 bg-white dark:bg-white/5 hover:bg-slate-50"
+                            variant="outline"
+                            disabled={loading}
+                            className="h-10 px-4 rounded-xl font-bold text-xs border border-border bg-card shadow-xs flex items-center gap-2"
                         >
-                            <RefreshCcw size={18} className={cn(loading && "animate-spin text-red-500")} />
+                            <RefreshCcw size={14} className={loading ? "animate-spin" : ""} />
+                            <span>{isKm ? "ផ្ទុកឡើងវិញ" : "Refresh"}</span>
                         </Button>
                     </div>
-                </m.div>
+                </div>
+            </div>
 
-                {/* Content Grid */}
-                <div className="grid grid-cols-1 gap-6">
-                    {loading && weddings.length === 0 ? (
-                        <div className="py-32 text-center flex flex-col items-center justify-center">
-                            <div className="relative mb-8">
-                                <Loader2 className="w-16 h-16 animate-spin text-red-500/20" />
-                                <ShieldCheck className="w-8 h-8 text-red-600 absolute inset-0 m-auto" />
+            <main className="max-w-[1400px] mx-auto p-4 sm:p-8 space-y-6">
+                {/* Stats Overview */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <Card className="bg-card border border-border/80 rounded-2xl shadow-xs">
+                        <CardContent className="p-5 flex items-center justify-between">
+                            <div>
+                                <p className="text-xs font-bold text-muted-foreground">{isKm ? "រង់ចាំការផ្ទៀងផ្ទាត់" : "Pending Slips"}</p>
+                                <h3 className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">{pendingList.length}</h3>
                             </div>
-                            <h3 className="text-sm font-black text-slate-400 dark:text-white/30 uppercase tracking-[0.3em] animate-pulse">
-                                {t('admin.payments.loading')}
-                            </h3>
-                        </div>
-                    ) : weddings.length === 0 ? (
-                        <m.div 
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="relative group overflow-hidden border-2 border-dashed border-slate-200 dark:border-white/10 rounded-[3rem] bg-white/50 dark:bg-white/[0.02] p-24 text-center"
-                        >
-                            <div className="w-24 h-24 bg-gradient-to-tr from-slate-50 to-white dark:from-white/5 dark:to-white/10 rounded-[2rem] flex items-center justify-center text-slate-300 dark:text-white/20 mx-auto mb-8 shadow-xl border border-white dark:border-white/5">
-                                <Clock size={42} strokeWidth={1.5} />
+                            <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold">
+                                <Clock size={24} />
                             </div>
-                            <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-3 font-kantumruy">
-                                {t('admin.payments.empty')}
-                            </h3>
-                            <p className="max-w-md mx-auto text-slate-500 dark:text-white/40 font-medium font-kantumruy text-sm">
-                                {t('admin.payments.emptyDesc')}
-                            </p>
-                            
-                            {/* Decorative Background Elements */}
-                            <div className="absolute top-10 right-10 w-32 h-32 bg-red-500/5 blur-[80px] rounded-full" />
-                            <div className="absolute bottom-10 left-10 w-32 h-32 bg-amber-500/5 blur-[80px] rounded-full" />
-                        </m.div>
-                    ) : (
-                        <AnimatePresence mode="popLayout">
-                            {weddings.map((w, index) => (
-                                <m.div
-                                    key={w.id}
-                                    layout
-                                    variants={itemVariants}
-                                    initial="hidden"
-                                    animate="visible"
-                                    exit={{ opacity: 0, x: -50, scale: 0.95 }}
-                                    className="group"
-                                >
-                                    <Card className="border border-slate-100 dark:border-white/5 shadow-[0_8px_30px_rgb(0,0,0,0.02)] dark:shadow-none hover:shadow-[0_20px_60px_rgb(0,0,0,0.04)] dark:bg-white/[0.03] backdrop-blur-xl rounded-[2.5rem] overflow-hidden transition-all duration-500">
-                                        <CardContent className="p-0">
-                                            <div className="flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x divide-slate-100/50 dark:divide-white/5">
-                                                {/* Section 1: Wedding Brand */}
-                                                <div className="p-10 lg:w-[35%] space-y-6 relative overflow-hidden">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-2xl bg-red-50 dark:bg-red-500/10 flex items-center justify-center text-red-600 dark:text-red-400">
-                                                            <Package size={20} />
-                                                        </div>
-                                                        <div className="flex flex-col">
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="text-[10px] font-black text-red-600 dark:text-red-400 uppercase tracking-widest bg-red-50 dark:bg-red-500/10 px-2 py-0.5 rounded-lg w-fit">
-                                                                    {w.packageType} {isKm ? "កញ្ចប់" : "Plan"}
-                                                                </span>
-                                                                {w.bakongTrxId && (
-                                                                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-50 dark:bg-emerald-500/10 rounded-lg border border-emerald-100 dark:border-emerald-500/20">
-                                                                        <CheckCircle2 size={10} className="text-emerald-500" />
-                                                                        <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-tight">Auto-Verified</span>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                            <span className="text-[9px] font-bold text-slate-400 uppercase mt-1">Tier Level Access</span>
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    <div className="space-y-1">
-                                                        <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight font-kantumruy leading-tight">
-                                                            {w.groomName} <span className="text-red-500">&</span> {w.brideName}
-                                                        </h3>
-                                                        <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
-                                                            <User size={14} className="text-slate-300 dark:text-white/20" />
-                                                            <span className="font-medium">{isKm ? "សាមីខ្លួន:" : "Owner:"}</span>
-                                                            <span className="text-slate-900 dark:text-white/80">{w.user?.name || w.user?.email}</span>
-                                                        </div>
-                                                    </div>
+                        </CardContent>
+                    </Card>
 
-                                                    {/* Background Glow */}
-                                                    <div className="absolute -top-10 -left-10 w-40 h-40 bg-red-500/5 blur-[80px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                                                </div>
+                    <Card className="bg-card border border-border/80 rounded-2xl shadow-xs">
+                        <CardContent className="p-5 flex items-center justify-between">
+                            <div>
+                                <p className="text-xs font-bold text-muted-foreground">{isKm ? "បានអនុម័តរួចរាល់" : "Approved Payments"}</p>
+                                <h3 className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{paidList.length}</h3>
+                            </div>
+                            <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-bold">
+                                <CheckCircle2 size={24} />
+                            </div>
+                        </CardContent>
+                    </Card>
 
-                                                {/* Section 2: Metadata & Pricing */}
-                                                <div className="p-10 lg:flex-1 space-y-8 flex flex-col justify-center bg-slate-50/20 dark:bg-transparent">
-                                                    <div className="grid grid-cols-2 gap-10">
-                                                        <div>
-                                                            <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.2em] mb-2">{t('admin.payments.registrationDate')}</p>
-                                                            <div className="flex items-center gap-2">
-                                                                <Calendar size={14} className="text-red-500" />
-                                                                <p className="text-sm font-black text-slate-900 dark:text-white/90 font-mono">
-                                                                    {new Date(w.createdAt).toLocaleDateString(isKm ? 'km-KH' : 'en-US', { 
-                                                                        year: 'numeric', month: 'long', day: 'numeric' 
-                                                                    })}
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.2em] mb-2">
-                                                                {w.bakongTrxId ? "Bakong Ref" : t('admin.payments.weddingId')}
-                                                            </p>
-                                                            <div className="flex items-center gap-2">
-                                                                {w.bakongTrxId ? (
-                                                                    <div className="flex items-center gap-2">
-                                                                        <ExternalLink size={14} className="text-emerald-500" />
-                                                                        <p className="text-sm font-black text-emerald-600 dark:text-emerald-400 font-mono tracking-tight uppercase">
-                                                                            {w.bakongTrxId.substring(0, 16)}...
-                                                                        </p>
-                                                                    </div>
-                                                                ) : (
-                                                                    <div className="flex items-center gap-2">
-                                                                        <ShieldCheck size={14} className="text-amber-500" />
-                                                                        <p className="text-sm font-bold text-slate-900 dark:text-white/90 font-mono tracking-widest uppercase">
-                                                                            ID-{w.id.substring(0, 8)}
-                                                                        </p>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    <div className="p-6 rounded-[2rem] bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm">
-                                                        <div className="flex items-center gap-5">
-                                                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-slate-900 to-slate-800 dark:from-white/10 dark:to-white/5 flex items-center justify-center text-white shadow-xl">
-                                                                <DollarSign size={24} strokeWidth={2.5} />
-                                                            </div>
-                                                            <div>
-                                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('admin.payments.planCost')}</p>
-                                                                <div className="flex items-baseline gap-1">
-                                                                    <span className="text-2xl font-black text-slate-900 dark:text-white leading-none">
-                                                                        ${w.packageType === "PRO" ? pricing.pro : pricing.standard}
-                                                                    </span>
-                                                                    <span className="text-xs font-black text-slate-300 uppercase tracking-widest">USD</span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        
-                                                        <div className="flex flex-col items-end gap-2">
-                                                            {w.paymentStatus === "PAID" ? (
-                                                                <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 dark:bg-emerald-500/5 rounded-full border border-emerald-100 dark:border-emerald-500/20">
-                                                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                                                    <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
-                                                                        {isKm ? "បានទូទាត់រួចរាល់" : "Verified & Paid"}
-                                                                    </span>
-                                                                </div>
-                                                            ) : (
-                                                                <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-500/5 rounded-full border border-amber-100 dark:border-amber-500/20">
-                                                                    <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                                                                    <span className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest">
-                                                                        {t('admin.payments.awaitingVerification')}
-                                                                    </span>
-                                                                </div>
-                                                            )}
-                                                            {isKm && !w.bakongTrxId && w.paymentStatus !== "PAID" && (
-                                                                <span className="text-[9px] font-bold text-slate-300 uppercase tracking-[0.2em]">ផ្ទៀងផ្ទាត់ដោយដៃ</span>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Section 3: High-Vis Actions */}
-                                                <div className="p-10 lg:w-[25%] flex flex-col justify-center gap-4 bg-slate-50/40 dark:bg-white/[0.01]">
-                                                    {w.paymentStatus !== "PAID" && (
-                                                        <m.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                                                        <Button
-                                                            onClick={() => handleApprove(w.id, w.packageType)}
-                                                            disabled={processing === w.id}
-                                                            className={cn(
-                                                                "w-full h-16 rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-3 shadow-2xl transition-all duration-300",
-                                                                processing === w.id 
-                                                                    ? "bg-slate-100 text-slate-400" 
-                                                                    : "bg-slate-900 dark:bg-white text-white dark:text-black hover:shadow-red-500/20"
-                                                            )}
-                                                        >
-                                                            {processing === w.id ? (
-                                                                <RefreshCcw className="animate-spin" size={20} />
-                                                            ) : (
-                                                                <>
-                                                                    <Zap size={20} className="text-red-500" />
-                                                                    {t('admin.payments.approve')}
-                                                                </>
-                                                            )}
-                                                        </Button>
-                                                        </m.div>
-                                                    )}
-                                                    
-                                                    {w.paymentStatus === "PAID" && (
-                                                        <div className="p-4 rounded-[1.5rem] bg-emerald-50/50 dark:bg-emerald-500/5 border border-emerald-100 dark:border-emerald-500/10 text-center">
-                                                            <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-1">Status Active</p>
-                                                            <p className="text-[9px] font-bold text-slate-400 dark:text-white/20 uppercase tracking-tight">Manual override disabled</p>
-                                                        </div>
-                                                    )}
-                                                    <Link href={`/dashboard?weddingId=${w.id}`} target="_blank" className="w-full">
-                                                        <Button variant="ghost" className="w-full h-12 text-slate-400 dark:text-white/30 hover:text-slate-900 dark:hover:text-white font-black uppercase tracking-[0.25em] text-[9px] group/link">
-                                                            {t('admin.payments.preview')}
-                                                            <ExternalLink size={12} className="ml-2 group-hover/link:translate-x-1 group-hover/link:-translate-y-1 transition-transform" />
-                                                        </Button>
-                                                    </Link>
-                                                </div>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                </m.div>
-                            ))}
-                        </AnimatePresence>
-                    )}
+                    <Card className="bg-card border border-border/80 rounded-2xl shadow-xs">
+                        <CardContent className="p-5 flex items-center justify-between">
+                            <div>
+                                <p className="text-xs font-bold text-muted-foreground">{isKm ? "ចំណូលសរុប (USD)" : "Estimated Revenue"}</p>
+                                <h3 className="text-2xl font-black text-foreground mt-1">${totalRevenue.toFixed(2)}</h3>
+                            </div>
+                            <div className="w-12 h-12 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center font-bold">
+                                <DollarSign size={24} />
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
 
-                {/* Footer Insight */}
-                <m.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-12 border-t border-slate-100 dark:border-white/5">
-                    <div className="flex items-center gap-3">
-                        <TrendingUp size={16} className="text-green-500" />
-                        <span className="text-[10px] font-black text-slate-400 dark:text-white/20 uppercase tracking-[0.3em]">
-                            Revenue Optimization Protocol Active
-                        </span>
+                {/* Filter Tabs Bar */}
+                <div className="flex items-center gap-1.5 p-1.5 bg-muted/50 border border-border/80 rounded-2xl overflow-x-auto scrollbar-none">
+                    {[
+                        { id: 'pending', label: "រង់ចាំការផ្ទៀងផ្ទាត់", count: pendingList.length, icon: Clock, color: "text-amber-500" },
+                        { id: 'paid', label: "បានអនុម័ត (Paid)", count: paidList.length, icon: CheckCircle2, color: "text-emerald-500" },
+                        { id: 'rejected', label: "បានបដិសេធ (Rejected)", count: rejectedList.length, icon: XCircle, color: "text-rose-500" },
+                        { id: 'all', label: "ទាំងអស់ (All)", count: weddings.length, icon: Filter, color: "text-muted-foreground" },
+                    ].map((tab) => {
+                        const Icon = tab.icon;
+                        const isActive = selectedTab === tab.id;
+                        return (
+                            <button
+                                key={tab.id}
+                                onClick={() => setSelectedTab(tab.id as any)}
+                                className={cn(
+                                    "flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 select-none",
+                                    isActive
+                                        ? "bg-card text-foreground shadow-xs border border-border/80 font-bold"
+                                        : "text-muted-foreground hover:text-foreground hover:bg-card/50"
+                                )}
+                            >
+                                <Icon size={16} className={tab.color} />
+                                <span>{tab.label}</span>
+                                <span className={cn(
+                                    "px-1.5 py-0.5 rounded-md text-[10px] font-black",
+                                    isActive ? "bg-muted text-foreground" : "bg-muted/70 text-muted-foreground"
+                                )}>
+                                    {tab.count}
+                                </span>
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* Main List */}
+                {loading && weddings.length === 0 ? (
+                    <div className="py-24 flex flex-col items-center justify-center space-y-3">
+                        <Loader2 className="w-8 h-8 animate-spin text-rose-600" />
+                        <p className="text-xs font-bold text-muted-foreground">{isKm ? "កំពុងទាញយកទិន្នន័យ..." : "Loading requests..."}</p>
                     </div>
-                    <Link href="/admin/master">
-                        <span className="text-[10px] font-black text-slate-400 hover:text-red-500 cursor-pointer transition-colors uppercase tracking-[0.3em]">
-                            {t('admin.payments.return')}
-                        </span>
-                    </Link>
-                </m.div>
-            </m.div>
+                ) : displayedWeddings.length === 0 ? (
+                    <Card className="bg-card border border-border/80 rounded-2xl shadow-xs py-20 text-center">
+                        <CardContent className="flex flex-col items-center justify-center space-y-3">
+                            <div className="w-14 h-14 rounded-2xl bg-muted/60 flex items-center justify-center text-muted-foreground">
+                                <FileCheck size={26} />
+                            </div>
+                            <div className="space-y-1">
+                                <h3 className="text-base font-bold text-foreground">
+                                    {selectedTab === 'pending' ? "គ្មានសំណើដែលរង់ចាំផ្ទៀងផ្ទាត់ទេ" : "មិនមានទិន្នន័យនៅក្នុងបញ្ជីនេះទេ"}
+                                </h3>
+                                <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                                    {selectedTab === 'pending' 
+                                        ? "នៅពេលអតិថិជនស្កេនបង់ប្រាក់ និងផ្ញើរូបភាពវិក្កយបត្រ សំណើនឹងបង្ហាញនៅត្រង់នេះដើម្បីឱ្យ Admin ពិនិត្យផ្ទៀងផ្ទាត់។"
+                                        : "ទិន្នន័យប្រតិបត្តិការនឹងបង្ហាញនៅទីនេះ។"}
+                                </p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                ) : (
+                    <div className="space-y-4">
+                        <AnimatePresence mode="popLayout">
+                            {displayedWeddings.map((w) => {
+                                const isPending = w.paymentStatus === 'AWAITING_VERIFICATION' || w.paymentStatus === 'PENDING';
+                                const isPaid = w.paymentStatus === 'PAID';
+                                const isRejected = w.paymentStatus === 'REJECTED';
+                                const amount = w.packageType === 'PREMIUM' ? pricing.pro : (w.packageType === 'PRO' ? pricing.standard : 0);
+                                const hasSlipImage = w.paymentInfo && (w.paymentInfo.startsWith('data:image') || w.paymentInfo.startsWith('http'));
+
+                                return (
+                                    <m.div
+                                        key={w.id}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        layout
+                                    >
+                                        <Card className={cn(
+                                            "bg-card border rounded-2xl shadow-xs overflow-hidden transition-all",
+                                            isPending ? "border-amber-400/60 dark:border-amber-500/40 bg-amber-500/[0.02]" : "border-border/80"
+                                        )}>
+                                            <CardContent className="p-6">
+                                                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                                                    {/* Left: Couple & User Info */}
+                                                    <div className="space-y-3 flex-1 min-w-0">
+                                                        <div className="flex flex-wrap items-center gap-2.5">
+                                                            {/* Status Badge */}
+                                                            <span className={cn(
+                                                                "px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider flex items-center gap-1",
+                                                                isPending ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 border border-amber-500/30 animate-pulse" :
+                                                                isPaid ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/30" :
+                                                                "bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400 border border-rose-500/30"
+                                                            )}>
+                                                                {isPending ? "⏳ រង់ចាំផ្ទៀងផ្ទាត់ (Pending Review)" : (isPaid ? "✅ បានអនុម័ត (Paid)" : "❌ បានបដិសេធ (Rejected)")}
+                                                            </span>
+
+                                                            {/* Package Requested */}
+                                                            <span className={cn(
+                                                                "px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider",
+                                                                w.packageType === 'PREMIUM' ? "bg-amber-500/10 text-amber-600 border border-amber-500/20" :
+                                                                w.packageType === 'PRO' ? "bg-blue-500/10 text-blue-600 border border-blue-500/20" :
+                                                                "bg-muted text-muted-foreground"
+                                                            )}>
+                                                                {w.packageType} PLAN (${amount})
+                                                            </span>
+
+                                                            <span className="text-xs text-muted-foreground font-mono">
+                                                                ID: {w.id.slice(0, 10)}
+                                                            </span>
+                                                        </div>
+
+                                                        {/* Couple Name */}
+                                                        <div>
+                                                            <h3 className="text-lg font-bold text-foreground">
+                                                                {w.groomName} <span className="text-rose-500">&</span> {w.brideName}
+                                                            </h3>
+                                                            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mt-1">
+                                                                <span className="flex items-center gap-1">
+                                                                    <User size={13} className="text-muted-foreground" />
+                                                                    <span className="font-medium text-foreground">{w.user?.name || "User"}</span>
+                                                                    <span>({w.user?.email})</span>
+                                                                </span>
+                                                                <span>•</span>
+                                                                <span className="flex items-center gap-1">
+                                                                    <Calendar size={13} />
+                                                                    <span>{new Date(w.createdAt).toLocaleDateString('km-KH', { timeZone: 'Asia/Phnom_Penh' })}</span>
+                                                                </span>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Slip or Ref Note */}
+                                                        {w.paymentHash && (
+                                                            <div className="text-xs font-mono bg-muted/40 p-2 rounded-lg border border-border/60 text-muted-foreground">
+                                                                <span className="font-bold text-foreground">Ref / TxID:</span> {w.paymentHash}
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Center: Receipt Slip Preview Thumbnail */}
+                                                    <div className="flex items-center gap-4 shrink-0">
+                                                        {hasSlipImage ? (
+                                                            <div 
+                                                                onClick={() => setViewingReceipt({
+                                                                    imageUrl: w.paymentInfo,
+                                                                    coupleName: `${w.groomName} & ${w.brideName}`,
+                                                                    userEmail: w.user?.email,
+                                                                    packageType: w.packageType,
+                                                                    amount,
+                                                                    date: new Date(w.createdAt).toLocaleString('km-KH', { timeZone: 'Asia/Phnom_Penh' }),
+                                                                    ref: w.paymentHash || w.id
+                                                                })}
+                                                                className="relative group/slip cursor-pointer w-24 h-24 rounded-xl border-2 border-rose-500/30 overflow-hidden bg-muted hover:border-rose-500 transition-all shadow-xs"
+                                                            >
+                                                                <img 
+                                                                    src={w.paymentInfo} 
+                                                                    alt="Payment Slip Receipt" 
+                                                                    className="w-full h-full object-cover group-hover/slip:scale-105 transition-transform" 
+                                                                />
+                                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/slip:opacity-100 flex flex-col items-center justify-center text-white transition-opacity">
+                                                                    <Eye size={20} />
+                                                                    <span className="text-[9px] font-black uppercase mt-1">មើលវិក្កយបត្រ</span>
+                                                                </div>
+                                                                <span className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-black/70 text-white text-[8px] font-bold">
+                                                                    SLIP 🧾
+                                                                </span>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="w-24 h-24 rounded-xl border border-dashed border-border bg-muted/30 flex flex-col items-center justify-center text-muted-foreground p-2 text-center">
+                                                                <ImageIcon size={20} className="text-muted-foreground/60 mb-1" />
+                                                                <span className="text-[9px] font-bold text-muted-foreground">គ្មានរូបភាព</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Right: Actions */}
+                                                    <div className="flex flex-col sm:flex-row lg:flex-col gap-2 shrink-0 justify-center">
+                                                        {isPending ? (
+                                                            <>
+                                                                <Button
+                                                                    onClick={() => handleUpdatePayment(w.id, 'PAID', w.packageType === 'PREMIUM' ? 'PREMIUM' : 'PRO')}
+                                                                    disabled={processing === w.id}
+                                                                    className="h-10 px-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-xs flex items-center gap-1.5"
+                                                                >
+                                                                    {processing === w.id ? (
+                                                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                                                    ) : (
+                                                                        <>
+                                                                            <Check size={16} />
+                                                                            <span>អនុម័ត & ដំឡើង ({w.packageType || 'PRO'})</span>
+                                                                        </>
+                                                                    )}
+                                                                </Button>
+                                                                <Button
+                                                                    onClick={() => handleUpdatePayment(w.id, 'REJECTED')}
+                                                                    disabled={processing === w.id}
+                                                                    variant="outline"
+                                                                    className="h-10 px-4 border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl font-bold text-xs flex items-center gap-1.5"
+                                                                >
+                                                                    <X size={15} />
+                                                                    <span>បដិសេធ (Reject)</span>
+                                                                </Button>
+                                                            </>
+                                                        ) : (
+                                                            <div className="flex items-center gap-2">
+                                                                {w.packageType !== 'PREMIUM' && (
+                                                                    <Button
+                                                                        onClick={() => handleUpdatePayment(w.id, 'PAID', 'PREMIUM')}
+                                                                        disabled={processing === w.id}
+                                                                        size="sm"
+                                                                        variant="outline"
+                                                                        className="h-9 px-3 text-amber-600 border-amber-500/30 hover:bg-amber-500/10 rounded-xl font-bold text-xs flex items-center gap-1"
+                                                                    >
+                                                                        <Crown size={14} />
+                                                                        <span>ដំឡើងទៅ Premium</span>
+                                                                    </Button>
+                                                                )}
+                                                                <Button
+                                                                    onClick={() => handleUpdatePayment(w.id, 'REJECTED')}
+                                                                    disabled={processing === w.id}
+                                                                    size="sm"
+                                                                    variant="ghost"
+                                                                    className="h-9 px-3 text-muted-foreground hover:text-rose-600 rounded-xl font-bold text-xs"
+                                                                >
+                                                                    ដកសិទ្ធិ
+                                                                </Button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </m.div>
+                                );
+                            })}
+                        </AnimatePresence>
+                    </div>
+                )}
+            </main>
+
+            {/* Receipt Modal (Full Screen Inspection) */}
+            <Dialog open={!!viewingReceipt} onOpenChange={(open) => !open && setViewingReceipt(null)}>
+                <DialogContent className="sm:max-w-lg bg-card border border-border rounded-3xl p-6 shadow-2xl font-kantumruy">
+                    <DialogHeader className="pb-3 border-b border-border/60">
+                        <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
+                            <FileCheck className="text-emerald-500" size={20} />
+                            <span>ពិនិត្យផ្ទៀងផ្ទាត់វិក្កយបត្រ (Payment Slip Receipt)</span>
+                        </DialogTitle>
+                        <DialogDescription className="text-xs text-muted-foreground">
+                            {viewingReceipt?.coupleName} • {viewingReceipt?.userEmail}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-4 pt-2">
+                        {/* Image Canvas */}
+                        <div className="rounded-2xl border border-border overflow-hidden bg-slate-950 flex items-center justify-center max-h-[420px] shadow-inner">
+                            <img 
+                                src={viewingReceipt?.imageUrl} 
+                                alt="Payment Slip Full Size" 
+                                className="w-full h-auto max-h-[420px] object-contain" 
+                            />
+                        </div>
+
+                        {/* Metadata Details */}
+                        <div className="grid grid-cols-2 gap-2 text-xs bg-muted/40 p-3.5 rounded-xl border border-border/60">
+                            <div>
+                                <span className="text-muted-foreground block text-[10px] font-bold uppercase">កញ្ចប់សេវា</span>
+                                <span className="font-bold text-foreground">{viewingReceipt?.packageType} PLAN (${viewingReceipt?.amount})</span>
+                            </div>
+                            <div>
+                                <span className="text-muted-foreground block text-[10px] font-bold uppercase">កាលបរិច្ឆេទ</span>
+                                <span className="font-bold text-foreground">{viewingReceipt?.date}</span>
+                            </div>
+                        </div>
+
+                        {/* Close button */}
+                        <div className="flex justify-end pt-1">
+                            <Button 
+                                onClick={() => setViewingReceipt(null)}
+                                className="h-10 px-5 rounded-xl font-bold text-xs bg-foreground text-background hover:opacity-90"
+                            >
+                                បិទផ្ទាំងពិនិត្យ
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

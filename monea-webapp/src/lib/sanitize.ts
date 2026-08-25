@@ -1,16 +1,27 @@
 import DOMPurify from "isomorphic-dompurify";
 
 /**
- * Sanitizes an input string to prevent XSS using DOMPurify.
+ * Sanitizes an input string to prevent XSS.
  */
 export function sanitize(input: any): string {
     if (typeof input !== "string") return "";
     
-    // Modern industrial-grade sanitization
-    return DOMPurify.sanitize(input.trim(), {
-        ALLOWED_TAGS: [], // No HTML allowed for standard fields
-        ALLOWED_ATTR: []
-    });
+    try {
+        let purifier: any = DOMPurify;
+        if (purifier && !purifier.sanitize && purifier.default) {
+            purifier = purifier.default;
+        }
+        if (typeof purifier?.sanitize === "function") {
+            return purifier.sanitize(input.trim(), {
+                ALLOWED_TAGS: [],
+                ALLOWED_ATTR: []
+            });
+        }
+    } catch {
+        // Silent fallback
+    }
+
+    return input.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 /**

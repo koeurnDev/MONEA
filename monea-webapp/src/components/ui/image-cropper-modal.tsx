@@ -1,6 +1,4 @@
-
-"use client";
-
+﻿
 import React, { useState, useCallback } from 'react';
 import Cropper from 'react-easy-crop';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";

@@ -1,6 +1,4 @@
-"use client";
-
-import { Volume2, VolumeX, Maximize, Minimize } from "lucide-react";
+﻿import { Volume2, VolumeX, Maximize, Minimize } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LiveHeaderProps {

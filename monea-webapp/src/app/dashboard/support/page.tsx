@@ -1,19 +1,18 @@
-"use client";
 import { useState, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { LifeBuoy, Send, CheckCircle2, Loader2, AlertCircle, ShieldCheck, Zap, Sparkles } from "lucide-react";
-import { AnimatePresence, m } from 'framer-motion';
+import { LifeBuoy, Send, CheckCircle2, Loader2, AlertCircle, ShieldCheck, Zap, Sparkles, MessageCircle, HelpCircle } from "lucide-react";
+import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { PageHeader } from "@/app/dashboard/_components/PageHeader";
 
 function SupportForm() {
     const { t } = useTranslation();
-    const searchParams = useSearchParams();
+    const [searchParams] = useSearchParams();
     const weddingId = searchParams.get("weddingId");
 
     const [subject, setSubject] = useState("");
@@ -50,179 +49,208 @@ function SupportForm() {
     };
 
     if (submitted) return (
-        <m.div
-            initial={{ opacity: 0, scale: 0.9 }}
+        <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center"
+            className="min-h-[50vh] flex flex-col items-center justify-center p-8 text-center bg-white dark:bg-[#141419] rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm"
         >
-            <div className="relative mb-8">
-                <m.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", damping: 12, delay: 0.2 }}
-                    className="w-24 h-24 bg-green-500/10 dark:bg-green-500/20 rounded-full flex items-center justify-center text-green-500"
-                >
-                    <CheckCircle2 size={48} />
-                </m.div>
-                <div className="absolute inset-0 bg-green-400/20 blur-3xl rounded-full animate-pulse" />
+            <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center text-emerald-600 mb-6 border border-emerald-500/20">
+                <CheckCircle2 size={44} />
             </div>
 
-            <h2 className="text-3xl font-black text-foreground mb-3 font-kantumruy tracking-tight">{t("support.form.success.title")}</h2>
-            <p className="text-muted-foreground font-medium font-kantumruy mb-10 max-w-sm leading-relaxed">
-                {t("support.form.success.desc")}
+            <h2 className="text-2xl sm:text-3xl font-black text-foreground mb-3 font-kantumruy tracking-tight">
+                {t("support.form.success.title", { defaultValue: "សារត្រូវបានផ្ញើរួចរាល់!" })}
+            </h2>
+            <p className="text-muted-foreground font-medium font-kantumruy mb-8 max-w-md leading-relaxed text-sm">
+                {t("support.form.success.desc", { defaultValue: "ក្រុមការងារបច្ចេកទេសនឹងពិនិត្យ និងឆ្លើយតបជូនអ្នកវិញឱ្យបានលឿនបំផុត។" })}
             </p>
 
             <Button
-                onClick={() => window.location.href = `/dashboard?weddingId=${weddingId}`}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-[2rem] px-16 h-14 font-bold uppercase tracking-widest text-xs shadow-2xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+                onClick={() => setSubmitted(false)}
+                className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl px-8 h-11 font-bold text-xs transition-all"
             >
-                {t("support.form.success.back")}
+                {t("support.form.success.back", { defaultValue: "ផ្ញើសារថ្មីទៀត" })}
             </Button>
-        </m.div>
+        </motion.div>
     );
 
     return (
-        <div className="grid lg:grid-cols-5 gap-10 items-start">
-            <m.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 }}
-                className="lg:col-span-3"
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* Left Column: Support Ticket Form */}
+            <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="lg:col-span-7"
             >
-                <Card className="shadow-[0_8px_40px_rgba(0,0,0,0.08)] dark:shadow-none rounded-[2.5rem] overflow-hidden bg-card/40 backdrop-blur-2xl p-1 relative border-none">
-                    <div className="p-8 md:p-10">
-                        <form onSubmit={handleSubmit} className="space-y-8">
+                <Card className="shadow-sm border border-slate-200/80 dark:border-white/10 rounded-3xl overflow-hidden bg-white dark:bg-[#141419]">
+                    <div className="p-6 sm:p-8">
+                        <div className="mb-6 space-y-1">
+                            <h3 className="text-lg sm:text-xl font-bold font-kantumruy text-foreground">
+                                {t("support.form.title", { defaultValue: "ផ្ញើសំណើសុំជំនួយ" })}
+                            </h3>
+                            <p className="text-xs text-muted-foreground font-kantumruy">
+                                {t("support.form.desc", { defaultValue: "បំពេញព័ត៌មានខាងក្រោមដើម្បីឱ្យក្រុមការងារជួយដោះស្រាយបញ្ហាជូនអ្នក។" })}
+                            </p>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="space-y-5">
                             <AnimatePresence mode="wait">
                                 {error && (
-                                    <m.div
+                                    <motion.div
                                         initial={{ opacity: 0, height: 0 }}
                                         animate={{ opacity: 1, height: 'auto' }}
                                         exit={{ opacity: 0, height: 0 }}
-                                        className="p-4 rounded-2xl bg-red-500/5 border border-red-500/10 text-red-500 text-xs font-bold font-kantumruy flex gap-3 items-center"
+                                        className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 text-xs font-bold font-kantumruy flex gap-2.5 items-center"
                                     >
-                                        <AlertCircle size={18} />
-                                        {error}
-                                    </m.div>
+                                        <AlertCircle size={16} />
+                                        <span>{error}</span>
+                                    </motion.div>
                                 )}
                             </AnimatePresence>
 
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-2 font-kantumruy">{t("support.form.subject")}</label>
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-bold text-foreground font-kantumruy">
+                                    {t("support.form.subject", { defaultValue: "ប្រធានបទ / ប្រភេទបញ្ហា" })}
+                                </label>
                                 <Input
-                                    placeholder={t("support.form.subjectPlaceholder")}
+                                    placeholder={t("support.form.subjectPlaceholder", { defaultValue: "តើអ្នកត្រូវការជំនួយលើផ្នែកអ្វីខ្លះ?" })}
                                     value={subject}
                                     onChange={e => setSubject(e.target.value)}
-                                    className="h-14 rounded-2xl border-none bg-background/50 font-kantumruy text-foreground focus:ring-4 focus:ring-primary/5 focus:bg-background transition-all px-6 shadow-sm"
+                                    className="h-11 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 font-kantumruy text-sm text-foreground focus-visible:ring-rose-500 px-4"
                                     required
                                 />
                             </div>
 
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-2 font-kantumruy">{t("support.form.priority")}</label>
-                                <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-bold text-foreground font-kantumruy">
+                                    {t("support.form.priority", { defaultValue: "កម្រិតអាទិភាព" })}
+                                </label>
+                                <div className="grid grid-cols-2 gap-3">
                                     {[
-                                        { id: 'NORMAL', label: t("support.form.priorityNormal"), icon: Zap, color: 'text-blue-500' },
-                                        { id: 'HIGH', label: t("support.form.priorityHigh"), icon: Sparkles, color: 'text-red-500' }
+                                        { id: 'NORMAL', label: t("support.form.priorityNormal", { defaultValue: "ធម្មតា" }), icon: Zap, activeColor: 'text-slate-800 dark:text-white', activeBg: 'bg-slate-100 dark:bg-white/10 border-slate-300 dark:border-white/20' },
+                                        { id: 'HIGH', label: t("support.form.priorityHigh", { defaultValue: "អាទិភាពខ្ពស់ (បន្ទាន់)" }), icon: Sparkles, activeColor: 'text-amber-700 dark:text-amber-300', activeBg: 'bg-amber-500/10 border-amber-500/30' }
                                     ].map((p) => (
                                         <button
                                             key={p.id}
                                             type="button"
                                             onClick={() => setPriority(p.id)}
                                             className={cn(
-                                                "h-14 rounded-2xl font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-3 transition-all",
+                                                "h-11 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all border",
                                                 priority === p.id
-                                                    ? 'bg-primary/10 text-primary shadow-md'
-                                                    : 'bg-background/40 text-muted-foreground hover:bg-background/60 shadow-sm'
+                                                    ? `${p.activeBg} ${p.activeColor} shadow-sm font-black`
+                                                    : 'bg-slate-50/50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-muted-foreground hover:bg-slate-100'
                                             )}
                                         >
-                                            <p.icon size={16} className={priority === p.id ? 'text-primary' : 'text-muted-foreground/40'} />
-                                            {p.label}
+                                            <p.icon size={14} className={priority === p.id ? p.activeColor : 'text-muted-foreground/50'} />
+                                            <span>{p.label}</span>
                                         </button>
                                     ))}
                                 </div>
                             </div>
 
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-2 font-kantumruy">{t("support.form.message")}</label>
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-bold text-foreground font-kantumruy">
+                                    {t("support.form.message", { defaultValue: "សារពិពណ៌នាបញ្ហា" })}
+                                </label>
                                 <Textarea
-                                    placeholder={t("support.form.messagePlaceholder")}
+                                    placeholder={t("support.form.messagePlaceholder", { defaultValue: "សូមរៀបរាប់លម្អិតអំពីបញ្ហា ឬសំណួររបស់អ្នកឱ្យបានច្បាស់លាស់..." })}
                                     value={message}
                                     onChange={e => setMessage(e.target.value)}
-                                    className="min-h-[200px] rounded-[2rem] border-none bg-background/50 p-6 font-kantumruy text-foreground focus:ring-4 focus:ring-primary/5 focus:bg-background transition-all shadow-sm"
+                                    className="min-h-[140px] rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 p-3.5 font-kantumruy text-sm text-foreground focus-visible:ring-rose-500 leading-relaxed"
                                     required
                                 />
                             </div>
 
                             <Button
-                                className="h-16 w-full bg-primary text-primary-foreground rounded-[2rem] font-bold uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-4 shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all hover:scale-[1.01] active:scale-95 border-none"
+                                className="h-11 w-full bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold font-kantumruy text-xs shadow-md shadow-rose-600/20 transition-all active:scale-98 flex items-center justify-center gap-2"
                                 disabled={loading}
                             >
-                                {loading ? <Loader2 className="animate-spin" /> : <><Send size={18} /> {t("support.form.submit")}</>}
+                                {loading ? <Loader2 className="animate-spin h-4 w-4" /> : <><Send size={15} /> <span>{t("support.form.submit", { defaultValue: "ផ្ញើសារឥឡូវនេះ" })}</span></>}
                             </Button>
                         </form>
                     </div>
                 </Card>
-            </m.div>
+            </motion.div>
 
-            <m.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
-                className="lg:col-span-2 space-y-6"
+            {/* Right Column: Direct Telegram Support & Info Cards */}
+            <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.1 }}
+                className="lg:col-span-5 space-y-5"
             >
-                <div className="p-10 rounded-[2.5rem] bg-gradient-to-br from-slate-900 to-black text-white shadow-2xl relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 blur-3xl rounded-full -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-700" />
-                    <LifeBuoy className="mb-8 text-primary" size={40} />
-                    <h4 className="text-2xl font-black font-kantumruy uppercase tracking-tight mb-3">{t("support.urgentHelp.title")}</h4>
-                    <p className="text-sm font-medium font-kantumruy opacity-70 leading-relaxed mb-8">
-                        {t("support.urgentHelp.desc")}
-                        <span className="block mt-3 text-xs font-black uppercase tracking-widest text-primary/90">We typically reply within 24 hours.</span>
-                    </p>
-                    <a
-                        href="https://t.me/monea_support"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-3 px-8 h-14 bg-primary text-primary-foreground rounded-2xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-primary/10 hover:bg-primary/90 transition-all active:scale-95"
-                    >
-                        {t("support.urgentHelp.telegram")} <Send size={16} />
-                    </a>
-                </div>
+                {/* Official Telegram Support Card (Eye-friendly, Soft & Modern) */}
+                <Card className="rounded-3xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#141419] shadow-sm p-6 sm:p-7 relative overflow-hidden">
+                    <div className="space-y-4">
+                        <div className="w-12 h-12 rounded-2xl bg-[#229ED9]/10 text-[#229ED9] flex items-center justify-center border border-[#229ED9]/20 shadow-sm">
+                            <MessageCircle size={24} />
+                        </div>
 
-                <div className="p-10 rounded-[2.5rem] bg-card/30 backdrop-blur-md shadow-[0_4px_24px_rgba(0,0,0,0.03)] dark:shadow-none">
-                    <h4 className="text-xs font-black font-kantumruy uppercase tracking-widest text-muted-foreground mb-6">{t("support.whyContact.title")}</h4>
-                    <ul className="space-y-6">
+                        <div className="space-y-1.5">
+                            <h4 className="text-lg font-bold font-kantumruy text-foreground">
+                                {t("support.urgentHelp.title", { defaultValue: "ជំនួយបន្ទាន់តាម Telegram" })}
+                            </h4>
+                            <p className="text-xs text-muted-foreground font-kantumruy leading-relaxed">
+                                {t("support.urgentHelp.desc", { defaultValue: "សម្រាប់ករណីបន្ទាន់ អ្នកអាចទាក់ទងផ្ទាល់ជាមួយក្រុមការងារ Support តាម Telegram ដើម្បីទទួលបានការឆ្លើយតបឆាប់រហ័ស។" })}
+                            </p>
+                        </div>
+
+                        <a
+                            href="https://t.me/monea_support"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center gap-2 w-full h-11 bg-[#229ED9] hover:bg-[#1E88C7] text-white rounded-xl font-bold font-kantumruy text-xs shadow-md shadow-[#229ED9]/20 transition-all active:scale-98"
+                        >
+                            <span>{t("support.urgentHelp.telegram", { defaultValue: "ទាក់ទងតាម Telegram" })}</span>
+                            <Send size={14} />
+                        </a>
+
+                        <p className="text-[10px] text-muted-foreground/60 font-kantumruy text-center">
+                            {t("support.urgentHelp.replyTime", { defaultValue: "ពេលវេលាឆ្លើយតប៖ ជាទូទៅក្នុងរយៈពេល ១ ទៅ ២៤ ម៉ោង" })}
+                        </p>
+                    </div>
+                </Card>
+
+                {/* Why Contact Us Card */}
+                <Card className="rounded-3xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#141419] shadow-sm p-6">
+                    <h4 className="text-xs font-bold font-kantumruy text-foreground mb-4 flex items-center gap-2">
+                        <HelpCircle size={15} className="text-muted-foreground" />
+                        <span>{t("support.whyContact.title", { defaultValue: "ហេតុអ្វីត្រូវទាក់ទងមកយើង?" })}</span>
+                    </h4>
+                    <ul className="space-y-3.5">
                         {[
-                            { text: t("support.whyContact.solve"), icon: ShieldCheck },
-                            { text: t("support.whyContact.request"), icon: Zap },
-                            { text: t("support.whyContact.help"), icon: Sparkles }
+                            { text: t("support.whyContact.solve", { defaultValue: "ដោះស្រាយបញ្ហាបច្ចេកទេស និងការបង្កើតសំបុត្រ" }), icon: ShieldCheck, color: "text-emerald-600 bg-emerald-500/10" },
+                            { text: t("support.whyContact.request", { defaultValue: "ស្នើសុំមុខងារបន្ថែម ឬការកែសម្រួលពិសេស" }), icon: Zap, color: "text-amber-600 bg-amber-500/10" },
+                            { text: t("support.whyContact.help", { defaultValue: "ជំនួយក្នុងការរៀបចំកាលវិភាគ និងបញ្ជីភ្ញៀវ" }), icon: Sparkles, color: "text-blue-600 bg-blue-500/10" }
                         ].map((item, i) => (
-                            <li key={i} className="flex items-center gap-4 text-sm font-bold text-foreground font-kantumruy">
-                                <div className="w-8 h-8 rounded-xl bg-primary/5 text-primary flex items-center justify-center shrink-0 shadow-sm">
-                                    <item.icon size={16} />
+                            <li key={i} className="flex items-center gap-3 text-xs font-medium text-slate-600 dark:text-slate-300 font-kantumruy">
+                                <div className={cn("w-7 h-7 rounded-xl flex items-center justify-center shrink-0 shadow-sm", item.color)}>
+                                    <item.icon size={14} />
                                 </div>
-                                {item.text}
+                                <span className="flex-1 leading-snug">{item.text}</span>
                             </li>
                         ))}
                     </ul>
-                </div>
-            </m.div>
+                </Card>
+            </motion.div>
         </div>
     );
 }
 
 export default function SupportPage() {
-    const { t, locale } = useTranslation();
+    const { t } = useTranslation();
     return (
-        <div className="max-w-6xl mx-auto py-12 px-6 relative">
-            {/* Background Glows */}
-            <div className="absolute top-0 -left-20 w-96 h-96 bg-primary/10 blur-[120px] rounded-full pointer-events-none opacity-50" />
-            <div className="absolute bottom-0 -right-20 w-96 h-96 bg-blue-500/10 blur-[120px] rounded-full pointer-events-none opacity-50" />
-
-
+        <div className="w-full space-y-6 pb-12">
+            <PageHeader 
+                title={t("dashboard.user.helpSupport", { defaultValue: "ជំនួយ និងការគាំទ្រ" })} 
+                icon={LifeBuoy}
+                iconColor="text-rose-500"
+            />
 
             <Suspense fallback={
-                <div className="min-h-[400px] flex items-center justify-center">
-                    <Loader2 className="animate-spin text-primary" size={40} />
+                <div className="min-h-[300px] flex items-center justify-center">
+                    <Loader2 className="animate-spin text-rose-500" size={32} />
                 </div>
             }>
                 <SupportForm />

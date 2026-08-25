@@ -1,74 +1,93 @@
-"use client";
 import React from 'react';
 import { m } from 'framer-motion';
 import { WeddingData } from "../types";
-import { MapPin } from 'lucide-react';
-import Image from 'next/image';
+import { MapPin, Navigation, QrCode } from 'lucide-react';
+import { getMapEmbedUrl, getDirectMapUrl } from "../shared/mapUtils";
 
 export const LocationSection = ({ wedding }: { wedding: WeddingData }) => {
-    if (!wedding.location && !wedding.mapUrl) return null;
+    const venueName = wedding.location || "មជ្ឈមណ្ឌលសន្និបាត និងពិព័រណ៍កោះពេជ្រ (អគារ A)";
+    const embedUrl = getMapEmbedUrl(wedding.themeSettings?.mapLink, venueName);
+    const directMapUrl = getDirectMapUrl(wedding.themeSettings?.mapLink, venueName);
 
     return (
-        <section className="py-24 bg-slate-100 relative overflow-hidden" id="location-modern">
+        <section className="py-20 md:py-28 bg-[#F8FAFC] relative overflow-hidden" id="location-modern">
             <div className="max-w-4xl mx-auto px-6 text-center">
+                {/* Section Header */}
                 <m.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8 }}
                     viewport={{ once: true }}
-                    className="mb-12"
+                    className="mb-10 space-y-3"
                 >
-                    <h2 className="text-3xl md:text-5xl font-kantumruy font-black text-[#805C00] tracking-widest uppercase">
-                        ទីតាំងកម្មវិធី
+                    <p className="font-kantumruy text-xs text-slate-500 font-bold tracking-normal">
+                        — ទីតាំងនៃកម្មវិធី —
+                    </p>
+                    <h2 className="text-2xl md:text-4xl font-kantumruy font-bold text-slate-900 tracking-tight">
+                        {wedding.locationName || 'ទីតាំងរៀបចំកម្មវិធី'}
                     </h2>
-                    <div className="w-12 h-1 bg-slate-900 mt-6 mx-auto" />
+                    <div className="w-12 h-1 bg-slate-900/80 rounded-full mx-auto my-3" />
                 </m.div>
 
+                {/* Main Card */}
                 <m.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 25 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.2 }}
+                    transition={{ duration: 0.8, delay: 0.15 }}
                     viewport={{ once: true }}
-                    className="bg-white p-8 md:p-12 rounded-[2rem] shadow-sm border border-slate-200/50 flex flex-col items-center"
+                    className="bg-white p-6 sm:p-10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.06)] border border-slate-200/80 flex flex-col items-center space-y-6"
                 >
-                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-6">
-                        <MapPin className="w-6 h-6 text-[#805C00]" />
-                    </div>
-                    
-                    <h3 className="text-xl md:text-3xl font-kantumruy font-black text-slate-900 mb-4 uppercase">
-                        {wedding.locationName || 'ទីតាំងរៀបចំកម្មវិធី'}
-                    </h3>
-                    
-                    {wedding.location && (
-                        <p className="text-sm md:text-base text-slate-500 font-kantumruy leading-relaxed max-w-md mb-8">
-                            {wedding.location}
+                    {/* Venue Pin & Name */}
+                    <div className="flex flex-col items-center space-y-2">
+                        <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center shadow-sm">
+                            <MapPin className="w-6 h-6" />
+                        </div>
+                        <p className="text-sm md:text-base text-slate-700 font-kantumruy font-medium leading-relaxed max-w-md">
+                            {venueName}
                         </p>
-                    )}
+                    </div>
 
-                    {wedding.themeSettings?.mapLink && (
-                        <div className="flex flex-col items-center space-y-6 mt-4">
-                            {/* Auto-generated QR Code for the Map Link */}
-                            <div className="bg-white p-3 rounded-2xl border border-slate-100 shadow-md">
-                                <Image 
-                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(wedding.themeSettings.mapLink)}&color=0f172a`}
-                                    alt="Map QR Code"
-                                    width={120}
-                                    height={120}
-                                    className="rounded-lg opacity-90 hover:opacity-100 transition-opacity"
-                                />
-                            </div>
-                            <p className="text-xs text-slate-400 font-kantumruy uppercase tracking-widest font-bold">ស្កេនដើម្បីមើលផែនទី</p>
-
-                            <a
-                                href={wedding.themeSettings.mapLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex px-8 py-4 bg-[#805C00] text-white text-xs font-bold tracking-[0.1em] font-kantumruy uppercase rounded-full hover:bg-[#6b4c00] transition-colors shadow-lg shadow-[#805C00]/20"
-                            >
-                                មើលលើផែនទី (Google Maps)
-                            </a>
+                    {/* Google Maps Embed iframe */}
+                    {embedUrl && (
+                        <div className="w-full h-64 sm:h-80 rounded-2xl overflow-hidden shadow-inner border border-slate-200 bg-slate-100">
+                            <iframe
+                                title="Google Maps"
+                                src={embedUrl}
+                                className="w-full h-full border-0"
+                                loading="lazy"
+                                allowFullScreen
+                                referrerPolicy="no-referrer-when-downgrade"
+                            />
                         </div>
                     )}
+
+                    {/* QR Code & Navigation Action */}
+                    <div className="flex flex-col items-center space-y-4 pt-2">
+                        {/* Auto-generated QR Code for Google Maps navigation */}
+                        <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-center">
+                            <img 
+                                src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(directMapUrl)}&color=0f172a`}
+                                alt="Map QR Code"
+                                width={120}
+                                height={120}
+                                loading="lazy"
+                                className="rounded-lg" 
+                            />
+                        </div>
+                        <p className="text-[11px] text-slate-400 font-kantumruy font-bold tracking-wide">
+                            ស្កេន ឬចុចប៊ូតុងខាងក្រោមដើម្បីបើកផែនទី
+                        </p>
+
+                        <a
+                            href={directMapUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-8 py-3.5 bg-slate-900 hover:bg-black text-white text-xs font-bold font-kantumruy tracking-wide rounded-full shadow-lg shadow-slate-900/20 active:scale-95 transition-all"
+                        >
+                            <Navigation size={15} />
+                            <span>មើលលើផែនទី (Google Maps)</span>
+                        </a>
+                    </div>
                 </m.div>
             </div>
         </section>

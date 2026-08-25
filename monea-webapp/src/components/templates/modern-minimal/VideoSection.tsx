@@ -1,4 +1,3 @@
-"use client";
 import React from 'react';
 import { m } from 'framer-motion';
 import { WeddingData } from '../types';
@@ -24,7 +23,7 @@ export function VideoSection({ wedding }: { wedding: WeddingData }) {
                     viewport={{ once: true }}
                     className="text-center mb-16"
                 >
-                    <h2 className="text-3xl md:text-5xl font-kantumruy font-black text-white tracking-widest uppercase mb-4">
+                    <h2 className="text-2xl md:text-4xl font-kantumruy font-bold text-white tracking-normal mb-4">
                         វីដេអូអនុស្សាវរីយ៍
                     </h2>
                     <div className="w-12 h-1 bg-white/30 mx-auto mb-6" />

@@ -3,10 +3,17 @@ import { getServerUser } from '@/lib/auth'
 import { ROLES } from '@/lib/constants'
 import { prisma, queryRaw } from '@/lib/prisma'
 import { cloudinarySign, cloudinaryDelete } from '@/lib/cloudinary-edge'
+import { standardLimiter, getIP } from "@/lib/ratelimit"
 
 const cloudinaryRouter = new Hono()
 
 cloudinaryRouter.post('/sign', async (c) => {
+    const ip = getIP(c.req.raw as any);
+    const { success } = await standardLimiter.limit(ip);
+    if (!success) {
+        return c.json({ error: "Too many upload requests. Please wait." }, 429);
+    }
+
     const user = await getServerUser(c.req.raw);
     if (!user) return c.json({ error: "Unauthorized" }, 401);
 
@@ -55,6 +62,12 @@ cloudinaryRouter.post('/sign', async (c) => {
 });
 
 cloudinaryRouter.post('/delete', async (c) => {
+    const ip = getIP(c.req.raw as any);
+    const { success } = await standardLimiter.limit(ip);
+    if (!success) {
+        return c.json({ error: "Too many delete requests. Please wait." }, 429);
+    }
+
     const user = await getServerUser(c.req.raw);
     if (!user) return c.json({ error: "Unauthorized" }, 401);
 

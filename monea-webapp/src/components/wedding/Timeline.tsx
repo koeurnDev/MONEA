@@ -13,7 +13,7 @@ export default function Timeline({ activities }: TimelineProps) {
     return (
         <section className="p-6 bg-zinc-950 text-white font-siemreap">
             <h3 className="text-center text-pink-500 text-xl mb-8 font-kantumruy underline underline-offset-8 decoration-pink-500/30 text-wedding-title">
-                កម្មវិធីបុណ្យ
+                កម្មវិធីសិរីមង្គលអាពាហ៍ពិពាហ៍
             </h3>
 
             {activities.length > 0 ? (

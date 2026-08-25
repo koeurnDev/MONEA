@@ -1,5 +1,5 @@
-import Image from "next/image";
-import Link from "next/link";
+﻿// next/image replaced with <img>;
+import { Link } from 'react-router-dom';
 import { ArrowRight } from "lucide-react";
 
 interface GalleryProps {
@@ -15,7 +15,7 @@ export default function Gallery({ images, weddingId }: GalleryProps) {
         <section className="p-4 py-12 bg-black font-siemreap">
             <div className="flex justify-between items-end mb-6 px-2">
                 <h3 className="text-pink-500 font-moul text-xl">កម្រងរូបភាព</h3>
-                <Link href={`/w/${weddingId}/gallery`} className="text-sm text-gray-400 flex items-center gap-1 hover:text-white transition-colors">
+                <Link to={`/w/${weddingId}/gallery`} className="text-sm text-gray-400 flex items-center gap-1 hover:text-white transition-colors">
                     មើលទាំងអស់ <ArrowRight className="w-4 h-4" />
                 </Link>
             </div>
@@ -24,12 +24,11 @@ export default function Gallery({ images, weddingId }: GalleryProps) {
                 {displayImages.map((img) => (
                     <div key={img.id} className="relative aspect-[3/4] overflow-hidden rounded-lg border border-pink-500/20 group">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <Image
+                        <img
                             src={img.url}
-                            alt="Wedding"
-                            fill
+                            alt="Wedding" 
                             className="object-cover group-hover:scale-105 transition duration-700 ease-out"
-                            sizes="(max-width: 768px) 50vw, 33vw"
+                            
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>

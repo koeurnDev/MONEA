@@ -11,10 +11,17 @@ export function setupFetchInterceptor() {
   globalThis.fetch = function (input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
     let url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
     
-    // Intercept /api/* calls and redirect to Worker API
+    // In development, keep /api/ relative so Vite proxy forwards to local worker
+    if (import.meta.env.DEV) {
+      return originalFetch(input, init);
+    }
+
+    // Intercept /api/* calls and redirect to Worker API in production if VITE_API_URL is set
     if (url.startsWith('/api/')) {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://monea-api.seabkoeurn64.workers.dev';
-      url = url.replace('/api/', `${apiBase}/api/`);
+      const apiBase = import.meta.env.VITE_API_URL || '';
+      if (apiBase) {
+        url = url.replace('/api/', `${apiBase}/api/`);
+      }
       
       // Ensure credentials are included for cross-origin
       init = {

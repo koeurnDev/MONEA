@@ -4,17 +4,20 @@
  * In development, uses relative /api path
  */
 export function getApiUrl(path: string): string {
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || '';
-  
-  // Remove leading slash from path if present
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+  
+  // In development, ALWAYS use relative path to route through Vite proxy (/api)
+  if (import.meta.env.DEV) {
+    return `/${cleanPath}`;
+  }
+
+  const apiBase = import.meta.env.VITE_API_URL || '';
   
   // In production with external API
   if (apiBase) {
     return `${apiBase}/${cleanPath}`;
   }
   
-  // In development with local API routes
   return `/${cleanPath}`;
 }
 

@@ -1,5 +1,3 @@
-"use client";
-
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Languages } from "lucide-react";
 import {
@@ -9,43 +7,45 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
 import { useTranslation } from "@/i18n/LanguageProvider";
 
 export function PreferencesTab() {
     const { t, locale, setLocale } = useTranslation();
 
     return (
-        <Card className="bg-card/40 backdrop-blur-2xl border-none shadow-[0_8px_60px_rgba(0,0,0,0.06)] dark:shadow-none rounded-[3rem] overflow-hidden p-1">
-            <CardHeader className="p-10 pb-6">
-                <CardTitle className="text-2xl font-black text-foreground font-kantumruy tracking-tight">{t("account.preferences.title")}</CardTitle>
-                <CardDescription className="font-kantumruy text-sm mt-1.5 opacity-60 leading-relaxed max-w-xl">
-                    {t("account.preferences.description")}
+        <Card className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-white/10 shadow-sm rounded-3xl overflow-hidden font-kantumruy">
+            <CardHeader className="p-6 sm:p-8 pb-4">
+                <CardTitle className="text-xl sm:text-2xl font-bold text-foreground font-kantumruy tracking-tight">
+                    {t("account.preferences.title", { defaultValue: "ចំណូលចិត្ត" })}
+                </CardTitle>
+                <CardDescription className="font-kantumruy text-xs sm:text-sm text-muted-foreground mt-1 leading-relaxed">
+                    {t("account.preferences.description", { defaultValue: "កំណត់ភាសានិងជម្រើសផ្ទាល់ខ្លួនសម្រាប់គណនីរបស់អ្នក។" })}
                 </CardDescription>
             </CardHeader>
-            <CardContent className="p-10 pt-6 space-y-10">
-                <div className="flex items-center gap-6 p-8 bg-primary/5 rounded-[2.5rem] border border-primary/10 transition-all hover:bg-primary/10 group">
-                    <div className="p-5 bg-primary/10 rounded-3xl text-primary transform transition-transform group-hover:scale-110 duration-300">
-                        <Languages size={32} />
+            <CardContent className="p-6 sm:p-8 pt-2 space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-5 sm:p-6 bg-slate-50 dark:bg-black/20 rounded-2xl border border-slate-200/80 dark:border-white/10">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-rose-500/10 rounded-2xl text-rose-600 dark:text-rose-400 shrink-0">
+                            <Languages size={24} />
+                        </div>
+                        <div className="space-y-0.5">
+                            <p className="text-sm sm:text-base font-bold font-kantumruy tracking-tight text-foreground">
+                                {t("account.preferences.language.title", { defaultValue: "ភាសាកម្មវិធី (Application Language)" })}
+                            </p>
+                            <p className="text-xs text-muted-foreground font-kantumruy leading-relaxed">
+                                {t("account.preferences.language.description", { defaultValue: "ជ្រើសរើសភាសាដែលត្រូវបង្ហាញលើផ្ទៃផ្ទាំងគ្រប់គ្រង" })}
+                            </p>
+                        </div>
                     </div>
-                    <div className="flex-1 space-y-1">
-                        <p className="text-lg font-black font-kantumruy tracking-tight text-foreground">{t("account.preferences.language.title")}</p>
-                        <p className="text-xs text-muted-foreground font-kantumruy opacity-70 leading-relaxed">{t("account.preferences.language.description")}</p>
-                    </div>
-                    <div className="min-w-[180px]">
+                    <div className="w-full sm:w-[180px] shrink-0">
                         <Select value={locale} onValueChange={(val: any) => setLocale(val)}>
-                            <SelectTrigger className="h-14 bg-background border-border/10 rounded-2xl font-black font-kantumruy shadow-sm transition-all hover:border-primary/30 focus:ring-primary/20">
-                                <SelectValue placeholder="Select Language" />
+                            <SelectTrigger className="h-11 bg-white dark:bg-zinc-800 border-slate-200 dark:border-white/10 rounded-xl font-bold font-kantumruy text-xs shadow-sm">
+                                <SelectValue placeholder="ជ្រើសរើសភាសា" />
                             </SelectTrigger>
-                            <SelectContent className="rounded-2xl border-border/20 shadow-2xl dark:shadow-none p-1.5 backdrop-blur-3xl">
-                                <SelectItem value="km" className="rounded-xl py-3 font-black font-kantumruy focus:bg-primary/5 cursor-pointer">
-                                    {t("account.preferences.language.km")}
+                            <SelectContent className="rounded-xl border-slate-200 dark:border-white/10 shadow-xl p-1 font-kantumruy">
+                                <SelectItem value="km" className="rounded-lg py-2.5 font-bold font-kantumruy text-xs cursor-pointer">
+                                    🇰🇭 {t("account.preferences.language.km", { defaultValue: "ភាសាខ្មែរ (Khmer)" })}
                                 </SelectItem>
-                                {/* 
-                                <SelectItem value="en" className="rounded-xl py-3 font-black font-kantumruy focus:bg-primary/5 cursor-pointer">
-                                    {t("account.preferences.language.en")}
-                                </SelectItem>
-                                */}
                             </SelectContent>
                         </Select>
                     </div>

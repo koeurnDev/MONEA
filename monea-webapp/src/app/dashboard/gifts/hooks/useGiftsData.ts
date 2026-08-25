@@ -1,6 +1,4 @@
-"use client";
-
-import useSWR from "swr";
+﻿import useSWR from "swr";
 import { useState, useEffect, useCallback } from "react";
 
 import { moneaClient } from "@/lib/api-client";

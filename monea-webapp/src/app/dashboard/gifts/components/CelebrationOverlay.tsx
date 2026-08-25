@@ -1,6 +1,4 @@
-"use client";
-
-import { AnimatePresence, m } from 'framer-motion';
+﻿import { AnimatePresence, m } from 'framer-motion';
 import { Sparkles, Star } from "lucide-react";
 import { CinematicText } from "./CinematicText";
 import { useTranslation } from "@/i18n/LanguageProvider";

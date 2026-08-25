@@ -71,11 +71,11 @@ export const SECURITY_HEADERS = {
         "default-src 'self'; " +
         "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://upload-widget.cloudinary.com https://browser.sentry-cdn.com; " +
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-        "img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://plus.unsplash.com https://*.google.com https://*.gstatic.com; " +
+        "img-src 'self' data: blob: https://res.cloudinary.com https://ik.imagekit.io https://images.unsplash.com https://plus.unsplash.com https://*.google.com https://*.gstatic.com; " +
         "font-src 'self' https://fonts.gstatic.com data:; " +
         "frame-src 'self' https://challenges.cloudflare.com https://www.youtube.com https://youtube.com https://upload-widget.cloudinary.com; " +
-        "connect-src 'self' https://challenges.cloudflare.com https://api.cloudinary.com https://upload-widget.cloudinary.com https://res.cloudinary.com https://*.sentry.io wss:; " +
-        "media-src 'self' data: blob: https://res.cloudinary.com; " +
+        "connect-src 'self' https://challenges.cloudflare.com https://api.cloudinary.com https://upload-widget.cloudinary.com https://res.cloudinary.com https://upload.imagekit.io https://api.imagekit.io https://ik.imagekit.io https://*.sentry.io wss:; " +
+        "media-src 'self' data: blob: https://res.cloudinary.com https://ik.imagekit.io; " +
         "object-src 'none'; " +
         "base-uri 'self'; " +
         "frame-ancestors 'self'; " +

@@ -1,18 +1,17 @@
-export const dynamic = 'force-dynamic';
-import { prisma } from "@/lib/prisma";
-import { Link, Plus, Play } from "lucide-react";
-import Image from "next/image";
+import { Link, Plus, Play, Loader2 } from "lucide-react";
+import { useParams } from "react-router-dom";
+import useSWR from "swr";
 
-async function getGalleryItems(weddingId: string) {
-    return await prisma.galleryItem.findMany({
-        where: { weddingId },
-        orderBy: { createdAt: 'desc' },
-    });
-}
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-export default async function GalleryPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
-    const items = await getGalleryItems(id);
+export default function GalleryPage() {
+    const { id } = useParams();
+    const { data: items, error, isLoading } = useSWR(id ? `/api/gallery?weddingId=${id}` : null, fetcher);
+
+    if (isLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin" /></div>;
+    if (error) return <div>Failed to load gallery</div>;
+
+    const galleryItems = items?.data || [];
 
     return (
         <div className="min-h-screen bg-[#FFFDF5] p-4 pb-24">
@@ -24,25 +23,23 @@ export default async function GalleryPage({ params }: { params: Promise<{ id: st
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {items.map((item) => (
+                {galleryItems.map((item: any) => (
                     <div key={item.id} className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
                         {item.type === 'VIDEO' ? (
                             <div className="w-full h-full flex items-center justify-center bg-black/10">
                                 <Play className="w-10 h-10 text-white/80" />
-                                {/* In a real app, uses a video thumbnail or player */}
                             </div>
                         ) : (
-                            <Image
+                            <img
                                 src={item.url}
-                                alt={item.caption || "Gallery Image"}
-                                fill
-                                className="object-cover"
+                                alt={item.caption || "Gallery Image"} 
+                                
                             />
                         )}
                     </div>
                 ))}
 
-                {items.length === 0 && (
+                {galleryItems.length === 0 && (
                     <div className="col-span-full py-20 text-center text-gray-400 font-siemreap">
                         មិនទាន់មានរូបភាពនៅឡើយ
                     </div>

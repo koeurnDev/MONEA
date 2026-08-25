@@ -79,17 +79,20 @@ export function PreviewSync({ wedding, iframeRef, currentStep, enableScrollSync 
         wedding
     ]);
 
+    const weddingRef = useRef(wedding);
+    weddingRef.current = wedding;
+
     useEffect(() => {
         const handleMessage = (event: MessageEvent) => {
             if (event.data?.type === "PREVIEW_READY") {
-                if (iframeRef.current && iframeRef.current.contentWindow && wedding) {
-                    iframeRef.current.contentWindow.postMessage({ type: "UPDATE_PREVIEW", payload: wedding }, "*");
+                if (iframeRef.current && iframeRef.current.contentWindow && weddingRef.current) {
+                    iframeRef.current.contentWindow.postMessage({ type: "UPDATE_PREVIEW", payload: weddingRef.current }, "*");
                 }
             }
         };
         window.addEventListener("message", handleMessage);
         return () => window.removeEventListener("message", handleMessage);
-    }, [wedding, iframeRef]);
+    }, [iframeRef]);
 
     // 3. Scroll Sync
     useEffect(() => {

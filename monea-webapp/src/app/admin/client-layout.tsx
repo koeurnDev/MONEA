@@ -1,10 +1,8 @@
-"use client";
-import * as React from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import React, { lazy, Suspense, useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { LayoutDashboard, Users, Settings, LogOut, Shield, Menu, Activity, Bell, Megaphone, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { m, AnimatePresence } from 'framer-motion';
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
@@ -13,14 +11,14 @@ import { AdminLanguageToggle } from "@/components/AdminLanguageToggle";
 import { ToastProvider } from "@/components/ui/Toast";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import AdminHealthPulse from "@/components/admin/AdminHealthPulse";
-import dynamic from "next/dynamic";
+// next/dynamic replaced with React.lazy;
 import { moneaClient } from "@/lib/api-client";
 
-const ConfirmModal = dynamic(() => import("@/components/ui/ConfirmModal").then(m => m.ConfirmModal), { ssr: false });
+const ConfirmModal = lazy<React.ComponentType<any>>(() => import("@/components/ui/ConfirmModal").then(m => ({ default: (m as any).ConfirmModal })));
 
 export default function AdminClientLayout({ children }: { children: React.ReactNode }) {
     const { t, locale } = useTranslation();
-    const pathname = usePathname();
+    const { pathname } = useLocation();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [logoutConfirm, setLogoutConfirm] = useState(false);
@@ -54,7 +52,7 @@ export default function AdminClientLayout({ children }: { children: React.ReactN
     const renderSidebarContent = (isMobile: boolean = false) => (
         <div className="flex flex-col h-full bg-white dark:bg-slate-950 relative overflow-hidden text-slate-500 dark:text-slate-400">
             <div className="p-10 pb-12 relative z-10">
-                <Link href="/" className="flex items-center gap-4 group transition-transform hover:scale-[1.02]">
+                <Link to="/" className="flex items-center gap-4 group transition-transform hover:scale-[1.02]">
                     <MoneaLogo showText size="md" />
                 </Link>
             </div>
@@ -69,7 +67,7 @@ export default function AdminClientLayout({ children }: { children: React.ReactN
                     return (
                         <Link
                             key={item.href}
-                            href={item.href}
+                            to={item.href}
                             onClick={() => isMobileMenuOpen && setIsMobileMenuOpen(false)}
                             className={cn(
                                 "flex items-center gap-4 w-full px-5 py-3 rounded-lg transition-all duration-300 shadow-sm text-sm font-medium relative group",

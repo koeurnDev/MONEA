@@ -1,6 +1,6 @@
-import Link from "next/link";
+import { Link } from 'react-router-dom';
 import { MapPin, Navigation } from "lucide-react";
-import Image from "next/image";
+// next/image replaced with <img>;
 
 interface LocationProps {
     locationName: string;

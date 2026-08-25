@@ -8,7 +8,7 @@ import { activityUpdateSchema } from "@/lib/validations/activity"
 const activitiesRouter = new Hono()
 
 activitiesRouter.get('/', async (c) => {
-    const user = await getServerUser();
+    const user = await getServerUser(c.req.raw);
     if (!user) return c.json({ error: "Unauthorized" }, 401);
 
     const weddingId = (user as any).weddingId || (await prisma.wedding.findFirst({ where: { userId: user.userId || (user as any).id } }))?.id;
@@ -24,7 +24,7 @@ activitiesRouter.get('/', async (c) => {
 });
 
 activitiesRouter.post('/', async (c) => {
-    const user = await getServerUser();
+    const user = await getServerUser(c.req.raw);
     if (!user) return c.json({ error: "Unauthorized" }, 401);
 
     let body;
@@ -67,8 +67,47 @@ activitiesRouter.post('/', async (c) => {
     return c.json(activity);
 });
 
+activitiesRouter.put('/reorder', async (c) => {
+    const user = await getServerUser(c.req.raw);
+    if (!user) return c.json({ error: "Unauthorized" }, 401);
+
+    const weddingId = (user as any).weddingId || (await prisma.wedding.findFirst({ where: { userId: user.userId || (user as any).id } }))?.id;
+    if (!weddingId) return c.json({ error: "Wedding not found" }, 404);
+
+    let body;
+    try {
+        body = await c.req.json();
+    } catch {
+        return c.json({ error: "Invalid JSON" }, 400);
+    }
+
+    const items: { id: string; order: number }[] = Array.isArray(body)
+        ? (typeof body[0] === 'string'
+            ? body.map((id: string, idx: number) => ({ id, order: idx }))
+            : body)
+        : (body?.items || []);
+
+    if (!items.length) return c.json({ error: "No items provided" }, 400);
+
+    await prisma.$transaction(
+        items.map((item, idx) =>
+            prisma.activity.updateMany({
+                where: { id: item.id, weddingId },
+                data: { order: item.order !== undefined ? item.order : idx }
+            })
+        )
+    );
+
+    const updated = await prisma.activity.findMany({
+        where: { weddingId },
+        orderBy: { order: "asc" }
+    });
+
+    return c.json(updated);
+});
+
 activitiesRouter.put('/:id', async (c) => {
-    const user = await getServerUser();
+    const user = await getServerUser(c.req.raw);
     if (!user) return c.json({ error: "Unauthorized" }, 401);
 
     const weddingId = (user as any).weddingId || (await prisma.wedding.findFirst({ where: { userId: user.userId || (user as any).id } }))?.id;
@@ -112,7 +151,7 @@ activitiesRouter.put('/:id', async (c) => {
 });
 
 activitiesRouter.delete('/:id', async (c) => {
-    const user = await getServerUser();
+    const user = await getServerUser(c.req.raw);
     if (!user) return c.json({ error: "Unauthorized" }, 401);
 
     const weddingId = (user as any).weddingId || (await prisma.wedding.findFirst({ where: { userId: user.userId || (user as any).id } }))?.id;

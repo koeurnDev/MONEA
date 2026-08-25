@@ -1,7 +1,6 @@
-"use client";
-import * as React from "react";
+﻿import * as React from "react";
 import Lenis from "lenis";
-import { usePathname } from "next/navigation";
+import { useLocation } from 'react-router-dom';
 
 export default function SmoothScroll({ children }: { children: React.ReactNode }) {
     // វិធីសាស្រ្តទី១៖ បិទ JS Smooth Scroll (Lenis) ទាំងស្រុង ហើយប្រើប្រាស់ Native CSS Scroll

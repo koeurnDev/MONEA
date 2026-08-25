@@ -1,6 +1,6 @@
-import * as React from 'react';
+﻿import * as React from 'react';
 import { m, AnimatePresence } from 'framer-motion';
-import Image from 'next/image';
+// next/image replaced with <img>;
 import { WeddingData } from '../types';
 import { RevealSection, CinematicPlaceholder } from '../shared/CinematicComponents';
 import { useTranslation } from '@/i18n/LanguageProvider';
@@ -65,10 +65,9 @@ export function GallerySection({ wedding, galleryImages, groomPan, bridePan, gal
                                         className="absolute inset-0"
                                     >
                                     {galleryImages[index] ? (
-                                        <Image 
-                                            src={galleryImages[index]} 
-                                            fill 
-                                            sizes="100vw" 
+                                        <img 
+                                            src={galleryImages[index]}  
+                                             
                                             className={`object-cover transition-transform duration-1000 ${galleryPan.isDragging ? 'cursor-grabbing' : 'cursor-grab'}`} 
                                             style={{ 
                                                 objectPosition: `${galleryPan.localX} ${galleryPan.localY}`,
@@ -79,7 +78,7 @@ export function GallerySection({ wedding, galleryImages, groomPan, bridePan, gal
                                             onTouchStart={galleryPan.onStart}
                                             draggable={false}
                                             alt={`Gallery ${index}`} 
-                                            priority={index === 0}
+                                            
                                         />
                                     ) : (
                                         <CinematicPlaceholder label="Our Story" />
@@ -136,10 +135,9 @@ export function GallerySection({ wedding, galleryImages, groomPan, bridePan, gal
                                 <div className="absolute inset-0 ring-[40px] ring-gold-main/20 rounded-full blur-3xl" />
                             </m.div>
                             {galleryImages[3 % galleryImages.length] ? (
-                                <Image 
-                                    src={galleryImages[3 % galleryImages.length]} 
-                                    fill 
-                                    sizes="(max-width: 768px) 80vw, 33vw" 
+                                <img 
+                                    src={galleryImages[3 % galleryImages.length]}  
+                                     
                                     alt="Groom" 
                                     className={`object-cover ${groomPan.isDragging ? 'cursor-grabbing' : 'cursor-grab group-hover:scale-110'} transition-all duration-1500 ease-out`} 
                                     style={{
@@ -178,10 +176,9 @@ export function GallerySection({ wedding, galleryImages, groomPan, bridePan, gal
                                 <div className="absolute inset-0 ring-[40px] ring-gold-main/20 rounded-full blur-3xl" />
                             </m.div>
                             {galleryImages[4 % galleryImages.length] ? (
-                                <Image 
-                                    src={galleryImages[4 % galleryImages.length]} 
-                                    fill 
-                                    sizes="(max-width: 768px) 80vw, 33vw" 
+                                <img 
+                                    src={galleryImages[4 % galleryImages.length]}  
+                                     
                                     alt="Bride" 
                                     className={`object-cover ${bridePan.isDragging ? 'cursor-grabbing' : 'cursor-grab group-hover:scale-110'} transition-all duration-1500 ease-out`} 
                                     style={{

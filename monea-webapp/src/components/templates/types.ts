@@ -19,6 +19,12 @@ export interface WeddingData {
     id: string;
     groomName: string;
     brideName: string;
+    groomFather?: string;
+    groomMother?: string;
+    brideFather?: string;
+    brideMother?: string;
+    groomPhoto?: string;
+    bridePhoto?: string;
     date: Date | string;
     time?: string | null;
     location: string | null;
@@ -29,6 +35,8 @@ export interface WeddingData {
     activities: { time: string; description: string | null; title: string, icon?: string | null, publicId?: string | null, order?: number }[];
     themeSettings?: {
         primaryColor?: string;
+        coverImageUrl?: string;
+        loveStory?: string;
         nameFont?: string;
         nameSeparator?: string;
         musicUrl?: string;
@@ -132,4 +140,9 @@ export interface WeddingData {
     eventType?: 'wedding' | 'anniversary';
     packageType?: string | null;
     guestId?: string; // Unique ID for QR check-in
+}
+
+export interface TemplateProps {
+    wedding: WeddingData;
+    guestName?: string;
 }

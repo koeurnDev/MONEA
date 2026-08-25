@@ -1,5 +1,4 @@
-"use client";
-import { motion } from "framer-motion";
+﻿import { motion } from "framer-motion";
 import { MoneaLogo } from "./ui/MoneaLogo";
 
 export const MoneaBranding = ({ packageType }: { packageType?: string | null }) => {

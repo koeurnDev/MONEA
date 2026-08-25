@@ -1,12 +1,7 @@
-"use client";
-
-import { m, useScroll, useTransform } from 'framer-motion';
-import Image from 'next/image';
-import { useRef } from 'react';
+import * as React from 'react';
+import { m } from 'framer-motion';
 import { WeddingData } from '../types';
-import { RevealSection, CinematicPlaceholder } from '../shared/CinematicComponents';
-
-const MotionImage = m(Image);
+import { RevealSection } from '../shared/CinematicComponents';
 
 interface DynamicGalleryProps {
     wedding: WeddingData;
@@ -22,8 +17,8 @@ interface DynamicGalleryProps {
 
 export function DynamicGallery({ 
     wedding, 
-    galleryImages,
-    dynamicPool,
+    galleryImages = [],
+    dynamicPool = [],
     preWeddingPan1,
     preWeddingPan2,
     preWeddingPan3,
@@ -31,189 +26,160 @@ export function DynamicGallery({
     preWeddingPan5,
     preWeddingPan6
 }: DynamicGalleryProps) {
-    const containerRef = useRef<HTMLElement>(null);
-    const { scrollYProgress } = useScroll({
-        target: containerRef,
-        offset: ["start end", "end start"]
-    });
-
-    const yLeft = useTransform(scrollYProgress, [0, 1], [0, -100]);
-    const yRight = useTransform(scrollYProgress, [0, 1], [0, 100]);
-    const yCenter = useTransform(scrollYProgress, [0, 1], [0, -50]);
-
     const pans = [preWeddingPan1, preWeddingPan2, preWeddingPan3, preWeddingPan4, preWeddingPan5, preWeddingPan6];
     
-    if (wedding.themeSettings?.galleryStyle === 'slider') {
-        // ... [Slider logic remains the same]
-        return (
-            <section id="gallery-sections" className="py-32 md:py-64 px-6 md:px-12 bg-white relative">
-                <div className="max-w-7xl mx-auto space-y-32 md:space-y-48">
-                    <RevealSection>
-                        <div className="text-center space-y-8">
-                            <div className="h-[1px] w-24 bg-gold/10 mx-auto" />
-                            <h2 className="font-playfair text-4xl md:text-6xl font-black italic text-gray-800 tracking-tighter">Golden Memories</h2>
-                            <p className="font-serif-elegant text-sm text-gold/40 tracking-[0.5em] uppercase">Private Gallery</p>
-                        </div>
-                    </RevealSection>
-                    <div className="flex gap-8 overflow-x-auto snap-x snap-mandatory pb-12 no-scrollbar -mx-6 px-6 md:mx-0 md:px-0">
-                        {dynamicPool.map((img, idx) => (
-                            <m.div
-                                key={idx}
-                                className="flex-shrink-0 w-[85%] md:w-[450px] aspect-[3/4] snap-center rounded-sm overflow-hidden border-lux shadow-2xl bg-white relative"
-                            >
-                                <Image src={img} fill className="object-cover" alt={`Gallery ${idx}`} priority={idx < 2} />
-                            </m.div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-        );
+    const DEFAULT_GALLERY = [
+        "/assets/khmer-legacy/621811254_905398285378636_5240747682765358044_n.jpg",
+        "/assets/khmer-legacy/621811002_905396558712142_5126771807004187076_n.jpg",
+        "/assets/khmer-legacy/621811942_905392918712506_8600818650624857202_n.jpg",
+        "/assets/khmer-legacy/621813168_905393265379138_2356104923368506186_n.jpg",
+        "/assets/khmer-legacy/622279784_905392782045853_1189842078802821714_n.jpg",
+        "/assets/khmer-legacy/622374686_905392995379165_1001573724208229331_n.jpg",
+    ];
+
+    // Aggregate all unique images
+    const allRawImages = [...(galleryImages || []), ...(dynamicPool || [])];
+    let images = Array.from(new Set(allRawImages.filter(Boolean)));
+    if (images.length === 0) {
+        images = DEFAULT_GALLERY;
     }
 
-    if (wedding.themeSettings?.galleryStyle === 'polaroid') {
-        // ... [Polaroid logic remains the same]
-        return (
-            <section id="gallery-sections" className="py-32 md:py-64 px-6 md:px-12 bg-white relative">
-                <div className="max-w-7xl mx-auto space-y-32 md:space-y-48">
-                    <RevealSection>
-                        <div className="text-center space-y-8">
-                            <div className="h-[1px] w-24 bg-gold/10 mx-auto" />
-                            <h2 className="font-khmer-moul text-3xl md:text-5xl text-gold-gradient leading-relaxed">រូបភាពអនុស្សាវរីយ៍</h2>
-                            <p className="font-khmer text-[10px] md:text-xs text-gold/40 tracking-[0.4em] uppercase font-bold">អនុស្សាវរីយ៍ផ្អែមល្ហែម</p>
-                        </div>
-                    </RevealSection>
-                    <div className="space-y-32 flex flex-col items-center">
-                        {dynamicPool.length > 0 && (
-                            <div className="w-full">
-                                <div className="text-center mb-16">
-                                    <h3 className="font-playfair text-3xl italic text-gray-700">The Pre-Wedding</h3>
-                                    <div className="w-12 h-[1px] bg-gold/10 mx-auto mt-6" />
-                                </div>
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-8 px-2 pb-10">
-                                    {dynamicPool.map((img, idx) => (
-                                        <m.div
-                                            key={idx}
-                                            initial={{ rotate: idx % 2 === 0 ? -3 : 3 }}
-                                            whileInView={{ rotate: idx % 2 === 0 ? -1 : 1 }}
-                                            className="bg-white p-2 md:p-4 pt-2 md:pt-4 pb-8 md:pb-16 shadow-xl md:shadow-2xl border border-gray-100 rounded-sm relative min-h-[100px] flex items-center justify-center bg-gold/5 overflow-hidden"
-                                        >
-                                            <Image 
-                                                src={img} 
-                                                className={`w-full h-48 md:h-80 object-cover ${pans[idx % pans.length]?.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-105 transition-all'}`} 
-                                                style={{ 
-                                                    objectPosition: `${pans[idx % pans.length]?.localX} ${pans[idx % pans.length]?.localY}`,
-                                                    userSelect: 'none',
-                                                    touchAction: 'none'
-                                                }}
-                                                onMouseDown={pans[idx % pans.length]?.onStart}
-                                                onTouchStart={pans[idx % pans.length]?.onStart}
-                                                draggable={false}
-                                                alt={`Gallery ${idx}`} 
-                                                width={400}
-                                                height={320}
-                                            />
-                                        </m.div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </section>
-        );
+    // Group into alternating 2-image pairs
+    const imagePairs: { left: string; right?: string; leftIdx: number; rightIdx?: number }[] = [];
+    for (let i = 0; i < images.length; i += 2) {
+        imagePairs.push({
+            left: images[i],
+            right: images[i + 1] || undefined,
+            leftIdx: i,
+            rightIdx: images[i + 1] ? i + 1 : undefined,
+        });
     }
 
-    // Default Editorial Style with PARALLAX
+    const titleText = wedding.themeSettings?.customLabels?.galleryTitle || "វិចិត្រសាល";
+
     return (
-        <section ref={containerRef} id="gallery-sections" className="py-32 md:py-64 px-6 md:px-12 bg-white relative overflow-hidden">
-            {/* LUXURY OVERLAYS */}
-            <div className="absolute top-0 left-0 w-64 h-64 bg-gold/5 blur-[120px] pointer-events-none" />
-            <div className="absolute bottom-0 right-0 w-96 h-96 bg-gold/5 blur-[150px] pointer-events-none" />
+        <section id="gallery-sections" className="py-10 md:py-20 px-3 sm:px-6 md:px-12 bg-white relative overflow-hidden font-kantumruy">
+            {/* Background subtle luxury watermark */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] md:w-[1000px] h-[600px] bg-[radial-gradient(circle_at_center,_rgba(212,175,55,0.04)_0%,_transparent_70%)] pointer-events-none" />
 
-            <div className="max-w-7xl mx-auto space-y-32 md:space-y-48 relative z-10">
+            <div className="max-w-3xl mx-auto space-y-6 sm:space-y-8 relative z-10">
+                {/* Section Title */}
                 <RevealSection>
-                    <div className="text-center space-y-8">
-                        <div className="h-[1px] w-24 bg-gold/10 mx-auto" />
-                        <h2 className="font-khmer-moul text-4xl md:text-6xl text-gold-gradient drop-shadow-sm leading-relaxed">កម្រងរូបភាពអនុស្សាវរីយ៍</h2>
-                        <p className="font-khmer text-xs md:text-sm text-gold/40 tracking-[0.4em] uppercase font-bold">រូបភាពដែលមិនអាចបំភ្លេចបាន</p>
+                    <div className="text-center space-y-2 mb-6 sm:mb-8">
+                        <h2 className="font-khmer-moul text-2xl sm:text-3xl md:text-4xl text-gold-gradient text-gold-embossed tracking-wide leading-relaxed py-1">
+                            {titleText}
+                        </h2>
+                        <div className="w-16 md:w-24 h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent mx-auto" />
                     </div>
                 </RevealSection>
 
-                <div className="space-y-24 md:space-y-48">
-                    {/* Render images in blocks of 6 to maintain the masonry pattern */}
-                    {Array.from({ length: Math.ceil(dynamicPool.length / 6) }).map((_, blockIdx) => {
-                        const startIndex = blockIdx * 6;
-                        const blockImages = dynamicPool.slice(startIndex, startIndex + 6);
-                        
-                        return (
-                            <div key={blockIdx} className="space-y-16 md:space-y-24">
-                                <div className="text-center mb-16 md:mb-24 px-4">
-                                    <h3 className="font-khmer-moul text-xl md:text-3xl text-gray-700 font-light tracking-wide">
-                                        {blockIdx === 0 ? "រូបថតមុនអាពាហ៍ពិពាហ៍" : blockIdx === 1 ? "រូបភាពអនុស្សាវរីយ៍" : "ជំពូកទី " + (blockIdx + 1)}
-                                    </h3>
-                                    <div className="w-12 md:w-16 h-[1px] bg-gold/20 mx-auto mt-6 md:mt-8" />
-                                </div>
-                                
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-6 md:gap-16 px-4 md:px-1">
-                                    {blockImages.map((img, idx) => {
-                                        const globalIdx = startIndex + idx;
-                                        let spanClass = "col-span-1 aspect-[3/4]";
-                                        let yOffset = yCenter;
-                                        
-                                        // Pattern applies within each block of 6
-                                        if (idx === 0) {
-                                            spanClass = "col-span-2 md:col-span-2 aspect-[4/3] md:aspect-video";
-                                            yOffset = yLeft;
-                                        } else if (idx === 1) {
-                                            yOffset = yRight;
-                                            spanClass = "col-span-1 aspect-[3/4]";
-                                        } else if (idx === 2) {
-                                            yOffset = yCenter;
-                                            spanClass = "col-span-1 aspect-[3/4]";
-                                        } else if (idx === 3) {
-                                            yOffset = yLeft;
-                                            spanClass = "col-span-1 aspect-[3/4]";
-                                        } else if (idx === 4) {
-                                            yOffset = yRight;
-                                            spanClass = "col-span-1 md:col-span-1 aspect-[3/4]";
-                                        } else if (idx === 5) {
-                                            spanClass = "col-span-2 md:col-span-3 aspect-[16/9] md:aspect-[21/9]";
-                                            yOffset = yCenter;
-                                        }
+                {/* Alternating 2-Column Photo Collage Grid (Matching User Reference) */}
+                <div className="space-y-3 sm:space-y-4">
+                    {imagePairs.map((pair, pairIdx) => {
+                        const isEven = pairIdx % 2 === 0;
 
-                                        return (
-                                            <m.div
-                                                key={globalIdx}
-                                                style={{ y: typeof window !== 'undefined' && window.innerWidth < 768 ? 0 : yOffset }}
-                                                className={`relative z-10 ${spanClass}`}
-                                            >
-                                                <RevealSection
-                                                    delay={0.1 + (idx % 3) * 0.1}
-                                                    className="w-full h-full border-lux bg-white shadow-xl md:shadow-2xl relative overflow-hidden rounded-sm"
-                                                >
-                                                    <MotionImage
-                                                        src={img}
-                                                        whileHover={{ scale: 1.05 }}
-                                                        transition={{ duration: 0.8 }}
-                                                        className={`w-full h-full object-cover ${pans[globalIdx % pans.length]?.isDragging ? 'cursor-grabbing' : 'cursor-grab'}`} 
-                                                        style={{ 
-                                                            objectPosition: `${pans[globalIdx % pans.length]?.localX} ${pans[globalIdx % pans.length]?.localY}`,
-                                                            userSelect: 'none',
-                                                            touchAction: 'none'
-                                                        }}
-                                                        onMouseDown={pans[globalIdx % pans.length]?.onStart}
-                                                        onTouchStart={pans[globalIdx % pans.length]?.onStart}
-                                                        draggable={false}
-                                                        alt={`Gallery ${globalIdx}`}
-                                                        fill
-                                                        sizes="(max-width: 768px) 50vw, 33vw"
-                                                    />
-                                                </RevealSection>
-                                            </m.div>
-                                        );
-                                    })}
+                        // Single trailing image if odd count
+                        if (!pair.right) {
+                            return (
+                                <RevealSection key={pairIdx} delay={0.1}>
+                                    <div className="w-full aspect-[16/9] sm:aspect-[21/9] bg-white p-1 rounded-2xl sm:rounded-3xl shadow-[0_8px_24px_rgba(0,0,0,0.06)] border border-[#D4AF37]/20 overflow-hidden relative group">
+                                        <img 
+                                            src={pair.left} 
+                                            className={`w-full h-full object-cover rounded-xl sm:rounded-2xl transition-transform duration-700 group-hover:scale-105 ${pans[pair.leftIdx % pans.length]?.isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+                                            style={{
+                                                objectPosition: `${pans[pair.leftIdx % pans.length]?.localX} ${pans[pair.leftIdx % pans.length]?.localY}`,
+                                                userSelect: 'none',
+                                                touchAction: 'none'
+                                            }}
+                                            onMouseDown={pans[pair.leftIdx % pans.length]?.onStart}
+                                            onTouchStart={pans[pair.leftIdx % pans.length]?.onStart}
+                                            draggable={false}
+                                            alt={`Gallery ${pair.leftIdx}`}
+                                        />
+                                    </div>
+                                </RevealSection>
+                            );
+                        }
+
+                        // Alternating Pair: Even = (Portrait 5/12 + Landscape 7/12), Odd = (Landscape 7/12 + Portrait 5/12)
+                        return (
+                            <RevealSection key={pairIdx} delay={0.06 * (pairIdx % 4)}>
+                                <div className="grid grid-cols-12 gap-2.5 sm:gap-4 items-center">
+                                    {isEven ? (
+                                        <>
+                                            {/* Left: Portrait 5/12 */}
+                                            <div className="col-span-5 aspect-[3/4] bg-white p-1 rounded-2xl sm:rounded-3xl shadow-[0_8px_24px_rgba(0,0,0,0.06)] border border-[#D4AF37]/20 overflow-hidden relative group">
+                                                <img 
+                                                    src={pair.left} 
+                                                    className={`w-full h-full object-cover rounded-xl sm:rounded-2xl transition-transform duration-700 group-hover:scale-105 ${pans[pair.leftIdx % pans.length]?.isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+                                                    style={{
+                                                        objectPosition: `${pans[pair.leftIdx % pans.length]?.localX} ${pans[pair.leftIdx % pans.length]?.localY}`,
+                                                        userSelect: 'none',
+                                                        touchAction: 'none'
+                                                    }}
+                                                    onMouseDown={pans[pair.leftIdx % pans.length]?.onStart}
+                                                    onTouchStart={pans[pair.leftIdx % pans.length]?.onStart}
+                                                    draggable={false}
+                                                    alt={`Gallery ${pair.leftIdx}`}
+                                                />
+                                            </div>
+
+                                            {/* Right: Landscape 7/12 */}
+                                            <div className="col-span-7 aspect-[4/3] bg-white p-1 rounded-2xl sm:rounded-3xl shadow-[0_8px_24px_rgba(0,0,0,0.06)] border border-[#D4AF37]/20 overflow-hidden relative group">
+                                                <img 
+                                                    src={pair.right} 
+                                                    className={`w-full h-full object-cover rounded-xl sm:rounded-2xl transition-transform duration-700 group-hover:scale-105 ${pans[pair.rightIdx! % pans.length]?.isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+                                                    style={{
+                                                        objectPosition: `${pans[pair.rightIdx! % pans.length]?.localX} ${pans[pair.rightIdx! % pans.length]?.localY}`,
+                                                        userSelect: 'none',
+                                                        touchAction: 'none'
+                                                    }}
+                                                    onMouseDown={pans[pair.rightIdx! % pans.length]?.onStart}
+                                                    onTouchStart={pans[pair.rightIdx! % pans.length]?.onStart}
+                                                    draggable={false}
+                                                    alt={`Gallery ${pair.rightIdx}`}
+                                                />
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            {/* Left: Landscape 7/12 */}
+                                            <div className="col-span-7 aspect-[16/10] bg-white p-1 rounded-2xl sm:rounded-3xl shadow-[0_8px_24px_rgba(0,0,0,0.06)] border border-[#D4AF37]/20 overflow-hidden relative group">
+                                                <img 
+                                                    src={pair.left} 
+                                                    className={`w-full h-full object-cover rounded-xl sm:rounded-2xl transition-transform duration-700 group-hover:scale-105 ${pans[pair.leftIdx % pans.length]?.isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+                                                    style={{
+                                                        objectPosition: `${pans[pair.leftIdx % pans.length]?.localX} ${pans[pair.leftIdx % pans.length]?.localY}`,
+                                                        userSelect: 'none',
+                                                        touchAction: 'none'
+                                                    }}
+                                                    onMouseDown={pans[pair.leftIdx % pans.length]?.onStart}
+                                                    onTouchStart={pans[pair.leftIdx % pans.length]?.onStart}
+                                                    draggable={false}
+                                                    alt={`Gallery ${pair.leftIdx}`}
+                                                />
+                                            </div>
+
+                                            {/* Right: Portrait 5/12 */}
+                                            <div className="col-span-5 aspect-[3/4] bg-white p-1 rounded-2xl sm:rounded-3xl shadow-[0_8px_24px_rgba(0,0,0,0.06)] border border-[#D4AF37]/20 overflow-hidden relative group">
+                                                <img 
+                                                    src={pair.right} 
+                                                    className={`w-full h-full object-cover rounded-xl sm:rounded-2xl transition-transform duration-700 group-hover:scale-105 ${pans[pair.rightIdx! % pans.length]?.isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+                                                    style={{
+                                                        objectPosition: `${pans[pair.rightIdx! % pans.length]?.localX} ${pans[pair.rightIdx! % pans.length]?.localY}`,
+                                                        userSelect: 'none',
+                                                        touchAction: 'none'
+                                                    }}
+                                                    onMouseDown={pans[pair.rightIdx! % pans.length]?.onStart}
+                                                    onTouchStart={pans[pair.rightIdx! % pans.length]?.onStart}
+                                                    draggable={false}
+                                                    alt={`Gallery ${pair.rightIdx}`}
+                                                />
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
-                            </div>
+                            </RevealSection>
                         );
                     })}
                 </div>

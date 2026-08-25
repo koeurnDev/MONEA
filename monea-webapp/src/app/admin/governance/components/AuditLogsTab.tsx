@@ -1,5 +1,4 @@
-"use client";
-import { Activity } from "lucide-react";
+﻿import { Activity } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 

@@ -1,4 +1,3 @@
-"use client";
 import React from 'react';
 import ImageCropperModal from "@/components/ui/image-cropper-modal";
 import { useTranslation } from "@/i18n/LanguageProvider";
@@ -21,6 +20,7 @@ interface Step4MediaProps {
     isDraggingGallery: boolean;
     setIsDraggingGallery: (val: boolean) => void;
     TEMPLATE_LAYOUTS: Record<string, { slots: number, labels: string[] }>;
+    updateGalleryOrder: (items: any[]) => void;
 }
 
 const Step4Media: React.FC<Step4MediaProps> = ({
@@ -34,7 +34,8 @@ const Step4Media: React.FC<Step4MediaProps> = ({
     galleryProgress,
     isDraggingGallery,
     setIsDraggingGallery,
-    TEMPLATE_LAYOUTS
+    TEMPLATE_LAYOUTS,
+    updateGalleryOrder
 }) => {
     const { t } = useTranslation();
     const isAnniv = wedding.eventType === 'anniversary';
@@ -70,21 +71,7 @@ const Step4Media: React.FC<Step4MediaProps> = ({
     };
 
     return (
-        <div className="space-y-8 pb-10 font-khmer">
-            {/* Header Section */}
-            <section className="space-y-1">
-                <h3 className="text-lg font-bold font-kantumruy text-slate-900 dark:text-white uppercase tracking-tight flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                    {t("wizard.steps.4.title")}
-                </h3>
-                <p className="text-[10px] text-slate-400 dark:text-white/30 uppercase tracking-widest font-medium pl-3.5">{t("wizard.steps.4.description")}</p>
-                <div className="mt-4 pl-3.5">
-                    <p className="text-[11px] text-slate-500 dark:text-rose-200/50 leading-relaxed font-normal italic">
-                        {t("wizard.steps.4.mediaNote")}
-                    </p>
-                </div>
-            </section>
-
+        <div className="space-y-8 font-kantumruy">
             <input 
                 type="file" 
                 accept="image/*" 
@@ -115,6 +102,7 @@ const Step4Media: React.FC<Step4MediaProps> = ({
                 }}
             />
 
+            {/* Categorized Visual Photo Slots */}
             <CategorizedSlots 
                 wedding={wedding} 
                 layout={layout} 
@@ -129,15 +117,7 @@ const Step4Media: React.FC<Step4MediaProps> = ({
                 t={t} 
             />
 
-            <SacredBondSection 
-                wedding={wedding} 
-                setActiveSlotIdx={setActiveSlotIdx} 
-                slotInputRef={slotInputRef} 
-                removeGalleryItem={removeGalleryItem} 
-                slotUploading={slotUploading} 
-                t={t} 
-            />
-
+            {/* General Multi-Photo Album Section */}
             <GeneralGallerySection 
                 wedding={wedding} 
                 layout={layout} 
@@ -149,9 +129,11 @@ const Step4Media: React.FC<Step4MediaProps> = ({
                 setIsDraggingGallery={setIsDraggingGallery} 
                 handleGalleryDirectUpload={handleGalleryDirectUpload} 
                 updateTheme={updateTheme} 
+                updateGalleryOrder={updateGalleryOrder}
                 t={t} 
             />
 
+            {/* Background Music & Video */}
             <AudioVideoSection 
                 wedding={wedding} 
                 isAnniv={isAnniv} 
@@ -172,7 +154,7 @@ const Step4Media: React.FC<Step4MediaProps> = ({
                     await uploadSlotFile(file);
                 }}
                 aspectRatio={activeSlotIdx !== null ? (activeSlotIdx === -1 ? 16/10 : getSlotAspectRatio(activeSlotIdx)) : 3/4}
-                title={activeSlotIdx !== null ? `${t("wizard.steps.4.cropperTitle")} - ${activeSlotIdx === -1 ? t("wizard.steps.4.bondTitle") : t((layout?.labels || [])[activeSlotIdx] || "wizard.steps.4.addImage")}` : t("wizard.steps.4.cropperTitle")}
+                title="កាត់តម្រឹមរូបភាព (Crop Photo)"
             />
         </div>
     );

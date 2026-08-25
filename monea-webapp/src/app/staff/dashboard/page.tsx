@@ -1,12 +1,11 @@
-"use client";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+﻿import { useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
 
 export default function StaffRedirect() {
-    const router = useRouter();
+    const router = useNavigate();
 
     useEffect(() => {
-        router.replace("/dashboard/gifts");
+        router("/dashboard/gifts");
     }, [router]);
 
     return (

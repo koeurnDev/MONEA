@@ -1,27 +1,49 @@
-"use client";
-
 import { m } from 'framer-motion';
-import { Star, Check, Heart, MapPin } from "lucide-react";
+import { LayoutTemplate, Wallet, MapPin, Heart, Sparkles, CheckCircle2 } from "lucide-react";
 import { useTranslation } from "@/i18n/LanguageProvider";
+import { cn } from "@/lib/utils";
 
-function FeatureCard({ icon: Icon, title, desc, delay }: { icon: any, title: string, desc: string, delay: number }) {
+function FeatureBentoCard({ 
+    icon: Icon, 
+    title, 
+    desc, 
+    delay,
+    className,
+    gradientClass
+}: { 
+    icon: any, 
+    title: string, 
+    desc: string, 
+    delay: number,
+    className?: string,
+    gradientClass: string
+}) {
     return (
         <m.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.8, delay: delay * 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className="group relative p-8 md:p-10 rounded-[2.5rem] bg-white/40 dark:bg-white/5 border border-slate-200/50 dark:border-white/10 overflow-hidden hover:bg-white dark:hover:bg-white/[0.08] transition-all duration-500 shadow-sm hover:shadow-2xl dark:shadow-none backdrop-blur-md hover:-translate-y-2"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.6, delay: delay * 0.15, ease: [0.16, 1, 0.3, 1] }}
+            className={cn(
+                "group relative p-6 sm:p-8 md:p-10 rounded-3xl bg-card border border-border/80 overflow-hidden hover:border-rose-500/30 transition-all duration-500 shadow-xs hover:shadow-xl flex flex-col justify-between backdrop-blur-xl",
+                className
+            )}
         >
-            <div className="absolute inset-0 bg-slate-50/50 dark:bg-white/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-            <div className="relative z-10 w-16 h-16 mb-10 rounded-[1.5rem] bg-slate-50 dark:bg-white/5 flex items-center justify-center border border-slate-200/50 dark:border-white/10 group-hover:scale-110 group-hover:bg-slate-900 group-hover:text-white dark:group-hover:bg-white dark:group-hover:text-slate-900 transition-all duration-500 shadow-sm">
-                <Icon size={28} className="transition-transform duration-500 stroke-[2.5]" />
+            {/* Ambient Background Glow on Hover */}
+            <div className={cn(
+                "absolute -inset-10 opacity-0 group-hover:opacity-15 blur-2xl transition-opacity duration-700 pointer-events-none rounded-full",
+                gradientClass
+            )} />
+            
+            <div className="relative z-10 w-12 h-12 sm:w-14 sm:h-14 mb-6 sm:mb-8 rounded-2xl bg-muted/60 dark:bg-white/5 flex items-center justify-center border border-border/80 group-hover:scale-105 transition-all duration-300 shadow-xs">
+                <Icon size={24} className="text-rose-600 dark:text-rose-400 shrink-0" />
             </div>
-            <div className="relative z-10 space-y-6">
-                <h3 className="text-xl md:text-2xl font-bold font-kantumruy text-slate-900 dark:text-white group-hover:text-slate-900 dark:group-hover:text-white transition-colors tracking-tight">
+
+            <div className="relative z-10 mt-auto space-y-2.5">
+                <h3 className="text-xl sm:text-2xl font-bold font-kantumruy text-foreground tracking-tight">
                     {title}
                 </h3>
-                <p className="text-slate-500 dark:text-white/50 text-base md:text-lg font-kantumruy leading-relaxed font-light group-hover:text-slate-700 dark:group-hover:text-white/80 transition-colors">
+                <p className="text-muted-foreground text-xs sm:text-sm md:text-base font-kantumruy leading-relaxed font-normal">
                     {desc}
                 </p>
             </div>
@@ -33,60 +55,69 @@ export function Features() {
     const { t } = useTranslation();
     const features = [
         {
-            icon: Star,
-            title: t("features.card1Title"),
-            desc: t("features.card1Desc"),
+            icon: LayoutTemplate,
+            title: t("features.card1Title", { defaultValue: "ការរចនាបែបប្រណីត" }),
+            desc: t("features.card1Desc", { defaultValue: "Template ទំនើប ស្រស់ស្អាត និងអាចកែប្រែបានច្រើន ដែលបង្កើតចំណាប់អារម្មណ៍យូរអង្វែងសម្រាប់ភ្ញៀវរបស់អ្នក។" }),
+            className: "md:col-span-7 min-h-[260px] sm:min-h-[300px]",
+            gradientClass: "bg-rose-500"
         },
         {
-            icon: Check,
-            title: t("features.card2Title"),
-            desc: t("features.card2Desc"),
-        },
-        {
-            icon: Heart,
-            title: t("features.card3Title"),
-            desc: t("features.card3Desc"),
+            icon: Wallet,
+            title: t("features.card3Title", { defaultValue: "ទទួលចំណងដៃ KHQR ផ្ទាល់" }),
+            desc: t("features.card3Desc", { defaultValue: "ភ្ញៀវអាចស្កេន Bakong KHQR ផ្ញើចំណងដៃចូលគណនីធនាគាររបស់អ្នកផ្ទាល់ មិនកាត់កម្រៃជើងសារ។" }),
+            className: "md:col-span-5 min-h-[260px] sm:min-h-[300px]",
+            gradientClass: "bg-emerald-500"
         },
         {
             icon: MapPin,
-            title: t("features.card4Title"),
-            desc: t("features.card4Desc"),
+            title: t("features.card4Title", { defaultValue: "ផែនទី & ទីតាំងច្បាស់លាស់" }),
+            desc: t("features.card4Desc", { defaultValue: "ភ្ជាប់ជាមួយ Google Maps ជួយឱ្យភ្ញៀវធ្វើដំណើរទៅដល់ទីតាំងរោងការបានយ៉ាងងាយស្រួល។" }),
+            className: "md:col-span-5 min-h-[260px] sm:min-h-[300px]",
+            gradientClass: "bg-amber-500"
+        },
+        {
+            icon: Heart,
+            title: t("features.card5Title", { defaultValue: "សៀវភៅជូនពរឌីជីថល" }),
+            desc: t("features.card5Desc", { defaultValue: "ភ្ញៀវអាចផ្ញើសារជូនពរ និងរូបថតអនុស្សាវរីយ៍ស្អាតៗបង្ហាញលើអេក្រង់ផ្សាយផ្ទាល់ភ្លាមៗ។" }),
+            className: "md:col-span-7 min-h-[260px] sm:min-h-[300px]",
+            gradientClass: "bg-pink-500"
         },
     ];
 
     return (
-        <section id="features" className="py-32 bg-white dark:bg-[#0A0A0A] relative border-b border-slate-100 dark:border-white/5 overflow-hidden">
-            <div className="container mx-auto px-6 max-w-6xl relative z-10">
-                <div className="text-center max-w-3xl mx-auto mb-20 flex flex-col items-center">
-                    <m.span
-                        initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-                        className="inline-flex items-center gap-2 py-1.5 px-4 rounded-full border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-slate-600 dark:text-white/80 font-bold text-xs uppercase tracking-[0.2em] mb-6 sm:backdrop-blur-md"
+        <section id="features" className="py-16 sm:py-24 bg-card/40 dark:bg-background relative border-b border-border/60 overflow-hidden font-kantumruy">
+            <div className="container mx-auto px-4 sm:px-6 max-w-6xl relative z-10">
+                <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14 flex flex-col items-center">
+                    <m.div 
+                        initial={{ opacity: 0, y: 15 }} 
+                        whileInView={{ opacity: 1, y: 0 }} 
+                        viewport={{ once: true }}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs font-bold mb-3"
                     >
-                        <Star className="w-3 h-3" />
-                        {t("features.badge")}
-                    </m.span>
+                        <Sparkles size={13} />
+                        <span>លក្ខណៈពិសេសកម្រិតខ្ពស់</span>
+                    </m.div>
                     <m.h2
-                        initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}
-                        className="text-xl xs:text-2xl sm:text-3xl md:text-5xl lg:text-[3.5rem] font-bold font-kantumruy text-slate-900 dark:text-white mb-6 tracking-tight"
+                        initial={{ opacity: 0, y: 15 }} 
+                        whileInView={{ opacity: 1, y: 0 }} 
+                        viewport={{ once: true }} 
+                        transition={{ delay: 0.1 }}
+                        className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-foreground tracking-tight"
                     >
-                        {t("features.title")}
+                        {t("features.title", { defaultValue: "អ្វីដែល MONEA ផ្តល់ជូន" })}
                     </m.h2>
-                    <m.p
-                        initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}
-                        className="text-slate-600 dark:text-white/60 text-lg md:text-xl font-kantumruy font-light leading-[1.8]"
-                    >
-                        {t("features.subtitle")}
-                    </m.p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6 relative z-10">
                     {features.map((feature, idx) => (
-                        <FeatureCard
+                        <FeatureBentoCard
                             key={idx}
                             icon={feature.icon}
                             title={feature.title}
                             desc={feature.desc}
-                            delay={0.1 * (idx + 1)}
+                            className={feature.className}
+                            gradientClass={feature.gradientClass}
+                            delay={idx + 1}
                         />
                     ))}
                 </div>

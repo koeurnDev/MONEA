@@ -16,7 +16,7 @@ const giftsRouter = new Hono()
 
 giftsRouter.get('/stats', async (c) => {
     try {
-        const user = await getServerUser();
+        const user = await getServerUser(c.req.raw);
         if (!user) return c.json({ error: "Unauthorized" }, 401);
 
         let weddingId = null;
@@ -48,7 +48,7 @@ giftsRouter.get('/stats', async (c) => {
 
 giftsRouter.get('/', async (c) => {
     try {
-        const user = await getServerUser();
+        const user = await getServerUser(c.req.raw);
         if (!user) return c.json({ error: "Unauthorized" }, 401);
 
         const limit = parseInt(c.req.query("limit") || "50");
@@ -69,7 +69,7 @@ giftsRouter.post('/', async (c) => {
     let user: any = null;
     let body: any = null;
     try {
-        user = await getServerUser();
+        user = await getServerUser(c.req.raw);
         if (!user) return c.json({ error: "Unauthorized" }, 401);
 
         try {

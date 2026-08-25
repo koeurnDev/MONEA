@@ -1,6 +1,5 @@
-"use client";
-import * as React from "react";
-import { CldImage } from "next-cloudinary";
+﻿import * as React from "react";
+
 import { Button } from "@/components/ui/button";
 import { Music, Trash, Loader2, FileAudio } from "lucide-react";
 import { useCloudinaryUpload } from "@/hooks/use-cloudinary-upload";

@@ -1,6 +1,4 @@
-"use client";
-
-import { useState, useEffect, useMemo, useCallback } from "react";
+﻿import { useState, useEffect, useMemo, useCallback } from "react";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { useGiftsData } from "./useGiftsData";
 import { moneaClient } from "@/lib/api-client";

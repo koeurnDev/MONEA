@@ -8,6 +8,8 @@ import { decrypt } from "@/lib/encryption"
 import { SystemGovernance, GOVERNANCE_ACTIONS } from "@/lib/governance"
 const adminRouter = new Hono()
 
+const isAuthorizedAdmin = (user: any) => user && (user.role === ROLES.PLATFORM_OWNER || user.role === 'ADMIN' || user.role === 'SUPERADMIN' || user.role === ROLES.EVENT_MANAGER);
+
 function escapeCSV(val: any) {
     if (typeof val !== 'string') return val;
     const sanitized = val.replace(/,/g, " ");
@@ -19,8 +21,8 @@ function escapeCSV(val: any) {
 
 adminRouter.get('/weddings', async (c) => {
 
-    const user = await getServerUser();
-    if (!user || user.role !== ROLES.PLATFORM_OWNER) return c.json({ error: "Unauthorized" }, 401);
+    const user = await getServerUser(c.req.raw);
+    if (!isAuthorizedAdmin(user)) return c.json({ error: "Unauthorized" }, 401);
 
     
     const limit = parseInt(c.req.query("limit") || "50");
@@ -55,8 +57,8 @@ adminRouter.get('/weddings', async (c) => {
 
 adminRouter.put('/weddings', async (c) => {
 
-    const user = await getServerUser();
-    if (!user || user.role !== ROLES.PLATFORM_OWNER) return c.json({ error: "Unauthorized" }, 401);
+    const user = await getServerUser(c.req.raw);
+    if (!isAuthorizedAdmin(user)) return c.json({ error: "Unauthorized" }, 401);
 
     try {
         const { id, packageType, status, expiresAt, paymentStatus } = await c.req.json();
@@ -80,7 +82,7 @@ adminRouter.put('/weddings', async (c) => {
 
 
 adminRouter.get('/weddings/:id', async (c) => {
-    const user = await getServerUser();
+    const user = await getServerUser(c.req.raw);
     if (!user || (user.role !== ROLES.PLATFORM_OWNER && user.role !== ROLES.EVENT_MANAGER)) {
         return c.json({ error: "Unauthorized" }, 401);
     }
@@ -111,8 +113,8 @@ adminRouter.get('/weddings/:id', async (c) => {
 
 adminRouter.get('/users', async (c) => {
 
-    const user = await getServerUser();
-    if (!user || user.role !== ROLES.PLATFORM_OWNER) return c.json({ error: "Unauthorized" }, 401);
+    const user = await getServerUser(c.req.raw);
+    if (!isAuthorizedAdmin(user)) return c.json({ error: "Unauthorized" }, 401);
 
     
     const limit = parseInt(c.req.query("limit") || "50");
@@ -158,7 +160,7 @@ adminRouter.get('/users', async (c) => {
 
 
 adminRouter.get('/users/:id', async (c) => {
-    const user = await getServerUser();
+    const user = await getServerUser(c.req.raw);
     if (!user || (user.role !== ROLES.PLATFORM_OWNER && user.role !== ROLES.EVENT_MANAGER)) {
         return c.json({ error: "Unauthorized" }, 401);
     }
@@ -184,7 +186,7 @@ adminRouter.get('/users/:id', async (c) => {
 
 
 adminRouter.patch('/users/:id', async (c) => {
-    const user = await getServerUser();
+    const user = await getServerUser(c.req.raw);
     if (!user || (user.role !== ROLES.PLATFORM_OWNER && user.role !== ROLES.EVENT_MANAGER)) {
         return c.json({ error: "Unauthorized" }, 401);
     }
@@ -227,14 +229,14 @@ adminRouter.patch('/users/:id', async (c) => {
 
 
 adminRouter.delete('/users/:id', async (c) => {
-    const user = await getServerUser();
-    if (!user || user.role !== ROLES.PLATFORM_OWNER) {
+    const user = await getServerUser(c.req.raw);
+    if (!isAuthorizedAdmin(user)) {
         return c.json({ error: "Unauthorized: Only Platform Owners can delete users" }, 401);
     }
 
     const targetUserId = c.req.param("id");
 
-    if (targetUserId === user.userId) {
+    if (targetUserId === user?.userId || targetUserId === user?.id) {
         return c.json({ error: "Cannot delete your own account from the admin panel" }, 400);
     }
 
@@ -260,8 +262,8 @@ adminRouter.delete('/users/:id', async (c) => {
 
 adminRouter.get('/stats', async (c) => {
 
-    const user = await getServerUser();
-    if (!user || user.role !== ROLES.PLATFORM_OWNER) {
+    const user = await getServerUser(c.req.raw);
+    if (!isAuthorizedAdmin(user)) {
         return c.json({ error: "Unauthorized" }, 401);
     }
 
@@ -298,7 +300,7 @@ adminRouter.get('/stats', async (c) => {
 adminRouter.get('/security/stats', async (c) => {
 
     try {
-        const user = await getServerUser();
+        const user = await getServerUser(c.req.raw);
         if (!user || (user.role !== "SUPERADMIN" && user.role !== "ADMIN")) {
             return c.json({ error: "Unauthorized" }, 401);
         }
@@ -334,7 +336,7 @@ adminRouter.get('/security/stats', async (c) => {
 adminRouter.post('/security/revoke', async (c) => {
 
     try {
-        const user = await getServerUser();
+        const user = await getServerUser(c.req.raw);
         const body = await c.req.json();
         const { targetType, targetId } = body; // targetType: 'GLOBAL', 'STAFF', 'USER'
 
@@ -414,7 +416,7 @@ adminRouter.post('/security/revoke', async (c) => {
 
 adminRouter.get('/security/logs', async (c) => {
 
-    const user = await getServerUser();
+    const user = await getServerUser(c.req.raw);
     if (!user) {
         return c.json({ error: "Unauthorized" }, 401);
     }
@@ -438,7 +440,7 @@ adminRouter.get('/security/logs', async (c) => {
 adminRouter.get('/me', async (c) => {
 
     try {
-        const user = await getServerUser();
+        const user = await getServerUser(c.req.raw);
         if (!user) {
             return c.json({ error: "Unauthorized" }, 401);
         }
@@ -461,7 +463,7 @@ adminRouter.get('/me', async (c) => {
 
 adminRouter.get('/logs', async (c) => {
 
-    const user = await getServerUser();
+    const user = await getServerUser(c.req.raw);
     if (!user || (user.role !== ROLES.EVENT_MANAGER && user.role !== ROLES.PLATFORM_OWNER)) {
         return c.json({ error: "Unauthorized" }, 401);
     }
@@ -539,8 +541,8 @@ adminRouter.get('/logs', async (c) => {
 
 adminRouter.get('/health', async (c) => {
 
-    const user = await getServerUser();
-    if (!user || user.role !== ROLES.PLATFORM_OWNER) {
+    const user = await getServerUser(c.req.raw);
+    if (!isAuthorizedAdmin(user)) {
         return c.json({ error: "Unauthorized" }, 401);
     }
 
@@ -579,8 +581,8 @@ adminRouter.get('/health', async (c) => {
 adminRouter.get('/governance', async (c) => {
 
     try {
-        const user = await getServerUser();
-        if (!user || user.role !== ROLES.PLATFORM_OWNER) {
+        const user = await getServerUser(c.req.raw);
+        if (!isAuthorizedAdmin(user)) {
             return c.json({ error: "Unauthorized" }, 401);
         }
 
@@ -619,22 +621,22 @@ adminRouter.get('/governance', async (c) => {
 adminRouter.post('/governance', async (c) => {
 
     try {
-        const user = await getServerUser();
-        if (!user || user.role !== ROLES.PLATFORM_OWNER) {
+        const user = await getServerUser(c.req.raw);
+        if (!isAuthorizedAdmin(user)) {
             return c.json({ error: "Unauthorized" }, 401);
         }
 
         const body = await c.req.json();
         const { versionName, description } = body;
 
-        const snapshot = await SystemGovernance.createSnapshot(user.userId, versionName, description);
+        const snapshot = await SystemGovernance.createSnapshot(user?.userId || user?.id || "admin", versionName, description);
 
         // Log the publish action
         const ip = c.req.header("x-forwarded-for") || "unknown";
         const userAgent = c.req.header("user-agent") || "unknown";
         await SystemGovernance.logAction(
-            user.userId,
-            (user as any).name || "Admin",
+            user?.userId || user?.id || "admin",
+            (user as any)?.name || "Admin",
             GOVERNANCE_ACTIONS.PUBLISH,
             { versionName, versionId: snapshot.id },
             ip,
@@ -651,15 +653,15 @@ adminRouter.post('/governance', async (c) => {
 adminRouter.patch('/governance', async (c) => {
 
     try {
-        const user = await getServerUser();
-        if (!user || user.role !== ROLES.PLATFORM_OWNER) {
+        const user = await getServerUser(c.req.raw);
+        if (!isAuthorizedAdmin(user)) {
             return c.json({ error: "Unauthorized" }, 401);
         }
 
         const body = await c.req.json();
         const { versionId } = body;
 
-        const result = await SystemGovernance.rollback(versionId, user.userId, (user as any).name || "Admin");
+        const result = await SystemGovernance.rollback(versionId, user?.userId || user?.id || "admin", (user as any)?.name || "Admin");
 
         return c.json({ success: true, config: result }, 200);
     } catch (error) {
@@ -672,7 +674,7 @@ adminRouter.patch('/governance', async (c) => {
 adminRouter.get('/export/guests', async (c) => {
 
     try {
-        const user = await getServerUser();
+        const user = await getServerUser(c.req.raw);
         if (!user) return c.text("Unauthorized", 401);
 
         
@@ -730,7 +732,7 @@ adminRouter.get('/export/guests', async (c) => {
 adminRouter.get('/export/gifts', async (c) => {
 
     try {
-        const user = await getServerUser();
+        const user = await getServerUser(c.req.raw);
         if (!user) return c.text("Unauthorized", 401);
 
         
@@ -791,8 +793,8 @@ adminRouter.get('/export/gifts', async (c) => {
 adminRouter.post('/bakong/verify-token', async (c) => {
 
     try {
-        const user = await getServerUser();
-        if (!user || user.role !== ROLES.PLATFORM_OWNER) {
+        const user = await getServerUser(c.req.raw);
+        if (!isAuthorizedAdmin(user)) {
             return c.json({ error: "Unauthorized" }, 401);
         }
 
@@ -848,8 +850,8 @@ adminRouter.post('/bakong/verify-token', async (c) => {
 adminRouter.get('/bakong/status', async (c) => {
 
     try {
-        const user = await getServerUser();
-        if (!user || user.role !== ROLES.PLATFORM_OWNER) {
+        const user = await getServerUser(c.req.raw);
+        if (!isAuthorizedAdmin(user)) {
             return c.json({ error: "Unauthorized" }, 401);
         }
 
@@ -876,8 +878,8 @@ adminRouter.get('/bakong/status', async (c) => {
 adminRouter.post('/bakong/request-token', async (c) => {
 
     try {
-        const user = await getServerUser();
-        if (!user || user.role !== ROLES.PLATFORM_OWNER) {
+        const user = await getServerUser(c.req.raw);
+        if (!isAuthorizedAdmin(user)) {
             return c.json({ error: "Unauthorized" }, 401);
         }
 
@@ -930,8 +932,8 @@ adminRouter.post('/bakong/request-token', async (c) => {
 adminRouter.post('/bakong/manual-token', async (c) => {
 
     try {
-        const user = await getServerUser();
-        if (!user || user.role !== ROLES.PLATFORM_OWNER) {
+        const user = await getServerUser(c.req.raw);
+        if (!isAuthorizedAdmin(user)) {
             return c.json({ error: "Unauthorized" }, 401);
         }
 

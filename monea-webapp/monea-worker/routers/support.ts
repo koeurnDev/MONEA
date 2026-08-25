@@ -8,7 +8,7 @@ const supportRouter = new Hono()
 
 supportRouter.post('/ticket', async (c) => {
     try {
-        const user = await getServerUser();
+        const user = await getServerUser(c.req.raw);
         if (!user) return c.json({ error: "Unauthorized" }, 401);
 
         let body;

@@ -1,8 +1,7 @@
-"use client";
 import React from 'react';
 import { m } from 'framer-motion';
 import { WeddingData } from '../types';
-import Image from 'next/image';
+// next/image replaced with <img>;
 
 export function LoveStorySection({ wedding }: { wedding: WeddingData }) {
     const story = wedding.themeSettings?.story;
@@ -25,7 +24,7 @@ export function LoveStorySection({ wedding }: { wedding: WeddingData }) {
                     viewport={{ once: true }}
                     className="text-center mb-16"
                 >
-                    <h2 className="text-3xl md:text-5xl font-kantumruy font-black text-slate-900 tracking-widest uppercase mb-4">
+                    <h2 className="text-2xl md:text-4xl font-kantumruy font-bold text-slate-900 tracking-normal mb-4">
                         សាច់រឿងស្នេហា
                     </h2>
                     <div className="w-12 h-1 bg-slate-900 mx-auto mb-6" />
@@ -56,18 +55,16 @@ export function LoveStorySection({ wedding }: { wedding: WeddingData }) {
                             className="w-full md:w-1/2 relative"
                         >
                             <div className="relative aspect-[4/5] w-full max-w-sm mx-auto">
-                                <Image 
+                                <img 
                                     src={images[0]}
-                                    alt="Our Story"
-                                    fill
+                                    alt="Our Story" 
                                     className="object-cover rounded-xl shadow-2xl filter grayscale-[20%]"
                                 />
                                 {images.length > 1 && (
                                     <div className="absolute -bottom-8 -right-8 w-1/2 aspect-square border-4 border-white shadow-xl rounded-xl overflow-hidden z-20 hidden md:block">
-                                        <Image 
+                                        <img 
                                             src={images[1]}
-                                            alt="Memory"
-                                            fill
+                                            alt="Memory" 
                                             className="object-cover filter grayscale-[10%]"
                                         />
                                     </div>

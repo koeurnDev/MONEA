@@ -1,6 +1,4 @@
-"use client";
-
-import React, { useState, useEffect, useCallback } from "react";
+﻿import React, { useState, useEffect, useCallback } from "react";
 import { BookOpen, Save, Loader2, Sparkles, AlertCircle, CheckCircle2, FileText, StickyNote, History, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { m, AnimatePresence } from 'framer-motion';

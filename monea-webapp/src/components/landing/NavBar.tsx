@@ -1,37 +1,39 @@
-"use client";
 import * as React from "react";
-import Link from "next/link";
+import { Link } from 'react-router-dom';
 import { cn } from "@/lib/utils";
-import { m, AnimatePresence } from 'framer-motion';
-import { Menu, X } from "lucide-react";
+import { motion, AnimatePresence } from 'framer-motion';
+import { Menu, X, Sparkles, ArrowRight, Globe } from "lucide-react";
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { LanguageToggle } from "@/components/LanguageToggle";
 import { useTranslation } from "@/i18n/LanguageProvider";
-import { useTheme } from "next-themes";
+import { AUTH_URLS } from "@/lib/constants";
 
 export function NavBar() {
-    const { theme } = useTheme();
+    const { t, locale } = useTranslation();
+    const isKm = locale === 'km';
     const [isScrolled, setIsScrolled] = React.useState(false);
     const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+    const [activeSection, setActiveSection] = React.useState("home");
 
     React.useEffect(() => {
-        const handleScroll = () => setIsScrolled(window.scrollY > 50);
-        window.addEventListener("scroll", handleScroll);
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 20);
+        };
+        window.addEventListener("scroll", handleScroll, { passive: true });
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    const { t } = useTranslation();
     const navItems = [
-        { name: t("nav.home"), href: "#" },
-        { name: t("nav.features"), href: "#features" },
-        { name: t("nav.howItWorks"), href: "#how-it-works" },
-        { name: t("nav.templates"), href: "#templates" },
-        { name: t("nav.pricing"), href: "#pricing" },
+        { id: "home", name: t("nav.home", { defaultValue: "ទំព័រដើម" }), href: "#" },
+        { id: "features", name: t("nav.features", { defaultValue: "លក្ខណៈពិសេស" }), href: "#features" },
+        { id: "how-it-works", name: t("nav.howItWorks", { defaultValue: "របៀបប្រើប្រាស់" }), href: "#how-it-works" },
     ];
 
-    const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string, id: string) => {
         if (href.startsWith("#")) {
             e.preventDefault();
+            setActiveSection(id);
             if (href === "#") {
                 window.scrollTo({ top: 0, behavior: "smooth" });
             } else {
@@ -46,119 +48,140 @@ export function NavBar() {
 
     return (
         <>
-            <header
-                className={cn(
-                    "fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-out pt-6 px-4 md:px-0",
-                    (isScrolled && !isMenuOpen) ? "pt-4" : ""
-                )}
-            >
-                <div className={cn(
-                    "max-w-6xl mx-auto flex items-center justify-between rounded-full transition-all duration-300",
-                    (isScrolled && !isMenuOpen)
-                        ? "bg-white/90 dark:bg-[#0A0A0A]/90 backdrop-blur-md py-3 px-6 shadow-sm border border-slate-200/50 dark:border-white/10"
-                        : "bg-transparent py-2 px-6",
-                    isMenuOpen && "!bg-transparent !backdrop-blur-none shadow-none"
-                )}>
-                    {/* Logo Section */}
-                    <Link href="/" onClick={() => setIsMenuOpen(false)} className="relative z-50 flex items-center shrink-0">
-                        <MoneaLogo
-                            showText={true}
-                            size={isScrolled && !isMenuOpen ? "sm" : "md"}
-                            variant="system"
-                            className="transition-all duration-300"
-                        />
-                    </Link>
-
-                    {/* Desktop Nav - Centered */}
-                    <nav className="hidden md:flex items-center justify-center gap-8 flex-1">
-                        {navItems.map((item) => (
-                            <Link
-                                key={item.name}
-                                href={item.href}
-                                onClick={(e) => handleNavClick(e, item.href)}
-                                className={cn(
-                                    "text-sm font-medium transition-all font-kantumruy hover:-translate-y-0.5",
-                                    isScrolled
-                                        ? "text-slate-500 dark:text-white/60 hover:text-slate-900 dark:hover:text-white"
-                                        : "text-slate-700 hover:text-slate-900 dark:text-white/80 dark:hover:text-white"
-                                )}
-                            >
-                                {item.name}
-                            </Link>
-                        ))}
-                    </nav>
-
-                    <div className="hidden md:flex items-center justify-end gap-3 shrink-0">
-                        <ThemeToggle className="mr-2" />
-                        <Link href="/sign-in" className={cn(
-                            "text-sm font-bold transition-colors font-kantumruy px-4 py-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-full",
-                            isScrolled
-                                ? "text-slate-700 dark:text-white/80 hover:text-slate-900 dark:hover:text-white"
-                                : "text-slate-800 hover:text-slate-900 dark:text-white/80 dark:hover:text-white"
-                        )}>
-                            {t("nav.signIn")}
-                        </Link>
-                        <Link href="/sign-up">
-                            <span className={cn(
-                                "group relative inline-flex h-10 items-center justify-center overflow-hidden rounded-full px-6 font-medium transition-all duration-300 hover:scale-105 shadow-sm active:scale-95",
-                                isScrolled
-                                    ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200"
-                                    : "bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200"
-                            )}>
-                                <span className={cn(
-                                    "font-kantumruy text-sm font-bold relative z-10 pt-0.5"
-                                )}>{t("nav.signUp")}</span>
+            {/* Ultra-Modern Floating Island Header */}
+            <header className="fixed top-3 sm:top-4 inset-x-0 z-50 px-3 sm:px-6 transition-all duration-300 pointer-events-none">
+                <div className="max-w-5xl mx-auto flex items-center justify-between pointer-events-auto">
+                    {/* Floating Pill Container */}
+                    <div className={cn(
+                        "w-full flex items-center justify-between rounded-full transition-all duration-300 px-4 sm:px-5 py-2",
+                        "bg-white/85 dark:bg-[#121216]/85 backdrop-blur-xl border border-white/60 dark:border-white/10 shadow-lg shadow-slate-900/5 dark:shadow-black/40",
+                        isScrolled ? "shadow-xl border-slate-200/80 dark:border-white/15" : ""
+                    )}>
+                        {/* Logo with Emblem */}
+                        <Link 
+                            to="/" 
+                            onClick={() => setIsMenuOpen(false)} 
+                            className="flex items-center gap-2 group shrink-0"
+                        >
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-rose-600 via-pink-500 to-amber-400 p-[1.5px] shadow-sm shadow-rose-500/20 group-hover:scale-105 transition-transform">
+                                <div className="w-full h-full rounded-full bg-white dark:bg-[#121216] flex items-center justify-center">
+                                    <Sparkles size={14} className="text-rose-600 dark:text-rose-400" />
+                                </div>
+                            </div>
+                            <span className="font-outfit font-black text-sm tracking-[0.2em] text-slate-900 dark:text-white uppercase select-none">
+                                MONEA
                             </span>
                         </Link>
-                    </div>
 
-                    {/* Mobile Menu Button  */}
-                    <button
-                        onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        className={cn(
-                            "md:hidden relative z-50 p-2 transition-colors ml-auto text-slate-600 hover:text-slate-900 dark:text-white/80 dark:hover:text-white"
-                        )}
-                    >
-                        {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                    </button>
+                        {/* Desktop Navigation Links */}
+                        <nav className="hidden md:flex items-center gap-1 font-kantumruy">
+                            {navItems.map((item) => {
+                                const isActive = activeSection === item.id;
+                                return (
+                                    <Link
+                                        key={item.id}
+                                        to={item.href}
+                                        onClick={(e) => handleNavClick(e, item.href, item.id)}
+                                        className={cn(
+                                            "relative px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-200",
+                                            isActive
+                                                ? "text-rose-600 dark:text-rose-400 bg-rose-500/10"
+                                                : "text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100/80 dark:hover:bg-white/5"
+                                        )}
+                                    >
+                                        {item.name}
+                                    </Link>
+                                );
+                            })}
+                        </nav>
+
+                        {/* Right Cluster: Controls + Auth Buttons */}
+                        <div className="flex items-center gap-2 shrink-0">
+                            {/* Theme & Language Toggles */}
+                            <div className="hidden sm:flex items-center gap-1.5 border-r border-slate-200 dark:border-white/10 pr-2 mr-1">
+                                <LanguageToggle className="h-8 w-8 rounded-full bg-slate-100/80 hover:bg-slate-200/80 dark:bg-white/5 dark:hover:bg-white/10 border-none text-slate-700 dark:text-slate-200" />
+                                <ThemeToggle className="h-8 w-8 rounded-full bg-slate-100/80 hover:bg-slate-200/80 dark:bg-white/5 dark:hover:bg-white/10 border-none text-slate-700 dark:text-slate-200" />
+                            </div>
+
+                            {/* Sign In Link */}
+                            <Link
+                                to={AUTH_URLS.SIGN_IN}
+                                className="hidden sm:inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-all font-kantumruy"
+                            >
+                                {t("nav.signIn", { defaultValue: "ចូលប្រើប្រាស់" })}
+                            </Link>
+
+                            {/* Get Started / Sign Up Button (Hidden on extra-small mobile, available in drawer) */}
+                            <Link
+                                to={AUTH_URLS.SIGN_UP}
+                                className="hidden sm:inline-flex group relative items-center justify-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white text-xs font-bold shadow-md shadow-rose-500/25 hover:shadow-lg hover:shadow-rose-500/35 hover:scale-105 active:scale-95 transition-all font-kantumruy"
+                            >
+                                <span>{t("nav.signUp", { defaultValue: "ចុះឈ្មោះ" })}</span>
+                                <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+                            </Link>
+
+                            {/* Mobile Hamburger Button */}
+                            <button
+                                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                                className="md:hidden p-1.5 rounded-full text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+                                aria-label="Toggle menu"
+                            >
+                                {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </header>
 
-            {/* Full Screen Menu Overlay */}
+            {/* Mobile Sheet Navigation */}
             <AnimatePresence>
                 {isMenuOpen && (
-                    <m.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-xl flex flex-col items-center justify-start overflow-y-auto pt-32 pb-12"
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className="fixed inset-x-3 top-16 z-40 md:hidden bg-white/95 dark:bg-[#121216]/95 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-3xl p-6 shadow-2xl shadow-black/20 font-kantumruy"
                     >
-                        <div className="flex flex-col gap-8 text-center w-full max-w-sm px-6">
-                            {navItems.map((item, idx) => (
-                                <m.a
-                                    key={item.name}
-                                    href={item.href}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: idx * 0.1 }}
-                                    onClick={(e) => handleNavClick(e, item.href)}
-                                    className="text-xl md:text-3xl font-kantumruy text-slate-800 dark:text-white/80 hover:text-pink-600 dark:hover:text-white hover:scale-105 transition-all"
+                        <div className="flex flex-col gap-3">
+                            {navItems.map((item) => (
+                                <Link
+                                    key={item.id}
+                                    to={item.href}
+                                    onClick={(e) => handleNavClick(e, item.href, item.id)}
+                                    className="px-4 py-2.5 rounded-xl text-sm font-bold text-slate-800 dark:text-slate-100 hover:bg-rose-500/10 hover:text-rose-600 dark:hover:text-rose-400 transition-all"
                                 >
                                     {item.name}
-                                </m.a>
+                                </Link>
                             ))}
-                            <div className="mt-8 flex flex-col gap-3">
-                                <Link href="/sign-in" onClick={() => setIsMenuOpen(false)} className="text-base text-slate-700 dark:text-white/80 font-kantumruy border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 py-3 rounded-2xl transition-all shadow-sm">{t("nav.signIn")}</Link>
-                                <Link href="/sign-up" onClick={() => setIsMenuOpen(false)} className="text-base bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-kantumruy font-bold py-3 rounded-2xl hover:scale-105 transition-all shadow-sm active:scale-95">{t("nav.signUp")}</Link>
-                            </div>
-                             <div className="mt-4 flex flex-col items-center justify-center gap-6">
-                                <div className="flex flex-col items-center gap-3">
-                                    <span className="text-slate-500 dark:text-white/50 text-[10px] uppercase tracking-widest font-kantumruy">រូបរាង</span>
-                                    <ThemeToggle className="scale-110 !bg-slate-100 dark:!bg-white/10 hover:!bg-slate-200 dark:hover:!bg-white/20 border border-slate-200 dark:border-white/20 [&_svg]:!text-slate-800 dark:[&_svg]:!text-white" />
+
+                            <div className="pt-4 mt-2 border-t border-slate-200 dark:border-white/10 flex flex-col gap-2.5">
+                                <div className="flex items-center justify-between px-2 py-1">
+                                    <span className="text-xs text-muted-foreground font-bold">រូបរាង & ភាសា</span>
+                                    <div className="flex items-center gap-2">
+                                        <LanguageToggle className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-white/5 border border-border" />
+                                        <ThemeToggle className="h-9 w-9 rounded-xl bg-slate-100 dark:bg-white/5 border border-border" />
+                                    </div>
                                 </div>
+
+                                <Link
+                                    to={AUTH_URLS.SIGN_IN}
+                                    onClick={() => setIsMenuOpen(false)}
+                                    className="w-full text-center py-2.5 rounded-xl text-xs font-bold border border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-white/5"
+                                >
+                                    {t("nav.signIn", { defaultValue: "ចូលប្រើប្រាស់" })}
+                                </Link>
+
+                                <Link
+                                    to={AUTH_URLS.SIGN_UP}
+                                    onClick={() => setIsMenuOpen(false)}
+                                    className="w-full text-center py-2.5 rounded-xl text-xs font-bold bg-rose-600 text-white shadow-md shadow-rose-600/25"
+                                >
+                                    {t("nav.signUp", { defaultValue: "បង្កើតគណនីឥតគិតថ្លៃ" })}
+                                </Link>
                             </div>
                         </div>
-                    </m.div>
+                    </motion.div>
                 )}
             </AnimatePresence>
         </>

@@ -1,11 +1,10 @@
-"use client";
-import * as React from "react";
+﻿import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Users, PartyPopper, CalendarCheck, TrendingUp, Sparkles, Activity, ShieldCheck, Database, Clock, ArrowUpRight, CheckCircle2 } from "lucide-react";
 import { m } from 'framer-motion';
 import { cn } from "@/lib/utils";
-import Link from "next/link";
+import { Link } from 'react-router-dom';
 import { ErrorBoundary } from "@/components/error-boundary";
 import { useTranslation } from "@/i18n/LanguageProvider";
 
@@ -153,7 +152,7 @@ export default function AdminDashboardClient({ initialStats, initialLogs, userRo
                                         <CardTitle className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">សកម្មភាពចុងក្រោយ</CardTitle>
                                     </div>
                                 </div>
-                                <Link href="/admin/logs">
+                                <Link to="/admin/logs">
                                     <Button
                                         variant="outline"
                                         size="sm"
@@ -239,7 +238,7 @@ export default function AdminDashboardClient({ initialStats, initialLogs, userRo
                                 </div>
 
                                 {userRole === "PLATFORM_OWNER" && (
-                                    <Link href="/admin/master/security">
+                                    <Link to="/admin/master/security">
                                         <Button variant="outline" className="w-full mt-2 rounded-lg text-xs font-semibold text-slate-600 border-slate-200">
                                             {t('admin.overview.actions.auditExplorer')}
                                         </Button>

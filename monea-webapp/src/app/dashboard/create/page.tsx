@@ -1,10 +1,8 @@
-"use client";
-
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useRouter } from "next/navigation";
+import { useNavigate } from 'react-router-dom';
 import { mutate } from "swr";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +23,7 @@ const formSchema = z.object({
 });
 
 export default function CreateWeddingPage() {
-    const router = useRouter();
+    const router = useNavigate();
     const [step, setStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -72,14 +70,14 @@ export default function CreateWeddingPage() {
 
             if (res.status === 200 || res.status === 201) {
                 await mutate("/api/auth/me");
-                router.push("/dashboard");
-                router.refresh();
+                router("/dashboard");
+
             } else {
                 console.error(`Failed to create wedding: Status ${res.status}`, res.error);
                 
                 if (res.error === "Wedding already exists" || res.status === 409) {
                     await mutate("/api/auth/me");
-                    router.push("/dashboard");
+                    router("/dashboard");
                 }
             }
         } catch (error) {

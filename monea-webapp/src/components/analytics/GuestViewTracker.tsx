@@ -1,6 +1,4 @@
-"use client";
-
-import { useEffect } from "react";
+﻿import { useEffect } from "react";
 
 export function GuestViewTracker({ weddingId, guestId, guestName }: { weddingId: string, guestId?: string, guestName?: string }) {
     useEffect(() => {

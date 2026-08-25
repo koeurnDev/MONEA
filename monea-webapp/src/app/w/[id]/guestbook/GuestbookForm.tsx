@@ -1,14 +1,13 @@
-"use client";
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { User, Sparkles, Loader2 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
-import dynamic from "next/dynamic";
-const Turnstile = dynamic(() => import("@marsidev/react-turnstile").then(mod => mod.Turnstile), { ssr: false });
+import { lazy, Suspense } from "react";
 import { submitGuestbookEntry } from "@/app/actions";
+
+const Turnstile = lazy(() => import("@marsidev/react-turnstile").then(mod => ({ default: mod.Turnstile })));
 
 export function GuestbookForm({ weddingId }: { weddingId: string }) {
     const [token, setToken] = useState<string>("");
@@ -25,6 +24,7 @@ export function GuestbookForm({ weddingId }: { weddingId: string }) {
 
         try {
             await submitGuestbookEntry(formData);
+            window.location.reload(); // Refresh to show the new entry
         } catch (error) {
             console.error("Submission failed", error);
             alert("មានបញ្ហាបច្ចេកទេស។ សូមព្យាយាមម្តងទៀត។");
@@ -40,7 +40,13 @@ export function GuestbookForm({ weddingId }: { weddingId: string }) {
                 <h2 className="text-lg font-bold font-moul text-gray-800 dark:text-gray-100">សរសេរពាក្យជូនពរ</h2>
             </div>
 
-            <form action={handleSubmit} className="space-y-5">
+            <form 
+                onSubmit={async (e) => {
+                    e.preventDefault();
+                    await handleSubmit(new FormData(e.currentTarget));
+                }}
+                className="space-y-5"
+            >
                 <input type="hidden" name="weddingId" value={weddingId} />
 
                 <div className="space-y-2 group">
@@ -69,13 +75,15 @@ export function GuestbookForm({ weddingId }: { weddingId: string }) {
                     />
                 </div>
 
-                {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ? (
+                {import.meta.env.VITE_TURNSTILE_SITE_KEY ? (
                     <div className="flex justify-center scale-90 xs:scale-100 origin-center overflow-hidden py-2">
-                        <Turnstile
-                            siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA"}
-                            onSuccess={setToken}
-                            options={{ theme: 'auto', appearance: 'always' }}
-                        />
+                        <Suspense fallback={<div className="h-[65px] w-[300px] bg-gray-100 animate-pulse rounded" />}>
+                            <Turnstile
+                                siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+                                onSuccess={setToken}
+                                options={{ theme: 'auto', appearance: 'always' }}
+                            />
+                        </Suspense>
                     </div>
                 ) : (
                     <div className="text-[10px] text-rose-500 bg-rose-500/10 p-2 rounded-lg text-center font-bold py-2">
@@ -85,7 +93,7 @@ export function GuestbookForm({ weddingId }: { weddingId: string }) {
 
                 <Button
                     type="submit"
-                    disabled={isSubmitting || (!!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && !token)}
+                    disabled={isSubmitting || (!!import.meta.env.VITE_TURNSTILE_SITE_KEY && !token)}
                     className="w-full bg-gradient-to-r from-rose-600 to-orange-600 hover:opacity-90 transition-opacity text-white h-12 rounded-xl text-lg font-medium shadow-lg shadow-rose-200 dark:shadow-rose-900/20"
                 >
                     {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : "ផ្ញើជូនពរ (Send Wishes)"}

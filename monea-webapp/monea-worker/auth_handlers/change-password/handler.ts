@@ -6,9 +6,10 @@ export async function POST(req: Request) {
     try {
         // 1. Authenticate User (Standardized)
         const user = await getServerUser(req);
-        if (!user || user.type !== "admin") {
+        if (!user || (!user.userId && !user.id)) {
             return Response.json({ error: "Unauthorized" }, { status: 401 });
         }
+        const targetUserId = user.userId || user.id;
 
         const { currentPassword, newPassword } = await req.json();
 
@@ -22,7 +23,7 @@ export async function POST(req: Request) {
 
         // 2. Fetch User & Verify Current Password
         const dbUser = await prisma.user.findUnique({
-            where: { id: user.userId },
+            where: { id: targetUserId },
             select: { id: true, password: true, email: true }
         });
 
@@ -51,7 +52,7 @@ export async function POST(req: Request) {
         // 4. Update Password with Pepper
         const hashedPassword = await CryptoUtils.hash(newPassword);
         await prisma.user.update({
-            where: { id: user.userId },
+            where: { id: targetUserId },
             data: {
                 password: hashedPassword,
                 sessionsRevokedAt: new Date()

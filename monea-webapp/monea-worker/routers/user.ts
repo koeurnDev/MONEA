@@ -11,7 +11,7 @@ export const usersRouter = new Hono()
 // Account deletion (mapped to /api/user/account)
 userRouter.delete('/account', async (c) => {
     try {
-        const user = await getServerUser();
+        const user = await getServerUser(c.req.raw);
         if (!user || user.type !== "admin") {
             return c.json({ error: "Unauthorized" }, 401);
         }
@@ -82,7 +82,7 @@ userRouter.delete('/account', async (c) => {
 
 // User listing and management (mapped to /api/users)
 usersRouter.get('/', async (c) => {
-    const user = await getServerUser();
+    const user = await getServerUser(c.req.raw);
     if (!user || user.role !== ROLES.PLATFORM_OWNER) {
         return c.json({ error: "Unauthorized" }, 403);
     }
@@ -95,7 +95,7 @@ usersRouter.get('/', async (c) => {
 });
 
 usersRouter.put('/', async (c) => {
-    const user = await getServerUser();
+    const user = await getServerUser(c.req.raw);
     if (!user || user.role !== ROLES.PLATFORM_OWNER) {
         return c.json({ error: "Unauthorized" }, 403);
     }

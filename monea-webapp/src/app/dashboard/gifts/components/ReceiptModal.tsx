@@ -1,6 +1,4 @@
-"use client";
-
-import { Check } from "lucide-react";
+﻿import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useTranslation } from "@/i18n/LanguageProvider";

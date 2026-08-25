@@ -7,7 +7,7 @@ const templatesRouter = new Hono()
 
 templatesRouter.get('/versions', async (c) => {
     try {
-        const user = await getServerUser();
+        const user = await getServerUser(c.req.raw);
         if (!user) {
             return c.json({ error: "Unauthorized" }, 401);
         }
@@ -41,7 +41,7 @@ templatesRouter.get('/versions', async (c) => {
 
 templatesRouter.post('/versions', async (c) => {
     try {
-        const user = await getServerUser();
+        const user = await getServerUser(c.req.raw);
         if (!user) {
             return c.json({ error: "Unauthorized" }, 401);
         }
@@ -87,7 +87,7 @@ templatesRouter.post('/versions', async (c) => {
 
 templatesRouter.delete('/versions', async (c) => {
     try {
-        const user = await getServerUser();
+        const user = await getServerUser(c.req.raw);
         if (!user) {
             return c.json({ error: "Unauthorized" }, 401);
         }
@@ -124,7 +124,7 @@ templatesRouter.delete('/versions', async (c) => {
 
 templatesRouter.patch('/versions', async (c) => {
     try {
-        const user = await getServerUser();
+        const user = await getServerUser(c.req.raw);
         if (!user) {
             return c.json({ error: "Unauthorized" }, 401);
         }

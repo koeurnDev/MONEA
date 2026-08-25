@@ -1,6 +1,4 @@
-"use client";
-
-import { MapPin, ExternalLink } from "lucide-react";
+﻿import { MapPin, ExternalLink } from "lucide-react";
 import { useState } from "react";
 
 interface InteractiveMapProps {

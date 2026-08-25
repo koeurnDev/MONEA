@@ -1,4 +1,3 @@
-"use client";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -36,28 +35,30 @@ export function DeleteAccountDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="w-[92vw] max-w-[440px] rounded-[1.5rem] md:rounded-[2.5rem] border-none shadow-2xl p-6 md:p-10">
+            <DialogContent className="w-[92vw] max-w-[440px] rounded-[1.5rem] md:rounded-[2.5rem] border-none shadow-2xl p-6 md:p-10 font-kantumruy">
                 <DialogHeader className="space-y-4">
                     <div className="w-14 h-14 bg-red-50 dark:bg-red-950/20 rounded-2xl flex items-center justify-center text-red-600 mx-auto">
                         <Trash2 size={28} />
                     </div>
-                    <DialogTitle className="text-2xl font-black text-center font-kantumruy">{t("account.dialogs.deleteAccount.title")}</DialogTitle>
+                    <DialogTitle className="text-2xl font-black text-center font-kantumruy">
+                        {t("account.dialogs.deleteAccount.title", { defaultValue: "លុបគណនី" })}
+                    </DialogTitle>
                     <DialogDescription className="text-center font-kantumruy text-sm opacity-70">
-                        {t("account.dialogs.deleteAccount.description")}
+                        {t("account.dialogs.deleteAccount.description", { defaultValue: "សកម្មភាពនេះជាអចិន្ត្រៃយ៍ និងមិនអាចដកវិញបានទេ។ ទិន្នន័យទាំងអស់របស់អ្នកនឹងត្រូវបានលុបចោល។" })}
                     </DialogDescription>
                 </DialogHeader>
 
                 <Alert variant="destructive" className="bg-red-50/50 border-red-100 text-red-900 rounded-2xl py-4 mt-2">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription className="text-xs font-bold font-kantumruy ml-2">
-                        {t("account.dialogs.deleteAccount.alert")}
+                        {t("account.dialogs.deleteAccount.alert", { defaultValue: "ការព្រមាន៖ សកម្មភាពនេះមិនអាចត្រឡប់ក្រោយវិញបានឡើយ។ ទិន្នន័យពិធីមង្គលការ និងភ្ញៀវទាំងអស់នឹងត្រូវលុបជាអចិន្ត្រៃយ៍។" })}
                     </AlertDescription>
                 </Alert>
 
                 <form onSubmit={handleSubmit} className="space-y-6 mt-6">
-                    <div className="space-y-4">
-                        <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">
-                            {t("account.dialogs.deleteAccount.label")}
+                    <div className="space-y-3">
+                        <Label className="text-[11px] font-bold text-muted-foreground ml-1">
+                            {t("account.dialogs.deleteAccount.label", { defaultValue: "បញ្ជាក់ពាក្យសម្ងាត់របស់អ្នក" })}
                         </Label>
                         <div className="relative">
                             <Input
@@ -65,7 +66,7 @@ export function DeleteAccountDialog({
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 className="h-14 bg-muted/40 border-none rounded-2xl px-5 font-bold focus-visible:ring-2 focus-visible:ring-red-500/20"
-                                placeholder={t("account.dialogs.deleteAccount.placeholder")}
+                                placeholder={t("account.dialogs.deleteAccount.placeholder", { defaultValue: "បញ្ចូលពាក្យសម្ងាត់របស់អ្នកដើម្បីបញ្ជាក់" })}
                                 required
                             />
                             <button
@@ -88,14 +89,16 @@ export function DeleteAccountDialog({
                             onClick={() => onOpenChange(false)}
                             className="flex-1 h-12 rounded-2xl font-bold font-kantumruy"
                         >
-                            {t("account.dialogs.deleteAccount.cancel")}
+                            {t("account.dialogs.deleteAccount.cancel", { defaultValue: "បោះបង់" })}
                         </Button>
                         <Button
                             type="submit"
                             disabled={isDeleting || !password}
                             className="flex-[1.5] h-12 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-black font-kantumruy shadow-lg shadow-red-500/20"
                         >
-                            {isDeleting ? t("account.dialogs.deleteAccount.processing") : t("account.dialogs.deleteAccount.submit")}
+                            {isDeleting 
+                                ? t("account.dialogs.deleteAccount.processing", { defaultValue: "កំពុងលុប..." }) 
+                                : t("account.dialogs.deleteAccount.submit", { defaultValue: "លុបគណនីរបស់ខ្ញុំ" })}
                         </Button>
                     </DialogFooter>
                 </form>

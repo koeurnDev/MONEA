@@ -1,5 +1,70 @@
 {
+  "admin": {
+    "overview": {
+      "title": "Master Command Center",
+      "subtitle": "Global Platform Management",
+      "systemLogs": "System Logs",
+      "globalSettings": "Global Settings",
+      "stats": {
+        "totalWeddings": "Total Weddings",
+        "activeHirers": "Total Users",
+        "globalGuests": "Total Guests",
+        "ipBlacklist": "Blacklisted IPs"
+      },
+      "recentWeddings": {
+        "title": "Recent Weddings",
+        "subtitle": "Latest user registrations",
+        "viewAll": "View All",
+        "empty": "No weddings registered yet",
+        "table": {
+          "name": "Couple Name",
+          "plan": "Plan",
+          "status": "Status",
+          "created": "Created"
+        }
+      },
+      "systemHealth": {
+        "title": "System Health",
+        "ipFirewalls": "IP Firewall",
+        "cdn": "Cloudflare CDN",
+        "database": "Database",
+        "security": "Security",
+        "active": "Active",
+        "connected": "Connected",
+        "protected": "Protected",
+        "export": "Export Data"
+      },
+      "actions": {
+        "title": "Security Actions",
+        "paymentCenter": "Payment Center",
+        "userDirectory": "User Directory",
+        "supportDesk": "Support Desk",
+        "broadcast": "Broadcast",
+        "audit": "Audit Logs",
+        "revenue": "Revenue"
+      }
+    },
+    "support": {
+      "title": "Customer Support Tickets",
+      "subtitle": "Manage inquiries and support tickets from users nationwide",
+      "refresh": "Refresh",
+      "syncing": "Syncing tickets...",
+      "noTickets": "No support tickets found",
+      "return": "Return to Settings",
+      "ticket": {
+        "masterControl": "LIVE SUPPORT DESK",
+        "unknown": "Unknown User",
+        "affiliated": "Affiliated Wedding",
+        "resolved": "Resolved",
+        "reopen": "Re-open"
+      }
+    }
+  },
   "common": {
+    "upgrade": {
+      "page_title": "Choose the right plan for you",
+      "page_subtitle": "Optimize your event management with our powerful features"
+    },
     "auth": {
       "signIn": "Sign In",
       "signUp": "Sign Up",
@@ -462,46 +527,20 @@
         "popularTemplates": "Popular Templates",
         "templates": {
           "khmer-legacy": {
-            "title": "Khmer Legacy",
-            "description": "Vertical style, clean, noble."
+            "title": "M-01",
+            "description": ""
           },
-          "modern": {
-            "title": "Eternal Cinematic",
-            "description": "Full screen, music, video, animation."
+          "modern-minimal": {
+            "title": "M-02",
+            "description": ""
           },
-          "khmer": {
-            "title": "Royal Editorial",
-            "description": "Traditional style, yellow & red."
-          },
-          "minimal": {
-            "title": "Glass Sophistication",
-            "description": "Clean, simple, focus on text."
-          },
-          "floral": {
-            "title": "Velvet Blossom",
-            "description": "Beautiful flowers, gentle, romantic."
-          },
-          "luxury": {
-            "title": "Luxury",
-            "description": "Gold, black, high quality."
-          },
-          "pastel": {
-            "title": "Pastel Floral",
-            "description": "Gentle, fresh flowers, lavender."
-          },
-          "legacy": {
-            "title": "Khmer Legacy",
-            "description": "Vertical style, clean, noble."
-          },
-          "visionary": {
-            "title": "Visionary Modern",
-            "description": "Future style, dark blue, amazing movement."
-          },
-          "celestial": {
-            "title": "Celestial Elegance",
-            "description": "Space style, premium black, star movement."
+          "anniversary-elegant": {
+            "title": "M-03",
+            "description": ""
           }
-        }
+        },
+        "title": "Choose Template",
+        "subtitle": "Select a template for your special day"
       },
       "2": {
         "title": "Personal Details",
@@ -846,6 +885,7 @@
       "overview": "Overview",
       "home": "Home",
       "menu": "Menu",
+      "design": "Design",
       "guests": "Manage Guests",
       "gifts": "Gift List",
       "schedule": "Event Schedule",
@@ -1511,6 +1551,17 @@
         "newPlaceholder": "Enter new password",
         "confirmLabel": "Confirm New Password",
         "confirmPlaceholder": "Re-enter new password",
+        "labels": {
+          "current": "Current Password",
+          "new": "New Password",
+          "confirm": "Confirm New Password"
+        },
+        "placeholders": {
+          "password": "Enter password...",
+          "current": "Enter current password",
+          "new": "Enter new password",
+          "confirm": "Re-enter new password"
+        },
         "submit": "Change Password",
         "submitting": "Updating...",
         "success": "Password changed successfully. For security, you need to login again.",
@@ -1537,9 +1588,14 @@
       "deleteAccount": {
         "title": "Delete Account",
         "description": "This action is permanent and cannot be undone. All your data will be permanently removed.",
-        "passwordLabel": "Confirm Password",
+        "alert": "Warning: This action cannot be undone. All wedding templates and guests will be permanently deleted.",
+        "label": "Confirm Your Password",
+        "placeholder": "Enter your password to confirm deletion",
+        "passwordLabel": "Confirm Your Password",
         "passwordPlaceholder": "Enter your password to confirm deletion",
+        "cancel": "Cancel",
         "submit": "Delete My Account",
+        "processing": "Deleting...",
         "submitting": "Deleting...",
         "success": "Your account has been deleted successfully.",
         "errors": {

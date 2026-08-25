@@ -1,11 +1,8 @@
-"use client";
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useState, Suspense, useEffect } from "react";
-import Link from "next/link";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { KeyRound, ArrowLeft, Loader2, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { m, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
@@ -25,8 +22,8 @@ import { LanguageToggle } from "@/components/LanguageToggle";
 
 function ResetPasswordForm() {
     const { t } = useTranslation();
-    const router = useRouter();
-    const searchParams = useSearchParams();
+    const router = useNavigate();
+    const [searchParams] = useSearchParams();
     const token = searchParams.get("token");
 
     const [error, setError] = useState("");
@@ -76,7 +73,7 @@ function ResetPasswordForm() {
             if (res.ok) {
                 setSuccessMessage(data.message || "Password reset successfully!");
                 setTimeout(() => {
-                    router.push(AUTH_URLS.SIGN_IN);
+                    router(AUTH_URLS.SIGN_IN);
                 }, 3000);
             } else {
                 setError(data.error || t('common.errors.unexpected'));
@@ -95,7 +92,7 @@ function ResetPasswordForm() {
     return (
         <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
             <div className="text-center mb-8">
-                <Link href="/" className="inline-flex justify-center">
+                <Link to="/" className="inline-flex justify-center">
                     <MoneaLogo showText size="md" variant="dark" />
                 </Link>
                 <h1 className="text-2xl font-bold text-white mb-2 font-kantumruy mt-4">{t('common.auth.resetPasswordTitle') || "Reset Password"}</h1>
@@ -175,7 +172,7 @@ function ResetPasswordForm() {
             )}
 
             <div className="text-center mt-8">
-                <Link href={AUTH_URLS.SIGN_IN} className="font-semibold text-white/50 hover:text-white transition-colors flex items-center justify-center gap-2 text-xs font-kantumruy">
+                <Link to={AUTH_URLS.SIGN_IN} className="font-semibold text-white/50 hover:text-white transition-colors flex items-center justify-center gap-2 text-xs font-kantumruy">
                     <ArrowLeft className="w-3 h-3" /> {t('common.auth.backToSignIn') || "Back to Sign In"}
                 </Link>
             </div>

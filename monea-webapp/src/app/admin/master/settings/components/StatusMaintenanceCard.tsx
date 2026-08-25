@@ -1,8 +1,7 @@
-"use client";
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { Calendar, LayoutGrid } from "lucide-react";
+import { Calendar, LayoutGrid, AlertOctagon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/i18n/LanguageProvider";
 
@@ -17,21 +16,25 @@ export function StatusMaintenanceCard({ config, setConfig, handleAutoSave }: Sta
     const isKm = locale === 'km';
 
     return (
-        <Card className="border-none shadow-xl shadow-slate-200/50 dark:shadow-black/50 rounded-[3rem] bg-slate-900 text-white relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 blur-[100px] rounded-full -mr-24 -mt-24 group-hover:bg-white/10 transition-colors" />
-            <CardContent className="p-8 relative z-10 flex flex-col justify-between h-full min-h-[220px]">
+        <Card className="border border-slate-800 shadow-xl rounded-3xl bg-slate-950 text-white relative overflow-hidden font-kantumruy">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/10 blur-3xl rounded-full" />
+            <CardContent className="p-6 sm:p-8 space-y-6 relative z-10">
                 <div className="flex items-center justify-between">
-                    <div className="space-y-2">
-                        <div className="flex items-center gap-3">
-                            <div className={cn(
-                                "w-3 h-3 rounded-full shadow-[0_0_15px_rgba(239,68,68,0.5)]",
-                                config?.maintenanceMode ? "bg-red-500 animate-pulse" : "bg-emerald-500 shadow-emerald-500/50"
-                            )} />
-                            <h3 className="font-black text-xl tracking-tight">{t("admin.settings.statusTitle")}</h3>
+                    <div className="flex items-center gap-3">
+                        <div className={cn(
+                            "w-3 h-3 rounded-full shrink-0",
+                            config?.maintenanceMode ? "bg-red-500 animate-pulse" : "bg-emerald-500 shadow-emerald-500/50"
+                        )} />
+                        <div>
+                            <h3 className="font-black text-lg text-white">
+                                {t("admin.settings.statusTitle", { defaultValue: "ស្ថានភាពប្រព័ន្ធ (Status)" })}
+                            </h3>
+                            <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">
+                                {config?.maintenanceMode 
+                                    ? t("admin.settings.statusHalt", { defaultValue: "ប្រព័ន្ធកំពុងបិទថែទាំ" }) 
+                                    : t("admin.settings.statusOnline", { defaultValue: "ប្រព័ន្ធដំណើរការជាធម្មតា (Online)" })}
+                            </p>
                         </div>
-                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
-                            {config?.maintenanceMode ? t("admin.settings.statusHalt") : t("admin.settings.statusOnline")}
-                        </p>
                     </div>
                     <Switch
                         className="data-[state=checked]:bg-red-500"
@@ -39,30 +42,35 @@ export function StatusMaintenanceCard({ config, setConfig, handleAutoSave }: Sta
                         onCheckedChange={(val) => handleAutoSave({ maintenanceMode: val })}
                     />
                 </div>
-                <p className="text-sm text-slate-400 leading-relaxed font-kantumruy mt-6">
-                    {config?.maintenanceMode ? t("admin.settings.maintenanceDesc") : t("admin.settings.onlineDesc")}
+
+                <p className="text-xs text-slate-400 leading-relaxed font-medium">
+                    {config?.maintenanceMode 
+                        ? t("admin.settings.maintenanceDesc", { defaultValue: "រាល់សេវាកម្មទាំងអស់ត្រូវបានផ្អាកបណ្តោះអាសន្នសម្រាប់អតិថិជន។" }) 
+                        : t("admin.settings.onlineDesc", { defaultValue: "រាល់សេវាកម្មទាំងអស់ និងការគ្រប់គ្រងរបស់អតិថិជនកំពុងដំណើរការជាធម្មតា។" })}
                 </p>
 
-                <div className="mt-8 space-y-4 pt-6 border-t border-white/5">
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 flex items-center gap-1">
-                            <Calendar size={10} /> {isKm ? "ម៉ោងចាប់ផ្តើមបិទ (ប្រព័ន្ធនឹងបិទស្វ័យប្រវត្តិ)" : "Maintenance Start (Auto-Halt)"}
+                <div className="space-y-3 pt-4 border-t border-white/10">
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-400 flex items-center gap-1.5">
+                            <Calendar size={13} className="text-red-400" />
+                            <span>{isKm ? "ម៉ោងចាប់ផ្តើមបិទ (Auto-Halt)" : "Maintenance Start (Auto-Halt)"}</span>
                         </label>
                         <input
                             type="datetime-local"
-                            className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-xs font-bold outline-none focus:border-red-500 transition-colors"
+                            className="w-full h-11 px-3 rounded-xl bg-slate-900 border border-slate-700 text-xs font-medium text-white outline-none focus:border-red-500"
                             value={config?.maintenanceStart ? new Date(new Date(config.maintenanceStart).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ""}
                             onChange={(e) => setConfig({ ...config, maintenanceStart: e.target.value })}
                             onBlur={(e) => handleAutoSave({ maintenanceStart: e.target.value })}
                         />
                     </div>
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 flex items-center gap-1">
-                            <LayoutGrid size={10} /> {isKm ? "ម៉ោងបើកវិញ (ប្រព័ន្ធនឹងបើកស្វ័យប្រវត្តិ)" : "Opening Hour (Auto-Resume)"}
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-400 flex items-center gap-1.5">
+                            <LayoutGrid size={13} className="text-emerald-400" />
+                            <span>{isKm ? "ម៉ោងបើកវិញ (Auto-Resume)" : "Opening Hour (Auto-Resume)"}</span>
                         </label>
                         <input
                             type="datetime-local"
-                            className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-xs font-bold outline-none focus:border-red-500 transition-colors"
+                            className="w-full h-11 px-3 rounded-xl bg-slate-900 border border-slate-700 text-xs font-medium text-white outline-none focus:border-red-500"
                             value={config?.maintenanceEnd ? new Date(new Date(config.maintenanceEnd).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ""}
                             onChange={(e) => setConfig({ ...config, maintenanceEnd: e.target.value })}
                             onBlur={(e) => handleAutoSave({ maintenanceEnd: e.target.value })}

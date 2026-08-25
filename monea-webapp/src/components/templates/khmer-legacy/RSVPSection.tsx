@@ -1,4 +1,3 @@
-"use client";
 import React, { useState } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
 import { Send, CheckCircle2, XCircle, Users, Heart, Calendar } from 'lucide-react';
@@ -152,7 +151,7 @@ export default function RSVPSection({ wedding, guestName }: RSVPSectionProps) {
                     
                     <div className="flex flex-col items-center gap-6 pt-6">
                         <div className="w-24 h-[1px] bg-gradient-to-r from-transparent via-gold-main/20 to-transparent" />
-                        <p className="font-khmer-moul text-xs tracking-[0.2em] text-gold-main/60 uppercase drop-shadow-sm">
+                        <p className="font-khmer-moul text-xs text-gold-main/80 drop-shadow-sm tracking-wide">
                             {wedding.themeSettings?.customLabels?.rsvpClosing || t("invitation.rsvp.closing")}
                         </p>
 
@@ -263,7 +262,7 @@ export default function RSVPSection({ wedding, guestName }: RSVPSectionProps) {
                             >
                                 {!guestName && (
                                     <div className="flex flex-col gap-2 max-w-md mx-auto w-full">
-                                        <label className="font-khmer-content text-sm font-black text-slate-500 tracking-[0.1em]">
+                                        <label className="font-khmer-content text-sm font-bold text-slate-500 tracking-wide">
                                             ឈ្មោះរបស់អ្នក / Your Name *
                                         </label>
                                         <input 
@@ -279,7 +278,7 @@ export default function RSVPSection({ wedding, guestName }: RSVPSectionProps) {
 
                                 {status === 'CONFIRMED' && (
                                     <div className="flex flex-col items-center gap-4">
-                                        <label className="font-khmer-content text-sm font-black text-slate-500 tracking-[0.2em] uppercase flex items-center gap-3">
+                                        <label className="font-khmer-content text-sm font-bold text-slate-500 tracking-wide flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-2xl bg-gold-main/10 flex items-center justify-center text-gold-main shadow-inner">
                                                 <Users size={18} />
                                             </div>
@@ -287,7 +286,7 @@ export default function RSVPSection({ wedding, guestName }: RSVPSectionProps) {
                                         </label>
                                         <div className="flex gap-4 w-full max-w-md mx-auto">
                                             {[1, 2, 3, 4, 5].map(n => (
-                                                <m.button
+                                                 <m.button
                                                     key={n}
                                                     type="button"
                                                     whileHover={{ y: -4, scale: 1.05 }}
@@ -307,7 +306,7 @@ export default function RSVPSection({ wedding, guestName }: RSVPSectionProps) {
                                 )}
 
                                 <div className="flex flex-col gap-2 max-w-md mx-auto w-full">
-                                    <label className="font-khmer-content text-sm font-black text-slate-500 tracking-[0.1em]">
+                                    <label className="font-khmer-content text-sm font-bold text-slate-500 tracking-wide">
                                         ចំណាំ / Notes (ជម្រើស/Optional)
                                     </label>
                                     <textarea 

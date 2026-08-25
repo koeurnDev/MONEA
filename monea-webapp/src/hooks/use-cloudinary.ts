@@ -20,8 +20,9 @@ export function useCloudinary(options: UseCloudinaryOptions = {}) {
                 img.src = event.target?.result as string;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 2000;
-                    const MAX_HEIGHT = 2000;
+                    // Set high max dimensions (3000px) for pristine quality while preventing mobile canvas crash
+                    const MAX_WIDTH = 3000;
+                    const MAX_HEIGHT = 3000;
                     let width = img.width;
                     let height = img.height;
 
@@ -44,7 +45,7 @@ export function useCloudinary(options: UseCloudinaryOptions = {}) {
 
                     canvas.toBlob((blob) => {
                         resolve(blob || file);
-                    }, 'image/jpeg', 0.8);
+                    }, 'image/webp', 0.98); // 0.98 for Maximum Visual Clarity while still saving space
                 };
             };
         });
@@ -68,8 +69,8 @@ export function useCloudinary(options: UseCloudinaryOptions = {}) {
         try {
             const uploadPromises = filesArray.map(async (file) => {
                 try {
-                    // 1. Client-side compression
-                    const processedFile = file.size > 1024 * 1024 ? await compressImage(file) : file;
+                    // 1. Convert to WebP without resizing to keep 100% original clarity but save space
+                    const processedFile = file.type.includes('webp') ? file : await compressImage(file);
 
                     // 2. Get Signature
                     const timestamp = Math.round((new Date()).getTime() / 1000);
@@ -91,13 +92,13 @@ export function useCloudinary(options: UseCloudinaryOptions = {}) {
                     // 3. Upload to Cloudinary
                     const formData = new FormData();
                     formData.append("file", processedFile);
-                    formData.append("api_key", process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY!);
+                    formData.append("api_key", import.meta.env.VITE_CLOUDINARY_API_KEY!);
                     formData.append("timestamp", timestamp.toString());
                     formData.append("signature", signature);
                     formData.append("upload_preset", "wedding_upload");
                     if (options.folder) formData.append("folder", options.folder);
 
-                    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+                    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
                     if (!cloudName) throw new Error("Cloudinary Cloud Name is missing");
 
                     const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {

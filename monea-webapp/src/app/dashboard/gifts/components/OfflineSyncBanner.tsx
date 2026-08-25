@@ -1,6 +1,4 @@
-"use client";
-
-import { Activity } from "lucide-react";
+﻿import { Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/i18n/LanguageProvider";
 

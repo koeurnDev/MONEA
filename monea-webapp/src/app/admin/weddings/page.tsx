@@ -1,6 +1,5 @@
-"use client";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+﻿import { useEffect, useState } from "react";
+import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -26,7 +25,7 @@ interface Wedding {
 
 export default function AdminWeddingsPage() {
     const [weddings, setWeddings] = useState<Wedding[]>([]);
-    const router = useRouter();
+    const router = useNavigate();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [selectedWedding, setSelectedWedding] = useState<Wedding | null>(null);
@@ -172,7 +171,7 @@ export default function AdminWeddingsPage() {
                                 <TableRow 
                                     key={w.id} 
                                     className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer"
-                                    onClick={() => router.push(`/admin/weddings/${w.id}`)}
+                                    onClick={() => router(`/admin/weddings/${w.id}`)}
                                 >
                                     <TableCell className="font-medium text-slate-500 dark:text-slate-400 px-6 font-mono text-xs">{w.user?.email || "N/A"}</TableCell>
                                     <TableCell className="text-slate-900 dark:text-white font-medium font-kantumruy">{w.groomName} & {w.brideName}</TableCell>

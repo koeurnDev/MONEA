@@ -1,34 +1,34 @@
-"use client";
-
-// Forced re-compilation after cache clear
-import React, { useEffect, useState, useCallback, useRef, Suspense } from "react";
+import React, { lazy, useEffect, useState, useCallback, useRef, Suspense } from "react";
 import { createPortal } from "react-dom";
-import Link from 'next/link';
+import { Link } from 'react-router-dom';
 import { m, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Palette, Smartphone, LayoutTemplate, Settings2, Loader2, ArrowRight, ArrowLeft, CheckCircle2, ExternalLink, Lock } from "lucide-react";
-
-import Image from "next/image";
+import { Palette, Smartphone, LayoutTemplate, Settings2, Loader2, ArrowRight, ArrowLeft, CheckCircle2, ExternalLink, Lock, Type, Clock, Image as ImageIcon, Settings, Save, Share2, Copy } from "lucide-react";
+import { MoneaLogo } from "@/components/ui/MoneaLogo";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import SafeQRCode from "@/components/ui/SafeQRCode";
+import confetti from "canvas-confetti";
+// @ts-ignore
+import { Joyride, Step } from "react-joyride";
 import clsx from "clsx";
 import { useTranslation } from "@/i18n/LanguageProvider";
 
-import dynamic from "next/dynamic";
-
-const StepSkeleton = () => <div className="h-64 rounded-2xl bg-muted animate-pulse" />;
-
-// Lazy-load each step — only load when needed
-const Step1Template = dynamic(() => import("./components/Step1Template"), { loading: StepSkeleton });
-const Step2Info     = dynamic(() => import("./components/Step2Info"),     { loading: StepSkeleton });
-const Step3Time     = dynamic(() => import("./components/Step3Time"),     { loading: StepSkeleton });
-const Step4Media    = dynamic(() => import("./components/Step4Media"),    { loading: StepSkeleton });
-const Step5Extra    = dynamic(() => import("./components/Step5Extra"),    { loading: StepSkeleton });
 import { StepWizard } from "./components/StepWizard";
 import { PreviewSync, MobilePreviewWrapper } from "./components/PreviewSync";
 import { useDesignWizard, STEPS, PRESET_COLORS, TEMPLATE_LAYOUTS } from "./hooks/useDesignWizard";
 import type { WeddingData } from "@/components/templates/types";
 import { isEditingLocked } from "@/lib/permissions";
+
+const StepSkeleton = () => <div className="h-64 rounded-2xl bg-muted animate-pulse" />;
+
+// Lazy-load each step — only load when needed
+const Step1Template = lazy(() => import("./components/Step1Template"));
+const Step2Info     = lazy(() => import("./components/Step2Info"));
+const Step3Time     = lazy(() => import("./components/Step3Time"));
+const Step4Media    = lazy(() => import("./components/Step4Media"));
+const Step5Extra    = lazy(() => import("./components/Step5Extra"));
 
 export default function DesignPage() {
     const { t } = useTranslation();
@@ -46,6 +46,7 @@ export default function DesignPage() {
 
 function DesignContent() {
     const { t } = useTranslation();
+    const [isSheetOpen, setIsSheetOpen] = useState(false);
     const {
         mounted,
         wedding,
@@ -53,6 +54,7 @@ function DesignContent() {
         loading,
         currentStep,
         setCurrentStep,
+        progress,
         mobileTab,
         setMobileTab,
         previewMode,
@@ -86,6 +88,7 @@ function DesignContent() {
         removeGalleryItem,
         removeThemeAsset,
         handleGalleryDirectUpload,
+        updateGalleryOrder,
         saveChanges,
         fetchVersions,
         handleSaveVersion,
@@ -96,6 +99,46 @@ function DesignContent() {
         nextStep,
         prevStep
     } = useDesignWizard();
+
+    // Confetti effect when progress hits 100%
+    const [hasFiredConfetti, setHasFiredConfetti] = useState(false);
+    useEffect(() => {
+        if (progress === 100 && !hasFiredConfetti) {
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#f43f5e', '#ec4899', '#f9a8d4', '#ffffff'] // Rose/Pink themed
+            });
+            setHasFiredConfetti(true);
+        }
+    }, [progress, hasFiredConfetti]);
+
+    // Joyride Tour
+    const [runTour, setRunTour] = useState(false);
+    useEffect(() => {
+        if (mounted && !localStorage.getItem("monea-tour-seen")) {
+            setRunTour(true);
+        }
+    }, [mounted]);
+
+    const tourSteps: Step[] = [
+        {
+            target: '.tour-preview',
+            content: 'ចុចទីនេះដើម្បីមើលលទ្ធផលពិតនៃធៀបការរបស់អ្នកទាំងលើទូរស័ព្ទនិងកុំព្យូទ័រ។',
+            placement: 'bottom'
+        }
+    ];
+
+    const handleJoyrideCallback = (data: any) => {
+        const { status } = data;
+        if (status === "finished" || status === "skipped") {
+            setRunTour(false);
+            localStorage.setItem("monea-tour-seen", "true");
+        }
+    };
+
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
     if (!wedding) return (
         <div className="flex h-screen w-full flex-col items-center justify-center gap-4 bg-background">
@@ -148,6 +191,7 @@ function DesignContent() {
                         isDraggingGallery={isDraggingGallery}
                         setIsDraggingGallery={setIsDraggingGallery}
                         TEMPLATE_LAYOUTS={TEMPLATE_LAYOUTS}
+                        updateGalleryOrder={updateGalleryOrder}
                     />
                 );
             case 5:
@@ -178,34 +222,73 @@ function DesignContent() {
                 return null;
         }
     };
-
     const editorPanel = (
-        <div className="flex-1 flex flex-col min-h-0 bg-card/60 backdrop-blur-md z-20 relative">
+        <div className="flex-1 flex flex-col min-h-0 h-full w-full bg-card/60 backdrop-blur-md z-20 relative">
             <AnimatePresence>
                 {saveToast === "success" && (
                     <m.div 
                         initial={{ opacity: 0, y: -20, x: "-50%" }}
                         animate={{ opacity: 1, y: 10, x: "-50%" }}
                         exit={{ opacity: 0, y: -20, x: "-50%" }}
-                        className="absolute top-0 left-1/2 z-50 flex items-center gap-2 px-4 py-1.5 bg-green-500 text-white rounded-full shadow-lg shadow-green-500/30"
+                        className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-emerald-500 text-white px-4 py-2 rounded-full shadow-lg shadow-emerald-500/20 text-xs font-bold flex items-center gap-2 font-kantumruy"
                     >
-                        <CheckCircle2 className="w-4 h-4" />
-                        <span className="text-[11px] font-bold font-kantumruy uppercase tracking-wider">{t("design.success")}</span>
+                        <CheckCircle2 size={16} /> រក្សាទុករួចរាល់
+                    </m.div>
+                )}
+                {saveToast && saveToast !== "success" && (
+                    <m.div 
+                        initial={{ opacity: 0, y: -20, x: "-50%" }}
+                        animate={{ opacity: 1, y: 10, x: "-50%" }}
+                        exit={{ opacity: 0, y: -20, x: "-50%" }}
+                        className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-red-500 text-white px-4 py-2 rounded-full shadow-lg shadow-red-500/20 text-xs font-bold flex items-center gap-2 font-kantumruy"
+                    >
+                        {saveToast === "error" 
+                            ? "មិនអាចរក្សាទុកបានទេ សូមពិនិត្យមើលព័ត៌មាន (ឈ្មោះ, ថ្ងៃខែ) ឡើងវិញ"
+                            : saveToast}
                     </m.div>
                 )}
             </AnimatePresence>
-            <StepWizard
-                currentStep={currentStep}
-                onNext={nextStep}
-                onPrev={prevStep}
-                isLast={currentStep === STEPS.length}
-                onSave={saveChanges}
-                loading={loading}
-                setStep={setCurrentStep}
-            >
+            <StepWizard currentStep={currentStep} onSave={saveChanges} loading={loading} setStep={setCurrentStep} progress={progress}>
                 {renderStepContent()}
             </StepWizard>
         </div>
+    );
+
+    const shareUrl = wedding ? `https://monea.app/invite/${wedding.id}` : "";
+    
+    const ShareModal = () => (
+        <Dialog open={isShareModalOpen} onOpenChange={setIsShareModalOpen}>
+            <DialogContent className="sm:max-w-md font-khmer p-6 rounded-[2rem]">
+                <DialogHeader>
+                    <DialogTitle className="text-center font-black font-kantumruy">ចែករំលែកធៀបការរបស់អ្នក</DialogTitle>
+                    <DialogDescription className="text-center text-xs">
+                        ស្កេន QR Code ឬថតចម្លងតំណភ្ជាប់ខាងក្រោមដើម្បីផ្ញើទៅកាន់ភ្ញៀវកិត្តិយសរបស់អ្នក។
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="flex flex-col items-center justify-center p-6 space-y-6">
+                    <div className="p-4 bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100">
+                        {shareUrl && <SafeQRCode value={shareUrl} size={200} fgColor="#0f172a" />}
+                    </div>
+                    <div className="w-full flex items-center gap-2 p-2 bg-slate-50 rounded-2xl border border-slate-100">
+                        <input 
+                            readOnly 
+                            value={shareUrl} 
+                            className="flex-1 bg-transparent border-none text-xs font-medium text-slate-500 px-3 outline-none" 
+                        />
+                        <Button 
+                            size="sm" 
+                            className="rounded-xl px-4 font-bold active:scale-95 transition-transform"
+                            onClick={() => {
+                                navigator.clipboard.writeText(shareUrl);
+                                // could use a local toast here if needed
+                            }}
+                        >
+                            <Copy size={14} className="mr-2" /> ចម្លង
+                        </Button>
+                    </div>
+                </div>
+            </DialogContent>
+        </Dialog>
     );
 
     // ==========================================
@@ -230,66 +313,103 @@ function DesignContent() {
             </div>
 
             {/* 2. PREVIEW AREA (Right Fluid) */}
-            <div className="flex-1 bg-background flex items-center justify-center p-12 relative overflow-hidden">
-                {/* Background */}
-                <div className="absolute inset-0 z-0">
-                    <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-red-50 dark:bg-red-950/20 rounded-full blur-[120px]"></div>
-                    <div className="absolute bottom-[20%] right-[-5%] w-[30%] h-[30%] bg-slate-100 dark:bg-slate-950/20 rounded-full blur-[100px]"></div>
+            <div className="flex-1 bg-slate-50/50 dark:bg-black/20 flex items-center justify-center p-4 sm:p-6 md:p-8 relative overflow-hidden">
+                {/* Subtle Background Accent */}
+                <div className="absolute inset-0 z-0 pointer-events-none">
+                    <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-rose-500/5 rounded-full blur-[120px]"></div>
+                    <div className="absolute bottom-[20%] right-[-5%] w-[30%] h-[30%] bg-amber-500/5 rounded-full blur-[100px]"></div>
                 </div>
 
-                {/* Desktop Preview Container */}
+                {/* Desktop Preview Container (iPhone Pro Ultra-Sleek Titanium Mockup) */}
                 <div
                     className={clsx(
-                        "relative z-10 bg-background overflow-hidden transition-all duration-300 ease-in-out flex flex-col group origin-center shadow-[0_32px_120px_-20px_rgba(0,0,0,0.2)] dark:shadow-[0_32px_120px_-20px_rgba(0,0,0,0.6)]",
+                        "relative z-10 transition-all duration-300 ease-in-out flex flex-col group origin-center",
                         previewMode === 'mobile' 
-                            ? "h-[88vh] max-h-[844px] min-h-[650px] aspect-[390/844] rounded-[3rem] border-[10px] border-slate-900 dark:border-slate-800 ring-4 ring-slate-900/20 dark:ring-white/10" 
-                            : "w-[95%] h-[85vh] rounded-2xl border-4 border-slate-900/5 dark:border-white/5"
+                            ? "h-[84vh] max-h-[820px] min-h-[580px] aspect-[393/852] max-w-[393px]" 
+                            : "w-[95%] h-[82vh] rounded-2xl border-4 border-slate-900/10 dark:border-white/10 overflow-hidden bg-background shadow-2xl"
                     )}
                 >
-                    {/* Device Notch / Dynamic Island (iPhone Pro Max Style) */}
-                    <AnimatePresence>
-                        {previewMode === 'mobile' && (
-                            <m.div 
-                                initial={{ y: -20, x: "-50%", opacity: 0 }}
-                                animate={{ y: 0, x: "-50%", opacity: 1 }}
-                                exit={{ y: -20, x: "-50%", opacity: 0 }}
-                                className="absolute top-[1.5%] left-1/2 w-[32%] aspect-[3.5/1] bg-black rounded-full z-50 flex items-center justify-end px-[5%] shadow-sm pointer-events-none"
-                            >
-                                {/* Realistic single camera lens on the right side */}
-                                <div className="w-3.5 h-3.5 rounded-full bg-[#0a0a1a] shadow-[inset_0_0_3px_rgba(255,255,255,0.15)] flex items-center justify-center">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-blue-900/40 blur-[0.5px]"></div>
-                                </div>
-                            </m.div>
-                        )}
-                    </AnimatePresence>
+                    {previewMode === 'mobile' ? (
+                        /* iPhone Pro Realistic Hardware Body */
+                        <div className="relative w-full h-full p-[4px] bg-gradient-to-b from-slate-700 via-slate-800 to-slate-950 rounded-[3.2rem] shadow-[0_25px_70px_rgba(0,0,0,0.35),0_0_0_1px_rgba(255,255,255,0.15)] flex flex-col">
+                            {/* Left Hardware Buttons (Action Button + Volume Up/Down) */}
+                            <div className="absolute -left-[6px] top-[95px] w-[3px] h-[22px] bg-slate-600 rounded-l-sm shadow-sm" />
+                            <div className="absolute -left-[6px] top-[130px] w-[3px] h-[42px] bg-slate-600 rounded-l-sm shadow-sm" />
+                            <div className="absolute -left-[6px] top-[180px] w-[3px] h-[42px] bg-slate-600 rounded-l-sm shadow-sm" />
 
-                    <iframe
-                        ref={iframeRef}
-                        src="/preview"
-                        className="w-full h-full border-none bg-background"
-                        title={t("design.wizard.preview")}
-                    />
+                            {/* Right Hardware Button (Power / Siri Button) */}
+                            <div className="absolute -right-[6px] top-[135px] w-[3px] h-[60px] bg-slate-600 rounded-r-sm shadow-sm" />
+
+                            {/* Inner Screen Bezel */}
+                            <div className="relative w-full h-full bg-black rounded-[2.9rem] overflow-hidden flex flex-col ring-1 ring-black">
+                                {/* Top Speaker Slit */}
+                                <div className="absolute top-[5px] left-1/2 -translate-x-1/2 w-[42px] h-[2.5px] bg-slate-800/90 rounded-full z-50 pointer-events-none" />
+
+                                {/* Dynamic Island */}
+                                <div className="absolute top-[10px] left-1/2 -translate-x-1/2 w-[98px] h-[26px] bg-black rounded-full z-50 flex items-center justify-between px-2.5 shadow-md pointer-events-none">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-[#080812] opacity-70" />
+                                    <div className="w-3 h-3 rounded-full bg-[#0a0a1a] shadow-[inset_0_0_2px_rgba(255,255,255,0.25)] flex items-center justify-center">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-900/70 blur-[0.3px]" />
+                                    </div>
+                                </div>
+
+                                {/* Glass Corner Glare Highlight */}
+                                <div className="absolute top-0 right-0 w-[70%] h-[35%] bg-gradient-to-bl from-white/[0.04] to-transparent rounded-tr-[2.9rem] pointer-events-none z-40" />
+
+                                {/* Iframe Content */}
+                                <iframe
+                                    ref={iframeRef}
+                                    src="/preview"
+                                    onLoad={() => {
+                                        if (iframeRef.current?.contentWindow && wedding) {
+                                            iframeRef.current.contentWindow.postMessage({ type: "UPDATE_PREVIEW", payload: wedding }, "*");
+                                        }
+                                    }}
+                                    className="w-full h-full border-none bg-background"
+                                    title={t("design.wizard.preview")}
+                                />
+
+                                {/* Bottom Home Indicator Bar */}
+                                <div className="absolute bottom-[6px] left-1/2 -translate-x-1/2 w-[120px] h-[3.5px] bg-black/40 dark:bg-white/40 rounded-full z-50 pointer-events-none backdrop-blur-sm" />
+                            </div>
+                        </div>
+                    ) : (
+                        /* Desktop Mode Direct Iframe */
+                        <iframe
+                            ref={iframeRef}
+                            src="/preview"
+                            onLoad={() => {
+                                if (iframeRef.current?.contentWindow && wedding) {
+                                    iframeRef.current.contentWindow.postMessage({ type: "UPDATE_PREVIEW", payload: wedding }, "*");
+                                }
+                            }}
+                            className="w-full h-full border-none bg-background"
+                            title={t("design.wizard.preview")}
+                        />
+                    )}
                 </div>
 
                 <PreviewSync wedding={wedding} iframeRef={iframeRef} currentStep={currentStep} enableScrollSync={false} />
 
-                {/* View Toggle (Desktop Only) */}
-                <div className="absolute top-4 right-4 z-30 bg-card/90 backdrop-blur-sm p-1 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] gap-1 flex items-center">
+                {/* View Toggle Toolbar (Desktop Only) */}
+                <div className="absolute top-4 right-4 z-30 bg-white/95 dark:bg-[#141419]/95 backdrop-blur-md p-1.5 rounded-2xl shadow-lg border border-slate-200/80 dark:border-white/10 gap-1.5 flex items-center">
                     <a
                         href="/preview"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="p-2 rounded-full text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all duration-300"
-                        title={t("design.wizard.viewPublic") || "Open Fullscreen Preview"}
+                        className="p-2 rounded-xl text-slate-600 hover:text-rose-600 hover:bg-rose-50 dark:text-slate-300 dark:hover:bg-rose-950/30 transition-all"
+                        title={t("design.wizard.viewPublic", { defaultValue: "មើលពេញអេក្រង់ (Open Fullscreen)" })}
                     >
                         <ExternalLink size={16} />
                     </a>
-                    <div className="w-[1px] h-4 bg-muted mx-0.5" />
+                    <div className="w-[1px] h-4 bg-border/60 mx-0.5" />
                     <button
                         onClick={() => setPreviewMode('mobile')}
                         className={clsx(
-                            "p-2 rounded-full transition-all duration-300",
-                            previewMode === 'mobile' ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                            "p-2 rounded-xl transition-all font-bold text-xs",
+                            previewMode === 'mobile' 
+                                ? "bg-primary text-primary-foreground shadow-sm font-black" 
+                                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                         )}
                         title={t("design.wizard.previewMode.mobile")}
                     >
@@ -298,120 +418,147 @@ function DesignContent() {
                     <button
                         onClick={() => setPreviewMode('desktop')}
                         className={clsx(
-                            "p-2 rounded-full transition-all duration-300",
-                            previewMode === 'desktop' ? "bg-primary text-primary-foreground shadow-md" : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                            "p-2 rounded-xl transition-all font-bold text-xs",
+                            previewMode === 'desktop' 
+                                ? "bg-primary text-primary-foreground shadow-sm font-black" 
+                                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                         )}
                         title={t("design.wizard.previewMode.desktop")}
                     >
                         <LayoutTemplate size={16} />
                     </button>
+                    <div className="hidden md:flex items-center gap-2 px-2">
+                        {/* Auto-save Indicator */}
+                        <div className="flex items-center text-xs font-kantumruy font-bold text-foreground">
+                            {loading ? (
+                                <><Loader2 size={13} className="animate-spin text-rose-500 mr-1.5" /> <span>រក្សាទុក...</span></>
+                            ) : (
+                                <><CheckCircle2 size={14} className="text-emerald-500 mr-1.5" /> <span>រក្សាទុករួចរាល់</span></>
+                            )}
+                        </div>
+                    </div>
+                    <div className="w-[1px] h-4 bg-border/60 mx-0.5" />
+                    <button
+                        onClick={() => setIsShareModalOpen(true)}
+                        className="p-2 rounded-xl text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-all"
+                        title="ចែករំលែក (Share)"
+                    >
+                        <Share2 size={16} />
+                    </button>
                 </div>
+                <ShareModal />
             </div>
+            {mounted && <Joyride 
+                steps={tourSteps} 
+                run={runTour} 
+                // @ts-ignore
+                callback={handleJoyrideCallback}
+                continuous 
+                showProgress 
+                showSkipButton 
+                locale={{ back: 'ថយក្រោយ', close: 'បិទ', last: 'បញ្ចប់', next: 'បន្ទាប់', skip: 'រំលង' }}
+            />}
         </div>
     );
 
     // MOBILE LAYOUT (Portal to Body, Full Screen Overlay)
-    // Only render if mounted and on mobile (we use CSS md:hidden on the wrapper to handle resizing)
     const mobileLayout = mounted ? createPortal(
-        <div className="md:hidden fixed inset-0 w-screen h-[100dvh] z-[99999] bg-background flex flex-col overflow-hidden pt-[75px]" role="dialog" aria-label="Mobile Design Editor">
-            {/* MOBILE HEADER (Fixed Top) */}
-            <div className="fixed top-0 left-0 right-0 h-[75px] bg-card z-[100000] shadow-[0_4px_20px_rgba(0,0,0,0.05)] flex flex-col justify-end pb-3">
-                {/* Row 1: Dashboard Nav & Tabs */}
-                <div className="flex items-center px-4 gap-2">
-                    <Link href="/dashboard" className="p-2 -ml-2 text-muted-foreground hover:text-foreground transition-colors">
-                        <ArrowLeft size={18} />
-                    </Link>
-                    <div className="flex-1 bg-muted/80 p-1.5 rounded-[14px] flex relative h-10 font-khmer shadow-inner border border-slate-200/60 dark:border-white/10 backdrop-blur-md">
-                        <button
-                            onClick={() => setMobileTab('editor')}
-                            className={clsx(
-                                "flex-1 text-[11px] font-bold rounded-[10px] transition-all duration-300 z-10 flex items-center justify-center gap-1.5",
-                                mobileTab === 'editor' ? "bg-background text-foreground shadow-[0_2px_10px_rgba(0,0,0,0.05)] dark:shadow-none" : "text-muted-foreground hover:text-foreground"
-                            )}
+        <div className="md:hidden fixed inset-0 w-screen h-[100dvh] z-[99999] bg-background flex flex-col overflow-hidden" role="dialog" aria-label="Mobile Design Editor">
+            {/* MOBILE HEADER */}
+            <div className={clsx(
+                "h-[40px] bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-white/10 flex items-center justify-between px-2 z-50 transition-all",
+                isSheetOpen ? "flex-none relative" : "absolute top-0 left-0 w-full"
+            )}>
+                <div className="flex-1 flex justify-start">
+                    {isSheetOpen ? (
+                        <Link to="/dashboard" className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors">
+                            <ArrowLeft size={22} strokeWidth={2.5} />
+                        </Link>
+                    ) : (
+                        <button 
+                            onClick={() => setIsSheetOpen(true)} 
+                            className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white flex items-center gap-1 transition-colors"
                         >
-                            <Settings2 size={14} /> {t("design.wizard.editor")}
+                            <ArrowLeft size={22} strokeWidth={2.5} />
+                            <span className="text-[13px] font-bold hidden sm:inline-block">កែប្រែ</span>
                         </button>
-                        <button
-                            onClick={() => setMobileTab('preview')}
-                            className={clsx(
-                                "flex-1 text-[11px] font-bold rounded-[10px] transition-all duration-300 z-10 flex items-center justify-center gap-1.5",
-                                mobileTab === 'preview' ? "bg-background text-red-600 shadow-[0_2px_10px_rgba(0,0,0,0.05)] dark:shadow-none" : "text-muted-foreground hover:text-foreground"
-                            )}
-                        >
-                            <Smartphone size={13} /> {t("design.wizard.preview")}
-                        </button>
-                    </div>
-                    <a
-                        href={`/invite/${wedding.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-2 ml-1 text-muted-foreground hover:text-red-600 transition-colors"
-                        title={t("design.wizard.viewPublic")}
-                    >
-                        <ExternalLink size={14} />
-                    </a>
-                </div>
-            </div>
-
-            {/* 1. EDITOR PANEL (Full Content when active) */}
-            <div className={clsx(
-                "flex-1 flex-col z-20 relative bg-background",
-                mobileTab === 'editor' ? "flex h-full overflow-y-auto pb-[80px]" : "hidden"
-            )}>
-                {editorPanel}
-            </div>
-
-            {/* 2. PREVIEW AREA (Full Content when active) */}
-            <div className={clsx(
-                "flex-1 bg-muted items-center justify-center p-0 relative overflow-hidden",
-                mobileTab === 'preview' ? "flex h-full" : "hidden"
-            )}>
-                <div className="w-full h-full bg-background relative">
-                    <MobilePreviewWrapper wedding={wedding} currentStep={currentStep} />
-                </div>
-            </div>
-
-            {/* MOBILE FOOTER (Fixed Bottom - Step Navigation) */}
-            <div className={clsx(
-                "fixed bottom-0 left-0 right-0 h-[65px] bg-card z-[100000] border-t dark:border-white/5 flex items-center justify-between px-4 font-khmer shadow-[0_-4px_20px_rgba(0,0,0,0.05)] transition-transform duration-300",
-                mobileTab === 'preview' ? "translate-y-full" : "translate-y-0"
-            )}>
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={prevStep}
-                    disabled={currentStep === 1}
-                    className={clsx(
-                        "h-10 px-4 rounded-xl text-[11px] transition-all font-bold",
-                        currentStep === 1
-                            ? "opacity-30 cursor-not-allowed text-muted-foreground"
-                            : "bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-white hover:bg-slate-200 dark:hover:bg-white/20"
                     )}
-                >
-                    <ArrowLeft size={16} className="mr-2" /> {t("design.wizard.back")}
-                </Button>
-
-                <span className="text-[11px] font-bold text-muted-foreground tracking-wider uppercase">
-                    {t("design.wizard.step", { current: currentStep, total: STEPS.length })}
-                </span>
-
-                {currentStep < STEPS.length ? (
-                    <Button
-                        size="sm"
-                        onClick={nextStep}
-                        className="bg-slate-900 text-white hover:bg-black dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 h-10 px-5 rounded-xl text-[11px] font-bold shadow-md"
+                </div>
+                
+                <div className="flex-none flex justify-center items-center scale-95 sm:scale-100">
+                    <MoneaLogo size="sm" showText={true} />
+                </div>
+                
+                <div className="flex-1 flex justify-end items-center gap-2 pr-1">
+                    <button
+                        onClick={() => setIsShareModalOpen(true)}
+                        className="text-blue-600 hover:text-blue-700 bg-blue-50/50 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400 h-8 w-8 flex items-center justify-center rounded-full transition-all"
+                        title="ចែករំលែក (Share)"
                     >
-                        {t("design.wizard.next")} <ArrowRight size={16} className="ml-2" />
-                    </Button>
+                        <Share2 size={15} />
+                    </button>
+                    {isSheetOpen && (
+                        <button
+                            onClick={() => setIsSheetOpen(false)}
+                            className="tour-preview text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-300 h-8 w-8 flex items-center justify-center rounded-full transition-all"
+                            title={t("design.wizard.preview", { defaultValue: "មើលលទ្ធផល" })}
+                        >
+                            <ExternalLink size={16} />
+                        </button>
+                    )}
+                    {/* Auto-save Indicator (Mobile) */}
+                    <div className="flex items-center justify-center h-8 px-2 text-slate-400 dark:text-slate-500">
+                        {loading ? <Loader2 size={16} className="animate-spin text-rose-500" /> : <CheckCircle2 size={16} className="text-emerald-500" />}
+                    </div>
+                </div>
+            </div>
+            {/* Progress Bar */}
+            <div className={clsx(
+                "h-1 w-full bg-slate-100 dark:bg-white/5 relative overflow-hidden z-50 transition-all",
+                isSheetOpen ? "flex-none" : "absolute top-[40px] left-0 w-full"
+            )}>
+                <div className="absolute top-0 left-0 h-full bg-rose-500 transition-all duration-500 rounded-r-full" style={{ width: `${progress}%` }} />
+            </div>
+
+            {/* TABS FOR MOBILE */}
+            <div className="flex-1 flex flex-col min-h-0 bg-background">
+                {isSheetOpen ? (
+                    // EDITOR MODE
+                    <div className="flex-1 flex flex-col min-h-0">
+                        <div className="flex-1 flex flex-col overflow-hidden relative">
+                            {editorPanel}
+                        </div>
+                        {/* BOTTOM TABS FOR EDITOR */}
+                        <div className="flex-none h-[65px] bg-card border-t dark:border-white/5 flex items-center justify-around px-2 font-khmer shadow-[0_-10px_30px_rgba(0,0,0,0.1)] gap-1">
+                            {[1,2,3,4,5].map((stepId) => {
+                                const stepTitles = ["ទម្រង់", "ព័ត៌មាន", "ពេលវេលា", "រូបភាព", "ការកំណត់"];
+                                const icons = [LayoutTemplate, Type, Clock, ImageIcon, Settings];
+                                const Icon = icons[stepId - 1];
+                                return (
+                                    <button
+                                        key={stepId}
+                                        onClick={() => setCurrentStep(stepId)}
+                                        className={clsx(
+                                            "flex-1 flex flex-col items-center justify-center h-[56px] rounded-xl transition-all duration-300 gap-1",
+                                            currentStep === stepId
+                                                ? "bg-slate-100 dark:bg-[#1a1a1a] text-rose-500 shadow-sm border border-slate-200/50 dark:border-white/5" 
+                                                : "text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5"
+                                        )}
+                                    >
+                                        <Icon className={clsx("w-5 h-5", currentStep === stepId ? "stroke-[2.5]" : "stroke-2")} />
+                                        <span className="text-[9px] font-black leading-none tracking-wide">{stepTitles[stepId - 1]}</span>
+                                    </button>
+                                )
+                            })}
+                        </div>
+                    </div>
                 ) : (
-                    <Button
-                        size="sm"
-                        onClick={() => saveChanges()}
-                        disabled={loading}
-                        className="bg-red-600 text-white hover:bg-red-700 h-10 px-5 rounded-xl text-[11px] font-bold shadow-md"
-                    >
-                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : t("design.publish")}
-                    </Button>
+                    // PREVIEW MODE
+                    <div className="flex-1 flex flex-col bg-black">
+                        <div className="flex-1 relative overflow-hidden">
+                            <MobilePreviewWrapper wedding={wedding} currentStep={currentStep} />
+                        </div>
+                    </div>
                 )}
             </div>
         </div>,
@@ -433,10 +580,10 @@ function DesignContent() {
                         <p className="text-muted-foreground mb-8 font-khmer leading-relaxed">{t("design.locked.description")}</p>
                         <div className="flex flex-col gap-3 w-full">
                             <Button asChild className="h-14 rounded-2xl bg-slate-900 hover:bg-black text-white font-black uppercase tracking-wider shadow-xl dark:bg-slate-800 dark:hover:bg-slate-700">
-                                <Link href="/dashboard/upgrade">{t("design.locked.updateBtn")}</Link>
+                                <Link to="/dashboard/upgrade">{t("design.locked.updateBtn")}</Link>
                             </Button>
                             <Button variant="ghost" asChild className="h-12 rounded-2xl font-bold font-khmer">
-                                <Link href="/dashboard">{t("design.locked.backBtn")}</Link>
+                                <Link to="/dashboard">{t("design.locked.backBtn")}</Link>
                             </Button>
                         </div>
                     </div>

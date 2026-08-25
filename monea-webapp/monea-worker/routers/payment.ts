@@ -18,7 +18,7 @@ const generateQrLimiter   = new ResilientRatelimit("@monea/payment/generate-qr",
 // Polls Bakong NBC API for a transaction by MD5 hash or orderId.
 // 2-layer probe: MD5 first, external ID fallback.
 paymentRouter.post('/check-status', async (c) => {
-    const user = await getServerUser()
+    const user = await getServerUser(c.req.raw)
     if (!user) return c.json({ error: "Unauthorized" }, 401)
 
     // Per-user rate limit
@@ -84,7 +84,7 @@ paymentRouter.post('/check-status', async (c) => {
 // Marks wedding as AWAITING_VERIFICATION after user initiates upgrade.
 // Validates Turnstile CAPTCHA to prevent bots.
 paymentRouter.post('/confirm', async (c) => {
-    const user = await getServerUser()
+    const user = await getServerUser(c.req.raw)
     if (!user) return c.json({ error: "Unauthorized" }, 401)
 
     try {
@@ -136,11 +136,53 @@ paymentRouter.post('/confirm', async (c) => {
     }
 })
 
+// ── POST /api/payment/submit-slip ───────────────────────────────────────────
+// User uploads their payment receipt slip image or transaction details for Admin manual review
+paymentRouter.post('/submit-slip', async (c) => {
+    const user = await getServerUser(c.req.raw)
+    if (!user) return c.json({ error: "Unauthorized" }, 401)
+
+    try {
+        const body = await c.req.json()
+        const { packageType, receiptImage, txRef, note, weddingId } = body
+
+        let targetWeddingId = weddingId
+        if (!targetWeddingId) {
+            const wedding = await prisma.wedding.findFirst({
+                where: { userId: user.id },
+                orderBy: { createdAt: 'desc' }
+            })
+            if (!wedding) return c.json({ error: "Wedding not found" }, 404)
+            targetWeddingId = wedding.id
+        }
+
+        const expiresAt = new Date()
+        expiresAt.setDate(expiresAt.getDate() + 30)
+
+        const updated = await prisma.wedding.update({
+            where: { id: targetWeddingId },
+            data: {
+                packageType: packageType || "PRO",
+                paymentStatus: "AWAITING_VERIFICATION",
+                paymentInfo: receiptImage || null,
+                paymentHash: txRef || (note ? `NOTE: ${note}` : `SLIP_SUBMITTED_${Date.now()}`),
+                expiresAt,
+                status: "ACTIVE"
+            }
+        })
+
+        return c.json({ success: true, message: "Receipt submitted successfully", wedding: updated })
+    } catch (error: any) {
+        console.error("[payment/submit-slip]", error)
+        return c.json({ error: "Failed to submit receipt" }, 500)
+    }
+})
+
 // ── POST /api/payment/generate-qr ───────────────────────────────────────────
 // Generates a KHQR code for a package upgrade (PRO / PREMIUM).
 // orderId encodes packageType server-side to prevent price manipulation.
 paymentRouter.post('/generate-qr', async (c) => {
-    const user = await getServerUser()
+    const user = await getServerUser(c.req.raw)
     if (!user) return c.json({ error: "Unauthorized" }, 401)
 
     const rl = await generateQrLimiter.limit(user.userId)
@@ -194,7 +236,7 @@ paymentRouter.post('/generate-qr', async (c) => {
 // Generates a KHQR for a wedding guest gift donation.
 // Uses the Bakong account configured in the wedding's themeSettings.
 paymentRouter.post('/generate-gift-qr', async (c) => {
-    const user = await getServerUser()
+    const user = await getServerUser(c.req.raw)
     if (!user) return c.json({ error: "Unauthorized" }, 401)
 
     const rl = await generateQrLimiter.limit(`gift:${user.userId}`)
@@ -245,7 +287,7 @@ paymentRouter.post('/generate-gift-qr', async (c) => {
 // User-triggered re-verification of their most recent payment attempt.
 // Strict rate limit: 1 request per 3 seconds per user.
 paymentRouter.post('/manual-verify', async (c) => {
-    const user = await getServerUser()
+    const user = await getServerUser(c.req.raw)
     if (!user) return c.json({ error: "Unauthorized" }, 401)
 
     const rl = await manualVerifyLimiter.limit(user.userId)

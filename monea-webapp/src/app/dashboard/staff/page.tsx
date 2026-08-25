@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Trash2, UserCog, Lock, Eye, EyeOff, Sparkles, Shield, Key, UserPlus, Users, Copy, Check, QrCode as QrIcon } from "lucide-react";
 import { m, AnimatePresence } from 'framer-motion';
-import QRCode from "react-qr-code";
+import SafeQRCode from "@/components/ui/SafeQRCode";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { TableSkeleton } from "../_components/SkeletonComponents";
 import { useTranslation } from "@/i18n/LanguageProvider";
@@ -203,7 +201,7 @@ export default function StaffManagementPage() {
                             <div className="flex justify-center p-6 bg-white rounded-3xl shadow-inner">
                                 {qrStaff?.accessToken && (
                                     <div className="p-2 bg-white rounded-lg">
-                                        <QRCode
+                                        <SafeQRCode
                                             value={`${typeof window !== 'undefined' ? window.location.origin : ''}/sign-in?token=${qrStaff.accessToken}`}
                                             size={200}
                                         />

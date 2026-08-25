@@ -1,45 +1,91 @@
 import React from 'react';
+import { m } from 'framer-motion';
+import { Heart, Quote } from 'lucide-react';
 import type { WeddingData } from '../types';
-import { Heart } from 'lucide-react';
 
 export default function AnniversaryVows({ wedding }: { wedding: WeddingData }) {
     const settings = wedding.themeSettings as any;
     
     // Fallbacks if not provided
-    const vowsTitle = settings?.customLabels?.vowsTitleAnniv || "សារជូនពរ និងសម្រង់សម្តី";
-    const groomVows = settings?.groomVows || "រីករាយខួបអាពាហ៍ពិពាហ៍ អរគុណសម្រាប់ការស្រលាញ់និងមើលថែអូនរហូតមក។";
-    const brideVows = settings?.brideVows || "រីករាយខួបអាពាហ៍ពិពាហ៍ អរគុណដែលតែងតែផ្តល់ស្នាមញញឹមដល់បង។";
-    
+    const vowsTitle = settings?.customLabels?.vowsTitleAnniv || "ពាក្យសន្យា & សម្រង់សម្តី";
+    const groomVows = settings?.groomVows || "អរគុណដែលបានចូលមកក្នុងជីវិតបង និងតែងតែជាកម្លាំងចិត្តដ៏រឹងមាំសម្រាប់បងគ្រប់ពេលវេលា។";
+    const brideVows = settings?.brideVows || "អរគុណសម្រាប់ការស្រលាញ់ ការមើលថែ និងភាពកក់ក្តៅដែលបងតែងតែផ្តល់ឱ្យអូនជារៀងរាល់ថ្ងៃ។";
+
+    const groomPhoto = wedding.groomPhoto || (wedding.galleryItems?.[0]?.url || '/images/couple.webp');
+    const bridePhoto = wedding.bridePhoto || (wedding.galleryItems?.[1]?.url || '/images/couple.webp');
+
     return (
-        <div className="py-20 px-6 bg-purple-50/30 flex flex-col items-center justify-center font-kantumruy" id="vows">
-            <div className="max-w-2xl mx-auto text-center space-y-12">
+        <section className="py-16 px-4 bg-[#FAF7F2] font-kantumruy relative overflow-hidden" id="vows">
+            <div className="max-w-xl mx-auto space-y-10 relative z-10">
                 
-                <div className="flex flex-col items-center gap-3">
-                    <Heart className="w-8 h-8 text-purple-400" />
-                    <h2 className="text-2xl md:text-3xl font-black text-purple-900 tracking-wider font-khmer-moul">
+                {/* Section Header */}
+                <div className="flex flex-col items-center gap-1.5 text-center">
+                    <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 mb-1 shadow-sm">
+                        <Heart className="w-5 h-5 fill-purple-600" />
+                    </div>
+                    <h2 className="text-xl sm:text-2xl font-khmer-moul text-[#3B0764] leading-relaxed">
                         {vowsTitle}
                     </h2>
+                    <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto mt-1" />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 relative">
-                    {/* Divider for desktop */}
-                    <div className="hidden md:block absolute top-0 bottom-0 left-1/2 w-px bg-purple-200 -translate-x-1/2" />
-                    
-                    <div className="space-y-4 text-center md:text-right pr-0 md:pr-8">
-                        <h4 className="text-lg font-bold text-purple-800">{wedding.groomName}</h4>
-                        <p className="text-sm leading-relaxed text-purple-900/70 italic">
+                {/* Vows Grid Cards */}
+                <div className="space-y-6">
+                    {/* Groom Vows Card */}
+                    <m.div
+                        initial={{ opacity: 0, x: -20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.8 }}
+                        className="bg-white rounded-3xl p-6 border border-purple-200/70 shadow-md relative overflow-hidden"
+                    >
+                        <Quote className="absolute top-4 right-4 w-10 h-10 text-purple-100 -rotate-6 pointer-events-none" />
+                        
+                        <div className="flex items-center gap-3.5 mb-3">
+                            <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-amber-300 shadow-sm shrink-0">
+                                <img src={groomPhoto} alt={wedding.groomName} className="w-full h-full object-cover" />
+                            </div>
+                            <div>
+                                <h4 className="text-sm sm:text-base font-khmer-moul text-[#3B0764]">
+                                    {wedding.groomName}
+                                </h4>
+                                <span className="text-[11px] text-purple-600 font-bold">កូនកំលោះ</span>
+                            </div>
+                        </div>
+
+                        <p className="text-xs sm:text-sm text-slate-700 leading-relaxed italic pl-1 border-l-2 border-purple-300">
                             &quot;{groomVows}&quot;
                         </p>
-                    </div>
-                    
-                    <div className="space-y-4 text-center md:text-left pl-0 md:pl-8">
-                        <h4 className="text-lg font-bold text-purple-800">{wedding.brideName}</h4>
-                        <p className="text-sm leading-relaxed text-purple-900/70 italic">
+                    </m.div>
+
+                    {/* Bride Vows Card */}
+                    <m.div
+                        initial={{ opacity: 0, x: 20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.8, delay: 0.1 }}
+                        className="bg-white rounded-3xl p-6 border border-purple-200/70 shadow-md relative overflow-hidden"
+                    >
+                        <Quote className="absolute top-4 right-4 w-10 h-10 text-purple-100 -rotate-6 pointer-events-none" />
+
+                        <div className="flex items-center gap-3.5 mb-3">
+                            <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-amber-300 shadow-sm shrink-0">
+                                <img src={bridePhoto} alt={wedding.brideName} className="w-full h-full object-cover" />
+                            </div>
+                            <div>
+                                <h4 className="text-sm sm:text-base font-khmer-moul text-[#3B0764]">
+                                    {wedding.brideName}
+                                </h4>
+                                <span className="text-[11px] text-purple-600 font-bold">កូនក្រមុំ</span>
+                            </div>
+                        </div>
+
+                        <p className="text-xs sm:text-sm text-slate-700 leading-relaxed italic pl-1 border-l-2 border-purple-300">
                             &quot;{brideVows}&quot;
                         </p>
-                    </div>
+                    </m.div>
                 </div>
             </div>
-        </div>
+        </section>
     );
 }

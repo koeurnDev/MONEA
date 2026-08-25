@@ -1,5 +1,4 @@
-"use client";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+﻿import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, Trash2, Loader2, ShieldAlert, Sparkles } from "lucide-react";
 

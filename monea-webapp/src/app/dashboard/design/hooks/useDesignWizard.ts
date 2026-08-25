@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams } from 'react-router-dom';
 import useSWR from "swr";
 import { useCloudinary } from "@/hooks/use-cloudinary";
 import type { WeddingData } from "@/components/templates/types";
@@ -64,70 +64,67 @@ export const TEMPLATE_LAYOUTS: Record<string, { slots: number, labels: string[] 
 
 export const DEFAULT_WEDDING: WeddingData = {
     id: "",
-    groomName: "ka",
-    brideName: "mey",
-    date: "2025-12-07T17:00:00.000Z",
-    location: "នៅ គេហដ្ឋានខាងស្រី បុរីឌីផ្លរ៉ា (6A) ផ្ទះលេខ21 ផ្លូវV01 សង្កាត់បាក់ខែង ខណ្ឌជ្រោយចង្វារ រាជធានីភ្នំពេញ",
+    groomName: "កាប់ ស៊ីន",
+    brideName: "មាស ចាន់មានណា",
+    date: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
+    location: "មជ្ឈមណ្ឌលសន្និបាត និងពិព័រណ៍កោះពេជ្រ (អគារ A)",
     templateId: "khmer-legacy",
+    eventType: "wedding",
     themeSettings: {
-        primaryColor: "#4A5D4A",
+        primaryColor: "#E8AC00",
         musicUrl: "",
-        videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-        mapLink: "https://goo.gl/maps/example",
-        heroImage: "/images/couple.jpg",
-        groomVow: "ក្នុងរយៈពេល៤ឆ្នាំនេះ ស្នេហារបស់យើងប្រៀបដូចជាការធ្វើដំណើរដ៏អស្ចារ្យមួយ។ ថ្ងៃនេះ ខ្ញុំសូមសន្យាថានឹងដើរក្បែរគ្នាជានិច្ច មិនថាមានរឿងអ្វីកើតឡើង...",
-        brideVow: "បួនឆ្នាំមកនេះ ខ្ញុំស្រឡាញ់អ្នកកាន់តែខ្លាំងពីមួយថ្ងៃទៅមួយថ្ងៃ។ ទោះបីជាពេលវេលាកន្លងផុតទៅយូរប៉ុណ្ណា ក៏ចិត្តមួយនេះនៅដដែល...",
-        mainQuote: "I didn't just find love. I found a soulmate, a best friend, and my forever home in you.",
+        videoUrl: "",
+        mapLink: "https://maps.google.com/?q=Koh+Pich+Convention+and+Exhibition+Centre",
+        heroImage: "/assets/khmer-legacy/621811254_905398285378636_5240747682765358044_n.jpg",
+        coverImageUrl: "/assets/khmer-legacy/621811254_905398285378636_5240747682765358044_n.jpg",
+        lunarDate: "ថ្ងៃ ១៥ កើត ខែពិសាខ ឆ្នាំរោង ឆស័ក ព.ស. ២៥៦៩",
+        groomVow: "អរគុណដែលបានចូលមកក្នុងជីវិតបង និងតែងតែជាកម្លាំងចិត្តដ៏រឹងមាំសម្រាប់បងគ្រប់ពេលវេលា។",
+        brideVow: "អរគុណសម្រាប់ការស្រលាញ់ ការមើលថែ និងភាពកក់ក្តៅដែលបងតែងតែផ្តល់ឱ្យអូនជារៀងរាល់ថ្ងៃ។",
+        mainQuote: "សេចក្តីស្រឡាញ់ គឺជាការចាប់ផ្តើមនៃដំណើរជីវិតដ៏ស្រស់បំព្រងជាមួយគ្នា។",
+        welcomeMessage: "យើងខ្ញុំមានកិត្តិយស និងក្តីសោមនស្សរីករាយឥតឧបមា សូមគោរពអញ្ជើញ ឯកឧត្តម លោកជំទាវ អ្នកឧកញ៉ា លោក លោកស្រី អ្នកនាងកញ្ញា អញ្ជើញចូលរួមជាអធិបតី និងជាភ្ញៀវកិត្តិយសក្នុងពិធីសិរីសួស្តី អាពាហ៍ពិពាហ៍របស់យើងខ្ញុំ...",
         customLabels: {
-            invite_title: "សិរីសួស្តីអាពាហ៍ពិពាហ៍",
-            hero_title: "Save the Date",
-            timeline_title: "Save the Date (4-Year Journey)",
-            gallery_title: "Our Soulmate Gallery",
-            editorial_1: "MOMENTS MATTER",
-            moments_title: "អនុស្សាវរីយ៍ចងចាំ",
+            invite_title: "សិរីសួស្តី អាពាហ៍ពិពាហ៍",
+            hero_title: "សិរីមង្គលអាពាហ៍ពិពាហ៍",
+            timeline_title: "កម្មវិធីពិធីមង្គលការ",
+            gallery_title: "វិចិត្រសាលរូបថត",
+            editorial_1: "",
+            moments_title: "អនុស្សាវរីយ៍ផ្អែមល្ហែម",
             invitationHonorTitle: "សូមគោរពអញ្ជើញ"
         },
         parents: {
-            groomFather: "គង់ សាវង",
-            groomMother: "មាស ចាន់រស្មី",
-            groomPhone: "+855 12 345 678",
-            brideFather: "មាស សំណាង",
-            brideMother: "ចាន់រ ក្សា",
-            bridePhone: "+855 98 765 432"
+            groomFather: "កាប់ សុខា",
+            groomMother: "ឃិន ស្រីពៅ",
+            groomPhone: "012 345 678",
+            brideFather: "មាស សម្បត្តិ",
+            brideMother: "អ៊ុ ស្រីនាង",
+            bridePhone: "098 765 432"
         },
-        invitationText: `ឯកឧត្តម  លោកឧកញ៉ា  លោកជំទាវ  លោក  លោកស្រី
-អ្នកនាងកញ្ញា និង ប្រិយមិត្តទាំងអស់អព្ជើាញចូលរួមជាអធិបតី
- និង  ជាភ្ញៀវកិត្តិយស  ដើម្បីប្រសិទ្ធិពរជ័យ  សិរីសួស្តី ជ័យមង្គល
-ក្នុងពិធីរៀបអាពាហ៍ពិពាហ៍  កូនប្រុស-កូនស្រី  របស់យើងខ្ញុំ ។`,
+        invitationText: "មានកិត្តិយសសូមគោរពអញ្ជើញ ឯកឧត្តម លោកជំទាវ លោក លោកស្រី អ្នកនាងកញ្ញា និងប្រិយមិត្តជិតឆ្ងាយទាំងអស់ ចូលរួមជាអធិបតី និងជាសាក្សីក្នុងពិធីសិរីមង្គលអាពាហ៍ពិពាហ៍",
         bankAccounts: [
-            { side: "groom", bankName: "ABA Bank", accountName: "Groom Name", accountNumber: "000 000 000", qrUrl: "" },
-            { side: "bride", bankName: "ACLEDA Bank", accountName: "Bride Name", accountNumber: "000 000 000", qrUrl: "" }
+            {
+                bankName: "ABA Bank (KHQR)",
+                accountName: "KAB SIN & MEAS CHANMEANA",
+                accountNumber: "001 234 567",
+                qrUrl: "/images/qr.webp",
+                side: "both"
+            }
         ]
     },
     galleryItems: [
-        { url: "/images/couple.jpg", type: "IMAGE" },
-        { url: "/images/gallery1.jpg", type: "IMAGE" },
-        { url: "/images/gallery2.jpg", type: "IMAGE" },
-        { url: "/images/cover.jpg", type: "IMAGE" },
-        { url: "/images/bg_enchanted.jpg", type: "IMAGE" },
-        { url: "/images/bg_staircase.jpg", type: "IMAGE" },
-        { url: "/images/gallery1.jpg", type: "IMAGE" }
+        { url: "/assets/khmer-legacy/621811254_905398285378636_5240747682765358044_n.jpg", type: "IMAGE" },
+        { url: "/assets/khmer-legacy/621811002_905396558712142_5126771807004187076_n.jpg", type: "IMAGE" },
+        { url: "/assets/khmer-legacy/621811942_905392918712506_8600818650624857202_n.jpg", type: "IMAGE" },
+        { url: "/assets/khmer-legacy/621813168_905393265379138_2356104923368506186_n.jpg", type: "IMAGE" },
+        { url: "/assets/khmer-legacy/622279784_905392782045853_1189842078802821714_n.jpg", type: "IMAGE" },
+        { url: "/assets/khmer-legacy/622374686_905392995379165_1001573724208229331_n.jpg", type: "IMAGE" },
+        { url: "/assets/khmer-legacy/622582548_905399002045231_4147705888928073222_n.jpg", type: "IMAGE" },
+        { url: "/assets/khmer-legacy/622629866_905398512045280_817022291532741601_n.jpg", type: "IMAGE" }
     ],
     activities: [
-        { time: "", title: "កម្មវិធីទី១ ថ្ងៃ សុក្រ ទី ១១ ខែ មីនា ឆ្នាំ ២០២២", description: "", icon: "header", order: 0 },
-        { time: "វេលាម៉ោង ០៣:០០ រសៀល", title: "ពិធីក្រុងពាលី", description: "", icon: null, order: 1 },
-        { time: "វេលាម៉ោង ០៤:០០ រសៀល", title: "ពិធីសូត្រមន្តចំរើនព្រះបរិត្ត", description: "", icon: null, order: 2 },
-        { time: "វេលាម៉ោង ០៥:៣០ ល្ងាច", title: "អញ្ជើញភ្ញៀវកិត្តិយសពិសាអាហារពេលល្ងាច", description: "", icon: null, order: 3 },
-        { time: "", title: "កម្មវិធីទី២ ថ្ងៃ សៅរ៍ ទី ១២ ខែ មីនា ឆ្នាំ ២០២២", description: "", icon: "header", order: 4 },
-        { time: "វេលាម៉ោង ០៦:៣០ ព្រឹក", title: "ជួបជុំភ្ញៀវកិត្តិយស ដើម្បីរៀបចំហែជំនូន", description: "", icon: null, order: 5 },
-        { time: "វេលាម៉ោង ០៧:០០ ព្រឹក", title: "ពិធីហែជំនូន(កំណត់) និងអញ្ជើញភ្ញៀវកិត្តិយស ពិសាអាហារពេលព្រឹក", description: "", icon: null, order: 6 },
-        { time: "វេលាម៉ោង ០៧:៣០ ព្រឹក", title: "ពិធីចៅមហាទិយាយជើងការរាប់ផ្លែឈើ", description: "", icon: null, order: 7 },
-        { time: "វេលាម៉ោង ០៨:០០ ព្រឹក", title: "សែនកុងម៉ា", description: "", icon: null, order: 8 },
-        { time: "វេលាម៉ោង ០៩:០០ ព្រឹក", title: "ពិធីបំពាក់ចិញ្ចៀន", description: "", icon: null, order: 9 },
-        { time: "វេលាម៉ោង ១០:០០ ព្រឹក", title: "ពិធីកាត់សក់បង្កក់សិរី", description: "", icon: null, order: 10 },
-        { time: "វេលាម៉ោង ១១:០០ ថ្ងៃត្រង់", title: "ពិធីបង្វិលពពិល សំពះផ្ទឹមសែនចងដៃ", description: "", icon: null, order: 11 },
-        { time: "វេលាម៉ោង ១២:០០ ថ្ងៃត្រង់", title: "អញ្ជើញភ្ញៀវពិសាអាហារថ្ងៃត្រង់", description: "", icon: null, order: 12 },
-        { time: "វេលាម៉ោង ០៥:០០ ល្ងាច", title: "ពិសាភោជនាហារ", description: `ដែលនឹងប្រព្រឹត្តទៅនៅថ្ងៃ ពុធ ទី០៧ ខែ មេសា ឆ្នាំ២០២៦ ត្រូវនឹងថ្ងៃ ១២កើត ខែមាខ ឆ្នាំជូត សំរឹទ្ធិស័ក ព. ស ២៥៥២ វេលាម៉ោង ៤:០០ រសៀល នៅគេហដ្ឋានខាងស្រី ភូមិក្រាំងអាត់ ឃុំកំពង់សីលា ស្រុកកំពង់សីលា ខេត្តព្រះសីហនុ ដោយមេត្រីភាព ។ សូមអរគុណ!`, icon: "utensils", order: 13 }
+        { time: "០៧:០០ ព្រឹក", title: "ពិធីហែជំនូន", description: "ជួបជុំសាច់ញាតិ និងភ្ញៀវកិត្តិយស ហែជំនូនចូលរោងជ័យ", icon: null, order: 0 },
+        { time: "០៨:៣០ ព្រឹក", title: "ពិធីសំពះផ្ទឹម និងចងដៃ", description: "ពិធីសិរីសួស្តីកាត់សក់ និងចងដៃជូនពរជ័យដល់គូស្វាមីភរិយាថ្មី", icon: null, order: 1 },
+        { time: "១១:០០ ថ្ងៃត្រង់", title: "ពិសាភោជនាហារថ្ងៃត្រង់", description: "ទទួលទានអាហារថ្ងៃត្រង់ជួបជុំបងប្អូន និងភ្ញៀវកិត្តិយស", icon: null, order: 2 },
+        { time: "០៥:០០ ល្ងាច", title: "ពិធីជប់លៀង និងពិសាភោជនាហារពេលល្ងាច", description: "ទទួលស្វាគមន៍ភ្ញៀវកិត្តិយស និងពិសាភោជនាហារពេលល្ងាច", icon: null, order: 3 }
     ]
 };
 
@@ -145,6 +142,7 @@ export function useDesignWizard() {
     const [wedding, setWedding] = useState<WeddingData | null>(null);
     const [loading, setLoading] = useState(false);
     const [currentStep, setCurrentStep] = useState(1);
+    const [progress, setProgress] = useState(0);
 
     // UI states
     const [mobileTab, setMobileTab] = useState<'editor' | 'preview'>('editor');
@@ -162,10 +160,16 @@ export function useDesignWizard() {
     const [deleteVersionConfirm, setDeleteVersionConfirm] = useState<{ open: boolean; versionId: string }>({ open: false, versionId: "" });
 
     // Notifications
-    const [saveToast, setSaveToast] = useState<"success" | "error" | null>(null);
+    const [saveToast, setSaveToast] = useState<"success" | "error" | string | null>(null);
     const [versionToast, setVersionToast] = useState(false);
+    const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+    const showNotification = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+        setNotification({ message, type });
+        setTimeout(() => setNotification(null), 3000);
+    };
 
-    const searchParams = useSearchParams();
+    // Navigation & URL
+    const [searchParams] = useSearchParams();
     const idFromUrl = searchParams.get('id');
 
     // Refs & Hooks
@@ -185,7 +189,12 @@ export function useDesignWizard() {
         dedupingInterval: 10000,
     });
 
+    // Track initial load from SWR
+    const isLoadedRef = useRef(false);
+
     useEffect(() => {
+        if (isLoadedRef.current) return;
+
         if (swrWedding) {
             if (swrWedding.id) {
                 let data = { ...swrWedding };
@@ -199,30 +208,76 @@ export function useDesignWizard() {
                 if (data.themeSettings?.heroImage?.includes("/preview")) {
                     data.themeSettings.heroImage = "";
                 }
-                if (data.galleryItems && Array.isArray(data.galleryItems)) {
-                    data.galleryItems = data.galleryItems.map((item: any) => {
-                        if (item.url?.includes("/preview")) return { ...item, url: "" };
-                        return item;
+
+                // If galleryItems was saved in themeSettings, use it!
+                if (data.themeSettings?.galleryItems && Array.isArray(data.themeSettings.galleryItems)) {
+                    data.galleryItems = data.themeSettings.galleryItems;
+                } else if (data.galleryItems && Array.isArray(data.galleryItems)) {
+                    const reconstructed: any[] = [];
+                    data.galleryItems.forEach((item: any, idx: number) => {
+                        if (item?.url?.includes("/preview")) return;
+                        if (item?.caption?.startsWith("slot:")) {
+                            const slotIdx = parseInt(item.caption.replace("slot:", ""), 10);
+                            if (!isNaN(slotIdx)) {
+                                reconstructed[slotIdx] = item;
+                                return;
+                            }
+                        }
+                        reconstructed[idx] = item;
                     });
+                    data.galleryItems = reconstructed;
                 }
-                setWedding({ ...DEFAULT_WEDDING, ...data });
+
+                setWedding({
+                    ...DEFAULT_WEDDING,
+                    ...data,
+                    groomName: data.groomName !== undefined ? data.groomName : "",
+                    brideName: data.brideName !== undefined ? data.brideName : "",
+                    location: data.location !== undefined ? data.location : "",
+                    themeSettings: {
+                        ...(DEFAULT_WEDDING.themeSettings || {}),
+                        ...(data.themeSettings || {})
+                    },
+                    galleryItems: data.galleryItems || [],
+                    activities: data.activities || []
+                });
+                isLoadedRef.current = true;
             } else {
                 setWedding(DEFAULT_WEDDING);
+                isLoadedRef.current = true;
             }
             setLoading(false);
         } else if (swrError) {
             console.error("SWR Fetch Error:", swrError);
             setWedding(DEFAULT_WEDDING);
+            isLoadedRef.current = true;
             setLoading(false);
         } else {
             setLoading(true);
         }
     }, [swrWedding, swrError]);
 
+    // --- Progress Calculation ---
+    useEffect(() => {
+        if (!wedding) return;
+        let p = 0;
+        if (wedding.groomName?.trim() && wedding.brideName?.trim()) p += 20;
+        if (wedding.date) p += 20;
+        if (wedding.location?.trim()) p += 20;
+        if (wedding.themeSettings?.heroImage) p += 20;
+        const galleryCount = wedding.galleryItems?.filter(i => i.url && !i.url.includes('cover')).length || 0;
+        if (galleryCount > 0) p += 20;
+        setProgress(p);
+    }, [wedding]);
+
+    // Track latest wedding state in a ref
+    const weddingRef = useRef(wedding);
+    weddingRef.current = wedding;
+
     // --- Save Logic ---
     const saveChanges = useCallback(async (manualData?: WeddingData, options: { silent?: boolean } = {}) => {
         const { silent = false } = options;
-        const data = manualData || wedding;
+        const data = manualData || weddingRef.current;
         if (!data) return;
 
         // Validation (only skip if silent/auto-save)
@@ -234,29 +289,72 @@ export function useDesignWizard() {
 
         if (!silent) setLoading(true);
         try {
-            const res = await moneaClient.put("/api/wedding", {
-                weddingId: data.id,
+            const res = await moneaClient.put<any>("/api/wedding", {
+                weddingId: data.id || undefined,
                 templateId: data.templateId || "khmer-legacy",
                 groomName: data.groomName,
                 brideName: data.brideName,
                 date: data.date,
                 location: data.location,
                 themeSettings: data.themeSettings,
-                galleryItems: data.galleryItems,
-                activities: data.activities,
+                galleryItems: data.galleryItems?.filter((item: any) => item && (item.url || item.publicId)),
+                activities: data.activities?.map((item: any) => ({
+                    title: item.title || "Activity",
+                    time: item.time || "",
+                    description: item.description || "",
+                    icon: item.icon || null,
+                    publicId: item.publicId || null,
+                    order: item.order || 0
+                })),
                 eventType: data.eventType
             });
-            if (res.status === 200 && !silent) {
-                setSaveToast("success");
-                setTimeout(() => setSaveToast(null), 3000);
+
+            if (res.status === 200 && res.data) {
+                // If the wedding was created or updated with a new ID, update it
+                if (res.data.id) {
+                    setWedding(prev => prev ? { ...prev, id: res.data.id } : res.data);
+                }
+                mutate(res.data, false);
+
+                if (!silent) {
+                    setSaveToast("success");
+                    setTimeout(() => setSaveToast(null), 3000);
+                }
+            } else if (res.status !== 200) {
+                console.error("Save failed with status:", res.status, res.error, "Details:", res.details);
+                
+                // Extract useful error message
+                let errorMsg = res.error || "error";
+                
+                setSaveToast(errorMsg);
+                setTimeout(() => setSaveToast(null), 4000);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("Save error:", error);
-            if (!silent) setSaveToast("error");
+            if (!silent) {
+                setSaveToast(error?.message || "error");
+                setTimeout(() => setSaveToast(null), 4000);
+            }
         } finally {
             if (!silent) setLoading(false);
         }
-    }, [wedding]);
+    }, [mutate]);
+
+    // Auto-save: Every time wedding state changes, automatically save to database after 1000ms debounce
+    const isInitialMount = useRef(true);
+    useEffect(() => {
+        if (!mounted || !wedding) return;
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            return;
+        }
+
+        const timer = setTimeout(() => {
+            saveChanges(wedding, { silent: true });
+        }, 1000);
+
+        return () => clearTimeout(timer);
+    }, [wedding, mounted, saveChanges]);
 
     // --- Core Update Functions ---
     const deleteCloudinaryAsset = useCallback(async (publicId: string) => {
@@ -427,6 +525,15 @@ export function useDesignWizard() {
         }
     };
 
+    const updateGalleryOrder = useCallback((newItems: any[]) => {
+        setWedding((prev) => {
+            if (!prev) return null;
+            const updated = { ...prev, galleryItems: newItems };
+            saveChanges(updated, { silent: true });
+            return updated;
+        });
+    }, [saveChanges]);
+
     // --- Versional Handlers ---
     const fetchVersions = useCallback(async () => {
         if (!wedding?.id) return;
@@ -515,7 +622,7 @@ export function useDesignWizard() {
     const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
 
     return {
-        mounted, wedding, setWedding, loading, currentStep, setCurrentStep,
+        mounted, wedding, setWedding, loading, currentStep, setCurrentStep, progress,
         mobileTab, setMobileTab, previewMode, setPreviewMode,
         isDraggingGallery, setIsDraggingGallery, activeAccordion, setActiveAccordion,
         templateVersions, fetchingVersions, newVersionTitle, setNewVersionTitle,
@@ -524,7 +631,7 @@ export function useDesignWizard() {
         iframeRef, galleryUploading, galleryProgress,
         updateWedding, updateTheme, removeThemeAsset, updateLabel, updateParent,
         updateTemplate, updateEventType, addGalleryItem, removeGalleryItem,
-        handleGalleryDirectUpload, saveChanges, fetchVersions, handleSaveVersion,
+        handleGalleryDirectUpload, updateGalleryOrder, saveChanges, fetchVersions, handleSaveVersion,
         handleRollback, confirmRollback, handleDeleteVersion, confirmDeleteVersion,
         nextStep, prevStep
     };

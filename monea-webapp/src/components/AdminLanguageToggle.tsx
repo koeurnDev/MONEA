@@ -1,6 +1,4 @@
-"use client";
-
-import * as React from "react";
+﻿import * as React from "react";
 import { Languages, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/i18n/LanguageProvider";

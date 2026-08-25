@@ -1,4 +1,3 @@
-"use client";
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,16 +6,21 @@ import {
     AlertTriangle, 
     Users, 
     Loader2, 
-    Slash, 
     RefreshCcw, 
     ArrowLeft, 
     Ban,
     Lock,
     Eye,
     History,
-    Unlock
+    Unlock,
+    ShieldCheck,
+    CheckCircle2,
+    Globe,
+    Clock,
+    UserX,
+    Trash2
 } from "lucide-react";
-import Link from "next/link";
+import { Link } from 'react-router-dom';
 import { format } from "date-fns";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/Toast";
@@ -26,7 +30,8 @@ import { cn } from "@/lib/utils";
 import { moneaClient } from "@/lib/api-client";
 
 export default function SecurityDashboardPage() {
-    const { t } = useTranslation();
+    const { t, locale } = useTranslation();
+    const isKm = locale === 'km';
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [revoking, setRevoking] = useState(false);
@@ -55,15 +60,15 @@ export default function SecurityDashboardPage() {
     }, []);
 
     const handleRevokeAllSessions = async () => {
-        if (!confirm(t("admin.settings.security.revokeConfirm"))) return;
+        if (!confirm(isKm ? "តើអ្នកពិតជាចង់ផ្តាច់ Session របស់អ្នកប្រើប្រាស់ទាំងអស់មែនទេ?" : "Are you sure you want to revoke all active user sessions?")) return;
 
         setRevoking(true);
         try {
             const res = await moneaClient.post("/api/admin/master/security/revoke", {});
             if (!res.error) {
                 showToast({
-                    title: "Security Action Triggered",
-                    description: t("admin.settings.security.revokeSuccess"),
+                    title: isKm ? "បានផ្តាច់ Session ទាំងអស់ជោគជ័យ" : "All Sessions Revoked",
+                    description: isKm ? "អ្នកប្រើប្រាស់ទាំងអស់ត្រូវបានតម្រូវឱ្យចូលគណនីឡើងវិញ។" : "All users are now required to log in again.",
                     type: "success"
                 });
                 fetchStats();
@@ -77,12 +82,23 @@ export default function SecurityDashboardPage() {
 
     const handleAddIp = async (e: React.FormEvent) => {
         e.preventDefault();
-        const res = await moneaClient.post("/api/admin/master/security/blacklist", { ip: newIp, reason });
-        if (!res.error) {
-            setNewIp("");
-            setReason("");
-            fetchStats();
-            showToast({ title: "IP Blacklisted", type: "success" });
+        if (!newIp.trim()) return;
+        
+        try {
+            const res = await moneaClient.post("/api/admin/master/security/blacklist", { ip: newIp.trim(), reason: reason.trim() });
+            if (!res.error) {
+                setNewIp("");
+                setReason("");
+                fetchStats();
+                showToast({ 
+                    title: isKm ? "បានរារាំង IP ជោគជ័យ" : "IP Blacklisted", 
+                    type: "success" 
+                });
+            } else {
+                showToast({ title: "បរាជ័យ", description: res.error, type: "error" });
+            }
+        } catch (e) {
+            console.error(e);
         }
     };
 
@@ -92,7 +108,10 @@ export default function SecurityDashboardPage() {
             const res = await moneaClient.delete(`/api/admin/master/security/blacklist?id=${id}`);
             if (!res.error) {
                 fetchStats();
-                showToast({ title: "IP Unblocked", type: "success" });
+                showToast({ 
+                    title: isKm ? "បានដោះការរារាំង IP" : "IP Unblocked", 
+                    type: "success" 
+                });
             }
         } catch (e) {
             console.error(e);
@@ -107,7 +126,10 @@ export default function SecurityDashboardPage() {
             const res = await moneaClient.post("/api/admin/master/security/unlock", { accountId, type });
             if (!res.error) {
                 fetchStats();
-                showToast({ title: "Account Unlocked", type: "success" });
+                showToast({ 
+                    title: isKm ? "បានដោះសោគណនីជោគជ័យ" : "Account Unlocked", 
+                    type: "success" 
+                });
             }
         } catch (e) {
             console.error(e);
@@ -116,321 +138,240 @@ export default function SecurityDashboardPage() {
         }
     };
 
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0 }
-    };
-
-    if (loading && !stats) return (
-        <div className="min-h-screen bg-[#FDFCFB] dark:bg-slate-950 flex items-center justify-center">
-            <Loader2 className="w-10 h-10 animate-spin text-red-600" />
-        </div>
-    );
-
     return (
-        <div className="min-h-screen bg-[#FDFCFB] dark:bg-slate-950 p-6 md:p-12">
-            <m.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="max-w-7xl mx-auto space-y-12"
-            >
-                {/* Header Section */}
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-4">
-                            <Link href="/admin/master">
-                                <m.div whileHover={{ x: -4 }} whileTap={{ scale: 0.95 }}>
-                                    <Button variant="ghost" size="icon" className="rounded-2xl h-12 w-12 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-                                        <ArrowLeft size={20} className="text-slate-600 dark:text-slate-400" />
-                                    </Button>
-                                </m.div>
-                            </Link>
-                            <div className="space-y-1">
-                                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-red-600">
-                                    <ShieldAlert size={14} />
-                                    Security Monitoring
-                                </div>
-                                <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-                                    {t("admin.settings.security.title")}
-                                </h1>
-                                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">
-                                    {t("admin.settings.security.subtitle")}
-                                </p>
+        <div className="w-full min-h-full font-kantumruy pb-16">
+            {/* Top Bar Header */}
+            <div className="bg-card/80 backdrop-blur-md border-b border-border/80 sticky top-0 z-20">
+                <div className="max-w-[1400px] mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <Link to="/admin/master">
+                            <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10 border border-border bg-card shadow-xs hover:bg-muted">
+                                <ArrowLeft size={17} className="text-muted-foreground" />
+                            </Button>
+                        </Link>
+                        <div>
+                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                                <ShieldAlert size={13} />
+                                <span>Security & Firewall</span>
                             </div>
+                            <h1 className="text-lg sm:text-xl font-bold text-foreground">
+                                {isKm ? "ការត្រួតពិនិត្យសុវត្ថិភាព & រនាំងការពារ IP" : "Security & IP Firewall Monitoring"}
+                            </h1>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <Button 
-                            variant="outline" 
+                        <Button
                             onClick={fetchStats}
+                            variant="outline"
                             disabled={loading}
-                            className="h-12 px-6 rounded-2xl font-bold uppercase tracking-widest text-[10px] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex items-center gap-2"
+                            className="h-10 px-4 rounded-xl font-bold text-xs border border-border bg-card shadow-xs flex items-center gap-2"
                         >
-                            <RefreshCcw size={16} className={cn(loading && "animate-spin")} />
-                            {t("admin.settings.security.sync")}
+                            <RefreshCcw size={14} className={loading ? "animate-spin" : ""} />
+                            <span>{isKm ? "ផ្ទុកឡើងវិញ" : "Refresh"}</span>
                         </Button>
                         <Button
                             onClick={handleRevokeAllSessions}
                             disabled={revoking}
-                            className="h-12 px-8 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-red-200 dark:shadow-red-950/40 hover:scale-105 transition-transform flex items-center gap-2"
+                            className="h-10 px-4 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs shadow-xs flex items-center gap-2"
                         >
-                            {revoking ? <Loader2 className="w-4 h-4 animate-spin" /> : <AlertTriangle size={16} />}
-                            {t("admin.settings.security.revokeBtn")}
+                            {revoking ? <Loader2 size={14} className="animate-spin" /> : <AlertTriangle size={14} />}
+                            <span>{isKm ? "ផ្តាច់ការចូលប្រើទាំងអស់" : "Revoke All Sessions"}</span>
                         </Button>
                     </div>
                 </div>
+            </div>
 
-                {/* Main Dashboard Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
-                    {/* Stat Card 1: Locked Accounts */}
-                    <m.div variants={itemVariants} initial="hidden" animate="visible" transition={{ delay: 0.1 }}>
-                        <Card className="border-none shadow-2xl shadow-slate-200/50 dark:shadow-black/60 rounded-[3rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 relative overflow-hidden group">
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-400 to-orange-600" />
-                            <CardContent className="p-8 lg:p-10 flex items-center justify-between">
-                                <div>
-                                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2">
-                                        {t("admin.settings.security.stats.locked")}
-                                    </p>
-                                    <h3 className="text-5xl font-black text-slate-900 dark:text-white tabular-nums">
-                                        {stats?.lockedAccountsCount || 0}
-                                    </h3>
-                                </div>
-                                <div className="p-4 bg-orange-50 dark:bg-orange-500/10 rounded-3xl text-orange-600">
-                                    <Lock size={32} />
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </m.div>
-
-                    {/* Stat Card 2: Blacklisted IPs */}
-                    <m.div variants={itemVariants} initial="hidden" animate="visible" transition={{ delay: 0.2 }}>
-                        <Card className="border-none shadow-2xl shadow-slate-200/50 dark:shadow-black/60 rounded-[3rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 relative overflow-hidden group">
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-400 to-red-600" />
-                            <CardContent className="p-8 lg:p-10 flex items-center justify-between">
-                                <div>
-                                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2">
-                                        {t("admin.settings.security.stats.blacklisted")}
-                                    </p>
-                                    <h3 className="text-5xl font-black text-slate-900 dark:text-white tabular-nums">
-                                        {stats?.blacklistedIPsCount || 0}
-                                    </h3>
-                                </div>
-                                <div className="p-4 bg-red-50 dark:bg-red-500/10 rounded-3xl text-red-600">
-                                    <Slash size={32} />
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </m.div>
-
-                    {/* Stat Card 3: Failed Logins */}
-                    <m.div variants={itemVariants} initial="hidden" animate="visible" transition={{ delay: 0.3 }}>
-                        <Card className="border-none shadow-2xl shadow-slate-200/50 dark:shadow-black/60 rounded-[3rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 relative overflow-hidden group">
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-slate-400 to-slate-600" />
-                            <CardContent className="p-8 lg:p-10 flex items-center justify-between">
-                                <div>
-                                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2">
-                                        {t("admin.settings.security.stats.failedLogins")}
-                                    </p>
-                                    <h3 className="text-5xl font-black text-slate-900 dark:text-white tabular-nums">
-                                        {stats?.failedLoginsCount || 0}
-                                    </h3>
-                                </div>
-                                <div className="p-4 bg-slate-100 dark:bg-white/5 rounded-3xl text-slate-600 dark:text-slate-400">
-                                    <AlertTriangle size={32} />
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </m.div>
-                </div>
-
-                {/* Restriction Form Card */}
-                <m.div variants={itemVariants} initial="hidden" animate="visible" transition={{ delay: 0.4 }}>
-                    <Card className="border-none shadow-2xl shadow-slate-200/50 dark:shadow-black/60 rounded-[3rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 overflow-hidden">
-                        <CardHeader className="p-8 pb-0 flex flex-row items-center justify-between">
-                            <div className="space-y-1">
-                                <CardTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
-                                    {t("admin.settings.security.blacklist.title")}
-                                </CardTitle>
-                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Manual Restriction Interface</p>
+            <main className="max-w-[1400px] mx-auto p-4 sm:p-8 space-y-6">
+                {/* Stats Overview */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <Card className="bg-card border border-border/80 rounded-2xl shadow-xs">
+                        <CardContent className="p-5 flex items-center justify-between">
+                            <div>
+                                <p className="text-xs font-bold text-muted-foreground">{isKm ? "គណនីដែលត្រូវបានចាក់សោ" : "Locked Accounts"}</p>
+                                <h3 className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">{stats?.lockedAccountsCount || 0}</h3>
                             </div>
-                            <div className="p-3 bg-slate-900 dark:bg-white/10 rounded-2xl text-white dark:text-white/40">
-                                <Ban size={20} />
+                            <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold">
+                                <Lock size={22} />
                             </div>
-                        </CardHeader>
-                        <CardContent className="p-8">
-                            <form onSubmit={handleAddIp} className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
-                                <div className="md:col-span-1 space-y-2">
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
-                                        {t("admin.settings.security.blacklist.placeholder")}
-                                    </p>
-                                    <Input
-                                        placeholder="0.0.0.0"
-                                        value={newIp}
-                                        onChange={e => setNewIp(e.target.value)}
-                                        className="h-14 rounded-2xl bg-slate-50 dark:bg-slate-800 border-none font-black text-lg focus:ring-4 focus:ring-red-500/10 placeholder:text-slate-300 transition-all"
-                                        required
-                                    />
-                                </div>
-                                <div className="md:col-span-2 space-y-2">
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
-                                        {t("admin.settings.security.blacklist.reason")}
-                                    </p>
-                                    <Input
-                                        placeholder="e.g. Brute Force Attempt"
-                                        value={reason}
-                                        onChange={e => setReason(e.target.value)}
-                                        className="h-14 rounded-2xl bg-slate-50 dark:bg-slate-800 border-none font-bold text-slate-600 dark:text-white focus:ring-4 focus:ring-red-500/10 placeholder:text-slate-300 transition-all font-kantumruy"
-                                    />
-                                </div>
-                                <Button className="h-14 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl shadow-red-500/20 md:col-span-1">
-                                    {t("admin.settings.security.blacklist.addBtn")}
-                                </Button>
-                            </form>
                         </CardContent>
                     </Card>
-                </m.div>
 
-                {/* Lists Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mt-12">
-                    {/* Failed Logins List */}
-                    <m.div variants={itemVariants} initial="hidden" animate="visible" transition={{ delay: 0.5 }}>
-                        <Card className="border-none shadow-xl shadow-slate-200/50 dark:shadow-black/50 rounded-[3rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 overflow-hidden">
-                            <CardHeader className="bg-slate-50 dark:bg-white/5 p-8 border-b dark:border-white/5">
-                                <CardTitle className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <Users size={16} className="text-orange-500" />
-                                        {t("admin.settings.security.tables.failedAccounts")}
-                                    </div>
-                                    <Eye size={16} className="text-slate-300" />
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-0">
-                                {stats?.failedAccounts?.length > 0 ? (
-                                    <div className="divide-y dark:divide-white/5 max-h-[500px] overflow-y-auto">
-                                        {stats.failedAccounts.map((acc: any, i: number) => (
-                                            <div key={i} className="p-8 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
-                                                <div className="space-y-1">
-                                                    <p className="text-lg font-black text-slate-900 dark:text-white leading-tight">{acc.email || acc.name}</p>
-                                                    <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
-                                                        {acc.type} • Failed: <span className="text-red-600">{acc.failedAttempts} times</span>
-                                                    </p>
-                                                </div>
-                                                <div className="flex items-center gap-4">
-                                                    {acc.lockedUntil && new Date(acc.lockedUntil) > new Date() && (
-                                                        <span className="px-4 py-2 bg-red-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-red-600/20">
-                                                            {t("admin.settings.security.tables.lockedBadge")}
-                                                        </span>
-                                                    )}
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={() => handleUnlockAccount(acc.id, acc.type)}
-                                                        disabled={unlockingId === acc.id}
-                                                        className="h-10 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 hover:text-white transition-all border border-emerald-500/20 text-emerald-600 bg-emerald-500/5 dark:bg-emerald-500/10"
-                                                    >
-                                                        {unlockingId === acc.id ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : <Unlock className="w-3 h-3 mr-2" />}
-                                                        Reset
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="p-20 text-center space-y-4">
-                                        <div className="mx-auto w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center text-emerald-500">
-                                            <CheckCircle2 size={32} />
-                                        </div>
-                                        <p className="text-sm text-slate-400 font-bold uppercase tracking-widest">{t("admin.settings.security.tables.noFailed")}</p>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </m.div>
+                    <Card className="bg-card border border-border/80 rounded-2xl shadow-xs">
+                        <CardContent className="p-5 flex items-center justify-between">
+                            <div>
+                                <p className="text-xs font-bold text-muted-foreground">{isKm ? "IP ដែលត្រូវបានហាមឃាត់" : "Blacklisted IPs"}</p>
+                                <h3 className="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">{stats?.blacklistedIPsCount || 0}</h3>
+                            </div>
+                            <div className="w-12 h-12 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center font-bold">
+                                <Ban size={22} />
+                            </div>
+                        </CardContent>
+                    </Card>
 
-                    {/* Blacklisted IPs List */}
-                    <m.div variants={itemVariants} initial="hidden" animate="visible" transition={{ delay: 0.6 }}>
-                        <Card className="border-none shadow-xl shadow-slate-200/50 dark:shadow-black/50 rounded-[3rem] bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 overflow-hidden">
-                            <CardHeader className="bg-slate-50 dark:bg-white/5 p-8 border-b dark:border-white/5">
-                                <CardTitle className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <Slash size={16} className="text-red-500" />
-                                        {t("admin.settings.security.tables.blacklistedIps")}
-                                    </div>
-                                    <History size={16} className="text-slate-300" />
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-0">
-                                {stats?.blacklistedIPs?.length > 0 ? (
-                                    <div className="divide-y dark:divide-white/5 max-h-[500px] overflow-y-auto">
-                                        {stats.blacklistedIPs.map((ipRec: any, i: number) => (
-                                            <div key={i} className="p-8 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                                                <div className="space-y-1">
-                                                    <p className="text-lg font-black text-slate-900 dark:text-white font-mono">{ipRec.ip}</p>
-                                                    <p className="text-xs text-slate-400 font-medium">Blocked: {format(new Date(ipRec.createdAt), 'PP p')}</p>
-                                                </div>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => handleUnblockIp(ipRec.ip, ipRec.id)}
-                                                    disabled={unblockingIp === ipRec.ip}
-                                                    className="h-10 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all"
-                                                >
-                                                    {unblockingIp === ipRec.ip ? t("admin.settings.security.blacklist.unblocking") : t("admin.settings.security.blacklist.unblock")}
-                                                </Button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="p-20 text-center space-y-4">
-                                        <div className="mx-auto w-16 h-16 bg-slate-100 dark:bg-white/5 rounded-full flex items-center justify-center text-slate-300">
-                                            <Slash size={32} />
-                                        </div>
-                                        <p className="text-sm text-slate-400 font-bold uppercase tracking-widest">{t("admin.settings.security.tables.noBlacklisted")}</p>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </m.div>
+                    <Card className="bg-card border border-border/80 rounded-2xl shadow-xs">
+                        <CardContent className="p-5 flex items-center justify-between">
+                            <div>
+                                <p className="text-xs font-bold text-muted-foreground">{isKm ? "ការចូលមិនបានសម្រេច (សកម្ម)" : "Failed Login Attempts"}</p>
+                                <h3 className="text-2xl font-black text-foreground mt-1">{stats?.failedLoginsCount || 0}</h3>
+                            </div>
+                            <div className="w-12 h-12 rounded-xl bg-muted text-muted-foreground flex items-center justify-center font-bold">
+                                <AlertTriangle size={22} />
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
 
-                {/* Footer Link to Master Audit */}
-                <m.div 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.8 }}
-                    className="flex justify-center pt-8"
-                >
-                    <Link href="/admin/master/settings">
-                        <Button variant="link" className="text-slate-400 hover:text-red-600 flex items-center gap-2 font-black uppercase tracking-widest text-[10px]">
-                            <History size={14} />
-                            {t("admin.settings.security.return")}
-                        </Button>
-                    </Link>
-                </m.div>
+                {/* Manual Restriction IP Form Card */}
+                <Card className="bg-card border border-border/80 rounded-2xl shadow-xs overflow-hidden">
+                    <CardHeader className="p-6 pb-3 border-b border-border/50">
+                        <CardTitle className="text-base font-bold text-foreground flex items-center gap-2">
+                            <Ban size={18} className="text-rose-500" />
+                            <span>{isKm ? "ការគ្រប់គ្រងការចូលប្រើតាម IP (Manual IP Restriction)" : "Manual IP Blacklist"}</span>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                        <form onSubmit={handleAddIp} className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+                            <div className="sm:col-span-4 space-y-1.5">
+                                <label className="text-xs font-bold text-foreground">
+                                    {isKm ? "អាសយដ្ឋាន IP (ឧទាហរណ៍ 192.168.1.1)" : "IP Address"}
+                                </label>
+                                <Input
+                                    placeholder="0.0.0.0"
+                                    value={newIp}
+                                    onChange={e => setNewIp(e.target.value)}
+                                    className="h-10 rounded-xl bg-background border-input text-xs font-mono"
+                                    required
+                                />
+                            </div>
+                            <div className="sm:col-span-6 space-y-1.5">
+                                <label className="text-xs font-bold text-foreground">
+                                    {isKm ? "មូលហេតុនៃការរារាំង (Reason / Notes)" : "Reason / Notes"}
+                                </label>
+                                <Input
+                                    placeholder="e.g. Brute Force Attempt, Spamming"
+                                    value={reason}
+                                    onChange={e => setReason(e.target.value)}
+                                    className="h-10 rounded-xl bg-background border-input text-xs font-kantumruy"
+                                />
+                            </div>
+                            <div className="sm:col-span-2">
+                                <Button 
+                                    type="submit"
+                                    className="w-full h-10 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs shadow-xs flex items-center justify-center gap-1.5"
+                                >
+                                    <Ban size={15} />
+                                    <span>{isKm ? "រារាំង IP" : "Block IP"}</span>
+                                </Button>
+                            </div>
+                        </form>
+                    </CardContent>
+                </Card>
 
-            </m.div>
+                {/* Grid of 2 tables: Failed Logins & Blacklisted IPs */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Failed Logins List */}
+                    <Card className="bg-card border border-border/80 rounded-2xl shadow-xs overflow-hidden">
+                        <CardHeader className="p-5 pb-3 border-b border-border/50 flex flex-row items-center justify-between">
+                            <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
+                                <Users size={16} className="text-amber-500" />
+                                <span>{isKm ? "គណនីដែលមានការចូលមិនបានសម្រេច" : "Failed Login Accounts"}</span>
+                            </CardTitle>
+                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                                {stats?.failedAccounts?.length || 0} គណនី
+                            </span>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                            {stats?.failedAccounts?.length > 0 ? (
+                                <div className="divide-y divide-border/60 max-h-[420px] overflow-y-auto">
+                                    {stats.failedAccounts.map((acc: any, i: number) => (
+                                        <div key={i} className="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors">
+                                            <div className="space-y-1 min-w-0 pr-3">
+                                                <p className="text-xs font-bold text-foreground truncate">{acc.email || acc.name}</p>
+                                                <p className="text-[10px] text-muted-foreground">
+                                                    ប្រភេទ: <span className="font-bold">{acc.type}</span> • ចំនួនបរាជ័យ: <span className="text-rose-500 font-bold">{acc.failedAttempts} ដង</span>
+                                                </p>
+                                            </div>
+                                            <div className="flex items-center gap-2 shrink-0">
+                                                {acc.lockedUntil && new Date(acc.lockedUntil) > new Date() && (
+                                                    <span className="px-2 py-0.5 bg-rose-500/10 text-rose-600 border border-rose-500/20 rounded-md text-[9px] font-black uppercase">
+                                                        ចាក់សោ
+                                                    </span>
+                                                )}
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    onClick={() => handleUnlockAccount(acc.id, acc.type)}
+                                                    disabled={unlockingId === acc.id}
+                                                    className="h-8 px-3 rounded-xl text-[10px] font-bold border-border text-foreground hover:bg-muted"
+                                                >
+                                                    {unlockingId === acc.id ? <Loader2 size={12} className="animate-spin" /> : <Unlock size={12} className="mr-1" />}
+                                                    ដោះសោ
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="p-12 text-center space-y-2">
+                                    <div className="mx-auto w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-600">
+                                        <CheckCircle2 size={24} />
+                                    </div>
+                                    <p className="text-xs font-bold text-foreground">មិនមានការប៉ុនប៉ងចូលដោយខុសច្បាប់ឡើយ</p>
+                                    <p className="text-[11px] text-muted-foreground">ប្រព័ន្ធដំណើរការប្រកបដោយសុវត្ថិភាពខ្ពស់។</p>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    {/* Blacklisted IPs List */}
+                    <Card className="bg-card border border-border/80 rounded-2xl shadow-xs overflow-hidden">
+                        <CardHeader className="p-5 pb-3 border-b border-border/50 flex flex-row items-center justify-between">
+                            <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
+                                <Ban size={16} className="text-rose-500" />
+                                <span>{isKm ? "បញ្ជី IP ដែលត្រូវបានហាមឃាត់" : "Blacklisted IP Addresses"}</span>
+                            </CardTitle>
+                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                                {stats?.blacklistedIPs?.length || 0} IPs
+                            </span>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                            {stats?.blacklistedIPs?.length > 0 ? (
+                                <div className="divide-y divide-border/60 max-h-[420px] overflow-y-auto">
+                                    {stats.blacklistedIPs.map((ipRec: any, i: number) => (
+                                        <div key={i} className="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors">
+                                            <div className="space-y-1 min-w-0 pr-3">
+                                                <p className="text-xs font-mono font-bold text-foreground">{ipRec.ip}</p>
+                                                <p className="text-[10px] text-muted-foreground">
+                                                    {ipRec.reason || "គ្មានមូលហេតុ"} • {new Date(ipRec.createdAt).toLocaleDateString('km-KH', { timeZone: 'Asia/Phnom_Penh' })}
+                                                </p>
+                                            </div>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => handleUnblockIp(ipRec.ip, ipRec.id)}
+                                                disabled={unblockingIp === ipRec.ip}
+                                                className="h-8 px-3 rounded-xl text-[10px] font-bold border-rose-200 dark:border-rose-900/40 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10"
+                                            >
+                                                {unblockingIp === ipRec.ip ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} className="mr-1" />}
+                                                ដោះការរារាំង
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="p-12 text-center space-y-2">
+                                    <div className="mx-auto w-12 h-12 bg-muted rounded-2xl flex items-center justify-center text-muted-foreground">
+                                        <Globe size={24} />
+                                    </div>
+                                    <p className="text-xs font-bold text-foreground">មិនមាន IP ជាប់ក្នុងបញ្ជីខ្មៅទេ</p>
+                                    <p className="text-[11px] text-muted-foreground">រាល់ IP ទាំងអស់អាចចូលដំណើរការប្រព័ន្ធបានធម្មតា។</p>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
+            </main>
         </div>
-    );
-}
-
-// Helper icons
-function CheckCircle2({ size = 24, className = "" }) {
-    return (
-        <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width={size}
-            height={size}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className={cn("lucide lucide-check-circle-2", className)}
-        >
-            <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
-            <path d="m9 12 2 2 4-4" />
-        </svg>
     );
 }

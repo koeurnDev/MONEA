@@ -1,5 +1,3 @@
-"use client";
-
 import { useAccountSettings } from "./hooks/useAccountSettings";
 import { ProfileTab } from "./components/ProfileTab";
 import { SecurityTab } from "./components/SecurityTab";
@@ -9,7 +7,7 @@ import { DangerZone } from "./components/DangerZone";
 import { DeleteAccountDialog } from "./components/DeleteAccountDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { m, AnimatePresence } from 'framer-motion';
-import { User, Shield, Settings2 } from "lucide-react";
+import { User, Shield, Settings2, UserCog } from "lucide-react";
 import { TwoFactorSetup } from "@/components/admin/TwoFactorSetup";
 import { PreferencesTab } from "./components/PreferencesTab";
 import { useTranslation } from "@/i18n/LanguageProvider";
@@ -64,49 +62,67 @@ export default function AccountSettingsPage() {
     } = useAccountSettings();
 
     return (
-        <div className="max-w-6xl mx-auto py-12 px-6 relative">
+        <div className="max-w-5xl mx-auto py-6 md:py-10 px-4 sm:px-6 relative space-y-8">
             <TwoFactorSetup
                 open={show2FASetup}
                 onOpenChange={setShow2FASetup}
                 onSuccess={() => mutate()}
             />
 
-            {/* Background Glows */}
-            <div className="absolute top-0 -left-20 w-96 h-96 bg-primary/10 blur-[120px] rounded-full pointer-events-none opacity-50" />
-            <div className="absolute bottom-0 -right-20 w-96 h-96 bg-blue-500/10 blur-[120px] rounded-full pointer-events-none opacity-50" />
-
-
+            {/* Page Header */}
+            <PageHeader
+                title={t("account.title", { defaultValue: "ការកំណត់គណនី" })}
+                icon={UserCog}
+                iconColor="text-rose-500"
+            />
 
             {/* Main Tabs Layout */}
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-10">
-                <TabsList className="bg-muted/30 backdrop-blur-md border border-border/10 h-auto p-1.5 rounded-[2rem] inline-flex shadow-sm mb-4">
-                    <TabsTrigger value="profile" className="rounded-[1.5rem] px-8 py-4 font-bold text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:text-foreground data-[state=active]:shadow-lg transition-all gap-3 font-kantumruy group">
-                        <User size={18} className="group-data-[state=active]:text-primary transition-colors" /> {t("account.tabs.profile")}
-                    </TabsTrigger>
-                    <TabsTrigger value="security" className="rounded-[1.5rem] px-8 py-4 font-bold text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:text-foreground data-[state=active]:shadow-lg transition-all gap-3 font-kantumruy group">
-                        <Shield size={18} className="group-data-[state=active]:text-red-500 transition-colors" /> {t("account.tabs.security")}
-                    </TabsTrigger>
-                    <TabsTrigger value="preferences" className="rounded-[1.5rem] px-8 py-4 font-bold text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:text-foreground data-[state=active]:shadow-lg transition-all gap-3 font-kantumruy group">
-                        <Settings2 size={18} className="group-data-[state=active]:text-primary transition-colors" /> {t("account.tabs.preferences")}
-                    </TabsTrigger>
-                </TabsList>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+                <div className="w-full">
+                    <TabsList className="bg-slate-100/80 dark:bg-zinc-900/80 border border-slate-200/80 dark:border-white/10 h-auto p-1.5 rounded-2xl flex w-full justify-between shadow-sm">
+                        <TabsTrigger 
+                            value="profile" 
+                            className="rounded-xl px-3 py-2.5 sm:px-6 sm:py-3 font-bold text-xs sm:text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-rose-600 dark:data-[state=active]:text-rose-400 data-[state=active]:shadow-md transition-all gap-2 font-kantumruy group flex-1 focus-visible:ring-0"
+                        >
+                            <User size={16} className="shrink-0 group-data-[state=active]:text-rose-500" />
+                            <span>{t("account.tabs.profile", { defaultValue: "ប្រវត្តិរូប" })}</span>
+                        </TabsTrigger>
+                        <TabsTrigger 
+                            value="security" 
+                            className="rounded-xl px-3 py-2.5 sm:px-6 sm:py-3 font-bold text-xs sm:text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-rose-600 dark:data-[state=active]:text-rose-400 data-[state=active]:shadow-md transition-all gap-2 font-kantumruy group flex-1 focus-visible:ring-0"
+                        >
+                            <Shield size={16} className="shrink-0 group-data-[state=active]:text-rose-500" />
+                            <span>{t("account.tabs.security", { defaultValue: "សុវត្ថិភាព" })}</span>
+                        </TabsTrigger>
+                        <TabsTrigger 
+                            value="preferences" 
+                            className="rounded-xl px-3 py-2.5 sm:px-6 sm:py-3 font-bold text-xs sm:text-sm data-[state=active]:bg-white dark:data-[state=active]:bg-zinc-800 data-[state=active]:text-rose-600 dark:data-[state=active]:text-rose-400 data-[state=active]:shadow-md transition-all gap-2 font-kantumruy group flex-1 focus-visible:ring-0"
+                        >
+                            <Settings2 size={16} className="shrink-0 group-data-[state=active]:text-rose-500" />
+                            <span>{t("account.tabs.preferences", { defaultValue: "ចំណូលចិត្ត" })}</span>
+                        </TabsTrigger>
+                    </TabsList>
+                </div>
 
                 <AnimatePresence mode="wait">
                     {activeTab === "profile" && (
-                        <TabsContent key="profile" value="profile" className="mt-0 outline-none">
-                            <m.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }}>
+                        <TabsContent key="profile" value="profile" className="mt-0 outline-none space-y-6" forceMount>
+                            <m.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.25 }}>
                                 <ProfileTab
                                     user={user}
                                     onShowChangePassword={() => setShowChangePassword(true)}
                                     onUpdateSuccess={() => mutate()}
+                                />
+                                <DangerZone 
+                                    onShowDeleteAccount={() => setShowDeleteAccount(true)} 
                                 />
                             </m.div>
                         </TabsContent>
                     )}
 
                     {activeTab === "security" && (
-                        <TabsContent key="security" value="security" className="mt-0 outline-none">
-                            <m.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}>
+                        <TabsContent key="security" value="security" className="mt-0 outline-none" forceMount>
+                            <m.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.25 }}>
                                 <SecurityTab
                                     user={user}
                                     securityLogs={securityLogs}
@@ -122,19 +138,14 @@ export default function AccountSettingsPage() {
                     )}
 
                     {activeTab === "preferences" && (
-                        <TabsContent key="preferences" value="preferences" className="mt-0 outline-none">
-                            <m.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}>
+                        <TabsContent key="preferences" value="preferences" className="mt-0 outline-none" forceMount>
+                            <m.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.25 }}>
                                 <PreferencesTab />
                             </m.div>
                         </TabsContent>
                     )}
                 </AnimatePresence>
             </Tabs>
-
-            {/* Danger Zone */}
-            <DangerZone 
-                onShowDeleteAccount={() => setShowDeleteAccount(true)} 
-            />
 
             {/* Dialogs */}
             <ChangePasswordDialog

@@ -75,23 +75,24 @@ async function request<T>(
             data = text ? JSON.parse(text) : null;
         } catch (e) {
             data = { error: "Invalid JSON response from server", raw: text };
+            if (response.status === 401 && !path.includes("/api/auth/signin")) {
+                console.warn("[MoneaClient] 401 Unauthorized detected on", path);
+            }
         }
 
         if (!response.ok) {
-            // Handle specific status codes if needed
-            if (response.status === 401 && !path.includes("/api/auth/signin")) {
-                // Potential session expiry
-                console.warn("[MoneaClient] 401 Unauthorized detected.");
-                if (typeof window !== 'undefined' && 
-                    !window.location.pathname.startsWith('/sign-in') && 
-                    !window.location.pathname.startsWith('/sign-up')) {
-                    window.location.href = '/sign-in';
-                }
+            let normalizedError: string = `Request failed with status ${response.status}`;
+            if (typeof data?.error === 'string') {
+                normalizedError = data.error;
+            } else if (Array.isArray(data?.error)) {
+                normalizedError = data.error.map((e: any) => e.message ? `${e.path ? e.path.join('.') + ': ' : ''}${e.message}` : JSON.stringify(e)).join(', ');
+            } else if (data?.error) {
+                normalizedError = JSON.stringify(data.error);
             }
 
             return {
                 data: null,
-                error: data?.error || `Request failed with status ${response.status}`,
+                error: normalizedError,
                 details: data?.details,
                 status: response.status
             };

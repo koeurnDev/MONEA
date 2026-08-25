@@ -1,5 +1,5 @@
 import { m } from "framer-motion";
-import Image from "next/image";
+// next/image replaced with <img>;
 import { RevealSection, CinematicPlaceholder } from "../shared/CinematicComponents";
 import { WeddingData } from "../types";
 
@@ -27,15 +27,14 @@ export function SignatureMoments({
     if (galleryImages.length === 0) return null;
 
     return (
-        <section id="signature-moments" className="w-full py-32 md:py-64 bg-white relative overflow-hidden">
-            <div className="max-w-7xl mx-auto px-6">
-                <RevealSection className="space-y-8 mb-24 md:mb-32">
+        <section id="signature-moments" className="w-full py-16 md:py-24 bg-white relative overflow-hidden">
+            <div className="max-w-6xl mx-auto px-6">
+                <RevealSection className="space-y-6 mb-12 md:mb-16">
                     <div className="text-center space-y-4">
-                        <div className="h-[1px] w-24 bg-gold/10 mx-auto" />
-                        <h2 className="font-khmer-moul text-[15px] md:text-5xl text-gold-gradient text-gold-embossed whitespace-nowrap py-2">
+                        <h2 className="font-khmer-moul text-base sm:text-xl md:text-5xl text-gold-gradient text-gold-embossed py-2">
                             {wedding.themeSettings?.customLabels?.galleryTitle || "កម្រងរូបភាពអនុស្សាវរីយ៍"}
                         </h2>
-                        <p className="font-khmer text-xs md:text-sm text-gold/40 tracking-[0.4em] uppercase font-bold">
+                        <p className="font-kantumruy text-xs md:text-sm text-gold/60 tracking-wide font-bold">
                             {wedding.themeSettings?.customLabels?.gallerySubtitle || "PRE-WEDDING PHOTOS"}
                         </p>
                     </div>
@@ -50,9 +49,8 @@ export function SignatureMoments({
                                 className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-xl md:shadow-2xl border border-gold/10 bg-gold/5"
                             >
                                 {galleryImages[6] ? (
-                                    <Image 
-                                        src={galleryImages[6]} 
-                                        fill 
+                                    <img 
+                                        src={galleryImages[6]}  
                                         className={`object-cover transition-all duration-2000 ${signaturePan1.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-110'}`} 
                                         style={{ 
                                             objectPosition: `${signaturePan1.localX} ${signaturePan1.localY}`,
@@ -63,7 +61,7 @@ export function SignatureMoments({
                                         onTouchStart={signaturePan1.onStart}
                                         draggable={false}
                                         alt="Signature Moment 1" 
-                                        sizes="(max-width: 768px) 100vw, 30vw" 
+                                         
                                         loading="lazy" 
                                     />
                                 ) : (
@@ -81,9 +79,8 @@ export function SignatureMoments({
                                 className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-[0_20px_60px_-15px_rgba(212,175,55,0.15)] md:shadow-[0_40px_100px_-20px_rgba(212,175,55,0.2)] border-2 border-gold/20 md:scale-105 z-10 bg-gold/5"
                             >
                                 {galleryImages[7] ? (
-                                    <Image 
-                                        src={galleryImages[7]} 
-                                        fill 
+                                    <img 
+                                        src={galleryImages[7]}  
                                         className={`object-cover transition-all duration-2000 ${signaturePan2.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-110'}`} 
                                         style={{ 
                                             objectPosition: `${signaturePan2.localX} ${signaturePan2.localY}`,
@@ -94,7 +91,7 @@ export function SignatureMoments({
                                         onTouchStart={signaturePan2.onStart}
                                         draggable={false}
                                         alt="Signature Moment 2" 
-                                        sizes="(max-width: 768px) 100vw, 30vw" 
+                                         
                                         loading="lazy" 
                                     />
                                 ) : (
@@ -112,9 +109,8 @@ export function SignatureMoments({
                                 className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-xl md:shadow-2xl border border-gold/10 bg-gold/5"
                             >
                                 {galleryImages[8] ? (
-                                    <Image 
-                                        src={galleryImages[8]} 
-                                        fill 
+                                    <img 
+                                        src={galleryImages[8]}  
                                         className={`object-cover transition-all duration-2000 ${signaturePan3.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-110'}`} 
                                         style={{ 
                                             objectPosition: `${signaturePan3.localX} ${signaturePan3.localY}`,
@@ -125,7 +121,7 @@ export function SignatureMoments({
                                         onTouchStart={signaturePan3.onStart}
                                         draggable={false}
                                         alt="Signature Moment 3" 
-                                        sizes="(max-width: 768px) 100vw, 30vw" 
+                                         
                                         loading="lazy" 
                                     />
                                 ) : (
@@ -147,9 +143,8 @@ export function SignatureMoments({
                                     className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-xl md:shadow-2xl border border-gold/10 bg-gold/5"
                                 >
                                     {galleryImages[9] ? (
-                                        <Image 
-                                            src={galleryImages[9]} 
-                                            fill 
+                                        <img 
+                                            src={galleryImages[9]}  
                                             className={`object-cover transition-all duration-2000 ${signaturePan4.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-110'}`} 
                                             style={{ 
                                                 objectPosition: `${signaturePan4.localX} ${signaturePan4.localY}`,
@@ -160,7 +155,7 @@ export function SignatureMoments({
                                             onTouchStart={signaturePan4.onStart}
                                             draggable={false}
                                             alt="Signature Moment 4" 
-                                            sizes="(max-width: 768px) 100vw, 30vw" 
+                                             
                                             loading="lazy" 
                                         />
                                     ) : (
@@ -178,9 +173,8 @@ export function SignatureMoments({
                                     className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-[0_20px_60px_-15px_rgba(212,175,55,0.15)] md:shadow-[0_40px_100px_-20px_rgba(212,175,55,0.2)] border-2 border-gold/20 md:scale-105 z-10 bg-gold/5"
                                 >
                                     {galleryImages[10] ? (
-                                        <Image 
-                                            src={galleryImages[10]} 
-                                            fill 
+                                        <img 
+                                            src={galleryImages[10]}  
                                             className={`object-cover transition-all duration-2000 ${signaturePan5.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-110'}`} 
                                             style={{ 
                                                 objectPosition: `${signaturePan5.localX} ${signaturePan5.localY}`,
@@ -191,7 +185,7 @@ export function SignatureMoments({
                                             onTouchStart={signaturePan5.onStart}
                                             draggable={false}
                                             alt="Signature Moment 5" 
-                                            sizes="(max-width: 768px) 100vw, 30vw" 
+                                             
                                             loading="lazy" 
                                         />
                                     ) : (
@@ -209,9 +203,8 @@ export function SignatureMoments({
                                     className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-xl md:shadow-2xl border border-gold/10 bg-gold/5"
                                 >
                                     {galleryImages[11] ? (
-                                        <Image 
-                                            src={galleryImages[11]} 
-                                            fill 
+                                        <img 
+                                            src={galleryImages[11]}  
                                             className={`object-cover transition-all duration-2000 ${signaturePan6.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-110'}`} 
                                             style={{ 
                                                 objectPosition: `${signaturePan6.localX} ${signaturePan6.localY}`,
@@ -222,7 +215,7 @@ export function SignatureMoments({
                                             onTouchStart={signaturePan6.onStart}
                                             draggable={false}
                                             alt="Signature Moment 6" 
-                                            sizes="(max-width: 768px) 100vw, 30vw" 
+                                             
                                             loading="lazy" 
                                         />
                                     ) : (
@@ -243,9 +236,9 @@ export function SignatureMoments({
                         </p>
                     </div>
 
-                    <div className="flex flex-col items-center space-y-8">
+                    <div className="flex flex-col items-center space-y-6">
                         <div className="h-[1px] w-12 bg-gold/20" />
-                        <div className="space-y-6 font-serif-kh-bold text-xl md:text-4xl text-gold-gradient tracking-[0.2em] relative">
+                        <div className="space-y-4 font-serif-kh-bold text-xl md:text-4xl text-gold-gradient relative">
                             <p>{wedding.groomName}</p>
                             <p className="font-playfair italic text-white/20 text-sm md:text-xl tracking-widest lowercase">and</p>
                             <p>{wedding.brideName}</p>

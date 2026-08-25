@@ -1,5 +1,3 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
 import { Plus, Download, Printer, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -74,7 +72,7 @@ export function GuestListHeader({
                             <DialogTrigger asChild>
                                 <Button
                                     onClick={() => setEditingGuest(null)}
-                                    className="h-10 px-6 bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-lg shadow-rose-100 dark:shadow-none transition-all font-kantumruy font-bold text-sm"
+                                    className="h-10 px-6 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 backdrop-blur-xl border border-red-500/20 shadow-[0_8px_32px_rgba(239,68,68,0.15)] rounded-xl transition-all font-kantumruy font-bold text-sm"
                                 >
                                     <Plus className="mr-2 h-4 w-4" /> {t("guests.form.addBtn")}
                                 </Button>

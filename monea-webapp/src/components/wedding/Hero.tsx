@@ -1,5 +1,4 @@
-"use client";
-import { AnimatePresence, m } from "framer-motion";
+﻿import { AnimatePresence, m } from "framer-motion";
 
 import * as React from "react";
 

@@ -1,6 +1,4 @@
-"use client";
-
-import { Gift, Plus } from "lucide-react";
+﻿import { Gift, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/i18n/LanguageProvider";

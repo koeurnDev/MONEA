@@ -14,6 +14,7 @@ import signupRouter from './signup';
 import ssoCallbackRouter from './sso_callback';
 import ssoGoogleRouter from './sso_google';
 import ssoTelegramRouter from './sso_telegram';
+import sessionRouter from './session';
 
 const authRouter = new Hono();
 
@@ -32,5 +33,6 @@ authRouter.route('/signup', signupRouter);
 authRouter.route('/sso/callback', ssoCallbackRouter);
 authRouter.route('/sso/google', ssoGoogleRouter);
 authRouter.route('/sso/telegram', ssoTelegramRouter);
+authRouter.route('/session', sessionRouter);
 
 export default authRouter;

@@ -1,5 +1,4 @@
-"use client";
-import { m } from 'framer-motion';
+﻿import { m } from 'framer-motion';
 import { ShieldAlert, Clock, Sparkles, Heart } from "lucide-react";
 import PageTransition from '@/components/layout/PageTransition';
 

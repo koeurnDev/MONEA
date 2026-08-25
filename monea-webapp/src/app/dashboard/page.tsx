@@ -1,255 +1,217 @@
-import { prisma } from "@/lib/prisma";
+import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, Suspense } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Users, DollarSign, ArrowRight, Sparkles, Plus, LayoutDashboard, Clock, FileText, Crown, TrendingUp, ShieldCheck } from "lucide-react";
-import { QRCodeCard } from "@/components/QRCodeCard";
-import { QuickInviteCard } from "@/components/dashboard/QuickInviteCard";
-import { getServerUser } from "@/lib/auth";
-import Link from "next/link";
+import { Users, DollarSign, ArrowRight, Sparkles, Plus, LayoutDashboard, Clock, FileText, Crown, TrendingUp, ShieldCheck, Palette, Heart, Calendar } from "lucide-react";
+import { InvitationCenter } from "@/components/dashboard/InvitationCenter";
 import { Button } from "@/components/ui/button";
-import { Suspense } from "react";
 import { DashboardDataView } from "./_components/DashboardDataView";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AnalyticsDashboard } from "./_components/AnalyticsDashboard";
 import { SafeBoundary } from "@/components/ui/SafeBoundary";
-import { QuickExportCards } from "./_components/QuickExportCards";
-import { getTranslations } from "@/i18n/server";
-import { redirect } from "next/navigation";
+import { useTranslation } from "@/i18n/LanguageProvider";
+import { motion } from "framer-motion";
+import { useAuth } from '@/hooks/useAuth';
 import { PageHeader } from "./_components/PageHeader";
-
-// Re-compilation trigger: 2026-03-12T19:42:00
-export const dynamic = 'force-dynamic';
 
 function DashboardDataSkeleton() {
     return (
-        <div className="space-y-10">
-            <div className="grid gap-6 md:grid-cols-3">
-                <Skeleton className="h-[120px] rounded-[2rem] w-full" />
-                <Skeleton className="h-[120px] rounded-[2rem] w-full" />
-                <Skeleton className="h-[120px] rounded-[2rem] w-full" />
+        <div className="space-y-8 animate-pulse">
+            <div className="h-14 rounded-2xl bg-muted/40 w-1/3" />
+            <div className="h-[380px] rounded-[2.5rem] bg-muted/30 w-full" />
+            <div className="grid gap-6 md:grid-cols-2">
+                <div className="h-48 rounded-[2rem] bg-muted/30 w-full" />
+                <div className="h-48 rounded-[2rem] bg-muted/30 w-full" />
             </div>
-            <Skeleton className="h-[300px] rounded-[2rem] w-full" />
         </div>
     );
 }
 
 export default function DashboardPage() {
-    return <DashboardContent />;
-}
+    const { t } = useTranslation();
+    const navigate = useNavigate();
+    const { user: authUser, isLoading: authLoading } = useAuth();
+    const wedding = (authUser as any)?.wedding ?? null;
+    const loading = authLoading;
 
-async function DashboardContent() {
-    const t = getTranslations();
-    const user = await getServerUser();
-    
-    if (!user) {
-        redirect("/sign-in");
-    }
-    
-    const userName = user?.name || (user?.email ? user.email.split('@')[0] : "");
-
-    // Fetch wedding using standard Prisma client
-    let wedding = null;
-    let fetchError = false;
-    try {
-        wedding = await prisma.wedding.findFirst({
-            where: { userId: user.userId },
-            select: { id: true, packageType: true }
-        });
-    } catch (e: any) {
-        fetchError = true;
+    let isTemplateReady = false;
+    if (wedding?.templateId) {
+        let parsedTheme = wedding.themeSettings;
+        if (typeof parsedTheme === 'string') {
+            try { parsedTheme = JSON.parse(parsedTheme); } catch (e) { parsedTheme = {}; }
+        }
+        if (parsedTheme && Object.keys(parsedTheme).length > 0) {
+            isTemplateReady = true;
+        } else {
+            isTemplateReady = true; // has templateId
+        }
     }
 
-    // Redirect regular users to creation flow if NO wedding exists AND fetch succeeded
-    if (!wedding && !fetchError && user.type === "user") {
-        redirect("/dashboard/create");
-    }
+    useEffect(() => {
+        if (authLoading) return;
+        if (!authUser) return;
+        if (authUser.type === 'user' && !authUser.weddingId) {
+            navigate('/dashboard/create');
+        }
+    }, [authUser, authLoading, navigate]);
 
-    const isPlatformAdmin = user.role === 'ADMIN' || user.role === 'STAFF';
-    const welcomeText = isPlatformAdmin 
-        ? t("dashboard.adminWelcome") 
-        : (userName ? t("dashboard.welcome", { name: userName }) : t("dashboard.title"));
-    const subtitleText = isPlatformAdmin 
-        ? t("dashboard.adminSubtitle") 
-        : (userName ? t("dashboard.greeting") : t("dashboard.summary"));
+    if (loading) return <DashboardDataSkeleton />;
 
-    if (fetchError && !wedding) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[40vh] text-center space-y-6">
-                <div className="p-4 bg-amber-500/10 rounded-2xl border border-amber-500/20">
-                    <p className="text-amber-600 font-bold font-kantumruy">{t("common.errors.dbBusy") || "ប្រព័ន្ធកំពុងមមាញឹក សូមព្យាយាមម្តងទៀត (System Busy, retry)"}</p>
-                </div>
-                <Button variant="outline" onClick={() => window.location.reload()} className="font-kantumruy">{t("common.actions.retry") || "ព្យាយាមម្តងទៀត"}</Button>
-            </div>
-        );
-    }
+    const isPlatformAdmin = authUser?.role === 'ADMIN' || authUser?.role === 'STAFF';
+    const coupleName = wedding ? `${wedding.groomName || 'កូនកំលោះ'} & ${wedding.brideName || 'កូនក្រមុំ'}` : '';
 
     return (
-        <div className="space-y-10 pb-10">
-            {!isPlatformAdmin && (
-                <div className="flex justify-end mb-4">
-                    <div className="flex items-center gap-3">
+        <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="space-y-6 sm:space-y-8 pb-16"
+        >
+            {/* Top Welcome / Action Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 text-center sm:text-left items-center sm:items-start">
+                <div className="space-y-1 flex flex-col items-center sm:items-start">
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-rose-500 uppercase tracking-wider font-kantumruy">
+                            {wedding?.eventType === 'anniversary' ? 'កម្មវិធីភ្ជាប់ពាក្យ' : 'កម្មវិធីមង្គលការ'}
+                        </span>
                         {wedding?.packageType === "PREMIUM" && (
-                            <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 text-amber-600 rounded-xl border border-amber-500/20">
-                                <Crown size={13} className="fill-amber-600" />
-                                <span className="text-[10px] font-bold uppercase font-kantumruy">{t("common.labels.premium")}</span>
-                            </div>
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 text-[10px] font-black uppercase font-kantumruy border border-amber-500/20">
+                                <Crown size={11} className="fill-amber-600" />
+                                {t("common.labels.premium", { defaultValue: "Premium" })}
+                            </span>
                         )}
-                        <Link href="/dashboard/guests">
-                            <Button className="h-10 px-5 gap-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-sm font-bold font-kantumruy transition-all">
-                                <Plus className="w-4 h-4" />
-                                {t("dashboard.actions.addGuest")}
-                            </Button>
+                    </div>
+                    <h1 className="text-2xl sm:text-3xl font-black text-foreground font-kantumruy tracking-tight flex items-center justify-center sm:justify-start gap-2.5">
+                        {coupleName ? (
+                            <>
+                                <span>{coupleName}</span>
+                                <Heart className="w-5 h-5 text-rose-500 fill-rose-500 inline-block animate-pulse" />
+                            </>
+                        ) : (
+                            t("dashboard.nav.overview", { defaultValue: "ផ្ទាំងគ្រប់គ្រង" })
+                        )}
+                    </h1>
+                </div>
+
+                <div className="flex items-center gap-3">
+                    <Link to="/dashboard/design">
+                        <Button className="h-11 px-5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-bold font-kantumruy text-xs shadow-lg shadow-rose-600/20 flex items-center gap-2 transition-all active:scale-95">
+                            <Palette className="w-4 h-4" />
+                            <span>{t("dashboard.actions.designNow", { defaultValue: "កែសម្រួលការរចនា" })}</span>
+                        </Button>
+                    </Link>
+                </div>
+            </div>
+
+            {!wedding ? (
+                <div className="flex flex-col items-center justify-center min-h-[40vh] text-center space-y-6 bg-muted/20 rounded-[2.5rem] p-10 border border-dashed border-border/60">
+                    <div className="w-20 h-20 bg-rose-500/10 rounded-full flex items-center justify-center border border-rose-500/20">
+                        <Plus className="w-10 h-10 text-rose-600" />
+                    </div>
+                    <div className="space-y-2">
+                        <h3 className="text-2xl font-black font-kantumruy tracking-tight">{t("common.loading.preparing")}</h3>
+                        <p className="text-muted-foreground font-bold font-kantumruy max-w-sm leading-relaxed">{t("dashboard.empty.message")}</p>
+                    </div>
+                </div>
+            ) : (
+                <div className="space-y-8">
+                    {/* Main Hero Card: Invitation Center (No redundant double nesting) */}
+                    {isTemplateReady ? (
+                        <InvitationCenter weddingId={wedding.id} />
+                    ) : (
+                        <div className="flex flex-col items-center justify-center py-16 px-6 space-y-6 text-center bg-white dark:bg-[#121217] rounded-[2.5rem] border-2 border-dashed border-border shadow-sm">
+                            <div className="w-20 h-20 bg-rose-500/10 text-rose-500 rounded-full flex items-center justify-center">
+                                <Sparkles className="w-10 h-10" />
+                            </div>
+                            <div className="space-y-2">
+                                <h4 className="font-black font-kantumruy text-2xl tracking-tight text-foreground">
+                                    {t("dashboard.empty.noTemplateTitle", { defaultValue: "តំណភ្ជាប់អញ្ជើញមិនទាន់រួចរាល់ទេ" })}
+                                </h4>
+                                <p className="text-sm text-muted-foreground font-kantumruy max-w-md mx-auto leading-relaxed">
+                                    {t("dashboard.empty.noTemplateDesc", { defaultValue: "សូមធ្វើការរចនា និងរក្សាទុកសំបុត្ររបស់អ្នកជាមុនសិន ទើបប្រព័ន្ធអាចបង្កើតតំណភ្ជាប់ និង QR Code សម្រាប់ចែករំលែកបាន។" })}
+                                </p>
+                            </div>
+                            <Link to="/dashboard/design">
+                                <Button className="bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white rounded-2xl shadow-xl shadow-rose-500/20 font-black font-kantumruy px-8 h-12">
+                                    {t("dashboard.actions.designNow", { defaultValue: "រៀបចំការរចនាឥឡូវនេះ" })}
+                                </Button>
+                            </Link>
+                        </div>
+                    )}
+
+                    {/* Secondary Cards Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {/* Quick Action 1: Manage Guests */}
+                        <Link to="/dashboard/guests" className="group">
+                            <Card className="h-full border border-slate-200/80 dark:border-white/10 shadow-sm hover:shadow-md rounded-3xl bg-white dark:bg-[#141419] transition-all duration-300 group-hover:-translate-y-1">
+                                <CardHeader className="p-6 pb-4">
+                                    <div className="flex items-center justify-between">
+                                        <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-600 flex items-center justify-center">
+                                            <Users className="w-6 h-6" />
+                                        </div>
+                                        <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-1 text-blue-600 transition-transform" />
+                                    </div>
+                                    <CardTitle className="text-lg font-black font-kantumruy pt-4">
+                                        {t("dashboard.nav.guests", { defaultValue: "គ្រប់គ្រងភ្ញៀវ" })}
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="p-6 pt-0">
+                                    <p className="text-xs text-muted-foreground font-kantumruy leading-relaxed">
+                                        {t("dashboard.cards.guestsDesc", { defaultValue: "បញ្ចូលឈ្មោះភ្ញៀវ បង្កើតតំណភ្ជាប់ផ្ទាល់ខ្លួន និងត្រួតពិនិត្យការចូលរួម។" })}
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        </Link>
+
+                        {/* Quick Action 2: Timeline Schedule */}
+                        <Link to="/dashboard/timeline" className="group">
+                            <Card className="h-full border border-slate-200/80 dark:border-white/10 shadow-sm hover:shadow-md rounded-3xl bg-white dark:bg-[#141419] transition-all duration-300 group-hover:-translate-y-1">
+                                <CardHeader className="p-6 pb-4">
+                                    <div className="flex items-center justify-between">
+                                        <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
+                                            <Clock className="w-6 h-6" />
+                                        </div>
+                                        <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-1 text-amber-600 transition-transform" />
+                                    </div>
+                                    <CardTitle className="text-lg font-black font-kantumruy pt-4">
+                                        {t("dashboard.nav.timeline", { defaultValue: "កាលវិភាគកម្មវិធី" })}
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="p-6 pt-0">
+                                    <p className="text-xs text-muted-foreground font-kantumruy leading-relaxed">
+                                        {t("dashboard.cards.timelineDesc", { defaultValue: "កំណត់កម្មវិធីពេលព្រឹក និងពិធីជប់លៀងពេលល្ងាចយ៉ាងច្បាស់លាស់។" })}
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        </Link>
+
+                        {/* Quick Action 3: Upgrade / Package Status */}
+                        <Link to="/dashboard/upgrade" className="group">
+                            <Card className="h-full border border-amber-500/20 shadow-sm hover:shadow-md rounded-3xl bg-gradient-to-br from-amber-500/5 to-rose-500/5 dark:from-amber-950/20 dark:to-rose-950/10 transition-all duration-300 group-hover:-translate-y-1">
+                                <CardHeader className="p-6 pb-4">
+                                    <div className="flex items-center justify-between">
+                                        <div className="w-12 h-12 rounded-2xl bg-amber-500/15 text-amber-600 flex items-center justify-center">
+                                            <Crown className="w-6 h-6" />
+                                        </div>
+                                        <div className="px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 text-[10px] font-black uppercase font-kantumruy">
+                                            {wedding.packageType || "FREE"}
+                                        </div>
+                                    </div>
+                                    <CardTitle className="text-lg font-black font-kantumruy pt-4">
+                                        {t("dashboard.nav.upgrade", { defaultValue: "កញ្ចប់សេវាកម្ម" })}
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="p-6 pt-0">
+                                    <p className="text-xs text-muted-foreground font-kantumruy leading-relaxed">
+                                        {wedding.packageType === "PREMIUM" 
+                                            ? t("dashboard.upgrade.promo.premiumActive", { defaultValue: "អ្នកកំពុងប្រើប្រាស់កញ្ចប់ Premium ពេញលេញគ្រប់មុខងារ។" })
+                                            : t("dashboard.upgrade.promo.description", { defaultValue: "ដំឡើងទៅកញ្ចប់ Pro/Premium ដើម្បីដក Logo MONEA និងមុខងារពិសេសៗ។" })
+                                        }
+                                    </p>
+                                </CardContent>
+                            </Card>
                         </Link>
                     </div>
                 </div>
             )}
-
-
-            <Suspense fallback={<DashboardDataSkeleton />}>
-                <DashboardUserView wedding={wedding} isPlatformAdmin={isPlatformAdmin} />
-            </Suspense>
-        </div >
-    );
-}
-
-async function DashboardUserView({ wedding, isPlatformAdmin }: { wedding: any, isPlatformAdmin: boolean }) {
-    const t = getTranslations();
-    if (!wedding) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[40vh] text-center space-y-8">
-                <div className="w-24 h-24 bg-rose-500/10 rounded-[2.5rem] flex items-center justify-center animate-pulse border border-rose-500/20">
-                    <Plus className="w-12 h-12 text-rose-600" />
-                </div>
-                <div className="space-y-3">
-                    <h3 className="text-2xl font-black font-kantumruy tracking-tight">{t("common.loading.preparing")}</h3>
-                    <p className="text-muted-foreground/60 font-bold font-kantumruy max-w-xs leading-relaxed">{t("dashboard.empty.message")}</p>
-                </div>
-            </div>
-        );
-    }
-
-    return (
-        <>
-            <Suspense fallback={<div className="grid gap-6 md:grid-cols-3"><Skeleton className="h-[120px] rounded-3xl" /><Skeleton className="h-[120px] rounded-3xl" /><Skeleton className="h-[120px] rounded-3xl" /></div>}>
-                <SafeBoundary name="Dashboard Stats">
-                    <DashboardDataView weddingId={wedding.id} />
-                </SafeBoundary>
-            </Suspense>
-
-            {/* Smart Analytics & Insights */}
-            <div className="space-y-6 mt-12">
-                <SafeBoundary name="Analytics Charts">
-                    <AnalyticsDashboard weddingId={wedding.id} />
-                </SafeBoundary>
-            </div>
-
-            <div className="grid gap-8 lg:grid-cols-7 mt-12">
-                <div className="lg:col-span-4 space-y-8">
-                    {/* Invitation Access Section */}
-                    <Card className="border-none shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-none rounded-[2.5rem] bg-card/50 backdrop-blur-sm overflow-hidden border border-white/5">
-                        <CardHeader className="p-6 border-b border-border/50 bg-slate-50/50 dark:bg-white/5">
-                            <CardTitle className="text-xl md:text-2xl font-black font-kantumruy text-foreground tracking-tight flex items-center gap-3">
-                                <div className="p-2.5 bg-rose-500/10 rounded-2xl">
-                                    <Sparkles className="w-5 h-5 text-rose-600" />
-                                </div>
-                                {t("dashboard.cards.inviteCenter")}
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-8 space-y-8">
-                            <QuickInviteCard weddingId={wedding.id} />
-                            <div className="grid grid-cols-1 md:grid-cols-1 gap-8">
-                                <QRCodeCard weddingId={wedding.id} />
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                <div className="lg:col-span-3 space-y-8">
-                    <Card className="border border-border shadow-sm rounded-2xl bg-card overflow-hidden">
-                        <CardHeader className="p-6 border-b border-border/50 bg-slate-50/50 dark:bg-white/5">
-                            <CardTitle className="text-xl md:text-2xl font-black font-kantumruy text-foreground tracking-tight flex items-center gap-3">
-                                <FileText className="w-5 h-5 text-indigo-600" />
-                                {t("dashboard.cards.dataExport")}
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-6">
-                            <QuickExportCards weddingId={wedding.id} />
-                        </CardContent>
-                    </Card>
-
-                    {!isPlatformAdmin && (
-                        <Card className="border border-border shadow-sm rounded-2xl bg-card overflow-hidden">
-                            <CardHeader className="p-6 border-b border-border/50 bg-slate-50/50 dark:bg-white/5">
-                                <CardTitle className="text-xl md:text-2xl font-black font-kantumruy text-foreground tracking-tight flex items-center gap-3">
-                                    <ShieldCheck className="w-5 h-5 text-emerald-600" />
-                                    {t("dashboard.cards.billingStatus") || "គម្រោង និងការបង់ប្រាក់"}
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-6 space-y-4">
-                                <div className="flex items-center justify-between p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
-                                    <div className="space-y-1">
-                                        <p className="text-[10px] font-black uppercase text-emerald-600/70 tracking-widest">{t("dashboard.upgrade.currentPlan") || "គម្រោងបច្ចុប្បន្ន"}</p>
-                                        <p className="font-black font-kantumruy text-lg text-emerald-700">
-                                            {wedding.packageType === "PREMIUM" ? (t("common.labels.premium") || "Premium Master") : 
-                                             wedding.packageType === "PRO" ? (t("common.labels.pro") || "Standard Pro") : 
-                                             (t("common.labels.free") || "Free Plan")}
-                                        </p>
-                                    </div>
-                                    <div className="px-3 py-1 bg-emerald-500 text-white rounded-lg text-[9px] font-black uppercase tracking-widest">
-                                        {t("common.labels.active") || "ដំណើការ"}
-                                    </div>
-                                </div>
-                                
-                                <div className="space-y-3">
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-muted-foreground font-bold font-kantumruy">{t("dashboard.upgrade.paymentStatus") || "ស្ថានភាពបង់ប្រាក់"}</span>
-                                        <span className="text-foreground font-black font-kantumruy text-emerald-600">
-                                            {wedding.packageType !== "FREE" ? (t("dashboard.upgrade.messages.success") || "បង់រួចរាល់") : (t("dashboard.upgrade.labels.notPaid") || "មិនទាន់បង់")}
-                                        </span>
-                                    </div>
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-muted-foreground font-bold font-kantumruy">{t("dashboard.upgrade.support") || "ជំនួយបច្ចេកទេស"}</span>
-                                        <span className="text-foreground font-black font-kantumruy">24/7 Priority</span>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    {!isPlatformAdmin && wedding.packageType !== "PREMIUM" && (
-                        <Link href="/dashboard/upgrade">
-                            <div className="group rounded-[2.5rem] p-8 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/10 border border-amber-500/20 shadow-sm hover:shadow-lg hover:shadow-amber-500/10 transition-all cursor-pointer overflow-hidden relative">
-                                <Crown className="absolute -right-8 -top-8 w-32 h-32 text-amber-500/5 rotate-12 transition-transform group-hover:scale-110 group-hover:rotate-[20deg] duration-700" />
-                                <div className="relative z-10 space-y-5">
-                                    <div className="w-14 h-14 bg-amber-500/10 rounded-2xl flex items-center justify-center text-amber-600 shadow-sm border border-amber-500/20">
-                                        <Crown size={28} className="fill-current" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <h4 className="text-xl font-black font-kantumruy tracking-tight">
-                                            {wedding.packageType === "PRO" ? t("dashboard.upgrade.promo.removeLogo") : t("dashboard.upgrade.promo.moreFeatures")}
-                                        </h4>
-                                        <p className="text-xs font-bold text-muted-foreground/70 font-kantumruy leading-relaxed">
-                                            {t("dashboard.upgrade.promo.description")}
-                                        </p>
-                                    </div>
-                                    <Button className="w-full bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-black font-kantumruy h-11 text-sm shadow-md shadow-amber-200 dark:shadow-none">
-                                        {wedding.packageType === "PRO" ? t("dashboard.upgrade.promo.toUpperPlan") : t("dashboard.upgrade.promo.cta")}
-                                    </Button>
-                                </div>
-                            </div>
-                        </Link>
-                    )}
-                </div>
-            </div>
-
-            {/* Sticky Mobile Bottom Action Bar */}
-            <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-md border-t border-border z-50">
-                <Link href="/dashboard/guests">
-                    <Button className="w-full h-14 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl shadow-lg flex items-center justify-center gap-3 active:scale-[0.98] transition-all">
-                        <Plus size={24} />
-                        <span className="font-black font-kantumruy">{t("dashboard.actions.addGuest")}</span>
-                    </Button>
-                </Link>
-            </div>
-        </>
+        </motion.div>
     );
 }

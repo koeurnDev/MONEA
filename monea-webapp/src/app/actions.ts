@@ -1,129 +1,30 @@
-'use server'
-
-import { prisma } from "@/lib/prisma";
-import { v2 as cloudinary } from 'cloudinary';
-import { redirect } from "next/navigation";
-import { verifyTurnstile } from "@/lib/turnstile";
-
-cloudinary.config({
-    cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+// Client-side wrappers for API endpoints that used to be Next.js server actions
 
 export async function uploadImage(formData: FormData) {
-    const file = formData.get("file") as File;
-    const weddingId = formData.get("weddingId") as string;
-    const caption = formData.get("caption") as string;
-    const turnstileToken = formData.get("turnstileToken") as string;
-    const honeypot = formData.get("website_url") as string;
-
-    // 1. Honeypot check
-    if (honeypot) {
-        console.warn(`[Security] Honeypot trigger! Bot detected via Upload. Wedding: ${weddingId}`);
-        return; 
+    const res = await fetch('/api/gallery', {
+        method: 'POST',
+        body: formData,
+    });
+    
+    if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.message || "Upload failed");
     }
-
-    // 2. Turnstile check
-    if (!turnstileToken) {
-        throw new Error("Missing CAPTCHA verification");
-    }
-    const isHuman = await verifyTurnstile(turnstileToken);
-    if (!isHuman) {
-        throw new Error("CAPTCHA verification failed");
-    }
-
-    if (!file || !weddingId) {
-        throw new Error("Missing file or weddingId");
-    }
-
-    // Validation: File Type
-    if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
-        throw new Error("Invalid file type. Only images and videos are allowed.");
-    }
-
-    // Validation: File Size (e.g., 10MB limit)
-    const MAX_SIZE = 10 * 1024 * 1024;
-    if (file.size > MAX_SIZE) {
-        throw new Error("File too large. Maximum size is 10MB.");
-    }
-
-    try {
-        const bytes = await file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-
-        // Upload to Cloudinary via Stream
-        const result = await new Promise<any>((resolve, reject) => {
-            const uploadStream = cloudinary.uploader.upload_stream(
-                {
-                    folder: "wedding_uploads",
-                    resource_type: "auto", // Auto-detect image or video
-                },
-                (error, result) => {
-                    if (error) reject(error);
-                    else resolve(result);
-                }
-            );
-            uploadStream.end(buffer);
-        });
-
-        // Create DB record
-        await prisma.galleryItem.create({
-            data: {
-                url: result.secure_url,
-                publicId: result.public_id,
-                type: result.resource_type === 'video' ? 'VIDEO' : 'IMAGE',
-                caption: caption,
-                weddingId: weddingId
-            }
-        });
-
-    } catch (error) {
-        console.error("Upload error:", error);
-        throw new Error("Upload failed");
-    }
-
-    redirect(`/w/${weddingId}/gallery`);
+    
+    return res.json();
 }
 
-
 export async function submitGuestbookEntry(formData: FormData) {
-    const weddingId = formData.get("weddingId") as string;
-    const guestName = formData.get("guestName") as string;
-    const message = formData.get("message") as string;
-    const honeypot = formData.get("website_url") as string;
-    const turnstileToken = formData.get("turnstileToken") as string;
-
-    // Honeypot check: If this hidden field is filled, it's a bot
-    if (honeypot) {
-        console.warn(`[Security] Honeypot trigger! Bot detected via Guestbook. Wedding: ${weddingId}`);
-        return; // Silently ignore bot submission
-    }
-
-    // Turnstile check
-    if (!turnstileToken) {
-        throw new Error("Missing CAPTCHA verification");
-    }
-    const isHuman = await verifyTurnstile(turnstileToken);
-    if (!isHuman) {
-        throw new Error("CAPTCHA verification failed");
-    }
-
-    if (!weddingId || !guestName || !message) {
-        throw new Error("Missing fields");
-    }
-
-    // Validation
-    if (guestName.length > 50) throw new Error("Name too long");
-    if (message.length > 500) throw new Error("Message too long");
-
-    await prisma.guestbookEntry.create({
-        data: {
-            weddingId,
-            guestName,
-            message,
-        }
+    // Note: formData should contain weddingId, guestName, message, honeypot, turnstileToken
+    const res = await fetch('/api/guestbook', {
+        method: 'POST',
+        body: formData, // the Hono backend should be able to parse multipart/form-data
     });
-
-    redirect(`/w/${weddingId}/guestbook`);
+    
+    if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.message || "Submission failed");
+    }
+    
+    return res.json();
 }

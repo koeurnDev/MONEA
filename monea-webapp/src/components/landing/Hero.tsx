@@ -1,117 +1,190 @@
-"use client";
-
-import Link from "next/link";
-import Image from "next/image";
+import { Link } from 'react-router-dom';
 import { useState, useEffect } from "react";
-import { m, useScroll, useTransform } from 'framer-motion';
-import { Star, ArrowRight } from "lucide-react";
+import { m, useTransform, useMotionValue, useSpring } from 'framer-motion';
+import { ArrowRight, Play, Sparkles } from "lucide-react";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { AUTH_URLS } from "@/lib/constants";
 
 export function Hero() {
-    const { scrollY } = useScroll();
-    const yParallax = useTransform(scrollY, [0, 1000], [0, 200]);
-    const yMobileParallax = useTransform(scrollY, [0, 500], [0, 50]);
-    const opacityParallax = useTransform(scrollY, [0, 500], [1, 0.2]);
     const { t } = useTranslation();
-
-    // Use a state to check if we are on mobile to disable parallax
     const [isMobile, setIsMobile] = useState(false);
-    useEffect(() => {
-        setIsMobile(window.innerWidth < 768);
-    }, []);
+    
+    // Mouse tracking for 3D effect
+    const mouseX = useMotionValue(0);
+    const mouseY = useMotionValue(0);
+    
+    // Smooth spring for the mouse movement
+    const smoothX = useSpring(mouseX, { damping: 50, stiffness: 400 });
+    const smoothY = useSpring(mouseY, { damping: 50, stiffness: 400 });
 
-    const y = isMobile ? yMobileParallax : yParallax;
-    const opacity = isMobile ? 0.6 : opacityParallax;
+    // Calculate rotation based on mouse position (normalized between -1 and 1)
+    const rotateX = useTransform(smoothY, [-0.5, 0.5], [12, -12]);
+    const rotateY = useTransform(smoothX, [-0.5, 0.5], [-12, 12]);
+
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+
+        const handleMouseMove = (e: MouseEvent) => {
+            const x = (e.clientX / window.innerWidth) - 0.5;
+            const y = (e.clientY / window.innerHeight) - 0.5;
+            mouseX.set(x);
+            mouseY.set(y);
+        };
+        
+        window.addEventListener('mousemove', handleMouseMove);
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('resize', checkMobile);
+        };
+    }, [mouseX, mouseY]);
 
     return (
-        <section className="relative min-h-[100dvh] w-full flex items-center justify-center overflow-hidden bg-white dark:bg-black pb-20 pt-32">
-            {/* Background Parallax */}
-            <m.div style={{ y, opacity }} className="absolute inset-0 z-0">
-                <Image
-                    src="/images/bg_tunnel.webp"
-                    alt="Wedding Tunnel"
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 120vw, 150vw"
-                    className="object-cover opacity-20 dark:opacity-40 scale-[1.1] will-change-transform"
-                    priority
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-white via-white/70 to-white/90 dark:from-black dark:via-black/70 dark:to-black/90" />
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,white_100%)] dark:bg-[radial-gradient(circle_at_center,transparent_0%,black_100%)] opacity-90" />
-            </m.div>
-
-            {/* Content */}
-            <div className="container mx-auto px-6 relative z-10 flex flex-col items-center justify-center text-center mt-10 md:mt-0">
-                <m.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.2 }}
-                >
-                    <div className="inline-flex items-center gap-2.5 px-6 py-3 rounded-full bg-white/40 dark:bg-white/5 sm:backdrop-blur-xl border border-slate-200/50 dark:border-white/10 mb-12 group cursor-default shadow-sm hover:shadow-md transition-all duration-500">
-                        <Star className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400 fill-emerald-500 dark:fill-emerald-400 group-hover:rotate-180 transition-transform duration-1000" />
-                        <span className="text-slate-900 dark:text-white/90 text-[10px] sm:text-xs font-black tracking-[0.2em] uppercase mt-0.5 whitespace-nowrap font-kantumruy">
-                            {t("hero.badge")}
-                        </span>
-                    </div>
-                </m.div>
-
-                <div className="relative mb-12 group">
-                    {/* Masterpiece Glow */}
-                    <div className="absolute -inset-x-20 -inset-y-10 bg-pink-500/10 dark:bg-pink-500/20 rounded-[5rem] blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
-                    
-                    <m.h1
-                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                        className="flex flex-col items-center justify-center gap-y-2 mb-10 drop-shadow-2xl px-4 relative z-10 max-w-full"
-                    >
-                        <span className="text-4xl xs:text-5xl sm:text-6xl md:text-[5.5rem] lg:text-[7.5rem] font-black font-kantumruy text-slate-900 dark:text-white leading-[1.1] tracking-tighter drop-shadow-sm dark:drop-shadow-[0_4px_30px_rgba(0,0,0,0.8)] inline-block will-change-transform max-w-full">
-                            {t("hero.title1")}
-                        </span>
-                        <span className="text-2xl xs:text-3xl sm:text-4xl md:text-[4.5rem] lg:text-[6.5rem] text-slate-900 dark:text-white bg-clip-text text-transparent bg-gradient-to-r from-pink-600 via-rose-500 to-pink-600 dark:from-pink-300 dark:via-white dark:to-pink-300 font-black font-kantumruy leading-[1.1] tracking-tight drop-shadow-sm dark:drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)] inline-block will-change-transform pb-2 max-w-full">
-                             {t("hero.title2")}
-                        </span>
-                    </m.h1>
-                </div>
-
-                <m.p
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.5 }}
-                    className="text-slate-600 dark:text-white/70 text-base sm:text-lg md:text-2xl font-kantumruy max-w-2xl mx-auto mb-16 leading-relaxed font-medium px-4 md:px-0"
-                >
-                    {t("hero.description")}
-                </m.p>
-
-                <m.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.6 }}
-                    className="flex flex-col sm:flex-row items-center justify-center gap-5 sm:gap-8 w-full px-6 md:px-0"
-                >
-                    <Link href={AUTH_URLS.SIGN_UP} className="group relative flex h-16 md:h-20 px-12 md:px-20 items-center justify-center overflow-hidden rounded-full bg-slate-950 dark:bg-white text-white dark:text-black transition-all duration-500 hover:scale-105 shadow-2xl shadow-pink-500/10 dark:shadow-white/10 hover:shadow-pink-500/20 active:scale-95">
-                        <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-pink-500 via-rose-600 to-pink-500 dark:from-pink-100 dark:via-white dark:to-pink-100 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-gradient-x" />
-                        <span className="font-kantumruy text-base sm:text-lg md:text-2xl font-black relative z-10 pt-1 flex items-center justify-center gap-3">
-                            {t("hero.ctaRegister")}
-                            <ArrowRight className="w-5 h-5 md:w-6 md:h-6 transition-transform group-hover:translate-x-3 duration-500 stroke-[3]" />
-                        </span>
-                    </Link>
-                    <Link href="#templates" className="flex h-16 md:h-20 px-12 md:px-16 items-center justify-center rounded-full border border-slate-200 dark:border-white/10 bg-white/40 dark:bg-white/5 sm:backdrop-blur-xl text-slate-900 dark:text-white/80 hover:text-slate-950 dark:hover:text-white hover:bg-white dark:hover:bg-white/10 font-kantumruy font-black text-base md:text-xl transition-all duration-500 shadow-sm active:scale-95">
-                        <span className="pt-1 flex items-center justify-center">{t("hero.ctaTemplates")}</span>
-                    </Link>
-                </m.div>
+        <section className="relative min-h-[100dvh] w-full flex items-center overflow-hidden bg-[#FAF8F5] dark:bg-[#09090B] font-kantumruy transition-colors duration-300">
+            {/* Ambient Background Lights */}
+            <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-[-15%] left-[-10%] w-[55vw] h-[55vw] rounded-full bg-rose-500/10 dark:bg-rose-600/15 blur-[140px]" />
+                <div className="absolute bottom-[-15%] right-[-10%] w-[55vw] h-[55vw] rounded-full bg-amber-500/10 dark:bg-amber-600/10 blur-[140px]" />
+                <div className="absolute top-[30%] right-[15%] w-[45vw] h-[45vw] rounded-full bg-pink-500/5 dark:bg-pink-900/10 blur-[150px]" />
+                <div className="absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] dark:bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:24px_24px] opacity-60" />
             </div>
 
-            {/* Scroll Indicator */}
-            <m.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1.5, duration: 1 }}
-                className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
-            >
-                <span className="text-slate-500 dark:text-white/50 text-[10px] uppercase font-kantumruy tracking-widest">{t("hero.scrollDown")}</span>
-                <div className="w-[1px] h-12 bg-gradient-to-b from-slate-500 dark:from-white to-transparent" />
-            </m.div>
+            <div className="container mx-auto px-4 sm:px-6 relative z-10 w-full pt-24 sm:pt-28 md:pt-32 pb-14 sm:pb-20">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+                    
+                    {/* Left: Content */}
+                    <div className="lg:col-span-6 flex flex-col items-center lg:items-start text-center lg:text-left">
+                        {/* Live Badge */}
+                        <m.div
+                            initial={{ opacity: 0, y: 15 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6, delay: 0.1 }}
+                            className="mb-5 sm:mb-7"
+                        >
+                            <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/80 dark:bg-white/5 backdrop-blur-xl border border-border/80 shadow-xs">
+                                <span className="relative flex h-2 w-2">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75"></span>
+                                  <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-600"></span>
+                                </span>
+                                <span className="text-foreground text-[10px] sm:text-xs font-black tracking-wider uppercase">
+                                    {t("hero.badge", { defaultValue: "MONEA DIGITAL: លឿនរហ័ស & ចំណេញពេល" })}
+                                </span>
+                            </div>
+                        </m.div>
+
+                        {/* Title */}
+                        <m.h1
+                            initial={{ opacity: 0, y: 15 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6, delay: 0.2 }}
+                            className="flex flex-col gap-1 sm:gap-2 mb-6 sm:mb-8"
+                        >
+                            <span className="text-3xl sm:text-5xl md:text-6xl lg:text-[4.75rem] font-bold text-foreground leading-[1.3] tracking-tight">
+                                {t("hero.title1", { defaultValue: "រចនាធៀប" })}
+                            </span>
+                            <span className="text-2xl sm:text-4xl md:text-5xl lg:text-[4rem] text-transparent bg-clip-text bg-gradient-to-r from-rose-600 to-pink-600 dark:from-rose-400 dark:to-pink-300 font-bold leading-[1.3] tracking-tight pb-1">
+                                {t("hero.title2", { defaultValue: "របស់អ្នកនៅទីនេះ" })}
+                            </span>
+                        </m.h1>
+
+                        {/* Action Buttons */}
+                        <m.div
+                            initial={{ opacity: 0, y: 15 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6, delay: 0.3 }}
+                            className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full justify-center lg:justify-start max-w-md sm:max-w-none"
+                        >
+                            <Link 
+                                to={AUTH_URLS.SIGN_UP} 
+                                className="group relative flex h-12 sm:h-14 px-7 sm:px-8 items-center justify-center overflow-hidden rounded-full bg-gradient-to-r from-rose-600 to-pink-600 text-white font-bold text-xs sm:text-sm shadow-md shadow-rose-500/25 hover:shadow-lg hover:shadow-rose-500/35 hover:scale-105 active:scale-95 transition-all w-full sm:w-auto"
+                            >
+                                <span className="relative z-10 flex items-center justify-center gap-2 pt-0.5">
+                                    {t("hero.ctaRegister", { defaultValue: "ចាប់ផ្តើមឥឡូវនេះ" })}
+                                    <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+                                </span>
+                            </Link>
+                            
+                            <a 
+                                href="#features" 
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    document.querySelector("#features")?.scrollIntoView({ behavior: "smooth" });
+                                }}
+                                className="group flex h-12 sm:h-14 px-6 sm:px-8 items-center justify-center rounded-full bg-card/80 hover:bg-muted/80 backdrop-blur-md border border-border text-foreground font-bold text-xs sm:text-sm shadow-xs transition-all w-full sm:w-auto"
+                            >
+                                <span className="flex items-center justify-center gap-2 pt-0.5">
+                                    <Play size={14} className="fill-current text-muted-foreground group-hover:text-rose-600 transition-colors" />
+                                    <span>ស្វែងយល់បន្ថែម</span>
+                                </span>
+                            </a>
+                        </m.div>
+                    </div>
+
+                    {/* Right: 3D Floating Wedding Cards */}
+                    <div className="lg:col-span-6 relative h-[340px] xs:h-[380px] sm:h-[460px] lg:h-[580px] w-full mt-6 lg:mt-0 flex items-center justify-center perspective-[1500px]">
+                        <m.div
+                            style={isMobile ? {} : { rotateX, rotateY }}
+                            className="relative w-full max-w-[220px] xs:max-w-[260px] sm:max-w-[320px] lg:max-w-[380px] aspect-[3/4] transform-style-3d will-change-transform"
+                        >
+                            {/* Card 3 (Back Right) */}
+                            <m.div
+                                initial={{ opacity: 0, x: 40, y: -30, rotateZ: 8 }}
+                                animate={{ opacity: 1, x: isMobile ? 25 : 45, y: isMobile ? -20 : -35, rotateZ: isMobile ? 6 : 8 }}
+                                transition={{ duration: 0.9, delay: 0.4, ease: [0.23, 1, 0.32, 1] }}
+                                className="absolute inset-0 bg-card rounded-2xl sm:rounded-3xl shadow-xl border border-border/80 overflow-hidden translate-z-[-60px] blur-[1px]"
+                            >
+                                <img 
+                                    src="https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=800&auto=format&fit=crop" 
+                                    className="w-full h-full object-cover opacity-50 grayscale" 
+                                    alt="Wedding Template 3" 
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                            </m.div>
+
+                            {/* Card 2 (Middle Left) */}
+                            <m.div
+                                initial={{ opacity: 0, x: -40, y: 30, rotateZ: -8 }}
+                                animate={{ opacity: 1, x: isMobile ? -25 : -35, y: isMobile ? 15 : 20, rotateZ: isMobile ? -4 : -6 }}
+                                transition={{ duration: 0.9, delay: 0.3, ease: [0.23, 1, 0.32, 1] }}
+                                className="absolute inset-0 bg-card rounded-2xl sm:rounded-3xl shadow-xl border border-border/80 overflow-hidden translate-z-[0px]"
+                            >
+                                <img 
+                                    src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=800&auto=format&fit=crop" 
+                                    className="w-full h-full object-cover opacity-85" 
+                                    alt="Wedding Template 2" 
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                            </m.div>
+
+                            {/* Card 1 (Front Center) */}
+                            <m.div
+                                initial={{ opacity: 0, y: 60 }}
+                                animate={{ opacity: 1, y: 0, rotateZ: 1 }}
+                                transition={{ duration: 0.9, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
+                                className="absolute inset-0 bg-card rounded-2xl sm:rounded-[2rem] shadow-2xl border-2 sm:border-4 border-white dark:border-border overflow-hidden translate-z-[60px]"
+                            >
+                                <img 
+                                    src="https://images.unsplash.com/photo-1606800052052-a08af7148866?q=80&w=800&auto=format&fit=crop" 
+                                    className="w-full h-full object-cover" 
+                                    alt="Wedding Template Main" 
+                                />
+                                
+                                {/* Glass Overlay on Front Card */}
+                                <div className="absolute bottom-3 sm:bottom-5 left-3 sm:left-5 right-3 sm:right-5 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-black/40 backdrop-blur-md border border-white/20 shadow-lg text-white">
+                                    <h3 className="font-bold text-sm sm:text-base tracking-wide drop-shadow-md">
+                                        សិរីសួស្តី អាពាហ៍ពិពាហ៍
+                                    </h3>
+                                    <p className="text-white/80 text-[11px] sm:text-xs mt-0.5 drop-shadow-sm font-medium">
+                                        ឧត្តម & មុន្នី
+                                    </p>
+                                </div>
+                            </m.div>
+                        </m.div>
+                    </div>
+
+                </div>
+            </div>
         </section>
     );
 }

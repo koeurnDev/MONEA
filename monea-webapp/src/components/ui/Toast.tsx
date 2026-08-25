@@ -1,4 +1,3 @@
-"use client";
 // Force HMR refresh
 
 import * as React from "react";
@@ -24,7 +23,13 @@ const ToastContext = React.createContext<ToastContextType | undefined>(undefined
 
 export function useToast() {
     const context = React.useContext(ToastContext);
-    if (!context) throw new Error("useToast must be used within ToastProvider");
+    if (!context) {
+        return {
+            showToast: (msg: Omit<ToastMessage, "id">) => {
+                console.log("[Toast]", msg.title, msg.description);
+            }
+        };
+    }
     return context;
 }
 

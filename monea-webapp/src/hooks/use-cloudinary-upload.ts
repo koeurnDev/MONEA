@@ -43,14 +43,14 @@ export function useCloudinaryUpload({
             // 2. Upload to Cloudinary
             const formData = new FormData();
             formData.append("file", file);
-            formData.append("api_key", process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY!);
+            formData.append("api_key", import.meta.env.VITE_CLOUDINARY_API_KEY!);
             formData.append("timestamp", timestamp.toString());
             formData.append("signature", signature);
             formData.append("upload_preset", uploadPreset);
             if (folder) formData.append("folder", folder);
 
             const xhr = new XMLHttpRequest();
-            const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+            const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
             xhr.open("POST", `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`, true);
 
             xhr.upload.onprogress = (event) => {

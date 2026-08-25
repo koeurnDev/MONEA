@@ -1,5 +1,3 @@
-"use client";
-
 import * as React from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +6,7 @@ import { Check, X, Users, MessageSquare, Loader2 } from "lucide-react";
 import { AnimatePresence, m } from "framer-motion";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { moneaClient } from "@/lib/api-client";
+import { Turnstile } from '@marsidev/react-turnstile';
 
 interface RSVPFormProps {
     weddingId: string;
@@ -29,6 +28,7 @@ export function RSVPForm({ weddingId, guestId, primaryColor, theme = 'dark' }: R
     const [notes, setNotes] = React.useState("");
     const [website, setWebsite] = React.useState(""); // Honeypot field
     const [loading, setLoading] = React.useState(false);
+    const [turnstileToken, setTurnstileToken] = React.useState("");
 
     React.useEffect(() => {
         // Track when RSVP modal/section is viewed
@@ -47,7 +47,8 @@ export function RSVPForm({ weddingId, guestId, primaryColor, theme = 'dark' }: R
                 adultsCount: adults,
                 childrenCount: children,
                 rsvpNotes: notes,
-                website: website // Send honeypot field
+                website: website, // Send honeypot field
+                cfTurnstileResponse: turnstileToken
             });
 
             if (res.error) throw new Error(res.error);
@@ -191,8 +192,16 @@ export function RSVPForm({ weddingId, guestId, primaryColor, theme = 'dark' }: R
                                         &quot;{t("invitation.rsvp.registeredGuest", { name: guestId ? 'ដែលមានឈ្មោះក្នុងបញ្ជីស្រាប់' : '' })}&quot;
                                     </p>
                                 </div>
+                                <div className="flex justify-center my-4">
+                                    <Turnstile 
+                                        siteKey="1x00000000000000000000AA"
+                                        onSuccess={(token) => setTurnstileToken(token)}
+                                        // @ts-ignore
+                                        theme={isLight ? 'light' : 'dark'}
+                                    />
+                                </div>
                                 <Button
-                                    disabled={loading}
+                                    disabled={loading || !turnstileToken}
                                     onClick={handleSubmit}
                                     className="w-full h-16 md:h-20 rounded-[2rem] text-xl font-black font-khmer shadow-2xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all text-white hover:text-white"
                                     style={{ backgroundColor: primaryColor }}

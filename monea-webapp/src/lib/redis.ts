@@ -1,5 +1,6 @@
-const url = process.env.UPSTASH_REDIS_REST_URL || "";
-const token = process.env.UPSTASH_REDIS_REST_TOKEN || "";
+// Lazy getters so env vars are read after Hono middleware polyfills process.env in CF Workers
+const getUrl = () => process.env.UPSTASH_REDIS_REST_URL || "";
+const getToken = () => process.env.UPSTASH_REDIS_REST_TOKEN || "";
 
 /**
  * MONEA Resilient Redis Client
@@ -10,11 +11,8 @@ class ResilientRedis {
 
   async get(key: string) {
     try {
-      if (process.env.NEXT_RUNTIME === "edge") {
-        return await this.edgeFetch("get", key);
-      }
-      const client = await this.getNativeClient();
-      return client ? await client.get(key) : await this.edgeFetch("get", key);
+      // Always use HTTP REST API in CF Workers (no native Node.js client)
+      return await this.edgeFetch("get", key);
     } catch (e) {
       return null;
     }
@@ -22,13 +20,9 @@ class ResilientRedis {
 
   async set(key: string, value: any, options?: { ex?: number }) {
     try {
-      if (process.env.NEXT_RUNTIME === "edge") {
-        const body = ["SET", key, typeof value === 'string' ? value : JSON.stringify(value)];
-        if (options?.ex) body.push("EX", options.ex.toString());
-        return await this.edgePost(body);
-      }
-      const client = await this.getNativeClient();
-      return client ? await client.set(key, value, options) : await this.edgePost(["SET", key, value, ...(options?.ex ? ["EX", options.ex.toString()] : [])]);
+      const body = ["SET", key, typeof value === 'string' ? value : JSON.stringify(value)];
+      if (options?.ex) body.push("EX", options.ex.toString());
+      return await this.edgePost(body);
     } catch (e) {
       return null;
     }
@@ -36,9 +30,7 @@ class ResilientRedis {
 
   async del(key: string) {
     try {
-      if (process.env.NEXT_RUNTIME === "edge") return await this.edgeFetch("del", key);
-      const client = await this.getNativeClient();
-      return client ? await client.del(key) : await this.edgeFetch("del", key);
+      return await this.edgeFetch("del", key);
     } catch (e) {
       return null;
     }
@@ -46,9 +38,7 @@ class ResilientRedis {
 
   async incr(key: string) {
     try {
-      if (process.env.NEXT_RUNTIME === "edge") return await this.edgeFetch("incr", key);
-      const client = await this.getNativeClient();
-      return client ? await client.incr(key) : await this.edgeFetch("incr", key);
+      return await this.edgeFetch("incr", key);
     } catch (e) {
       return 1;
     }
@@ -60,7 +50,7 @@ class ResilientRedis {
     
     try {
       const { Redis } = await import("@upstash/redis");
-      this.nativeInstance = new Redis({ url, token });
+      this.nativeInstance = new Redis({ url: getUrl(), token: getToken() });
       return this.nativeInstance;
     } catch (e) {
       return null;
@@ -69,10 +59,11 @@ class ResilientRedis {
 
   private async edgeFetch(cmd: string, key: string) {
     try {
+      const url = getUrl(); const token = getToken();
       if (!url || !token) return null;
-      const res = await fetch(`${url}/${cmd}/${key}`, {
+      const res = await fetch(`${url}/${cmd}/${encodeURIComponent(key)}`, {
         headers: { Authorization: `Bearer ${token}` },
-        signal: AbortSignal.timeout(1000)
+        signal: AbortSignal.timeout(3000)
       });
       const data = await res.json();
       return data.result;
@@ -83,12 +74,13 @@ class ResilientRedis {
 
   private async edgePost(body: any[]) {
     try {
+      const url = getUrl(); const token = getToken();
       if (!url || !token) return null;
       const res = await fetch(url, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
-        signal: AbortSignal.timeout(1000)
+        signal: AbortSignal.timeout(3000)
       });
       const data = await res.json();
       return data.result;

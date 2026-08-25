@@ -1,5 +1,4 @@
-"use client";
-import * as React from 'react';
+﻿import * as React from 'react';
 
 import { m } from 'framer-motion';
 import { Heart } from "lucide-react";

@@ -37,9 +37,20 @@ export async function cloudinaryDelete(
     publicId: string,
     resourceType: string = "image",
 ): Promise<{ result: string }> {
-    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
-    const apiKey    = process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY!;
-    const apiSecret = process.env.CLOUDINARY_API_SECRET!;
+    const cloudName = 
+        (typeof process !== 'undefined' && (process.env?.CLOUDINARY_CLOUD_NAME || process.env?.VITE_CLOUDINARY_CLOUD_NAME || process.env?.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME)) ||
+        (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_CLOUDINARY_CLOUD_NAME) ||
+        "dilx4i5s4";
+
+    const apiKey = 
+        (typeof process !== 'undefined' && (process.env?.CLOUDINARY_API_KEY || process.env?.VITE_CLOUDINARY_API_KEY || process.env?.NEXT_PUBLIC_CLOUDINARY_API_KEY)) ||
+        (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_CLOUDINARY_API_KEY) ||
+        "678179776217443";
+
+    const apiSecret = 
+        (typeof process !== 'undefined' && (process.env?.CLOUDINARY_API_SECRET || process.env?.CLOUDINARY_SECRET)) ||
+        (typeof import.meta !== 'undefined' && (import.meta as any).env?.CLOUDINARY_API_SECRET) ||
+        "FC0GYeRsfbJFCLw4g6_ExOfXdVs";
 
     const timestamp    = Math.floor(Date.now() / 1000).toString();
     const paramsToSign = { public_id: publicId, timestamp };

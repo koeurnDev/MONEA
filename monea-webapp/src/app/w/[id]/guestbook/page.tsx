@@ -1,21 +1,21 @@
-export const dynamic = 'force-dynamic';
-import { prisma } from "@/lib/prisma";
-import { MessageSquare, Heart } from "lucide-react";
+import { MessageSquare, Heart, Loader2 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { GuestbookForm } from "./GuestbookForm";
 import { HydratedDate } from "@/components/shared/HydratedDate";
+import { useParams } from "react-router-dom";
+import useSWR from "swr";
 
-async function getMessages(weddingId: string) {
-    return await prisma.guestbookEntry.findMany({
-        where: { weddingId },
-        orderBy: { createdAt: 'desc' },
-    });
-}
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-export default async function GuestbookPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
-    const messages = await getMessages(id);
+export default function GuestbookPage() {
+    const { id } = useParams();
+    const { data: messagesResponse, error, isLoading } = useSWR(id ? `/api/guestbook?weddingId=${id}` : null, fetcher);
+
+    if (isLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin" /></div>;
+    if (error) return <div>Failed to load guestbook</div>;
+
+    const messages = messagesResponse?.data || [];
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-orange-50 dark:from-gray-900 dark:via-black dark:to-gray-800 p-6 pb-28 font-siemreap">
@@ -32,7 +32,7 @@ export default async function GuestbookPage({ params }: { params: Promise<{ id: 
                 </div>
 
                 {/* Form Section */}
-                <GuestbookForm weddingId={id} />
+                {id && <GuestbookForm weddingId={id} />}
 
                 {/* Messages List */}
                 <div className="space-y-4">
@@ -44,7 +44,7 @@ export default async function GuestbookPage({ params }: { params: Promise<{ id: 
                     </div>
 
                     <div className="grid gap-4">
-                        {messages.map((msg) => (
+                        {messages.map((msg: any) => (
                             <GlassCard key={msg.id} className="p-5 hover:scale-[1.02] transition-transform">
                                 <div className="flex items-start gap-3">
                                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-rose-100 to-orange-100 flex items-center justify-center text-rose-700 font-bold border border-white shadow-sm shrink-0 dark:from-rose-900 dark:to-orange-900 dark:text-rose-100 dark:border-white/10">

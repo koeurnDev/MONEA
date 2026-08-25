@@ -1,0 +1,2 @@
+async function e(e){let t=await fetch(`/api/gallery`,{method:`POST`,body:e});if(!t.ok){let e=await t.json().catch(()=>({}));throw Error(e.message||`Upload failed`)}return t.json()}async function t(e){let t=await fetch(`/api/guestbook`,{method:`POST`,body:e});if(!t.ok){let e=await t.json().catch(()=>({}));throw Error(e.message||`Submission failed`)}return t.json()}export{e as n,t};
+//# sourceMappingURL=actions-BK1G8pdn.js.map

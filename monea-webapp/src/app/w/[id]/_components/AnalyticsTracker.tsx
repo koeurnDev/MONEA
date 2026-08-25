@@ -1,6 +1,4 @@
-"use client";
-
-import { useEffect, useCallback } from "react";
+﻿import { useEffect, useCallback } from "react";
 
 // Hook-like component to track events
 export function AnalyticsTracker({ weddingId }: { weddingId: string }) {

@@ -1,6 +1,5 @@
-"use client";
 import { useState, useEffect } from "react";
-import Image from "next/image";
+// next/image replaced with <img>;
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -192,7 +191,7 @@ export function TwoFactorSetup({ open, onOpenChange, onSuccess }: TwoFactorSetup
                                     </h4>
                                     <div className="bg-slate-50 p-4 rounded-2xl border border-dashed border-slate-200 flex flex-col items-center gap-4">
                                         {setupData.qrCodeDataUrl && (
-                                            <Image src={setupData.qrCodeDataUrl} alt="2FA QR Code" width={192} height={192} className="w-48 h-48" unoptimized />
+                                            <img src={setupData.qrCodeDataUrl} alt="2FA QR Code" width={192} height={192} className="w-48 h-48" />
                                         )}
                                         <p className="text-[10px] text-slate-500 text-center font-kantumruy">ប្រើកម្មវិធី Google Authenticator ឬ Telegram ដើម្បីស្កេន។</p>
                                     </div>
@@ -280,24 +279,28 @@ export function TwoFactorSetup({ open, onOpenChange, onSuccess }: TwoFactorSetup
                     )}
                 </div>
 
-                <DialogFooter className="p-8 bg-slate-50 border-t border-slate-100 flex sm:justify-center gap-4">
-                    <Button
-                        variant="ghost"
-                        onClick={() => onOpenChange(false)}
-                        className="rounded-xl h-12 font-bold font-kantumruy"
-                        disabled={verifying}
-                    >
-                        បោះបង់
-                    </Button>
-                    <Button
-                        onClick={handleVerify}
-                        disabled={!verificationCode || loading || verifying || !setupData}
-                        className="bg-slate-900 text-white hover:bg-black rounded-xl h-12 px-8 font-bold font-kantumruy flex items-center gap-2"
-                    >
-                        {verifying ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                        បញ្ជាក់ និងបើកដំណើរការ
-                    </Button>
-                </DialogFooter>
+                {step === 1 && (
+                    <DialogFooter className="p-8 bg-slate-50 border-t border-slate-100 flex sm:justify-center gap-4">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => onOpenChange(false)}
+                            className="rounded-xl h-12 font-bold font-kantumruy"
+                            disabled={verifying}
+                        >
+                            បោះបង់
+                        </Button>
+                        <Button
+                            type="button"
+                            onClick={handleVerify}
+                            disabled={!verificationCode || loading || verifying || !setupData}
+                            className="bg-slate-900 text-white hover:bg-black rounded-xl h-12 px-8 font-bold font-kantumruy flex items-center gap-2"
+                        >
+                            {verifying ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                            បញ្ជាក់ និងបើកដំណើរការ
+                        </Button>
+                    </DialogFooter>
+                )}
             </DialogContent>
         </Dialog>
     );

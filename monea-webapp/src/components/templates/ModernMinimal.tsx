@@ -1,7 +1,6 @@
-"use client";
 import * as React from "react";
-import dynamic from 'next/dynamic';
-import { m, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+// next/dynamic replaced with React.lazy;
+import { m, AnimatePresence } from 'framer-motion';
 import { WeddingData } from "./types";
 import { useTranslation } from "@/i18n/LanguageProvider";
 
@@ -21,7 +20,6 @@ import { EntranceEnvelope } from './modern-minimal/EntranceEnvelope';
 import { ParallaxDivider } from './modern-minimal/ParallaxDivider';
 
 import { BackgroundMusic } from './modern-minimal/BackgroundMusic';
-import { GuestbookSection } from './modern-minimal/GuestbookSection';
 
 export default function ModernMinimal({ wedding, guestName }: { wedding: WeddingData; guestName?: string }) {
     const { t } = useTranslation();
@@ -36,12 +34,21 @@ export default function ModernMinimal({ wedding, guestName }: { wedding: Wedding
         return () => window.removeEventListener('FORCE_REVEAL', handleForceReveal);
     }, []);
 
+    const primaryColor = wedding.themeSettings?.primaryColor || "#0A1226";
+
     return (
-        <div className="bg-white min-h-screen font-inter text-slate-900 selection:bg-slate-900 selection:text-white">
+        <div 
+            style={{ "--primary": primaryColor } as React.CSSProperties}
+            className="relative bg-white min-h-screen font-inter text-slate-900 selection:bg-[var(--primary)] selection:text-white"
+        >
             {!revealed && (
                 <EntranceEnvelope 
                     wedding={wedding} 
                     guestName={guestName}
+                    audioRef={audioRef}
+                    onStartOpen={() => {
+                        setIsPlaying(true);
+                    }}
                     onReveal={() => {
                         setRevealed(true);
                         setIsPlaying(true);
@@ -62,22 +69,21 @@ export default function ModernMinimal({ wedding, guestName }: { wedding: Wedding
                 <LoveStorySection wedding={wedding} />
 
                 <ParallaxDivider 
-                    imageUrl={wedding.galleryItems?.[0]?.url || wedding.themeSettings?.heroImage || '/images/templates/modern-minimal/hero.jpg'} 
+                    imageUrl={wedding.galleryItems?.[0]?.url || wedding.themeSettings?.heroImage || '/assets/khmer-legacy/621811254_905398285378636_5240747682765358044_n.jpg'} 
                     text="FOREVER & ALWAYS"
                 />
 
                 <ScheduleSection wedding={wedding} />
 
                 <ParallaxDivider 
-                    imageUrl={wedding.galleryItems?.[1]?.url || wedding.themeSettings?.heroImage || '/images/templates/modern-minimal/hero.jpg'} 
+                    imageUrl={wedding.galleryItems?.[1]?.url || wedding.themeSettings?.heroImage || '/assets/khmer-legacy/621811002_905396558712142_5126771807004187076_n.jpg'} 
                     text="THE BEGINNING"
                 />
 
                 <LocationSection wedding={wedding} />
                 <VideoSection wedding={wedding} />
-                <GallerySection wedding={{...wedding, galleryItems: wedding.galleryItems?.slice(2) || []}} />
+                <GallerySection wedding={wedding} />
                 
-                <GuestbookSection wedding={wedding} guestName={guestName} />
                 <GiftSection wedding={wedding} />
                 <ThankYouSection wedding={wedding} />
 

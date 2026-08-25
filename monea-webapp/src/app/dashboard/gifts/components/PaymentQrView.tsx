@@ -1,6 +1,4 @@
-"use client";
-
-import Image from "next/image";
+﻿// next/image replaced with <img>;
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useTranslation } from "@/i18n/LanguageProvider";
@@ -26,10 +24,9 @@ export function PaymentQrView({ paymentQrUrl, isLoading }: PaymentQrViewProps) {
                     <DialogTrigger asChild>
                         <div className="relative w-48 h-48 bg-white rounded-lg overflow-hidden border border-border cursor-zoom-in hover:opacity-90 transition-opacity flex items-center justify-center">
                             {paymentQrUrl && (
-                                <Image
+                                <img
                                     src={paymentQrUrl}
-                                    alt="Payment QR"
-                                    fill
+                                    alt="Payment QR" 
                                     className="object-contain p-2"
                                 />
                             )}
@@ -44,10 +41,9 @@ export function PaymentQrView({ paymentQrUrl, isLoading }: PaymentQrViewProps) {
                         </VisuallyHidden.Root>
                         <div className="relative w-full max-w-[300px] aspect-square bg-white rounded-xl p-4">
                             {paymentQrUrl && (
-                                <Image
+                                <img
                                     src={paymentQrUrl}
-                                    alt="Payment QR Full"
-                                    fill
+                                    alt="Payment QR Full" 
                                     className="object-contain"
                                 />
                             )}

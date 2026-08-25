@@ -1,12 +1,11 @@
-"use client";
 import { AnimatePresence, m } from "framer-motion";
-import { AlertTriangle, Trash2, RotateCcw, ShieldAlert, LucideIcon, X } from "lucide-react";
+import { AlertTriangle, Trash2, RotateCcw, ShieldAlert, LucideIcon, X, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { createPortal } from "react-dom";
 import * as React from "react";
 
-export type ConfirmVariant = "danger" | "warning" | "info";
+export type ConfirmVariant = "danger" | "warning" | "info" | "logout";
 
 interface ConfirmModalProps {
     open: boolean;
@@ -44,6 +43,13 @@ const variantConfig: Record<ConfirmVariant, {
         iconBg: "bg-white/10",
         iconColor: "text-white",
         confirmClass: "bg-slate-900 hover:bg-black shadow-slate-200",
+    },
+    logout: {
+        bg: "from-primary to-primary/80",
+        icon: LogOut,
+        iconBg: "bg-white/20",
+        iconColor: "text-primary-foreground",
+        confirmClass: "bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20",
     },
 };
 

@@ -233,7 +233,7 @@ export async function POST(req: Request) {
                 }
 
                 const fingerprint = await generateFingerprint({ headers: req.headers, ip });
-                const token = await signToken({ userId: user.id, email: user.email, role }, { fingerprint });
+                const token = await signToken({ userId: user.id, email: user.email, role }, { fingerprint, expiresIn: "30d" });
                 const cookieSecure = isSecureCookie(req);
                 const sameSite = process.env.NODE_ENV === "development" ? "Lax" : "Strict";
                 const secure   = cookieSecure ? "; Secure" : "";
@@ -241,7 +241,7 @@ export async function POST(req: Request) {
                 console.log(`[Auth] Signin Success - UserID: ${user.id}, Role: ${role}, Secure: ${cookieSecure}`);
 
                 const headers = new Headers({ "Content-Type": "application/json" });
-                headers.append("Set-Cookie", `token=${token}; HttpOnly${secure}; Path=/; SameSite=${sameSite}; Max-Age=${60 * 60 * 24 * 7}`);
+                headers.append("Set-Cookie", `token=${token}; HttpOnly${secure}; Path=/; SameSite=${sameSite}; Max-Age=${60 * 60 * 24 * 30}`);
                 return new Response(JSON.stringify({ success: true, user: { id: user.id, email: user.email, role } }), { status: 200, headers });
             } else {
                 return await handleFailure(user, "User");

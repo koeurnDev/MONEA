@@ -1,6 +1,4 @@
-"use client";
-
-import { m } from 'framer-motion';
+﻿import { m } from 'framer-motion';
 import { Trophy, Gift } from "lucide-react";
 import { useTranslation } from "@/i18n/LanguageProvider";
 

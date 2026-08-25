@@ -1,15 +1,15 @@
-"use client";
-
 import { useState, useEffect, useRef } from "react";
-import { Check, Loader2, Sparkles, Receipt, ArrowRight, Zap, ShieldCheck } from "lucide-react";
+import { Check, Loader2, Sparkles, Receipt, ArrowRight, Zap, ShieldCheck, Crown, Clock, X } from "lucide-react";
 import { moneaClient } from "@/lib/api-client";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import QRCode from "react-qr-code";
+import SafeQRCode from "@/components/ui/SafeQRCode";
 import confetti from "canvas-confetti";
+import { PageHeader } from "@/app/dashboard/_components/PageHeader";
+import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 export default function UpgradePage() {
     const { t } = useTranslation();
@@ -33,7 +33,54 @@ export default function UpgradePage() {
     const [showReceipt, setShowReceipt] = useState(false);
     const [receiptData, setReceiptData] = useState<any>(null);
 
+    // Slip Upload States
+    const [slipImage, setSlipImage] = useState<string | null>(null);
+    const [slipRef, setSlipRef] = useState("");
+    const [isSubmittingSlip, setIsSubmittingSlip] = useState(false);
+    const [showSlipSuccess, setShowSlipSuccess] = useState(false);
+
     const isPolling = useRef(false);
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setSlipImage(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const handleSubmitSlip = async () => {
+        if (!slipImage && !slipRef) {
+            alert("សូមជ្រើសរើសរូបភាពវិក្កយបត្រ ឬបញ្ចូលលេខកូដប្រតិបត្តិការ (TxID/Ref)!");
+            return;
+        }
+
+        setIsSubmittingSlip(true);
+        try {
+            const res = await moneaClient.post<{ success: boolean }>("/api/payment/submit-slip", {
+                packageType: selectedPlan,
+                receiptImage: slipImage,
+                txRef: slipRef,
+                weddingId: wedding?.id
+            });
+
+            if (res.data?.success || !res.error) {
+                setShowPayment(false);
+                setShowSlipSuccess(true);
+                setSlipImage(null);
+                setSlipRef("");
+            } else {
+                alert(res.error || "បរាជ័យក្នុងការដាក់ស្នើ");
+            }
+        } catch (e: any) {
+            alert("មានបញ្ហាបច្ចេកទេស សូមព្យាយាមម្តងទៀត");
+        } finally {
+            setIsSubmittingSlip(false);
+        }
+    };
 
     // 1. Initial Data Fetching
     useEffect(() => {
@@ -45,7 +92,12 @@ export default function UpgradePage() {
                     moneaClient.get<any>("/api/pricing")
                 ]);
                 if (weddingRes.data) setWedding(weddingRes.data);
-                if (pricingRes.data) setPricing(pricingRes.data);
+                if (pricingRes.data) {
+                    setPricing({
+                        standard: typeof pricingRes.data.standard === 'number' ? pricingRes.data.standard : 9.00,
+                        pro: typeof pricingRes.data.pro === 'number' ? pricingRes.data.pro : 19.00
+                    });
+                }
             } catch (e) {
                 console.error("Failed to fetch initial data:", e);
             }
@@ -77,7 +129,7 @@ export default function UpgradePage() {
         }
     }, [mounted]);
 
-    // 3. Independent Countdown Logic
+    // 3. Countdown Timer
     useEffect(() => {
         if (countdown <= 0) return;
         const timer = setInterval(() => setCountdown(c => (c > 0 ? c - 1 : 0)), 1000);
@@ -96,10 +148,9 @@ export default function UpgradePage() {
             });
 
             if (data.data?.status === "PAID") {
-                // Success Celebration Flow
                 setReceiptData({
                     orderId,
-                    package: selectedPlan === "PRO" ? t("common.upgrade.pro_name") : t("common.upgrade.premium_name"),
+                    package: selectedPlan === "PRO" ? t("common.upgrade.pro_name", { defaultValue: "កញ្ចប់ពិសេស" }) : t("common.upgrade.premium_name", { defaultValue: "កញ្ចប់ល្អបំផុត" }),
                     amount: selectedPlan === "PRO" ? pricing.standard : pricing.pro,
                     date: new Date().toLocaleString()
                 });
@@ -115,7 +166,7 @@ export default function UpgradePage() {
                     setShowReceipt(true);
                 }, 3000);
             } else {
-                alert(t("common.upgrade.payment_not_found"));
+                alert(t("common.upgrade.payment_not_found", { defaultValue: "មិនទាន់ទទួលបានការទូទាត់ទេ។ សូមស្កេន KHQR និងព្យាយាមម្តងទៀត។" }));
             }
         } catch (e) {
             console.warn("[Manual Check] Failed or network error.");
@@ -128,8 +179,8 @@ export default function UpgradePage() {
     const handleSelect = async (plan: "PRO" | "PREMIUM") => {
         setSelectedPlan(plan);
         setLoading(true);
-        setQrString(""); // Clear old QR
-        setShowPayment(true); // Open modal with loading state
+        setQrString("");
+        setShowPayment(true);
         try {
             const res = await moneaClient.post<{ qr: string, md5: string, orderId: string }>("/api/payment/generate-qr", {
                 packageType: plan
@@ -167,200 +218,350 @@ export default function UpgradePage() {
 
     if (!mounted) return null;
 
+    const currentPlan = wedding?.packageType || "FREE";
+
     return (
-        <div className="container max-w-7xl py-6 md:py-12 px-2 md:px-4 space-y-8 md:space-y-12 mx-auto">
+        <div className="w-full space-y-8 pb-12">
+            {/* Top Page Header */}
+            <PageHeader
+                title={t("common.upgrade.choose_plan", { defaultValue: "ជ្រើសរើសកញ្ចប់សេវាកម្ម" })}
+                icon={Crown}
+                iconColor="text-amber-500"
+            />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
-                {/* FREE PLAN */}
-                <Card className={`relative overflow-hidden transition-all duration-500 border-2 ${wedding?.packageType === "FREE" || !wedding?.packageType ? "border-slate-400 shadow-lg" : "border-slate-200 hover:border-slate-300 opacity-60 hover:opacity-100"}`}>
-                    {(wedding?.packageType === "FREE" || !wedding?.packageType) && (
-                        <div className="absolute top-0 right-0 bg-slate-500 text-white px-6 py-2 rounded-bl-3xl text-[11px] font-black uppercase tracking-widest z-10">{t("common.upgrade.current_plan")}</div>
-                    )}
-                    <CardHeader className="p-6 md:p-8">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="p-3 bg-slate-100 rounded-2xl text-slate-400">
-                                <ShieldCheck className="w-6 h-6" />
+            {/* Pricing Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-stretch">
+                
+                {/* 1. FREE PLAN */}
+                <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="flex"
+                >
+                    <Card className={cn(
+                        "relative flex flex-col justify-between w-full rounded-3xl transition-all duration-300 bg-white dark:bg-[#141419] border border-slate-200/80 dark:border-white/10 shadow-sm p-6 sm:p-8",
+                        currentPlan === "FREE" && "ring-2 ring-slate-400/30 dark:ring-white/20"
+                    )}>
+                        <div>
+                            <div className="flex justify-between items-start mb-6">
+                                <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 flex items-center justify-center">
+                                    <ShieldCheck size={24} />
+                                </div>
+                                <div className="text-right">
+                                    <span className="text-3xl sm:text-4xl font-black text-foreground font-mono">$0</span>
+                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest font-kantumruy mt-0.5">
+                                        {t("common.upgrade.free_label", { defaultValue: "ឥតគិតថ្លៃ" })} / កម្មវិធី
+                                    </p>
+                                </div>
                             </div>
-                            <div className="text-right">
-                                <p className="text-4xl font-black text-slate-900 dark:text-white">$0</p>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t("common.upgrade.free_label")}</p>
+
+                            <h3 className="text-xl font-bold font-kantumruy text-foreground">
+                                {t("common.upgrade.free_name", { defaultValue: "កញ្ចប់ធម្មតា" })}
+                            </h3>
+                            <p className="text-xs text-muted-foreground font-kantumruy mt-1.5 leading-relaxed">
+                                រចនាធៀបការអញ្ជើញជាមូលដ្ឋានសម្រាប់កម្មវិធីខ្នាតតូច។
+                            </p>
+
+                            <div className="space-y-3 pt-6 border-t border-border/50 mt-6">
+                                {[
+                                    "រចនាធៀបការអញ្ជើញកម្រិតមូលដ្ឋាន",
+                                    "ទាញយកជាទម្រង់រូបភាពធម្មតា",
+                                    "មាន Logo របស់ MONEA លើធៀប",
+                                    "ប្រើប្រាស់ទម្រង់កំណត់",
+                                ].map((feat, idx) => (
+                                    <div key={idx} className="flex items-start gap-2.5 text-xs font-medium text-muted-foreground font-kantumruy">
+                                        <div className="w-4 h-4 rounded-full bg-slate-100 dark:bg-white/10 text-slate-500 flex items-center justify-center shrink-0 mt-0.5">
+                                            <Check size={11} strokeWidth={3} />
+                                        </div>
+                                        <span className="leading-tight">{feat}</span>
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                        <CardTitle className="text-2xl font-black uppercase tracking-tight">{t("common.upgrade.free_name")}</CardTitle>
-                        <CardDescription className="text-slate-500 font-medium pt-2">{t("common.upgrade.free_desc")}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="px-6 md:px-8 pb-6 md:pb-8 space-y-4">
-                        {[
-                            t("common.upgrade.features.basic_invite"),
-                            t("common.upgrade.features.std_gallery"),
-                            t("common.upgrade.features.gift_list"),
-                            t("common.upgrade.features.one_event"),
-                            t("common.upgrade.features.branding")
-                        ].map((feat) => (
-                            <div key={feat} className="flex items-center gap-3 text-sm font-bold text-slate-600 dark:text-slate-300">
-                                <div className="p-1 bg-slate-100 text-slate-400 rounded-full"><Check className="w-3.5 h-3.5" strokeWidth={3} /></div>
-                                {feat}
-                            </div>
-                        ))}
-                    </CardContent>
-                    <CardFooter className="p-6 md:p-8 pt-0">
-                        <Button 
-                            className="w-full h-14 text-sm font-black uppercase tracking-wider bg-slate-100 text-slate-400 rounded-2xl cursor-default"
-                            disabled
-                        >
-                            {(wedding?.packageType === "FREE" || !wedding?.packageType) ? t("common.upgrade.already_active") : t("common.upgrade.free_name")}
-                        </Button>
-                    </CardFooter>
-                </Card>
 
-                {/* PRO PLAN */}
-                <Card className={`relative overflow-hidden transition-all duration-500 border-2 ${selectedPlan === "PRO" ? "border-red-600 shadow-2xl scale-[1.02]" : "border-slate-200 hover:border-slate-300"} ${wedding?.packageType === "PRO" ? "ring-2 ring-red-500/20" : ""}`}>
-                    {wedding?.packageType === "PRO" && (
-                        <div className="absolute top-0 right-0 bg-red-600 text-white px-6 py-2 rounded-bl-3xl text-[11px] font-black uppercase tracking-widest z-10">{t("common.upgrade.current_plan")}</div>
-                    )}
-                    <CardHeader className="p-8">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="p-3 bg-red-100 rounded-2xl text-red-600">
-                                <Zap className="w-6 h-6" fill="currentColor" />
+                        <div className="pt-8">
+                            <Button 
+                                variant="outline"
+                                className="w-full h-11 text-xs font-bold font-kantumruy rounded-xl border border-slate-200 dark:border-white/10 text-muted-foreground bg-muted/30 cursor-default"
+                                disabled
+                            >
+                                {currentPlan === "FREE" ? t("common.upgrade.already_active", { defaultValue: "កញ្ចប់បច្ចុប្បន្ន" }) : "កញ្ចប់ធម្មតា"}
+                            </Button>
+                        </div>
+                    </Card>
+                </motion.div>
+
+                {/* 2. PRO PLAN */}
+                <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.05 }}
+                    className="flex"
+                >
+                    <Card className={cn(
+                        "relative flex flex-col justify-between w-full rounded-3xl transition-all duration-300 bg-white dark:bg-[#141419] border-2 border-rose-500/40 dark:border-rose-500/30 shadow-md p-6 sm:p-8",
+                        currentPlan === "PRO" && "ring-2 ring-rose-500"
+                    )}>
+                        <div>
+                            <div className="flex justify-between items-start mb-6">
+                                <div className="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-600 flex items-center justify-center">
+                                    <Zap size={24} />
+                                </div>
+                                <div className="text-right">
+                                    <span className="text-3xl sm:text-4xl font-black text-rose-600 font-mono">
+                                        ${pricing.standard.toFixed(2)}
+                                    </span>
+                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest font-kantumruy mt-0.5">
+                                        {t("common.upgrade.single_event", { defaultValue: "ទូទាត់តែម្តង" })} / កម្មវិធី
+                                    </p>
+                                </div>
                             </div>
-                            <div className="text-right">
-                                <p className="text-4xl font-black text-slate-900 dark:text-white">${pricing.standard.toFixed(2)}</p>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t("common.upgrade.single_event")}</p>
+
+                            <h3 className="text-xl font-bold font-kantumruy text-foreground">
+                                {t("common.upgrade.pro_name", { defaultValue: "កញ្ចប់ពិសេស" })}
+                            </h3>
+                            <p className="text-xs text-muted-foreground font-kantumruy mt-1.5 leading-relaxed">
+                                លទ្ធភាពរចនាគ្មានដែនកំណត់ ជាមួយទម្រង់រចនាកម្រិតខ្ពស់។
+                            </p>
+
+                            <div className="space-y-3 pt-6 border-t border-border/50 mt-6">
+                                {[
+                                    "ដោះសោរទម្រង់រចនាទាំងអស់",
+                                    "ទាញយកជារូបភាពច្បាស់គុណភាពខ្ពស់ HD",
+                                    "គ្មាន Logo របស់ MONEA នៅលើធៀប",
+                                    "ផ្លាស់ប្តូរទំហំ ពណ៌ និង Font អក្សរសេរី",
+                                    "ទទួលបានមុខងាររចនាមានចលនា",
+                                ].map((feat, idx) => (
+                                    <div key={idx} className="flex items-start gap-2.5 text-xs font-medium text-foreground font-kantumruy">
+                                        <div className="w-4 h-4 rounded-full bg-rose-500/10 text-rose-600 flex items-center justify-center shrink-0 mt-0.5">
+                                            <Check size={11} strokeWidth={3} />
+                                        </div>
+                                        <span className="leading-tight">{feat}</span>
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                        <CardTitle className="text-2xl font-black uppercase tracking-tight">{t("common.upgrade.pro_name")}</CardTitle>
-                        <CardDescription className="text-slate-500 font-medium pt-2">{t("common.upgrade.pro_desc")}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="px-8 pb-8 space-y-4">
-                        {[
-                            t("common.upgrade.features.qr_checkin"),
-                            t("common.upgrade.features.analytics"),
-                            t("common.upgrade.features.gift_track"),
-                            t("common.upgrade.features.team_3"),
-                            t("common.upgrade.features.public_gallery"),
-                        ].map((feat) => (
-                            <div key={feat} className="flex items-center gap-3 text-sm font-bold text-slate-700 dark:text-slate-300">
-                                <div className="p-1 bg-green-100 text-green-600 rounded-full"><Check className="w-3.5 h-3.5" strokeWidth={3} /></div>
-                                {feat}
-                            </div>
-                        ))}
-                    </CardContent>
-                    <CardFooter className="p-8 pt-0">
-                        <Button 
-                            className={`w-full h-14 text-sm font-black uppercase tracking-wider transition-all rounded-2xl group ${wedding?.packageType === "PRO" ? "bg-slate-100 text-slate-400 cursor-default dark:bg-white/5 dark:text-white/40" : "bg-slate-900 hover:bg-red-600 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-red-600 dark:hover:text-white"}`}
-                            onClick={() => wedding?.packageType !== "PRO" && handleSelect("PRO")}
-                            disabled={loading || wedding?.packageType === "PRO"}
-                        >
-                            {loading && selectedPlan === "PRO" ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : wedding?.packageType === "PRO" ? t("common.upgrade.already_active") : <><ArrowRight className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform" /> {t("common.upgrade.upgrade_now")}</>}
-                        </Button>
-                    </CardFooter>
-                </Card>
 
-                {/* PREMIUM PLAN */}
-                <Card className={`relative overflow-hidden transition-all duration-500 border-2 ${selectedPlan === "PREMIUM" ? "border-red-600 shadow-2xl scale-[1.02]" : "border-slate-200 hover:border-slate-300"} ${wedding?.packageType === "PREMIUM" ? "ring-2 ring-red-500/20" : ""}`}>
-                    <div className="absolute top-0 right-0 bg-red-600 text-white px-6 py-2 rounded-bl-3xl text-[10px] font-black uppercase tracking-widest z-10">{wedding?.packageType === "PREMIUM" ? t("common.upgrade.current_plan") : t("common.upgrade.best_value")}</div>
-                    <CardHeader className="p-8">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="p-3 bg-red-600 rounded-2xl text-white shadow-lg">
-                                <Sparkles className="w-6 h-6" fill="currentColor" />
+                        <div className="pt-8">
+                            <Button 
+                                className="w-full h-11 text-xs font-bold font-kantumruy rounded-xl bg-rose-600 hover:bg-rose-700 text-white shadow-md shadow-rose-600/20 transition-all active:scale-98"
+                                onClick={() => currentPlan !== "PRO" && handleSelect("PRO")}
+                                disabled={loading || currentPlan === "PRO"}
+                            >
+                                {loading && selectedPlan === "PRO" ? (
+                                    <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+                                ) : currentPlan === "PRO" ? (
+                                    t("common.upgrade.already_active", { defaultValue: "កញ្ចប់បច្ចុប្បន្ន" })
+                                ) : (
+                                    "ជ្រើសរើសកញ្ចប់ពិសេស"
+                                )}
+                            </Button>
+                        </div>
+                    </Card>
+                </motion.div>
+
+                {/* 3. PREMIUM PLAN */}
+                <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: 0.1 }}
+                    className="flex"
+                >
+                    <Card className={cn(
+                        "relative flex flex-col justify-between w-full rounded-3xl transition-all duration-300 bg-white dark:bg-[#141419] border border-slate-200/80 dark:border-white/10 shadow-sm p-6 sm:p-8",
+                        currentPlan === "PREMIUM" && "ring-2 ring-amber-500"
+                    )}>
+                        <div className="absolute top-4 right-4 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider">
+                            {currentPlan === "PREMIUM" ? t("common.upgrade.current_plan", { defaultValue: "កញ្ចប់បច្ចុប្បន្ន" }) : "ពេញនិយមបំផុត"}
+                        </div>
+
+                        <div>
+                            <div className="flex justify-between items-start mb-6">
+                                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
+                                    <Sparkles size={24} />
+                                </div>
+                                <div className="text-right">
+                                    <span className="text-3xl sm:text-4xl font-black text-foreground font-mono">
+                                        ${pricing.pro.toFixed(2)}
+                                    </span>
+                                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest font-kantumruy mt-0.5">
+                                        {t("common.upgrade.unlimited_events", { defaultValue: "ប្រើគ្មានដែនកំណត់" })} / ឆ្នាំ
+                                    </p>
+                                </div>
                             </div>
-                            <div className="text-right">
-                                <p className="text-4xl font-black text-slate-900 dark:text-white">${pricing.pro.toFixed(2)}</p>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t("common.upgrade.unlimited_events")}</p>
+
+                            <h3 className="text-xl font-bold font-kantumruy text-foreground">
+                                {t("common.upgrade.premium_name", { defaultValue: "កញ្ចប់ល្អបំផុត" })}
+                            </h3>
+                            <p className="text-xs text-muted-foreground font-kantumruy mt-1.5 leading-relaxed">
+                                បទពិសោធន៍រចនាដ៏អស្ចារ្យ សម្រាប់អ្នករៀបចំកម្មវិធីអាជីព។
+                            </p>
+
+                            <div className="space-y-3 pt-6 border-t border-border/50 mt-6">
+                                {[
+                                    "មុខងារពិសេសរបស់កញ្ចប់ PRO ទាំងអស់",
+                                    "រចនាធៀបគ្មានកំណត់ចំនួនកម្មវិធី",
+                                    "ទទួលបានទម្រង់ថ្មីៗមុនគេ",
+                                    "អាចរក្សាទុកធៀបដែលរចនារួចលើប្រព័ន្ធ",
+                                    "ជំនួយបច្ចេកទេសជាអាទិភាព ២៤/៧",
+                                ].map((feat, idx) => (
+                                    <div key={idx} className="flex items-start gap-2.5 text-xs font-medium text-foreground font-kantumruy">
+                                        <div className="w-4 h-4 rounded-full bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0 mt-0.5">
+                                            <Check size={11} strokeWidth={3} />
+                                        </div>
+                                        <span className="leading-tight">{feat}</span>
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                        <CardTitle className="text-2xl font-black uppercase tracking-tight">{t("common.upgrade.premium_name")}</CardTitle>
-                        <CardDescription className="text-slate-500 font-medium pt-2">{t("common.upgrade.premium_desc")}</CardDescription>
-                    </CardHeader>
-                    <CardContent className="px-8 pb-8 space-y-4">
-                        {[
-                            t("common.upgrade.features.everything_pro"),
-                            t("common.upgrade.features.unlimited_staff"),
-                            t("common.upgrade.features.custom_engine"),
-                            t("common.upgrade.features.priority_support"),
-                            t("common.upgrade.features.data_export"),
-                            t("common.upgrade.features.no_branding")
-                        ].map((feat) => (
-                            <div key={feat} className="flex items-center gap-3 text-sm font-bold text-slate-700 dark:text-slate-300">
-                                <div className="p-1 bg-red-100 text-red-600 rounded-full"><Check className="w-3.5 h-3.5" strokeWidth={3} /></div>
-                                {feat}
-                            </div>
-                        ))}
-                    </CardContent>
-                    <CardFooter className="p-8 pt-0">
-                        <Button 
-                            className={`w-full h-14 text-sm font-black uppercase tracking-wider shadow-xl transition-all rounded-2xl ${wedding?.packageType === "PREMIUM" ? "bg-slate-100 text-slate-400 cursor-default shadow-none" : "bg-red-600 hover:bg-slate-900 shadow-red-200 text-white"}`}
-                            onClick={() => wedding?.packageType !== "PREMIUM" && handleSelect("PREMIUM")}
-                            disabled={loading || wedding?.packageType === "PREMIUM"}
-                        >
-                            {loading && selectedPlan === "PREMIUM" ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : wedding?.packageType === "PREMIUM" ? t("common.upgrade.already_active") : t("common.upgrade.unlock_elite")}
-                        </Button>
-                    </CardFooter>
-                </Card>
+
+                        <div className="pt-8">
+                            <Button 
+                                className="w-full h-11 text-xs font-bold font-kantumruy rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 shadow-md transition-all active:scale-98"
+                                onClick={() => currentPlan !== "PREMIUM" && handleSelect("PREMIUM")}
+                                disabled={loading || currentPlan === "PREMIUM"}
+                            >
+                                {loading && selectedPlan === "PREMIUM" ? (
+                                    <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+                                ) : currentPlan === "PREMIUM" ? (
+                                    t("common.upgrade.already_active", { defaultValue: "កញ្ចប់បច្ចុប្បន្ន" })
+                                ) : (
+                                    "ជ្រើសរើសកញ្ចប់ល្អបំផុត"
+                                )}
+                            </Button>
+                        </div>
+                    </Card>
+                </motion.div>
             </div>
 
             {/* Payment Modal */}
             <Dialog open={showPayment} onOpenChange={(open) => !isSuccessCelebration && setShowPayment(open)}>
-                <DialogContent className="sm:max-w-md bg-slate-950 text-white border-slate-800 rounded-[3rem] overflow-hidden p-0 shadow-2xl font-khmer">
-                    <div className="bg-red-600 p-8 text-center space-y-2 relative">
-                        <ShieldCheck className="w-12 h-12 text-white mx-auto mb-2 animate-pulse" />
-                        <DialogTitle className="text-2xl font-black uppercase tracking-widest text-white font-kantumruy">{t("common.upgrade.secure_payment")}</DialogTitle>
-                        <DialogDescription className="sr-only">{t("common.upgrade.scan_khqr")}</DialogDescription>
-                        <p className="text-red-100 text-xs font-medium">{t("common.upgrade.scan_khqr")}</p>
-                    </div>
+                <DialogContent className="sm:max-w-md bg-white dark:bg-[#141419] border border-slate-200/80 dark:border-white/10 rounded-3xl p-0 overflow-hidden shadow-2xl font-kantumruy">
+                    <DialogHeader className="p-6 pb-4 bg-muted/30 border-b border-border/40 text-center">
+                        <DialogTitle className="text-lg font-bold text-foreground">
+                            {t("common.upgrade.secure_payment", { defaultValue: "ទូទាត់ប្រាក់ប្រកបដោយសុវត្ថិភាព" })}
+                        </DialogTitle>
+                        <DialogDescription className="text-xs text-muted-foreground">
+                            {t("common.upgrade.scan_khqr", { defaultValue: "សូមស្កេន QR Code ខាងក្រោមតាមរយៈ App ធនាគាររបស់អ្នក (Bakong / KHQR)" })}
+                        </DialogDescription>
+                    </DialogHeader>
 
-                    <div className="p-8 md:p-10 space-y-6 text-center">
-                        <div className="bg-white p-6 rounded-[2.5rem] inline-block shadow-inner relative group min-w-[268px] min-h-[268px]">
+                    <div className="p-6 space-y-6 text-center">
+                        {/* QR Code Container */}
+                        <div className="inline-flex items-center justify-center p-4 bg-white rounded-2xl border border-slate-200 shadow-inner">
                             {qrString && countdown > 0 ? (
-                                <QRCode value={qrString} size={220} />
+                                <SafeQRCode value={qrString} size={190} />
                             ) : countdown <= 0 && qrString ? (
-                                <div className="w-[220px] h-[220px] flex flex-col items-center justify-center bg-slate-100 rounded-2xl p-4 space-y-3">
-                                    <p className="text-xs font-bold text-red-600 font-kantumruy">{t("common.upgrade.qr_expired")}</p>
+                                <div className="w-[190px] h-[190px] flex flex-col items-center justify-center space-y-3">
+                                    <Clock className="w-8 h-8 text-rose-500" />
+                                    <p className="text-xs font-bold text-slate-800">{t("common.upgrade.qr_expired", { defaultValue: "QR Code ផុតកំណត់" })}</p>
                                     <Button
                                         size="sm"
                                         onClick={() => handleSelect(selectedPlan)}
-                                        className="bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold font-kantumruy shadow-md"
+                                        className="bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold h-8 px-3"
                                     >
-                                        {t("common.upgrade.regenerate_qr")}
+                                        {t("common.upgrade.regenerate_qr", { defaultValue: "បង្កើត QR ថ្មី" })}
                                     </Button>
                                 </div>
                             ) : (
-                                <div className="w-[220px] h-[220px] flex flex-col items-center justify-center bg-slate-50 rounded-2xl space-y-3">
-                                    <Loader2 className="w-8 h-8 text-red-600 animate-spin" />
-                                    <span className="text-[11px] font-bold text-slate-400 font-kantumruy">{t("common.upgrade.generating_qr")}</span>
+                                <div className="w-[190px] h-[190px] flex flex-col items-center justify-center space-y-3">
+                                    <Loader2 className="w-8 h-8 text-rose-600 animate-spin" />
+                                    <span className="text-xs font-bold text-muted-foreground">{t("common.upgrade.generating_qr", { defaultValue: "កំពុងបង្កើត QR..." })}</span>
                                 </div>
                             )}
-                            <div className="absolute inset-0 border-4 border-dashed border-red-200 rounded-[2.5rem] pointer-events-none opacity-20 group-hover:opacity-40 transition-opacity"></div>
-                            
-                            {/* Manual Check Button */}
+                        </div>
+
+                        {/* Amount and Timer */}
+                        <div className="flex items-center justify-between bg-slate-50 dark:bg-white/5 p-4 rounded-xl border border-slate-200/80 dark:border-white/10">
+                            <div className="text-left">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
+                                    {t("common.upgrade.payable_amount", { defaultValue: "ចំនួនទឹកប្រាក់" })}
+                                </span>
+                                <span className="text-xl font-bold text-foreground font-mono">
+                                    ${selectedPlan === "PRO" ? pricing.standard.toFixed(2) : pricing.pro.toFixed(2)}
+                                </span>
+                            </div>
+                            <div className="text-right">
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
+                                    {t("common.upgrade.time_remaining", { defaultValue: "ពេលវេលានៅសល់" })}
+                                </span>
+                                <span className={cn("text-xl font-bold font-mono", countdown < 30 ? "text-rose-500 animate-pulse" : "text-foreground")}>
+                                    {Math.floor(countdown / 60)}:{String(countdown % 60).padStart(2, '0')}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="space-y-3 pt-2">
                             {countdown > 0 && qrString && (
                                 <Button 
                                     onClick={handleCheckPayment}
                                     disabled={countdown <= 0 || !qrString || loading || isPolling.current}
-                                    className="absolute -bottom-5 left-1/2 -translate-x-1/2 bg-slate-900 hover:bg-slate-800 text-white px-6 py-2 rounded-full border-2 border-white shadow-xl flex items-center gap-2 whitespace-nowrap group transition-all"
+                                    className="w-full h-11 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs shadow-md shadow-rose-600/20 flex items-center justify-center gap-2 transition-all active:scale-98"
                                 >
-                                    <span className="text-[11px] font-black uppercase tracking-widest font-kantumruy group-hover:scale-105 transition-transform">
-                                        {t("common.upgrade.check_payment")}
-                                    </span>
-                                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                                    {isPolling.current ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        <>
+                                            <span>{t("common.upgrade.check_payment", { defaultValue: "ផ្ទៀងផ្ទាត់ស្វ័យប្រវត្តិ" })}</span>
+                                            <ArrowRight className="w-4 h-4" />
+                                        </>
+                                    )}
                                 </Button>
                             )}
-                        </div>
 
-                        <div className="space-y-4 pt-2">
-                             <div className="flex justify-between items-center bg-slate-100/5 p-5 rounded-2xl border border-white/5 font-kantumruy">
-                                <div className="text-left">
-                                    <p className="text-[11px] font-black uppercase tracking-widest text-slate-500 mb-1">{t("common.upgrade.payable_amount")}</p>
-                                    <p className="text-2xl font-black text-white font-mono">${selectedPlan === "PRO" ? pricing.standard.toFixed(2) : pricing.pro.toFixed(2)}</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-[11px] font-black uppercase tracking-widest text-slate-500 mb-1">{t("common.upgrade.time_remaining")}</p>
-                                    <p className={`text-xl font-bold font-mono ${countdown < 30 ? "text-red-500 animate-pulse" : "text-white"}`}>
-                                        {Math.floor(countdown / 60)}:{String(countdown % 60).padStart(2, '0')}
-                                    </p>
+                            {/* Option 2: Upload Payment Slip / Receipt */}
+                            <div className="pt-3 border-t border-border/60 text-left space-y-2.5">
+                                <label className="text-xs font-bold text-foreground flex items-center justify-between">
+                                    <span>ឬផ្ញើរូបភាពវិក្កយបត្រ (Upload Slip)</span>
+                                    <span className="text-[10px] text-rose-500 font-normal">សម្រាប់ Admin ផ្ទៀងផ្ទាត់</span>
+                                </label>
+                                
+                                <div className="space-y-2">
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleFileChange}
+                                        className="w-full text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-rose-50 file:text-rose-700 hover:file:bg-rose-100 dark:file:bg-rose-500/10 dark:file:text-rose-400 cursor-pointer"
+                                    />
+                                    {slipImage && (
+                                        <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-rose-500/30">
+                                            <img src={slipImage} alt="Slip Preview" className="w-full h-full object-cover" />
+                                            <button 
+                                                onClick={() => setSlipImage(null)}
+                                                className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 text-white flex items-center justify-center text-[10px]"
+                                            >
+                                                ✕
+                                            </button>
+                                        </div>
+                                    )}
+                                    <input
+                                        type="text"
+                                        placeholder="លេខកូដប្រតិបត្តិការ (TxID / Ref) ឬចំណាំ..."
+                                        value={slipRef}
+                                        onChange={(e) => setSlipRef(e.target.value)}
+                                        className="w-full h-10 px-3 rounded-xl border border-input bg-background text-xs outline-none focus:border-rose-500"
+                                    />
+                                    <Button
+                                        onClick={handleSubmitSlip}
+                                        disabled={isSubmittingSlip || (!slipImage && !slipRef)}
+                                        variant="outline"
+                                        className="w-full h-10 rounded-xl text-xs font-bold border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 flex items-center justify-center gap-2"
+                                    >
+                                        {isSubmittingSlip ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                <span>កំពុងផ្ញើ...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span>ដាក់ស្នើវិក្កយបត្រជូន Admin</span>
+                                            </>
+                                        )}
+                                    </Button>
                                 </div>
                             </div>
-                            <p className="text-[10px] font-bold text-slate-500 italic font-kantumruy">{t("common.upgrade.do_not_close")}</p>
                         </div>
                     </div>
                 </DialogContent>
@@ -368,51 +569,74 @@ export default function UpgradePage() {
 
             {/* Success Animation Overlay */}
             {isSuccessCelebration && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white">
-                    <div className="text-center space-y-6 animate-in zoom-in duration-500">
-                        <div className="w-32 h-32 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto shadow-xl">
-                            <Check className="w-16 h-16" strokeWidth={4} />
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md">
+                    <div className="bg-white dark:bg-[#141419] p-8 rounded-3xl text-center space-y-4 shadow-2xl border border-slate-200/80 dark:border-white/10 max-w-sm mx-4 animate-in zoom-in-95">
+                        <div className="w-16 h-16 bg-emerald-500/10 text-emerald-600 rounded-full flex items-center justify-center mx-auto border border-emerald-500/20">
+                            <Check className="w-8 h-8" strokeWidth={3} />
                         </div>
-                        <h2 className="text-5xl font-black uppercase tracking-tighter text-slate-900">{t("common.upgrade.payment_received")}</h2>
-                        <p className="text-xl font-bold text-slate-500">{t("common.upgrade.upgrading_wait")}</p>
+                        <h2 className="text-2xl font-bold font-kantumruy text-foreground">{t("common.upgrade.payment_received", { defaultValue: "ទូទាត់ជោគជ័យ!" })}</h2>
+                        <p className="text-xs text-muted-foreground font-kantumruy">{t("common.upgrade.upgrading_wait", { defaultValue: "កំពុងដំឡើងកញ្ចប់សេវាកម្មរបស់អ្នក..." })}</p>
                     </div>
                 </div>
             )}
 
             {/* Receipt Modal */}
             <Dialog open={showReceipt} onOpenChange={setShowReceipt}>
-                <DialogContent className="sm:max-w-md bg-white border-0 shadow-2xl rounded-[2.5rem] overflow-hidden p-0">
-                    <div className="bg-slate-900 p-8 text-white text-center">
-                        <div className="w-16 h-16 bg-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg rotate-3">
-                            <Receipt className="w-8 h-8" />
+                <DialogContent className="sm:max-w-md bg-white dark:bg-[#141419] border border-slate-200/80 dark:border-white/10 rounded-3xl p-6 shadow-2xl font-kantumruy">
+                    <DialogHeader className="text-center pb-4 border-b border-border/40">
+                        <div className="w-12 h-12 bg-emerald-500/10 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                            <Receipt size={24} />
                         </div>
-                        <DialogTitle className="text-2xl font-black uppercase tracking-widest text-white">{t("common.upgrade.digital_receipt")}</DialogTitle>
-                        <DialogDescription className="sr-only">{t("common.upgrade.receipt_package")}</DialogDescription>
-                        <p className="text-slate-400 text-[10px] font-bold mt-1 tracking-widest uppercase">{t("common.upgrade.trans_success")}</p>
-                    </div>
-                    <div className="p-8 space-y-6">
-                        <div className="space-y-4">
-                            <div className="flex justify-between items-center text-sm">
-                                <span className="font-bold text-slate-400 uppercase tracking-widest text-[10px]">{t("common.upgrade.receipt_order")}</span>
-                                <span className="font-bold text-slate-900 font-mono">{receiptData?.orderId}</span>
-                            </div>
-                            <hr className="border-slate-100" />
-                            <div className="flex justify-between items-center text-sm">
-                                <span className="font-bold text-slate-400 uppercase tracking-widest text-[10px]">{t("common.upgrade.receipt_package")}</span>
-                                <span className="font-black text-slate-900 text-lg tracking-tighter uppercase">{receiptData?.package}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-sm">
-                                <span className="font-bold text-slate-400 uppercase tracking-widest text-[10px]">{t("common.upgrade.receipt_amount")}</span>
-                                <span className="font-black text-red-600 text-xl tracking-tighter">${receiptData?.amount?.toFixed(2)}</span>
-                            </div>
+                        <DialogTitle className="text-xl font-bold text-foreground">
+                            {t("common.upgrade.digital_receipt", { defaultValue: "វិក្កយបត្រអេឡិចត្រូនិច" })}
+                        </DialogTitle>
+                        <DialogDescription className="text-xs text-muted-foreground">
+                            {t("common.upgrade.trans_success", { defaultValue: "ប្រតិបត្តិការបានបញ្ចប់ដោយជោគជ័យ" })}
+                        </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="py-4 space-y-3 text-xs">
+                        <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">{t("common.upgrade.receipt_order", { defaultValue: "លេខកូដបញ្ជាទិញ" })}</span>
+                            <span className="font-bold text-foreground font-mono">{receiptData?.orderId}</span>
                         </div>
-                        <Button 
-                            className="w-full h-14 bg-slate-900 hover:bg-red-600 text-white font-black uppercase tracking-widest rounded-2xl transition-all"
-                            onClick={() => window.location.href = "/dashboard"}
-                        >
-                            {t("common.upgrade.continue_btn")}
-                        </Button>
+                        <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">{t("common.upgrade.receipt_package", { defaultValue: "កញ្ចប់សេវាកម្ម" })}</span>
+                            <span className="font-bold text-foreground">{receiptData?.package}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">{t("common.upgrade.receipt_amount", { defaultValue: "ចំនួនទឹកប្រាក់" })}</span>
+                            <span className="font-bold text-emerald-600 text-sm font-mono">${receiptData?.amount?.toFixed(2)}</span>
+                        </div>
                     </div>
+
+                    <Button 
+                        className="w-full h-11 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-xs mt-2"
+                        onClick={() => window.location.href = "/dashboard"}
+                    >
+                        {t("common.upgrade.continue_btn", { defaultValue: "ត្រឡប់ទៅផ្ទាំងគ្រប់គ្រង" })}
+                    </Button>
+                </DialogContent>
+            </Dialog>
+
+            {/* Slip Submitted Confirmation Dialog */}
+            <Dialog open={showSlipSuccess} onOpenChange={setShowSlipSuccess}>
+                <DialogContent className="sm:max-w-md bg-card border border-border rounded-3xl p-6 shadow-2xl font-kantumruy text-center">
+                    <div className="w-16 h-16 bg-emerald-500/10 text-emerald-600 rounded-full flex items-center justify-center mx-auto border border-emerald-500/20 mb-3">
+                        <Check className="w-8 h-8" strokeWidth={3} />
+                    </div>
+                    <DialogTitle className="text-xl font-bold text-foreground">
+                        បានដាក់ស្នើវិក្កយបត្រដោយជោគជ័យ!
+                    </DialogTitle>
+                    <DialogDescription className="text-xs text-muted-foreground leading-relaxed pt-1">
+                        យើងខ្ញុំបានទទួលរូបភាពវិក្កយបត្ររបស់អ្នករួចហើយ។ ក្រុមការងារ Admin នឹងពិនិត្យផ្ទៀងផ្ទាត់ និងដំឡើងកញ្ចប់សេវាជូនលោកអ្នកក្នុងពេលឆាប់ៗនេះ។
+                    </DialogDescription>
+                    <Button
+                        className="w-full h-11 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs mt-4"
+                        onClick={() => window.location.href = "/dashboard"}
+                    >
+                        យល់ព្រម និងត្រឡប់ទៅ Dashboard
+                    </Button>
                 </DialogContent>
             </Dialog>
         </div>

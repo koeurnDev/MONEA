@@ -1,0 +1,25 @@
+# Cloudflare Workers Configuration for MONEA API
+name = "monea-api"
+main = "monea-worker/worker.ts"
+compatibility_date = "2024-09-23"
+
+# Enable Node.js compatibility for crypto, querystring, url modules
+compatibility_flags = ["nodejs_compat"]
+
+# Development settings
+[dev]
+port = 8787
+local_protocol = "http"
+
+# Environment variables (loaded from .env)
+[vars]
+NODE_ENV = "development"
+
+# Build configuration
+[build]
+command = ""
+
+# Routes (for production deployment)
+# routes = [
+#   { pattern = "api.monea.com/*", zone_name = "monea.com" }
+# ]

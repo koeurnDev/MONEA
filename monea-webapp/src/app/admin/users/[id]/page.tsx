@@ -1,6 +1,5 @@
-"use client";
 import { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -13,7 +12,7 @@ import { cn } from "@/lib/utils";
 
 export default function UserManagementPage() {
     const params = useParams();
-    const router = useRouter();
+    const router = useNavigate();
     const { showToast } = useToast();
 
     const [user, setUser] = useState<any>(null);
@@ -37,12 +36,12 @@ export default function UserManagementPage() {
                         description: "មិនអាចទាញយកព័ត៌មានអ្នកប្រើប្រាស់បានទេ។",
                         type: "info"
                     });
-                    router.push("/admin/users");
+                    router("/admin/users");
                 }
             })
             .catch(err => {
                 console.error(err);
-                router.push("/admin/users");
+                router("/admin/users");
             })
             .finally(() => setLoading(false));
     }, [params.id, router, showToast]);
@@ -172,7 +171,7 @@ export default function UserManagementPage() {
                 <Button
                     variant="ghost"
                     className="w-fit text-slate-500 hover:text-red-600 p-0 hover:bg-transparent -ml-2 gap-2 transition-colors font-bold uppercase text-[10px] tracking-widest"
-                    onClick={() => router.back()}
+                    onClick={() => router(-1)}
                 >
                     <ArrowLeft size={14} /> Back to Users
                 </Button>
@@ -298,7 +297,7 @@ export default function UserManagementPage() {
                                     <div 
                                         key={w.id} 
                                         className="p-6 rounded-3xl border border-border flex items-center justify-between hover:border-red-500/30 hover:bg-red-500/5 transition-all group cursor-pointer active:scale-[0.99] shadow-sm hover:shadow-md" 
-                                        onClick={() => router.push(`/admin/weddings/${w.id}`)}
+                                        onClick={() => router(`/admin/weddings/${w.id}`)}
                                     >
                                         <div className="flex items-center gap-4">
                                             <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center border border-border group-hover:bg-red-500 group-hover:text-white transition-colors shadow-sm">

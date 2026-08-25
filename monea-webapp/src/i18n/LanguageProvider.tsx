@@ -1,5 +1,3 @@
-"use client";
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import en from './en.json';
 import km from './km.json';
@@ -49,7 +47,7 @@ export const LanguageProvider = ({ children, initialLocale = 'km' }: { children:
             if (result && result[key] !== undefined) {
                 result = result[key];
             } else {
-                return path;
+                return params?.defaultValue !== undefined ? params.defaultValue : path;
             }
         }
         
@@ -59,7 +57,7 @@ export const LanguageProvider = ({ children, initialLocale = 'km' }: { children:
         }
 
         // If it's not a string and we didn't ask for object, return path (fallback)
-        if (typeof result !== 'string') return path;
+        if (typeof result !== 'string') return params?.defaultValue !== undefined ? params.defaultValue : path;
 
         // Simple string replacement for params
         if (params) {

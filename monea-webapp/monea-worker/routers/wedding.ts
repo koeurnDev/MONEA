@@ -13,46 +13,14 @@ import { z } from "zod"
 
 const weddingRouter = new Hono()
 
-// Public endpoint for wedding lookup (for static export)
-weddingRouter.get('/:id', async (c) => {
-    try {
-        const weddingId = c.req.param("id");
-        
-        const wedding = await prisma.wedding.findUnique({
-            where: { id: weddingId },
-            include: {
-                activities: { orderBy: { order: 'asc' } },
-                galleryItems: { orderBy: { createdAt: 'desc' }, take: 24 },
-            },
-        });
-
-        if (!wedding) {
-            return c.json({ error: "Wedding not found" }, 404);
-        }
-
-        // Return only public fields
-        return c.json({
-            id: wedding.id,
-            groomName: wedding.groomName,
-            brideName: wedding.brideName,
-            date: wedding.date,
-            location: wedding.location,
-            eventType: wedding.eventType,
-            templateId: wedding.templateId,
-            themeSettings: wedding.themeSettings,
-            activities: wedding.activities,
-            galleryItems: wedding.galleryItems,
-        });
-    } catch (error: any) {
-        console.error("[Wedding GET]", error);
-        return c.json({ error: "Internal server error" }, 500);
-    }
-});
 
 weddingRouter.get('/analytics/stats', async (c) => {
     try {
-        const user = await getServerUser();
-        if (!user) return c.json({ error: "Unauthorized" }, 401);
+        const user = await getServerUser(c.req.raw);
+        if (!user) {
+            console.log("[Wedding Analytics Stats] No authenticated user found");
+            return c.json({ error: "Unauthorized" }, 401);
+        }
 
         const weddingId = c.req.query("weddingId");
 
@@ -106,15 +74,20 @@ weddingRouter.get('/analytics/stats', async (c) => {
         sevenDaysAgo.setHours(0, 0, 0, 0);
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 21);
 
-        const dailyTrendRaw: { day: Date, count: bigint }[] = await prisma.$queryRaw`
-            SELECT DATE_TRUNC('day', "createdAt") as day, COUNT(*) as count
-            FROM "InvitationAnalytics"
-            WHERE "weddingId" = ${weddingId} 
-              AND "type" = 'VIEW'::"AnalyticsType"
-              AND "createdAt" >= ${sevenDaysAgo}
-            GROUP BY day
-            ORDER BY day ASC
-        `;
+        let dailyTrendRaw: { day: Date, count: bigint }[] = [];
+        try {
+            dailyTrendRaw = await prisma.$queryRaw`
+                SELECT DATE_TRUNC('day', "createdAt") as day, COUNT(*) as count
+                FROM "InvitationAnalytics"
+                WHERE "weddingId" = ${weddingId} 
+                  AND "type" = 'VIEW'::"AnalyticsType"
+                  AND "createdAt" >= ${sevenDaysAgo}
+                GROUP BY day
+                ORDER BY day ASC
+            `;
+        } catch (e: any) {
+            console.error("[Stats] Failed to query daily trend:", e.message);
+        }
 
         const trendMap = new Map();
         for (let i = 20; i >= 0; i--) {
@@ -123,10 +96,14 @@ weddingRouter.get('/analytics/stats', async (c) => {
             trendMap.set(d.toISOString().split('T')[0], 0);
         }
 
-        dailyTrendRaw.forEach((item) => {
-            const dayStr = item.day.toISOString().split('T')[0];
-            trendMap.set(dayStr, Number(item.count));
-        });
+        if (Array.isArray(dailyTrendRaw)) {
+            dailyTrendRaw.forEach((item) => {
+                if (item?.day) {
+                    const dayStr = (item.day instanceof Date ? item.day : new Date(item.day)).toISOString().split('T')[0];
+                    trendMap.set(dayStr, Number(item.count || 0));
+                }
+            });
+        }
 
         const formattedTrend = Array.from(trendMap.entries())
             .map(([date, count]) => ({ date, count }));
@@ -195,7 +172,7 @@ weddingRouter.post('/analytics', async (c) => {
 });
 
 weddingRouter.get('/notes', async (c) => {
-    const user = await getServerUser();
+    const user = await getServerUser(c.req.raw);
     if (!user) return c.json({ error: "Unauthorized" }, 401);
 
     const wedding = await prisma.wedding.findFirst({
@@ -209,7 +186,7 @@ weddingRouter.get('/notes', async (c) => {
 });
 
 weddingRouter.patch('/notes', async (c) => {
-    const user = await getServerUser();
+    const user = await getServerUser(c.req.raw);
     if (!user) return c.json({ error: "Unauthorized" }, 401);
 
     const body = await c.req.json();
@@ -239,11 +216,33 @@ weddingRouter.post('/rsvp', async (c) => {
 
     try {
         const body = await c.req.json();
-        const { guestId, weddingId, rsvpStatus, adultsCount, childrenCount, rsvpNotes, website } = body;
+        const { guestId, weddingId, rsvpStatus, adultsCount, childrenCount, rsvpNotes, website, cfTurnstileResponse } = body;
 
         if (website) {
             console.warn(`[BOT_DETECTION] RSVP Honeypot triggered. Payload:`, { guestId, weddingId, website });
             return c.json({ success: true }); 
+        }
+
+        // Verify Turnstile CAPTCHA
+        if (!cfTurnstileResponse) {
+            return c.json({ error: "Missing CAPTCHA response" }, 400);
+        }
+
+        const turnstileSecret = process.env.TURNSTILE_SECRET_KEY || '1x0000000000000000000000000000000AA';
+        const formData = new FormData();
+        formData.append('secret', turnstileSecret);
+        formData.append('response', cfTurnstileResponse);
+        formData.append('remoteip', ip);
+
+        const verifyRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+            method: 'POST',
+            body: formData,
+        });
+
+        const outcome = await verifyRes.json();
+        if (!outcome.success) {
+            console.warn(`[BOT_DETECTION] Turnstile failed for IP: ${ip}. Error:`, outcome['error-codes']);
+            return c.json({ error: "CAPTCHA verification failed. Please try again." }, 403);
         }
 
         if (!weddingId || !rsvpStatus) {
@@ -311,7 +310,7 @@ weddingRouter.post('/rsvp', async (c) => {
 weddingRouter.get('/', async (c) => {
     console.log("[Wedding API] GET Request received");
     try {
-        const user = await getServerUser();
+        const user = await getServerUser(c.req.raw);
         console.log(`[Wedding API Debug] GET. UserRole: ${user?.role}, UserId: ${user?.userId}`);
 
         if (!user) return c.json({ error: "Unauthorized" }, 401);
@@ -382,7 +381,7 @@ weddingRouter.get('/', async (c) => {
 weddingRouter.post('/', async (c) => {
     console.log("[Wedding API] POST Request received");
     try {
-        const user = await getServerUser();
+        const user = await getServerUser(c.req.raw);
         console.log(`[Wedding API Debug] POST. UserRole: ${user?.role}`);
 
         if (!user) return c.json({ error: "Unauthorized" }, 401);
@@ -436,7 +435,7 @@ weddingRouter.post('/', async (c) => {
 
 weddingRouter.put('/', async (c) => {
     try {
-        const user = await getServerUser();
+        const user = await getServerUser(c.req.raw);
         console.log(`[Wedding API Debug] PUT. UserRole: ${user?.role}`);
 
         if (!user) return c.json({ error: "Unauthorized" }, 401);
@@ -462,6 +461,50 @@ weddingRouter.put('/', async (c) => {
             wedding = await prisma.wedding.findUnique({ where: { id: weddingId, userId: user.userId }, include: includeObj });
         }
 
+        // Fallback: If weddingId wasn't provided or didn't match, find the user's latest wedding
+        if (!wedding && user.userId) {
+            wedding = await prisma.wedding.findFirst({
+                where: { userId: user.userId },
+                orderBy: { createdAt: 'desc' },
+                include: includeObj
+            });
+        }
+
+        let currentTheme = {};
+        if (wedding && wedding.themeSettings) {
+            try {
+                currentTheme = typeof wedding.themeSettings === 'string'
+                    ? JSON.parse(wedding.themeSettings)
+                    : wedding.themeSettings;
+            } catch (e) {
+                console.error("[Wedding API] Failed to parse existing themeSettings", e);
+            }
+        }
+
+        const mergedTheme = sanitizedBody.themeSettings !== undefined ? {
+            ...(sanitizedBody.themeSettings || {}),
+            ...(sanitizedBody.galleryItems ? { galleryItems: sanitizedBody.galleryItems } : {})
+        } : currentTheme;
+
+        // If user still has no wedding in database, CREATE one automatically
+        if (!wedding && user.userId) {
+            wedding = await prisma.wedding.create({
+                data: {
+                    userId: user.userId,
+                    groomName: groomName || "Groom",
+                    brideName: brideName || "Bride",
+                    date: date ? new Date(date) : new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+                    location: location || "",
+                    status: (status as WeddingStatus) || "ACTIVE",
+                    templateId: templateId || "khmer-legacy",
+                    eventType: (eventType as EventType) || "wedding",
+                    themeSettings: mergedTheme,
+                },
+                include: includeObj
+            });
+            console.log(`[Wedding API Debug] Auto-created new wedding for user ${user.userId}. WeddingId: ${wedding.id}`);
+        }
+
         if (!wedding) {
             return c.json({ error: "Wedding not found or access denied" }, 404);
         }
@@ -476,39 +519,45 @@ weddingRouter.put('/', async (c) => {
             return c.json({ error: "The selected template requires a Premium package." }, 403);
         }
 
-        if (sanitizedBody.themeSettings?.primaryColor && !isPremium) {
-             return c.json({ error: "Custom theme colors require a Premium package." }, 403);
-        }
-
-        let currentTheme = {};
-        if (wedding.themeSettings) {
-            try {
-                currentTheme = typeof wedding.themeSettings === 'string'
-                    ? JSON.parse(wedding.themeSettings)
-                    : wedding.themeSettings;
-            } catch (e) {
-                console.error("[Wedding API] Failed to parse existing themeSettings", e);
-            }
-        }
-
-        const newTheme = sanitizedBody.themeSettings || {};
-        const mergedTheme = { ...currentTheme, ...newTheme };
-
         const updateData: any = {
             ...(status && { status: status as WeddingStatus }),
             ...(templateId && { templateId }),
-            ...(groomName && { groomName }),
-            ...(brideName && { brideName }),
-            ...(location && { location }),
-            ...(date && { date: new Date(date) }),
+            ...(groomName !== undefined && { groomName: groomName || "" }),
+            ...(brideName !== undefined && { brideName: brideName || "" }),
+            ...(location !== undefined && { location: location || "" }),
+            ...(date && !isNaN(new Date(date).getTime()) && { date: new Date(date) }),
             ...(eventType && { eventType: eventType as EventType }),
             ...(paymentInfo && { paymentInfo: encrypt(paymentInfo) }),
             themeSettings: mergedTheme
         };
         console.log("[Wedding API] Merged Theme to save:", mergedTheme);
 
+        if (sanitizedBody.themeSettings) {
+            const oldHeroPublicId = (currentTheme as any)?.heroImagePublicId;
+            const newHeroPublicId = sanitizedBody.themeSettings.heroImagePublicId;
+            if (oldHeroPublicId && newHeroPublicId && oldHeroPublicId !== newHeroPublicId) {
+                try {
+                    await cloudinaryDelete(oldHeroPublicId, 'image');
+                    console.log(`[Cloudinary] Deleted old hero image: ${oldHeroPublicId}`);
+                } catch (e: any) {
+                    console.error(`[Cloudinary] Failed to delete old hero image:`, e.message);
+                }
+            }
+
+            const oldMusicPublicId = (currentTheme as any)?.musicUrlPublicId;
+            const newMusicPublicId = sanitizedBody.themeSettings.musicUrlPublicId;
+            if (oldMusicPublicId && newMusicPublicId && oldMusicPublicId !== newMusicPublicId) {
+                try {
+                    await cloudinaryDelete(oldMusicPublicId, 'video');
+                    console.log(`[Cloudinary] Deleted old music file: ${oldMusicPublicId}`);
+                } catch (e: any) {
+                    console.error(`[Cloudinary] Failed to delete old music file:`, e.message);
+                }
+            }
+        }
+
         if (sanitizedBody.galleryItems) {
-            const incomingPublicIds = sanitizedBody.galleryItems.map((item: any) => item.publicId).filter(Boolean);
+            const incomingPublicIds = sanitizedBody.galleryItems.map((item: any) => item?.publicId).filter(Boolean);
             const deletedGalleryItems = (wedding as any).galleryItems?.filter((item: any) => item.publicId && !incomingPublicIds.includes(item.publicId)) || [];
             
             for (const item of deletedGalleryItems) {
@@ -523,12 +572,13 @@ weddingRouter.put('/', async (c) => {
             updateData.galleryItems = {
                 deleteMany: {},
                 create: sanitizedBody.galleryItems
-                    .map((item: any) => ({
+                    .map((item: any, idx: number) => ({
                         url: item?.url || "",
                         publicId: item?.publicId || null,
                         type: item?.type || 'IMAGE',
-                        caption: item?.caption || null
+                        caption: item?.caption || `slot:${idx}`
                     }))
+                    .filter((item: any) => item.url || item.publicId)
             };
         }
 
@@ -549,10 +599,10 @@ weddingRouter.put('/', async (c) => {
                 deleteMany: {},
                 create: sanitizedBody.activities.map((item: any) => ({
                     title: item.title || "Activity",
-                    time: item.time,
-                    description: item.description,
-                    icon: item.icon,
-                    publicId: item.publicId,
+                    time: item.time || "",
+                    description: item.description || "",
+                    icon: item.icon || null,
+                    publicId: item.publicId || null,
                     order: item.order || 0
                 }))
             };
@@ -560,7 +610,8 @@ weddingRouter.put('/', async (c) => {
 
         wedding = await prisma.wedding.update({
             where: { id: wedding.id },
-            data: updateData
+            data: updateData,
+            include: includeObj
         });
 
         if (wedding.paymentInfo) {
@@ -572,6 +623,72 @@ weddingRouter.put('/', async (c) => {
     } catch (error: any) {
         console.error(`[Wedding API Debug] PUT CRASH: ${error.message}`, error);
         return c.json({ error: "Internal Server Error in Wedding PUT", details: error.message }, 500);
+    }
+});
+
+// Public endpoint for wedding lookup (for static export)
+weddingRouter.get('/:id', async (c) => {
+    try {
+        const weddingId = c.req.param("id");
+        
+        const wedding = await prisma.wedding.findUnique({
+            where: { id: weddingId },
+            include: {
+                activities: { orderBy: { order: 'asc' } },
+                galleryItems: { orderBy: { createdAt: 'asc' }, take: 50 },
+            },
+        });
+
+        if (!wedding) {
+            return c.json({ error: "Wedding not found" }, 404);
+        }
+
+        // Enable edge caching for 60 seconds (Cloudflare will serve from cache to prevent DB overload)
+        c.header('Cache-Control', 'public, max-age=60, s-maxage=60, stale-while-revalidate=120');
+
+        let parsedThemeSettings: any = wedding.themeSettings;
+        if (typeof parsedThemeSettings === 'string') {
+            try {
+                parsedThemeSettings = JSON.parse(parsedThemeSettings);
+            } catch (e) {
+                parsedThemeSettings = {};
+            }
+        }
+
+        let galleryItems: any[] = wedding.galleryItems;
+        if (parsedThemeSettings?.galleryItems && Array.isArray(parsedThemeSettings.galleryItems)) {
+            galleryItems = parsedThemeSettings.galleryItems;
+        } else if (galleryItems && Array.isArray(galleryItems)) {
+            const reconstructed: any[] = [];
+            galleryItems.forEach((item: any, idx: number) => {
+                if (item.caption?.startsWith("slot:")) {
+                    const slotIdx = parseInt(item.caption.replace("slot:", ""), 10);
+                    if (!isNaN(slotIdx)) {
+                        reconstructed[slotIdx] = item;
+                        return;
+                    }
+                }
+                reconstructed[idx] = item;
+            });
+            galleryItems = reconstructed;
+        }
+
+        // Return only public fields
+        return c.json({
+            id: wedding.id,
+            groomName: wedding.groomName,
+            brideName: wedding.brideName,
+            date: wedding.date,
+            location: wedding.location,
+            eventType: wedding.eventType,
+            templateId: wedding.templateId,
+            themeSettings: parsedThemeSettings || {},
+            activities: wedding.activities,
+            galleryItems: galleryItems,
+        });
+    } catch (error: any) {
+        console.error("[Wedding GET]", error);
+        return c.json({ error: "Internal server error" }, 500);
     }
 });
 

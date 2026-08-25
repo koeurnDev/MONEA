@@ -1,6 +1,4 @@
-"use client";
-
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 
 interface HydratedDateProps {
     date: Date | string | number;

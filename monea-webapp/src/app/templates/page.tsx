@@ -1,7 +1,6 @@
-"use client";
 import React, { useState } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
+// next/image replaced with <img>;
+import { Link } from 'react-router-dom';
 import { m, AnimatePresence } from 'framer-motion';
 import { X, Smartphone, Monitor, Check, ExternalLink, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,9 @@ import { AUTH_URLS } from '@/lib/constants';
 
 // Template Data (Mirrored from Dashboard)
 const TEMPLATES = [
-    { id: "khmer-legacy", title: "Legacy", category: 'wedding', bgClass: "bg-stone-50", textClass: "text-stone-600", image: "/images/bg_staircase.jpg", description: "Traditional Khmer elegance meeting modern editorial design standards." },
+    { code: "M-01", id: "khmer-legacy", title: "M-01", category: 'wedding', bgClass: "bg-stone-50", textClass: "text-stone-600", image: "/images/bg_staircase.jpg", description: "" },
+    { code: "M-02", id: "modern-minimal", title: "M-02", category: 'wedding', bgClass: "bg-slate-100", textClass: "text-slate-800", image: "/images/bg_tunnel.webp", description: "" },
+    { code: "M-03", id: "anniversary-elegant", title: "M-03", category: 'anniversary', bgClass: "bg-purple-50", textClass: "text-purple-800", image: "/assets/anniversary-elegant/anniversary-elegant-bg.webp", description: "" },
 ];
 
 export default function TemplateGalleryPage() {
@@ -25,7 +26,7 @@ export default function TemplateGalleryPage() {
             {/* Header */}
             <header className="bg-white border-b border-slate-100 sticky top-0 z-40">
                 <div className="container mx-auto px-6 h-20 flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-3 group">
+                    <Link to="/" className="flex items-center gap-3 group">
                         <div className="w-10 h-10 bg-black rounded-xl flex items-center justify-center text-white font-bold text-xl group-hover:bg-pink-600 transition-colors">K</div>
                         <span className="font-bold text-xl tracking-widest text-slate-900 group-hover:text-pink-600 transition-colors">MONEA</span>
                     </Link>
@@ -43,7 +44,7 @@ export default function TemplateGalleryPage() {
                             </button>
                         ))}
                     </div>
-                    <Link href={AUTH_URLS.SIGN_UP}>
+                    <Link to={AUTH_URLS.SIGN_UP}>
                         <Button className="bg-slate-900 text-white hover:bg-black rounded-full px-8">
                             Start Creating
                         </Button>
@@ -73,18 +74,22 @@ export default function TemplateGalleryPage() {
                                 className="group cursor-pointer"
                             >
                                 <div className="relative aspect-[9/16] rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 bg-white border border-slate-100">
-                                    <Image
+                                    <img
                                         src={template.image}
-                                        alt={template.title}
-                                        fill
+                                        alt={template.title} 
                                         className="object-cover transition-transform duration-700 group-hover:scale-110"
-                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                        
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
 
                                     <div className="absolute bottom-0 left-0 right-0 p-6 translate-y-2 group-hover:translate-y-0 transition-transform">
-                                        <div className="bg-white/20 backdrop-blur-md border border-white/30 text-white text-[10px] font-bold px-3 py-1 rounded-full inline-block mb-3 uppercase tracking-wider">
-                                            {template.category}
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <span className="bg-white text-slate-900 font-mono text-[10px] font-black px-2.5 py-0.5 rounded-full shadow">
+                                                {template.code}
+                                            </span>
+                                            <div className="bg-white/20 backdrop-blur-md border border-white/30 text-white text-[10px] font-bold px-3 py-1 rounded-full inline-block uppercase tracking-wider">
+                                                {template.category}
+                                            </div>
                                         </div>
                                         <h3 className="text-white text-2xl font-bold mb-1 leading-tight">{template.title}</h3>
                                         <p className="text-white/70 text-xs line-clamp-2 mb-4 opacity-0 group-hover:opacity-100 transition-opacity delay-100">{template.description}</p>
@@ -147,7 +152,7 @@ export default function TemplateGalleryPage() {
                                     </button>
                                 </div>
 
-                                <Link href={`/dashboard/design?templateId=${selectedTemplate.id}`}>
+                                <Link to={`/dashboard/design?templateId=${selectedTemplate.id}`}>
                                     <Button className="bg-pink-600 hover:bg-pink-700 text-white rounded-full">
                                         Use Template
                                     </Button>

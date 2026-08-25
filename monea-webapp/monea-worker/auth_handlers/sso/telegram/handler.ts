@@ -74,7 +74,7 @@ export async function GET(req: Request) {
         const cookieSecure = isSecureCookie(req as any);
         const secure       = cookieSecure ? "; Secure" : "";
         const headers      = new Headers({ "Location": new URL("/dashboard", req.url).toString() });
-        headers.append("Set-Cookie", `token=${token}; HttpOnly${secure}; Path=/; SameSite=Lax; Max-Age=${60 * 60 * 24 * 7}`);
+        headers.append("Set-Cookie", `token=${token}; HttpOnly${secure}; Path=/; SameSite=Lax; Max-Age=${60 * 60 * 24 * 30}`);
         return new Response(null, { status: 302, headers });
 
     } catch (error) {

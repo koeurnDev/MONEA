@@ -1,6 +1,4 @@
-'use client';
-
-import { Button } from '@/components/ui/button';
+﻿import { Button } from '@/components/ui/button';
 import { motion as m } from 'framer-motion';
 import { AlertCircle, RefreshCcw, MessageCircle, WifiOff, Database } from 'lucide-react';
 import { cn } from '@/lib/utils';

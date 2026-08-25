@@ -1,6 +1,4 @@
-"use client";
-
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { m, useSpring, useTransform } from 'framer-motion';
 import { useTranslation } from "@/i18n/LanguageProvider";
 

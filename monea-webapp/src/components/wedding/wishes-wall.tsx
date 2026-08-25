@@ -1,6 +1,4 @@
-"use client";
-
-import { AnimatePresence, m } from "framer-motion";
+﻿import { AnimatePresence, m } from "framer-motion";
 import * as React from "react";
 
 interface WishesWallProps {
@@ -62,7 +60,7 @@ export const WishesWall = ({ weddingId }: WishesWallProps) => {
                 </div>
             </div>
 
-            <style jsx>{`
+            <style>{`
         .animate-marquee {
           display: flex;
           animation: marquee ${Math.max(20, wishes.length * 5)}s linear infinite;

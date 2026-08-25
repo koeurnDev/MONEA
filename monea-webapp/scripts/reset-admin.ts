@@ -14,11 +14,11 @@ async function reset() {
     const hashedPassword = await CryptoUtils.hash("password123");
     
     await prisma.user.upsert({
-        where: { email: 'admin@monea.com' },
+        where: { email: 'kook74532@gmail.com' },
         update: { password: hashedPassword, role: 'SUPERADMIN', failedAttempts: 0, lockedUntil: null },
         create: {
-            email: 'admin@monea.com',
-            name: 'System Admin',
+            email: 'kook74532@gmail.com',
+            name: 'Koeurn',
             password: hashedPassword,
             role: 'SUPERADMIN',
         },

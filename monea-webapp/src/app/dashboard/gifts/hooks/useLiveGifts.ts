@@ -1,6 +1,4 @@
-"use client";
-
-import { useState, useEffect, useRef, useCallback } from "react";
+﻿import { useState, useEffect, useRef, useCallback } from "react";
 import { useGiftsData } from "./useGiftsData";
 
 const loadConfetti = () => import("canvas-confetti");

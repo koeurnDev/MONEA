@@ -1,7 +1,6 @@
-"use client";
-import React from 'react';
+﻿import React from 'react';
 import { Plus, Trash2, Sparkles } from "lucide-react";
-import Image from "next/image";
+// next/image replaced with <img>;
 import clsx from "clsx";
 
 interface SacredBondSectionProps {
@@ -44,7 +43,7 @@ export const SacredBondSection: React.FC<SacredBondSectionProps> = ({
                         )}>
                             {hasCert ? (
                                 <>
-                                    <Image src={cert.url} alt="Sacred Bond" className="object-cover transition-transform duration-1000 group-hover:scale-105" fill sizes="(max-width: 768px) 100vw, 80vw" />
+                                    <img src={cert.url} alt="Sacred Bond" className="object-cover transition-transform duration-1000 group-hover:scale-105"   />
                                     <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center gap-4 backdrop-blur-[2px]">
                                         <div className="flex gap-3">
                                             <button

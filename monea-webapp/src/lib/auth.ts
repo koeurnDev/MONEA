@@ -5,10 +5,42 @@ import redis from "./redis";
 import { prisma } from "./prisma";
 import { getIP } from "./utils";
 
+// Edge-compatible storage - simplified no-op for Cloudflare Workers
+// In CF Workers, we don't use AsyncLocalStorage - pass Request explicitly instead
+export const requestStorage = {
+  getStore: () => undefined,
+  run: (_store: any, callback: any) => callback()
+};
 
-const JWT_SECRET_DEV_FALLBACK = "monea-dev-secret-do-not-use-in-prod-1234567890";
-const SECRET_STR = process.env.JWT_SECRET || (process.env.NODE_ENV === "development" ? JWT_SECRET_DEV_FALLBACK : "");
-const SECRET = new TextEncoder().encode(SECRET_STR);
+
+export const getSecretStr = () => process.env.JWT_SECRET || (process.env.NODE_ENV === "development" ? "monea-dev-secret-do-not-use-in-prod-1234567890" : "");
+export const getSecret = () => new TextEncoder().encode(getSecretStr());
+
+/**
+ * Creates a short-lived signed exchange token (expires in 60s) for transferring session across origins/ports securely.
+ */
+export async function createExchangeTicket(sessionToken: string): Promise<string> {
+  return await new SignJWT({ token: sessionToken, type: "sso_exchange" })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime("60s")
+    .sign(getSecret());
+}
+
+/**
+ * Verifies a short-lived exchange token and returns the embedded session token.
+ */
+export async function verifyExchangeTicket(ticket: string): Promise<string | null> {
+  try {
+    const { payload } = await jwtVerify(ticket, getSecret());
+    if (payload.type !== "sso_exchange" || !payload.token || typeof payload.token !== "string") {
+      return null;
+    }
+    return payload.token;
+  } catch {
+    return null;
+  }
+}
 
 if (process.env.NODE_ENV === "production") {
   if (!process.env.JWT_SECRET) {
@@ -59,7 +91,7 @@ export async function generateTokenPair(payload: any, options: {
     .setIssuer(options.issuer)
     .setAudience(options.audience)
     .setExpirationTime("15m") // Short-lived
-    .sign(SECRET);
+    .sign(getSecret());
 
   const refreshToken = await new SignJWT({ jti, userId: payload.userId, type: "refresh" })
     .setProtectedHeader({ alg: "HS256" })
@@ -67,7 +99,7 @@ export async function generateTokenPair(payload: any, options: {
     .setIssuer(options.issuer)
     .setAudience(options.audience)
     .setExpirationTime("7d") // Long-lived
-    .sign(SECRET);
+    .sign(getSecret());
 
   return { accessToken, refreshToken, jti };
 }
@@ -91,7 +123,7 @@ export async function generateFingerprint(req: any): Promise<string> {
  * Signs a JWT token with the application's secret.
  */
 export async function signToken(payload: any, options: { fingerprint?: string; expiresIn?: string | number } = {}) {
-    const secret = new TextEncoder().encode(SECRET_STR);
+    const secret = getSecret();
     
     // Standardize audience based on role
     let audience: string = JWT_CONFIG.AUDIENCE.USER;
@@ -106,7 +138,7 @@ export async function signToken(payload: any, options: { fingerprint?: string; e
         .setIssuedAt()
         .setIssuer(JWT_CONFIG.ISSUER)
         .setAudience(audience)
-        .setExpirationTime(options.expiresIn || "7d")
+        .setExpirationTime(options.expiresIn || "30d")
         .sign(secret);
     return token;
 }
@@ -140,46 +172,35 @@ import { AuthUser } from "@/types/auth";
  */
 export async function getServerUser(req?: Request): Promise<AuthUser | null> {
     let token: string | undefined;
+    const effectiveReq = req || requestStorage.getStore();
 
-    if (req) {
+    if (effectiveReq) {
         // ── CF Workers / Hono path — read cookie from Request header ──────
-        const cookieHeader = req.headers.get("cookie") || "";
+        const cookieHeader = effectiveReq.headers.get("cookie") || "";
         const parseCookie = (name: string) => {
             const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
             return match ? decodeURIComponent(match[1]) : undefined;
         };
         token = parseCookie(COOKIE_NAMES.TOKEN) || parseCookie(COOKIE_NAMES.STAFF_TOKEN);
-    } else {
-        // ── Next.js Node.js runtime path — dynamic import to avoid CF Workers crash ──
-        try {
-            const { cookies } = await import("next/headers");
-            const cookieStore = await cookies();
-            token = cookieStore.get(COOKIE_NAMES.TOKEN)?.value
-                 || cookieStore.get(COOKIE_NAMES.STAFF_TOKEN)?.value;
-        } catch {
-            return null;
-        }
     }
 
-    if (!token) return null;
+    if (!token) {
+        console.log("[Auth] No token found in cookies");
+        return null;
+    }
 
     try {
-        const secret = new TextEncoder().encode(SECRET_STR);
+        const secret = getSecret();
         const { payload } = await jwtVerify(token, secret, {
             issuer: JWT_CONFIG.ISSUER,
         });
 
-        // Anti-replay fingerprint validation — skip in CF Workers (no reliable IP header chain)
-        if (payload.fingerprint && process.env.NODE_ENV !== "development" && !req) {
-            try {
-                const { headers } = await import("next/headers");
-                const fingerprint = await generateFingerprint({ headers: headers() });
-                if (payload.fingerprint !== fingerprint) {
-                    console.warn(`[Auth] Fingerprint mismatch detected in getServerUser.`);
-                    return null;
-                }
-            } catch {
-                // CF Workers — skip fingerprint check, rely on JWT signature alone
+        // Anti-replay fingerprint validation — validate only if we have both fingerprint and request
+        if (payload.fingerprint && req && process.env.NODE_ENV !== "development") {
+            const currentFingerprint = await generateFingerprint(req);
+            if (payload.fingerprint !== currentFingerprint) {
+                console.warn("[Auth] Fingerprint mismatch - possible session hijacking attempt");
+                return null;
             }
         }
 
@@ -200,9 +221,13 @@ export async function getServerUser(req?: Request): Promise<AuthUser | null> {
             return null;
         }
 
-        if (!dbUser) return null;
+        if (!dbUser) {
+            console.warn(`[Auth] User ${userId} not found in database`);
+            return null;
+        }
 
         if (dbUser.sessionsRevokedAt && iat && iat < new Date(dbUser.sessionsRevokedAt)) {
+            console.warn(`[Auth] Token issued before session revocation for user ${userId}`);
             return null;
         }
 
@@ -211,6 +236,7 @@ export async function getServerUser(req?: Request): Promise<AuthUser | null> {
         if (currentRole === ROLES.PLATFORM_OWNER)  userType = "admin";
         else if (currentRole === ROLES.EVENT_STAFF) userType = "staff";
 
+        console.log(`[Auth] Successfully authenticated user ${userId} with role ${currentRole}`);
         return {
             id:       userId,
             userId:   userId,
@@ -220,7 +246,8 @@ export async function getServerUser(req?: Request): Promise<AuthUser | null> {
             weddingId: payload.weddingId as string | undefined,
             type:     userType,
         };
-    } catch {
+    } catch (error: any) {
+        console.error("[Auth] Token verification failed:", error.message);
         return null;
     }
 }

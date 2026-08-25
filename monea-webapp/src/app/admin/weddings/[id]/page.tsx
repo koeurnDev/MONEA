@@ -1,10 +1,9 @@
-"use client";
 import { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Loader2, Globe, Users, MapPin, Calendar, Clock, Image as ImageIcon, Sparkles, Share2 } from "lucide-react";
-import Image from "next/image";
+// removed next/image
 import { cn } from "@/lib/utils";
 import { QRCodeCard } from "@/components/QRCodeCard";
 import { useToast } from "@/components/ui/Toast";
@@ -12,7 +11,7 @@ import { m } from "framer-motion";
 
 export default function AdminWeddingDetailsPage() {
     const params = useParams();
-    const router = useRouter();
+    const router = useNavigate();
 
     const [wedding, setWedding] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -29,7 +28,7 @@ export default function AdminWeddingDetailsPage() {
                         description: "Could not load wedding details. Please try again.",
                         type: "info"
                     });
-                    router.push("/admin/weddings");
+                    router("/admin/weddings");
                 }
             })
             .catch(err => {
@@ -39,7 +38,7 @@ export default function AdminWeddingDetailsPage() {
                     description: "Failed to connect to the server.",
                     type: "info"
                 });
-                router.push("/admin/weddings");
+                router("/admin/weddings");
             })
             .finally(() => setLoading(false));
     }, [params.id, router, showToast]);
@@ -64,7 +63,7 @@ export default function AdminWeddingDetailsPage() {
                 <Button
                     variant="ghost"
                     className="w-fit text-slate-500 hover:text-red-600 p-0 hover:bg-transparent -ml-2 gap-2"
-                    onClick={() => router.back()}
+                    onClick={() => router(-1)}
                 >
                     <ArrowLeft size={16} /> ត្រឡប់ក្រោយ
                 </Button>
@@ -73,10 +72,9 @@ export default function AdminWeddingDetailsPage() {
                     <div className="flex items-center gap-4">
                         <div className="w-16 h-16 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center overflow-hidden shrink-0 shadow-inner relative">
                             {wedding.couplePhoto ? (
-                                <Image 
+                                <img 
                                     src={wedding.couplePhoto} 
                                     alt="Couple" 
-                                    fill
                                     className="object-cover" 
                                 />
                             ) : (
@@ -227,7 +225,7 @@ export default function AdminWeddingDetailsPage() {
                                 {wedding.user ? (
                                     <div
                                         className="flex flex-col p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all cursor-pointer border border-slate-100 dark:border-slate-800 group"
-                                        onClick={() => router.push("/admin/users")}
+                                        onClick={() => router("/admin/users")}
                                     >
                                         <span className="text-xs font-mono font-bold text-slate-700 dark:text-slate-300 truncate group-hover:text-red-600 transition-colors uppercase tracking-tight">{wedding.user.email}</span>
                                         <span className="text-[10px] text-slate-400 font-black uppercase mt-1 tracking-widest">{wedding.user.role}</span>

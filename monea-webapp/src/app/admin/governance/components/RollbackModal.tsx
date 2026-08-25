@@ -1,5 +1,4 @@
-"use client";
-import { AnimatePresence, m } from 'framer-motion';
+﻿import { AnimatePresence, m } from 'framer-motion';
 import { RotateCcw, AlertTriangle, GitBranch, X, Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 

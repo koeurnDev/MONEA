@@ -1,10 +1,5 @@
-"use client";
-
 import { m } from 'framer-motion';
-import Image from 'next/image';
-import { Clock } from 'lucide-react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { Calendar, Clock } from 'lucide-react';
 import { WeddingData } from '../types';
 import { useTranslation } from '@/i18n/LanguageProvider';
 import { useState, useEffect } from 'react';
@@ -28,12 +23,13 @@ export function HeroSection({ wedding, heroImage, smartColors, heroPan, formatte
     }, []);
 
     return (
-        <section id="hero" className="relative min-h-[100dvh] flex flex-col items-center justify-center text-center overflow-hidden pt-24 pb-16 bg-[#FAFAFA]">
+        <section id="hero" className="relative min-h-[100dvh] flex flex-col justify-between items-center text-center overflow-hidden p-6 py-12 select-none bg-[#0A1226]">
+            {/* Background Full-Color Image */}
             <m.div
                 initial={{ scale: 1.05, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 1.5, ease: "easeOut" }}
-                className="absolute inset-0"
+                className="absolute inset-0 z-0"
             >
                 {wedding.themeSettings?.videoUrl && !isMobile ? (
                     <div className="w-full h-full relative">
@@ -43,21 +39,19 @@ export function HeroSection({ wedding, heroImage, smartColors, heroPan, formatte
                             frameBorder="0"
                             allow="autoplay; encrypted-media"
                         />
-                        <div className="absolute inset-0 bg-white/70 backdrop-blur-sm pointer-events-none" />
+                        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm pointer-events-none" />
                     </div>
                 ) : (
                     <>
                         {heroImage && (
                             <div className="absolute inset-0 pointer-events-auto">
-                                <Image
-                                    src={heroImage}
-                                    fill
-                                    sizes="100vw"
-                                    className={`object-cover transition-none ${heroPan.isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+                                <img
+                                    src={heroImage} 
+                                    className={`w-full h-full object-cover transition-none ${heroPan.isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
                                     style={{
                                         objectPosition: `${heroPan.localX} ${heroPan.localY}`,
                                         transform: `scale(${wedding.themeSettings?.heroImageScale || 1})`,
-                                        filter: `brightness(${wedding.themeSettings?.heroImageBrightness || 100}%) contrast(${wedding.themeSettings?.heroImageContrast || 100}%) opacity(30%) grayscale(100%)`,
+                                        filter: `brightness(${wedding.themeSettings?.heroImageBrightness || 100}%) contrast(${wedding.themeSettings?.heroImageContrast || 100}%)`,
                                         userSelect: 'none',
                                         touchAction: 'none',
                                         willChange: 'object-position, transform'
@@ -70,98 +64,90 @@ export function HeroSection({ wedding, heroImage, smartColors, heroPan, formatte
                                         e.stopPropagation();
                                         heroPan.onStart(e);
                                     }}
-                                    priority
                                     draggable={false}
                                     alt="Wedding Hero"
-                                    quality={100}
                                 />
                             </div>
                         )}
-                        {!heroImage && (
-                             <div className="absolute inset-0 bg-gradient-to-b from-[#FAFAFA] to-white" />
-                        )}
-                        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/40 via-transparent to-white/80" />
+                        {/* Soft Cinematic Scrim for High-Contrast Text Legibility */}
+                        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-black/70 via-transparent to-black/80" />
                     </>
                 )}
             </m.div>
 
-            <div className="relative z-10 px-8 space-y-12 md:space-y-16 pointer-events-none w-full max-w-5xl mx-auto">
-                <div className="space-y-10 md:space-y-12">
-                    <m.div
-                        initial={{ y: 15, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.5, duration: 1 }}
-                        className="font-playfair tracking-[0.4em] md:tracking-[0.8em] text-[10px] md:text-xs uppercase font-light text-slate-500"
-                    >
-                        {wedding.themeSettings?.customLabels?.heroSubtitle || t("template.khmerLegacy.heroSubtitle")}
-                    </m.div>
+            {/* Top Area: Subtitle & Couple Names in Royal Gold Metallic Gradient */}
+            <m.div 
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.2, duration: 1 }}
+                className="relative z-10 w-full max-w-lg mx-auto space-y-3 pt-6 sm:pt-12"
+            >
+                {/* Subtitle with gold accents */}
+                <div className="flex items-center justify-center gap-2">
+                    <span className="w-6 sm:w-8 h-[1px] bg-gradient-to-r from-transparent to-[#D4AF37]" />
+                    <h3 className="font-khmer-moul text-xs sm:text-sm text-gold-gradient text-gold-embossed drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] tracking-wider">
+                        {wedding.themeSettings?.customLabels?.heroSubtitle || 
+                         (isAnniversary ? "សិរីមង្គលពិធីភ្ជាប់ពាក្យ" : "សិរីមង្គលអាពាហ៍ពិពាហ៍")}
+                    </h3>
+                    <span className="w-6 sm:w-8 h-[1px] bg-gradient-to-l from-transparent to-[#D4AF37]" />
+                </div>
+                
+                {/* Couple Names */}
+                <div className="space-y-1">
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-khmer-moul text-gold-gradient text-gold-embossed drop-shadow-[0_4px_20px_rgba(0,0,0,0.95)] tracking-wide leading-tight py-0.5">
+                        {wedding.groomName}
+                    </h1>
+                    
+                    <p className="text-xs sm:text-sm text-[#D4AF37] font-khmer-moul drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] py-0.5">
+                        {wedding.themeSettings?.customLabels?.andLabel || "និង"}
+                    </p>
 
-                    <div className="flex flex-col items-center justify-center">
-                        <m.div
-                            initial={{ y: 30, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            transition={{ delay: 0.8, duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
-                            className="flex flex-col items-center gap-6 md:gap-8 w-full"
-                        >
-                            <span className="text-5xl sm:text-6xl md:text-8xl lg:text-9xl font-normal tracking-wide font-serif-kh-bold text-slate-800 leading-tight">
-                                {wedding.groomName}
-                            </span>
-                            
-                            <m.div 
-                                initial={{ scale: 0.9, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                transition={{ delay: 1.2, duration: 1 }}
-                                className="relative py-4 md:py-8 flex items-center justify-center w-full max-w-[200px]"
-                            >
-                                <div className="absolute left-0 right-0 h-[1px] bg-slate-200" />
-                                <span className="relative px-6 py-2 bg-[#FAFAFA] font-playfair italic text-slate-400 text-lg md:text-2xl font-light">
-                                    {wedding.themeSettings?.customLabels?.andLabel || "&"}
-                                </span>
-                            </m.div>
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-khmer-moul text-gold-gradient text-gold-embossed drop-shadow-[0_4px_20px_rgba(0,0,0,0.95)] tracking-wide leading-tight py-0.5">
+                        {wedding.brideName}
+                    </h1>
+                </div>
+            </m.div>
 
-                            <span className="text-5xl sm:text-6xl md:text-8xl lg:text-9xl font-normal tracking-wide font-serif-kh-bold text-slate-800 leading-tight">
-                                {wedding.brideName}
-                            </span>
-                        </m.div>
-                    </div>
+            {/* Middle Area: Left open & unobstructed for couple photo */}
+            <div className="flex-1" />
+
+            {/* Bottom Area: Direct Golden Date Typography & Sleek Minimalist Calendar Pill */}
+            <m.div
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.6, duration: 1 }}
+                className="relative z-10 flex flex-col items-center space-y-3 w-full max-w-sm px-4 pb-6 sm:pb-8"
+            >
+                {/* Direct Golden Date with Side Accent Lines */}
+                <div className="flex items-center justify-center gap-2 sm:gap-3 w-full">
+                    <span className="w-6 sm:w-10 h-[1px] bg-gradient-to-r from-transparent to-[#D4AF37]" />
+                    <p className="font-khmer-moul text-xs sm:text-sm md:text-base text-gold-gradient text-gold-embossed drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] tracking-wide whitespace-nowrap">
+                        {formattedDateHero}
+                    </p>
+                    <span className="w-6 sm:w-10 h-[1px] bg-gradient-to-l from-transparent to-[#D4AF37]" />
                 </div>
 
-                <m.div
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 1.5, duration: 1.2 }}
-                    className="space-y-12 pt-8"
+                {/* Sleek Minimalist Glass Calendar Pill */}
+                <m.button
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.96 }}
+                    onClick={() => {
+                        const type = isAnniversary ? t("common.anniversary") : t("common.wedding");
+                        const title = t("invitation.calendar.eventTitle", { groom: wedding.groomName, bride: wedding.brideName });
+                        const details = t("invitation.calendar.eventDetails", { groom: wedding.groomName, bride: wedding.brideName });
+                        const location = wedding.location || (locale === 'km' ? `កម្មវិធី${type}` : `${type} Event`);
+                        const start = new Date(wedding.date).toISOString().replace(/-|:|\.\d\d\d/g, "");
+                        const end = new Date(new Date(wedding.date).getTime() + 6*60*60*1000).toISOString().replace(/-|:|\.\d\d\d/g, "");
+                        
+                        const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${start}/${end}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(location)}`;
+                        window.open(url, '_blank');
+                    }}
+                    className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-black/35 backdrop-blur-md border border-[#D4AF37]/40 text-amber-200 hover:text-white font-khmer-moul text-[11px] sm:text-xs shadow-[0_4px_20px_rgba(0,0,0,0.4)] hover:bg-black/55 hover:border-[#D4AF37] active:scale-95 transition-all cursor-pointer pointer-events-auto"
                 >
-                    <div className="inline-block px-12 py-4 border border-slate-200 rounded-full bg-white/50 backdrop-blur-sm">
-                        <span className="text-slate-600 font-sans text-sm md:text-base tracking-[0.3em] uppercase font-medium">
-                            {formattedDateHero}
-                        </span>
-                    </div>
-
-                    <div className="flex justify-center pt-2">
-                        <m.button
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => {
-                                const type = isAnniversary ? t("common.anniversary") : t("common.wedding");
-                                const title = t("invitation.calendar.eventTitle", { groom: wedding.groomName, bride: wedding.brideName });
-                                const details = t("invitation.calendar.eventDetails", { groom: wedding.groomName, bride: wedding.brideName });
-                                const location = wedding.location || (locale === 'km' ? `កម្មវិធី${type}` : `${type} Event`);
-                                const start = new Date(wedding.date).toISOString().replace(/-|:|\.\d\d\d/g, "");
-                                const end = new Date(new Date(wedding.date).getTime() + 6*60*60*1000).toISOString().replace(/-|:|\.\d\d\d/g, "");
-                                
-                                const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${start}/${end}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(location)}`;
-                                window.open(url, '_blank');
-                            }}
-                            className="group flex items-center gap-4 px-8 md:px-10 py-3 md:py-4 bg-transparent border border-slate-300 text-slate-700 hover:bg-slate-800 hover:text-white hover:border-slate-800 rounded-full text-xs font-semibold tracking-[0.2em] uppercase transition-all duration-300 pointer-events-auto shadow-sm"
-                        >
-                            <span>{wedding.themeSettings?.customLabels?.heroButton || t("template.khmerLegacy.heroButton")}</span>
-                            <Clock size={16} className="opacity-70 group-hover:opacity-100 transition-opacity" />
-                        </m.button>
-                    </div>
-                </m.div>
-            </div>
+                    <Calendar size={13} className="text-[#D4AF37]" />
+                    <span>{wedding.themeSettings?.customLabels?.heroButton || t("template.khmerLegacy.heroButton") || "រក្សាទុកក្នុងប្រតិទិន"}</span>
+                </m.button>
+            </m.div>
         </section>
     );
 }
-

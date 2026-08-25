@@ -1,12 +1,3 @@
-import * as Sentry from "@sentry/nextjs";
-
-Sentry.init({
-  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-  tracesSampleRate: 1.0,
-  replaysSessionSampleRate: 0.1,
-  replaysOnErrorSampleRate: 1.0,
-  debug: false,
-  tunnel: "/api/sentry-tunnel", // Bypasses ad blockers
-});
-
-export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
+// Sentry disabled in Vite build — @sentry/nextjs is not available
+// To re-enable, install @sentry/react and configure for Vite
+export {};

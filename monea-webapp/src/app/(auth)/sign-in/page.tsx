@@ -1,9 +1,10 @@
 "use client";
 
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
     Form,
@@ -14,52 +15,54 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import { Lock, Mail, ArrowRight, UserCog, Loader2, Key, Users, ChevronLeft, Eye, EyeOff } from "lucide-react";
-import { m, AnimatePresence } from 'framer-motion';
-import Image from "next/image";
+import { 
+    Lock, 
+    Mail, 
+    Loader2, 
+    Key, 
+    ChevronLeft, 
+    Eye, 
+    EyeOff 
+} from "lucide-react";
+import { motion as m, AnimatePresence } from 'framer-motion';
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
 import { ROLES, AUTH_URLS } from "@/lib/constants";
-import dynamic from "next/dynamic";
 import { useSWRConfig } from "swr";
 import { khmerToEnglishNumbers } from "@/lib/utils";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { LanguageToggle } from "@/components/LanguageToggle";
-const Turnstile = dynamic(() => import("@marsidev/react-turnstile").then(mod => mod.Turnstile), { ssr: false });
+import { Turnstile } from "@marsidev/react-turnstile";
 import SSOIcons from "@/components/auth/SSOIcons";
 
 export default function SignInPage() {
-    const { t } = useTranslation();
-    const router = useRouter();
-    const searchParams = useSearchParams();
+    const { t, locale } = useTranslation();
+    const isKm = locale === 'km';
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const { mutate } = useSWRConfig();
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [requireCaptcha, setRequireCaptcha] = useState(true);
     const [captchaToken, setCaptchaToken] = useState("");
-    const [show2FA, setShow2FA] = useState(false);
     const [twoFactorToken, setTwoFactorToken] = useState("");
     const [showPassword, setShowPassword] = useState(false);
+    const [show2FA, setShow2FA] = useState(false);
     const hint = searchParams.get('hint');
     const registered = searchParams.get('registered');
 
     const loginSchema = z.object({
-        email: z.string().email({ message: t('common.validation.invalidEmail') }),
-        password: z.string().min(6, { message: t('common.validation.tooShort') }),
+        email: z.string().email({ message: "សូមបញ្ចូលអ៊ីមែលឱ្យបានត្រឹមត្រូវ" }),
+        password: z.string().min(6, { message: "ពាក្យសម្ងាត់យ៉ាងតិច ៦ តួអក្សរ" }),
     });
 
-    // Form
     const form = useForm<z.infer<typeof loginSchema>>({
         resolver: zodResolver(loginSchema),
         defaultValues: { email: "", password: "" },
     });
 
-    // Handler
     async function onSubmit(values: z.infer<typeof loginSchema>) {
-        if (!captchaToken) {
-            setError(t('common.auth.verifyCaptcha'));
+        if (!captchaToken && import.meta.env.VITE_TURNSTILE_SITE_KEY) {
+            setError("សូមផ្ទៀងផ្ទាត់សុវត្ថិភាព CAPTCHA");
             return;
         }
 
@@ -80,23 +83,21 @@ export default function SignInPage() {
             try {
                 data = await res.json();
             } catch (err) {
-                data = { error: t('common.errors.unexpected'), details: `HTTP Status Code: ${res.status} ${res.statusText}` };
+                data = { error: "មានបញ្ហាបច្ចេកទេស", details: `HTTP Status Code: ${res.status}` };
             }
 
             if (res.ok) {
-                // Clear SWR cache to prevent stale 401 from previous session
                 await mutate("/api/auth/me");
-
-                // Redirect based on Role
-                const role = data.user?.role;
-                if (role === ROLES.EVENT_STAFF) {
-                    router.push("/dashboard/gifts");
-                } else if (role === ROLES.PLATFORM_OWNER) {
-                    router.push("/admin");
+                mutate(() => true, undefined, { revalidate: true });
+                
+                if (data.user?.role === ROLES.EVENT_STAFF) {
+                    navigate("/dashboard/gifts");
+                } else if (data.user?.role === ROLES.PLATFORM_OWNER || data.user?.role === "SUPERADMIN") {
+                    navigate("/admin/master");
                 } else {
-                    router.push(AUTH_URLS.DASHBOARD);
+                    navigate(AUTH_URLS.DASHBOARD);
                 }
-                router.refresh();
+                navigate(0);
             } else {
                 if (res.status === 428 && data.require2FA) {
                     setShow2FA(true);
@@ -108,137 +109,135 @@ export default function SignInPage() {
                     setCaptchaToken("");
                 }
                 
-                // Use localized error mapping if possible, otherwise fallback to server message
                 let errorMsg = data.error;
                 if (data.details) {
                     errorMsg += `\n[MONEA DEBUG] ${data.details}`;
                 }
-                setError(errorMsg);
+                setError(errorMsg || "ការចូលប្រើមិនត្រឹមត្រូវ");
             }
         } catch (e: any) {
-            setError(e?.message || t('common.errors.technical'));
+            setError(e?.message || "មិនអាចភ្ជាប់ទៅកាន់ Server បានទេ");
         } finally {
             setIsLoading(false);
         }
     }
 
     return (
-        <div className="min-h-screen w-full relative flex items-center justify-center bg-black py-4 md:py-10">
-            {/* Background Image with Overlay */}
-            <div className="absolute inset-0 z-0">
-                <Image
-                    src="/images/bg_staircase.jpg"
-                    alt="Background"
-                    fill
-                    className="object-cover opacity-60"
-                    priority
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/60 backdrop-blur-[2px]"></div>
+        <div className="w-full flex items-center justify-center font-kantumruy">
+            {/* Top Bar Header */}
+            <div className="absolute top-4 left-4 right-4 sm:top-6 sm:left-8 sm:right-8 flex items-center justify-between z-30">
+                <Link
+                    to="/"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-card/80 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/80 text-xs font-bold transition-all shadow-xs backdrop-blur-md"
+                >
+                    <ChevronLeft size={15} />
+                    <span>{isKm ? "ត្រឡប់ទៅទំព័រដើម" : "Back to Home"}</span>
+                </Link>
+                <LanguageToggle className="bg-card/80 text-foreground hover:bg-muted border border-border/80 backdrop-blur-md shadow-xs" />
             </div>
 
-            <div className="absolute top-4 right-4 md:top-6 md:right-8 z-50">
-                <LanguageToggle className="bg-white/10 text-white hover:bg-white/20 hover:text-white border border-white/20 backdrop-blur-md" />
-            </div>
-
-            {/* Content Container */}
+            {/* Centered Login Card */}
             <m.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-                className="relative z-10 w-full max-w-md p-4 md:p-6"
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                className="relative z-10 w-full max-w-[440px] my-auto pt-10 sm:pt-4"
             >
-                <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-4 md:p-6 shadow-2xl relative overflow-hidden">
-                    {/* Back Button */}
-                    <Link
-                        href="/"
-                        className="absolute left-6 top-6 text-white/40 hover:text-white transition-colors group flex items-center gap-1 text-[10px] font-black uppercase tracking-widest z-20"
-                    >
-                        <ChevronLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" /> {t('common.auth.back')}
-                    </Link>
-
-                    {/* Header */}
-                    <div className="text-center mb-3 md:mb-5">
-                        <Link href="/" className="inline-flex justify-center">
-                            <MoneaLogo showText size="sm" variant="dark" />
+                <div className="bg-card/95 backdrop-blur-2xl border border-border/90 rounded-[2rem] p-6 sm:p-8 shadow-xl shadow-slate-900/5 dark:shadow-black/60 relative overflow-hidden">
+                    {/* Brand Header */}
+                    <div className="text-center mb-6">
+                        <Link to="/" className="inline-flex justify-center mb-3">
+                            <MoneaLogo showText size="sm" />
                         </Link>
-
-                        <h1 className="text-xl md:text-2xl font-bold text-white mb-1 font-kantumruy">{t('common.auth.loginTitle')}</h1>
-                        <p className="text-white/40 text-[10px] md:text-xs font-kantumruy">{t('common.auth.loginSubtitle')}</p>
+                        <h1 className="text-2xl font-bold text-foreground tracking-tight">
+                            {isKm ? "ចូលប្រើប្រាស់" : "Sign In"}
+                        </h1>
+                        <p className="text-muted-foreground text-xs mt-1">
+                            {isKm ? "សូមបញ្ចូលព័ត៌មានសម្គាល់របស់អ្នកដើម្បីបន្ត" : "Enter your credentials to continue"}
+                        </p>
                     </div>
 
-                    {/* Hint banners */}
+                    {/* Hint Banners */}
                     {hint === 'check-email' && (
-                        <div className="mb-3 p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-200 text-[10px] text-center font-kantumruy">
-                            📧 ប្រសិនបើ Email នេះធ្លាប់ Register រួចហើយ សូម Sign In ដោយផ្ទាល់ ឬ ប្រើ Forgot Password ។
+                        <div className="mb-4 p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-300 text-xs text-center font-medium">
+                            📧 ប្រសិនបើ Email នេះធ្លាប់ Register រួចហើយ សូមចូលប្រើដោយផ្ទាល់។
                         </div>
                     )}
                     {registered === 'true' && (
-                        <div className="mb-3 p-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-200 text-[10px] text-center font-kantumruy">
-                            ✅ Email បានផ្ទៀងផ្ទាត់ជោគជ័យ! អ្នកអាច Sign In បានហើយ។
+                        <div className="mb-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-300 text-xs text-center font-medium">
+                            ✅ បានចុះឈ្មោះជោគជ័យ! អ្នកអាចចូលប្រើបានហើយ។
                         </div>
                     )}
 
+                    {/* Email / Password Form (Top) */}
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2.5 md:space-y-3">
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3.5">
                             <AnimatePresence mode="wait">
                                 {!show2FA ? (
                                     <m.div
                                         key="password-step"
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        exit={{ opacity: 0, x: 20 }}
-                                        className="space-y-2.5 md:space-y-3"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        className="space-y-3.5"
                                     >
                                         <FormField
                                             control={form.control}
                                             name="email"
                                             render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel className="text-white/80 text-xs uppercase tracking-wider font-bold ml-1">{t('common.auth.email')}</FormLabel>
+                                                <FormItem className="space-y-1.5">
+                                                    <FormLabel className="text-foreground text-xs font-bold ml-0.5">
+                                                        {isKm ? "អ៊ីមែល" : "Email Address"}
+                                                    </FormLabel>
                                                     <div className="relative group">
-                                                        <div className="absolute left-3 top-2.5 md:top-3 text-white/40 group-focus-within:text-pink-400 transition-colors">
-                                                            <Mail className="w-4 h-4 md:w-5 md:h-5" />
+                                                        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-rose-600 transition-colors">
+                                                            <Mail size={16} />
                                                         </div>
                                                         <Input
                                                             placeholder="name@example.com"
                                                             autoComplete="email"
-                                                            className="pl-10 bg-white/5 border-white/10 text-white rounded-xl focus:border-pink-500/50 h-10 md:h-11"
+                                                            className="h-11 pl-10 bg-background/50 border border-input text-foreground rounded-xl focus:border-rose-500 text-xs font-mono"
                                                             {...field}
                                                         />
                                                     </div>
-                                                    <FormMessage className="text-red-400 text-xs" />
+                                                    <FormMessage className="text-rose-600 text-xs" />
                                                 </FormItem>
                                             )}
                                         />
+
                                         <FormField
                                             control={form.control}
                                             name="password"
                                             render={({ field }) => (
-                                                <FormItem>
-                                                    <div className="flex justify-between items-center mb-1">
-                                                        <FormLabel className="text-white/80 text-xs uppercase tracking-wider font-bold ml-1">{t('common.auth.password')}</FormLabel>
-                                                        <Link href="/forgot-password" className="text-[10px] text-pink-400 hover:text-pink-300">{t('common.auth.forgotPasswordShort')}</Link>
+                                                <FormItem className="space-y-1.5">
+                                                    <div className="flex justify-between items-center ml-0.5">
+                                                        <FormLabel className="text-foreground text-xs font-bold">
+                                                            {isKm ? "ពាក្យសម្ងាត់" : "Password"}
+                                                        </FormLabel>
+                                                        <Link to="/forgot-password" className="text-[11px] text-rose-600 dark:text-rose-400 hover:underline font-bold">
+                                                            {isKm ? "ភ្លេចលេខសម្ងាត់?" : "Forgot password?"}
+                                                        </Link>
                                                     </div>
                                                     <div className="relative group">
-                                                        <div className="absolute left-3 top-2.5 md:top-3 text-white/40 group-focus-within:text-pink-400 transition-colors">
-                                                            <Lock className="w-4 h-4 md:w-5 md:h-5" />
+                                                        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-rose-600 transition-colors">
+                                                            <Lock size={16} />
                                                         </div>
                                                         <Input
                                                             type={showPassword ? "text" : "password"}
                                                             placeholder="••••••••"
                                                             autoComplete="current-password"
-                                                            className="pl-10 pr-10 bg-white/5 border-white/10 text-white rounded-xl focus:border-pink-500/50 h-10 md:h-11"
+                                                            className="h-11 pl-10 pr-10 bg-background/50 border border-input text-foreground rounded-xl focus:border-rose-500 text-xs"
                                                             {...field}
                                                         />
                                                         <button
                                                             type="button"
                                                             onClick={() => setShowPassword(!showPassword)}
-                                                            className="absolute right-3 top-2.5 md:top-3 text-white/40 hover:text-white transition-colors"
+                                                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                                                         >
-                                                            {showPassword ? <EyeOff className="w-4 h-4 md:w-5 md:h-5" /> : <Eye className="w-4 h-4 md:w-5 md:h-5" />}
+                                                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                                         </button>
                                                     </div>
-                                                    <FormMessage className="text-red-400 text-xs" />
+                                                    <FormMessage className="text-rose-600 text-xs" />
                                                 </FormItem>
                                             )}
                                         />
@@ -246,23 +245,27 @@ export default function SignInPage() {
                                 ) : (
                                     <m.div
                                         key="2fa-step"
-                                        initial={{ opacity: 0, x: 20 }}
+                                        initial={{ opacity: 0, x: 15 }}
                                         animate={{ opacity: 1, x: 0 }}
-                                        exit={{ opacity: 0, x: -20 }}
-                                        className="space-y-4 py-2"
+                                        exit={{ opacity: 0, x: -15 }}
+                                        className="space-y-3 py-1"
                                     >
-                                        <div className="text-center space-y-1 mb-4">
-                                            <div className="w-12 h-12 bg-pink-500/20 rounded-full flex items-center justify-center mx-auto mb-2">
-                                                <Key className="text-pink-400 w-6 h-6" />
+                                        <div className="text-center space-y-1 mb-2">
+                                            <div className="w-11 h-11 bg-rose-500/10 rounded-xl flex items-center justify-center mx-auto mb-1.5 text-rose-600 dark:text-rose-400">
+                                                <Key size={20} />
                                             </div>
-                                            <h3 className="text-white font-bold font-kantumruy">{t('common.auth.twoFactorTitle')}</h3>
-                                            <p className="text-white/40 text-[10px] font-kantumruy">{t('common.auth.twoFactorSubtitle')}</p>
+                                            <h3 className="text-foreground font-bold text-sm">
+                                                {isKm ? "ផ្ទៀងផ្ទាត់ ២ ដំណាក់ (2FA)" : "Two-Factor Auth"}
+                                            </h3>
+                                            <p className="text-muted-foreground text-xs">
+                                                {isKm ? "បញ្ចូលលេខកូដ ៦ ខ្ទង់ពី Google Authenticator" : "Enter the 6-digit code from Google Authenticator"}
+                                            </p>
                                         </div>
 
                                         <div className="space-y-2">
                                             <div className="relative group">
-                                                <div className="absolute left-3 top-3 text-white/40 group-focus-within:text-pink-400 transition-colors">
-                                                    <Lock className="w-5 h-5" />
+                                                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-rose-600">
+                                                    <Lock size={16} />
                                                 </div>
                                                 <Input
                                                     value={twoFactorToken}
@@ -272,7 +275,7 @@ export default function SignInPage() {
                                                     }}
                                                     placeholder="000000"
                                                     autoComplete="one-time-code"
-                                                    className="pl-10 text-center text-xl font-black tracking-[0.5em] bg-white/5 border-white/10 text-white rounded-xl focus:border-pink-500/50 h-12"
+                                                    className="pl-10 text-center text-lg font-black tracking-[0.4em] bg-background/50 border border-input text-foreground rounded-xl focus:border-rose-500 h-11 font-mono"
                                                     maxLength={6}
                                                     autoFocus
                                                     inputMode="numeric"
@@ -282,77 +285,82 @@ export default function SignInPage() {
                                                 variant="ghost"
                                                 size="sm"
                                                 onClick={() => setShow2FA(false)}
-                                                className="w-full text-white/40 hover:text-white hover:bg-white/5 text-[10px] font-kantumruy h-8"
+                                                className="w-full text-muted-foreground hover:text-foreground hover:bg-muted text-xs h-8"
                                             >
-                                                {t('common.auth.returnToPassword')}
+                                                {isKm ? "← ត្រឡប់ទៅវាយពាក្យសម្ងាត់" : "← Return to password"}
                                             </Button>
                                         </div>
                                     </m.div>
                                 )}
                             </AnimatePresence>
 
-                            {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ? (
-                                <div className="flex justify-center my-2 overflow-hidden scale-90 md:scale-100 origin-center relative min-h-[65px]">
-                                    {/* Skeleton Loader behind Turnstile */}
-                                    <div className="absolute inset-0 flex items-center justify-center -z-10">
-                                        <div className="w-[300px] h-[65px] bg-white/5 animate-pulse rounded-lg border border-white/10" />
-                                    </div>
-                                    <div className="relative z-10">
-                                        <Turnstile
-                                            siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
-                                            onSuccess={(token) => {
-                                                setCaptchaToken(token);
-                                                setError("");
-                                            }}
-                                            onError={() => setError("CAPTCHA failed to load. Please disable Strict Tracking Prevention or Adblockers for this site.")}
-                                            options={{ theme: 'dark', appearance: 'always' }}
-                                        />
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="text-[10px] text-red-400 bg-red-400/10 p-2 rounded-lg text-center font-bold my-2">
-                                    Turnstile Key Missing
+                            {/* Cloudflare Turnstile */}
+                            {import.meta.env.VITE_TURNSTILE_SITE_KEY && (
+                                <div className="flex justify-center my-2 overflow-hidden scale-90 origin-center min-h-[60px]">
+                                    <Turnstile
+                                        siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+                                        onSuccess={(token: string) => {
+                                            setCaptchaToken(token);
+                                            setError("");
+                                        }}
+                                        onError={() => setError("CAPTCHA failed to load.")}
+                                        options={{ theme: 'auto', appearance: 'always' }}
+                                    />
                                 </div>
                             )}
-                            <Button type="submit" disabled={isLoading || !captchaToken} className="w-full bg-gradient-to-r from-pink-500 to-rose-600 rounded-xl font-bold uppercase tracking-wide h-10 md:h-11 border border-white/10 hover:shadow-lg hover:shadow-pink-500/20 transition-all mt-1">
-                                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : show2FA ? t('common.actions.confirm') : t('common.auth.signIn')}
+
+                            {/* Submit Button */}
+                            <Button 
+                                type="submit" 
+                                disabled={isLoading || (import.meta.env.VITE_TURNSTILE_SITE_KEY && !captchaToken)} 
+                                className="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold h-11 rounded-xl shadow-md shadow-rose-600/20 transition-all text-xs uppercase tracking-wider mt-2"
+                            >
+                                {isLoading ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : show2FA ? (
+                                    isKm ? "ផ្ទៀងផ្ទាត់" : "Verify"
+                                ) : (
+                                    isKm ? "ចូលប្រើប្រាស់" : "Sign In"
+                                )}
                             </Button>
                         </form>
                     </Form>
 
-                    {/* Error Message */}
+                    {/* Divider to Bottom SSO */}
+                    <div className="relative my-4">
+                        <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-border/80" />
+                        </div>
+                        <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-wider">
+                            <span className="bg-card px-3 text-muted-foreground">
+                                {isKm ? "ឬបន្តជាមួយ" : "Or continue with"}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Bottom SSO Buttons (Telegram & Google) */}
+                    <SSOIcons />
+
+                    {/* Error Alert */}
                     <AnimatePresence>
                         {error && (
                             <m.div
-                                initial={{ opacity: 0, y: 10 }}
+                                initial={{ opacity: 0, y: 8 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: 10 }}
-                                className="mt-2 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-200 text-xs text-center font-kantumruy"
+                                exit={{ opacity: 0, y: 8 }}
+                                className="mt-3 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-300 text-xs text-center font-medium"
                             >
                                 {error}
                             </m.div>
                         )}
                     </AnimatePresence>
 
-                    {/* SSO Section */}
-                    <div className="mt-6">
-                        <div className="relative mb-6">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-white/5"></div>
-                            </div>
-                            <div className="relative flex justify-center text-[10px] uppercase font-black tracking-widest">
-                                <span className="bg-[#1a1a1a] px-3 text-white/20">{t('common.auth.orContinueWith')}</span>
-                            </div>
-                        </div>
-
-                        <SSOIcons />
-                    </div>
-
-                    <div className="mt-8 text-center">
-                        <p className="text-white/40 text-[10px] font-medium">
-                            {t('common.auth.noAccount')} {" "}
-                            <Link href={AUTH_URLS.SIGN_UP} className="text-pink-400 hover:text-pink-300 font-bold underline underline-offset-4 decoration-pink-500/30">
-                                {t('common.auth.signUpNow')}
+                    {/* Footer / Sign Up Link */}
+                    <div className="mt-6 text-center pt-4 border-t border-border/80">
+                        <p className="text-muted-foreground text-xs">
+                            {isKm ? "មិនទាន់មានគណនីមែនទេ?" : "Don't have an account?"}{" "}
+                            <Link to={AUTH_URLS.SIGN_UP} className="text-rose-600 dark:text-rose-400 hover:underline font-bold">
+                                {isKm ? "ចុះឈ្មោះឥឡូវនេះ" : "Sign up now"}
                             </Link>
                         </p>
                     </div>

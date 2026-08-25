@@ -1,5 +1,4 @@
-"use client";
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { m } from 'framer-motion';
 import { WeddingData } from "../types";
 import { moneaClient } from "@/lib/api-client";

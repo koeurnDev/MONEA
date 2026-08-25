@@ -1,5 +1,4 @@
-"use client";
-import { Layers, User } from "lucide-react";
+﻿import { Layers, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format, formatDistanceToNow } from "date-fns";
 

@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect, useMemo, useRef } from "react";
 import { WeddingData } from "../types";
 import { useImagePan } from "../shared/CinematicComponents";
@@ -13,65 +11,7 @@ const FALLBACK_IMAGES = [
 ];
 
 export const useSmartColor = (imageUrl: string) => {
-    const [colors, setColors] = useState({ primary: '#D4AF37', secondary: '#8E5A5A', dark: '#1a1a1a' });
-
-    useEffect(() => {
-        if (!imageUrl || typeof window === 'undefined') {
-            // Reset to defaults if no image
-            setColors({ primary: '#D4AF37', secondary: '#8E5A5A', dark: '#1a1a1a' });
-            return;
-        }
-
-        const img = new window.Image();
-        img.crossOrigin = "Anonymous";
-        img.src = imageUrl;
-
-        img.onload = async () => {
-            // Helper to yield to main thread (the "Good" pattern from INP Guide)
-            const yieldToMain = () => new Promise(resolve => setTimeout(resolve, 0));
-
-            try {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                if (!ctx) return;
-
-                canvas.width = 10;
-                canvas.height = 10;
-                ctx.drawImage(img, 0, 0, 10, 10);
-                const data = ctx.getImageData(0, 0, 10, 10).data;
-
-                let r = 0, g = 0, b = 0;
-                for (let i = 0; i < data.length; i += 4) {
-                    r += data[i];
-                    g += data[i + 1];
-                    b += data[i + 2];
-                    
-                    // Yield every 100 pixels to prevent main-thread bottlenecking
-                    // even on a small 10x10 canvas to ensure 100% responsiveness
-                    if (i % 400 === 0) await yieldToMain();
-                }
-                r = Math.floor(r / (data.length / 4));
-                g = Math.floor(g / (data.length / 4));
-                b = Math.floor(b / (data.length / 4));
-
-                const hex = "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
-
-                // Create a darker version for contrast
-                const darkR = Math.floor(r * 0.3);
-                const darkG = Math.floor(g * 0.3);
-                const darkB = Math.floor(b * 0.3);
-                const darkHex = "#" + ((1 << 24) + (darkR << 16) + (darkG << 8) + darkB).toString(16).slice(1);
-                
-                // Final yield before state update
-                await yieldToMain();
-                setColors({ primary: hex, secondary: '#FFFFFF', dark: darkHex });
-            } catch (e) {
-                console.error("Color sync failed", e);
-            }
-        };
-    }, [imageUrl]);
-
-    return colors;
+    return { primary: '#D4AF37', secondary: '#8E5A5A', dark: '#1a1a1a' };
 };
 
 export function useKhmerLegacy(wedding: WeddingData) {
@@ -135,31 +75,7 @@ export function useKhmerLegacy(wedding: WeddingData) {
         return () => clearInterval(timer);
     }, [wedding.date]);
 
-    // Prevent scrolling while overlay is active
-    useEffect(() => {
-        if (!revealed) {
-            if (typeof document !== 'undefined') {
-                document.body.style.overflow = 'hidden';
-            }
-        } else {
-            if (typeof document !== 'undefined') {
-                document.body.style.overflow = 'unset';
-            }
-            window.scrollTo(0, 0);
-            // UX Improvement: Do not auto-play music.
-            // Let the user explicitly initiate audio playback via the music button.
-            // if (musicUrl) {
-            //     setIsPlaying(true);
-            // }
-        }
-        return () => { 
-            if (typeof document !== 'undefined') {
-                document.body.style.overflow = 'unset'; 
-            }
-        };
-    }, [revealed, musicUrl]);
-
-    const heroImage = wedding.themeSettings?.heroImage || galleryImages[0] || "";
+    const heroImage = wedding.themeSettings?.heroImage || (galleryImages && galleryImages.length > 0 && galleryImages[0] !== "" ? galleryImages[0] : "/assets/khmer-legacy/621811254_905398285378636_5240747682765358044_n.jpg");
     const smartColors = useSmartColor(heroImage);
 
     const heroPan = useImagePan(wedding.themeSettings?.heroImageX || '50%', wedding.themeSettings?.heroImagePosition || '0%', 'heroImageX', 'heroImagePosition');

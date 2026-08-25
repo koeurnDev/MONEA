@@ -1,6 +1,4 @@
-"use client";
-
-import { SWRConfig } from "swr";
+﻿import { SWRConfig } from "swr";
 import { ReactNode, useState, useEffect } from "react";
 
 function localStorageProvider() {

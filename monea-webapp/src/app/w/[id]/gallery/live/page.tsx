@@ -1,7 +1,6 @@
-'use client'
-
 import { useState, useEffect } from "react";
-import Image from "next/image";
+import { useParams } from "react-router-dom";
+import { getApiUrl } from "@/lib/api-url";
 
 type GalleryItem = {
     id: string;
@@ -10,19 +9,10 @@ type GalleryItem = {
     caption: string | null;
 };
 
-export default function LiveSlideshowPage({ 
-    params 
-}: { 
-    params: Promise<{ id: string }> 
-}) {
-    const [id, setId] = useState<string>("");
+export default function LiveSlideshowPage() {
+    const { id } = useParams();
     const [items, setItems] = useState<GalleryItem[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
-
-    // Resolve params promise for Next.js 15
-    useEffect(() => {
-        params.then(p => setId(p.id));
-    }, [params]);
 
     // Fetch items periodically
     useEffect(() => {
@@ -30,8 +20,7 @@ export default function LiveSlideshowPage({
         
         const fetchItems = async () => {
             try {
-                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://monea-api.seabkoeurn64.workers.dev';
-                const res = await fetch(`${apiUrl}/api/gallery/${id}`);
+                const res = await fetch(getApiUrl(`api/gallery/${id}`));
                 const data = await res.json();
                 if (data.items) {
                     setItems(prev => {
@@ -82,10 +71,9 @@ export default function LiveSlideshowPage({
                     <video src={currentItem.url} autoPlay muted loop className="max-w-full max-h-[90vh] rounded-lg shadow-2xl" />
                 ) : (
                     <div className="relative w-full h-[90vh]">
-                        <Image
+                        <img
                             src={currentItem.url}
-                            alt="Live Slide"
-                            fill
+                            alt="Live Slide" 
                             className="object-contain rounded-lg shadow-2xl transition-opacity duration-500"
                         />
                     </div>

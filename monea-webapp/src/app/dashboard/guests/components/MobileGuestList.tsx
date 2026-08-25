@@ -1,7 +1,6 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
-import { Plus, CheckCircle2, Copy, Edit, Trash2, Users } from "lucide-react";
+import { Plus, CheckCircle2, Copy, Edit, Trash2, Users, MoreVertical } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/i18n/LanguageProvider";
 
@@ -67,9 +66,9 @@ export function MobileGuestList({
     return (
         <div className="md:hidden space-y-3 p-4 print:hidden">
             <div className="grid px-4 pb-2" style={{ gridTemplateColumns: '1.5fr 1fr auto' }}>
-                <span className="text-[11px] font-black text-muted-foreground uppercase tracking-widest opacity-60">{t("guests.cols.name")}</span>
-                <span className="text-[11px] font-black text-muted-foreground uppercase tracking-widest text-center opacity-60">{t("guests.cols.location")}</span>
-                <span className="text-[11px] font-black text-muted-foreground uppercase tracking-widest text-right opacity-60">{t("guests.cols.actions")}</span>
+                <span className="text-xs font-bold font-kantumruy text-muted-foreground opacity-70">{t("guests.cols.name")}</span>
+                <span className="text-xs font-bold font-kantumruy text-muted-foreground text-center opacity-70">{t("guests.cols.location")}</span>
+                <span className="text-xs font-bold font-kantumruy text-muted-foreground text-right opacity-70">{t("guests.cols.actions")}</span>
             </div>
             {guests.slice(0, visibleCount).map((g: any) => (
                 <div key={g.id} className="bg-background rounded-3xl px-4 py-4 shadow-[0_4px_20px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.2)] grid items-center min-h-[72px] border border-black/[0.02] dark:border-white/[0.02]" style={{ gridTemplateColumns: '1.5fr 1fr auto' }}>
@@ -84,44 +83,37 @@ export function MobileGuestList({
                         </span>
                     </div>
 
-                    <div className="flex items-center gap-2 justify-end">
-                        <Button
-                            variant={copiedId === g.id ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => onCopyLink(g.name, g.id)}
-                            className={cn(
-                                "h-10 px-4 rounded-xl font-kantumruy font-black text-[11px] transition-all border-none shadow-sm",
-                                copiedId === g.id
-                                    ? "bg-green-600 hover:bg-green-700 text-white"
-                                    : "bg-muted/80 text-muted-foreground hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20"
-                            )}
-                        >
-                            {copiedId === g.id ? (
-                                <CheckCircle2 size={15} />
-                            ) : (
-                                <Copy size={15} />
-                            )}
-                        </Button>
-                        {!isArchived && (
-                            <>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-10 w-10 text-muted-foreground hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/20 rounded-xl bg-muted/30 border-none"
-                                    onClick={() => onEdit(g)}
-                                >
-                                    <Edit className="h-4 w-4" />
+                    <div className="flex items-center justify-end">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-10 w-10 text-muted-foreground hover:bg-muted/50 rounded-xl">
+                                    <MoreVertical className="h-5 w-5" />
                                 </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-10 w-10 text-muted-foreground hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 rounded-xl bg-muted/30 border-none"
-                                    onClick={() => onDelete(g.id, g.name)}
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </>
-                        )}
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48 rounded-2xl p-2 font-kantumruy">
+                                <DropdownMenuItem onClick={() => onCopyLink(g.name, g.id)} className="gap-3 py-3 rounded-xl cursor-pointer">
+                                    {copiedId === g.id ? (
+                                        <CheckCircle2 size={16} className="text-green-600" />
+                                    ) : (
+                                        <Copy size={16} className="text-muted-foreground" />
+                                    )}
+                                    <span className="font-bold">{copiedId === g.id ? t("guests.copied", { defaultValue: "បានចម្លង" }) : t("guests.copyLink", { defaultValue: "ចម្លងតំណភ្ជាប់" })}</span>
+                                </DropdownMenuItem>
+                                
+                                {!isArchived && (
+                                    <>
+                                        <DropdownMenuItem onClick={() => onEdit(g)} className="gap-3 py-3 rounded-xl cursor-pointer">
+                                            <Edit size={16} className="text-blue-600" />
+                                            <span className="font-bold">កែប្រែ</span>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => onDelete(g.id, g.name)} className="gap-3 py-3 rounded-xl cursor-pointer text-rose-600 focus:text-rose-700 focus:bg-rose-50">
+                                            <Trash2 size={16} />
+                                            <span className="font-bold">លុប</span>
+                                        </DropdownMenuItem>
+                                    </>
+                                )}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                 </div>
             ))}

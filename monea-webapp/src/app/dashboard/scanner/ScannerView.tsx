@@ -1,26 +1,16 @@
-"use client";
-
-import React, { useState, useRef, useEffect } from "react";
-import dynamic from "next/dynamic";
+import React, { lazy, Suspense, useState, useRef, useEffect } from "react";
 
 // Lazy-load the QR scanner library (~130kB) only when this component mounts
-const QrScanner = dynamic<{
-    delay: number;
-    onError: (err: any) => void;
-    onScan: (data: any) => Promise<void>;
-    style?: React.CSSProperties;
-    constraints?: object;
-}>(() => import("react-qr-scanner"), {
-    ssr: false,
-    loading: () => (
-        <div className="flex items-center justify-center h-64 bg-black/5 rounded-2xl">
-            <div className="flex flex-col items-center gap-3">
-                <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                <p className="text-sm text-muted-foreground font-kantumruy">កំពុងបើក Camera...</p>
-            </div>
+const QrScannerLoading = () => (
+    <div className="flex items-center justify-center h-64 bg-black/5 rounded-2xl">
+        <div className="flex flex-col items-center gap-3">
+            <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+            <p className="text-sm text-muted-foreground font-kantumruy">កំពុងបើក Camera...</p>
         </div>
-    ),
-});
+    </div>
+);
+const QrScanner = lazy(() => import("react-qr-scanner"));
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -109,15 +99,17 @@ export default function ScannerView({ weddingId }: { weddingId?: string }) {
             {/* Scanner Container */}
             <div className="relative w-full aspect-square rounded-[2.5rem] overflow-hidden bg-black shadow-2xl border-4 border-card group">
                 {isCameraActive ? (
-                    <QrScanner
-                        delay={300}
-                        onError={handleError}
-                        onScan={handleScan}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        constraints={{
-                            video: { facingMode: "environment" }
-                        }}
-                    />
+                    <Suspense fallback={<QrScannerLoading />}>
+                        <QrScanner
+                            delay={300}
+                            onError={handleError}
+                            onScan={handleScan}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            constraints={{
+                                video: { facingMode: "environment" }
+                            }}
+                        />
+                    </Suspense>
                 ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center text-white/50 gap-4">
                         <Camera className="w-16 h-16 opacity-20" />

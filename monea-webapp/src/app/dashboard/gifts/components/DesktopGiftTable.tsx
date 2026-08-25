@@ -1,5 +1,3 @@
-"use client";
-
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Gift, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -36,7 +34,7 @@ export function DesktopGiftTable({
                 </TableHeader>
                 <TableBody>
                     <TableRow className="border-none print:border-b-2 print:border-rose-100 hover:bg-transparent hidden print:table-row bg-rose-50/20">
-                        <TableHead className="h-14 px-8 text-[10px] print:text-rose-600 font-black uppercase tracking-widest w-20 border-r print:border-rose-100/50">{t("gifts.table.no")}</TableHead>
+                        <TableHead className="h-14 px-4 text-[10px] print:text-rose-600 font-black uppercase tracking-widest w-16 text-center whitespace-nowrap border-r print:border-rose-100/50">{t("gifts.table.no")}</TableHead>
                         <TableHead className="h-14 px-8 text-[10px] print:text-rose-600 font-black uppercase tracking-widest border-r print:border-rose-100/50">{t("gifts.table.name")}</TableHead>
                         <TableHead className="h-14 px-8 text-[10px] print:text-rose-600 font-black uppercase tracking-widest border-r print:border-rose-100/50">{t("gifts.table.source")}</TableHead>
                         <TableHead className="h-14 px-8 text-[10px] print:text-rose-600 font-black uppercase tracking-widest border-r print:border-rose-100/50">{t("gifts.table.amount")}</TableHead>
@@ -45,7 +43,7 @@ export function DesktopGiftTable({
                     </TableRow>
 
                     <TableRow className="border-none print:hidden hover:bg-transparent">
-                        <TableHead className="h-14 px-8 text-xs font-black text-muted-foreground uppercase tracking-widest w-20">{t("gifts.table.no")}</TableHead>
+                        <TableHead className="h-14 px-4 text-xs font-black text-muted-foreground uppercase tracking-widest w-16 text-center whitespace-nowrap">{t("gifts.table.no")}</TableHead>
                         <TableHead className="px-6 py-4 text-left text-[10px] font-black text-muted-foreground uppercase tracking-widest bg-muted/30">{t("gifts.table.name")}</TableHead>
                         <TableHead
                             className="h-14 px-8 text-xs font-black text-muted-foreground uppercase tracking-widest cursor-pointer hover:text-foreground transition-colors group"
@@ -104,8 +102,8 @@ export function DesktopGiftTable({
                     ) : (
                         gifts.map((g, index) => (
                             <TableRow key={g.id} className="border-none print:border-gray-100 hover:bg-muted/50 transition-colors group">
-                                <TableCell className="px-8 py-5 text-muted-foreground print:text-slate-900 font-bold font-kantumruy text-sm print:border-r print:border-gray-100 italic">
-                                    {g.sequenceNumber || "-"}
+                                <TableCell className="px-4 py-5 text-muted-foreground print:text-slate-900 font-bold font-kantumruy text-sm print:border-r print:border-gray-100 italic w-16 text-center whitespace-nowrap">
+                                    {g.sequenceNumber ? String(g.sequenceNumber).padStart(2, '0') : String(index + 1).padStart(2, '0')}
                                 </TableCell>
                                 <TableCell className="px-8 py-5 print:border-r print:border-gray-100 max-w-[180px]">
                                     <span className="font-bold text-sm text-foreground font-kantumruy leading-tight truncate block">

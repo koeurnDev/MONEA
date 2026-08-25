@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { moneaClient } from "@/lib/api-client";
 import { useTranslation } from "@/i18n/LanguageProvider";
@@ -15,10 +13,13 @@ export function useGuests() {
     const [cachedPackageType, setCachedPackageType] = useState<string | null>(null);
 
     const [pagination, setPagination] = useState<any>(null);
+    const [offset, setOffset] = useState(0);
+    const LIMIT = 50;
+    const [loadingMore, setLoadingMore] = useState(false);
 
     // 2. UI Control State
     const [search, setSearch] = useState("");
-    const [open, setOpen] = useState(false);
+    const [open, setOpenInternal] = useState(false);
     const [loading, setLoading] = useState(true);
     const [visibleCount, setVisibleCount] = useState(20);
 
@@ -31,7 +32,7 @@ export function useGuests() {
         setLoading(true);
         try {
             const [guestsRes, weddingRes] = await Promise.all([
-                moneaClient.get<any>("/api/guests?limit=1000"), // Fetch more for initial view to maintain UX
+                moneaClient.get<any>(`/api/guests?limit=${LIMIT}&offset=0`),
                 moneaClient.get<any>("/api/wedding")
             ]);
 
@@ -41,6 +42,7 @@ export function useGuests() {
                 setGuests(items);
                 setFilteredGuests(items);
                 setPagination(data.pagination || null);
+                setOffset(LIMIT);
             }
             if (weddingRes.data) {
                 const wData = weddingRes.data;
@@ -54,6 +56,36 @@ export function useGuests() {
             console.error("Failed to load data", e);
         } finally {
             setLoading(false);
+        }
+    }
+
+    async function fetchMoreGuests() {
+        if (!pagination?.hasMore || loadingMore) return;
+        setLoadingMore(true);
+        try {
+            const res = await moneaClient.get<any>(`/api/guests?limit=${LIMIT}&offset=${offset}`);
+            if (res.data && res.data.items) {
+                const newItems = res.data.items;
+                setGuests(prev => [...prev, ...newItems]);
+                // Ensure search filter is applied to new items
+                if (search) {
+                    const lower = search.toLowerCase();
+                    const matchedNew = newItems.filter((g: any) => 
+                        g.name.toLowerCase().includes(lower) ||
+                        (g.source && g.source.toLowerCase().includes(lower)) ||
+                        (g.group && g.group.toLowerCase().includes(lower))
+                    );
+                    setFilteredGuests(prev => [...prev, ...matchedNew]);
+                } else {
+                    setFilteredGuests(prev => [...prev, ...newItems]);
+                }
+                setPagination(res.data.pagination || null);
+                setOffset(prev => prev + LIMIT);
+            }
+        } catch (e) {
+            console.error("Failed to load more guests", e);
+        } finally {
+            setLoadingMore(false);
         }
     }
 
@@ -178,11 +210,21 @@ export function useGuests() {
     };
 
     const copyLink = (name: string, guestId: string) => {
+        if (!isPremium) {
+            showToast({
+                title: t("common.upgradeRequired", { defaultValue: "ទាមទារគណនី PRO" }),
+                description: t("guests.upgradeToShare", { defaultValue: "សូមធ្វើការ Upgrade ទៅគណនី PRO ដើម្បីអាចចម្លង និងផ្ញើលីងធៀបទៅកាន់ភ្ញៀវរបស់អ្នកបាន។" }),
+                type: "error",
+                action: { label: t("guests.upgradeBtn", { defaultValue: "Upgrade Now" }), onClick: () => window.location.href = "/dashboard/upgrade" }
+            });
+            return;
+        }
+        
         if (!wedding?.id) return;
         const link = `${window.location.origin}/invite/${wedding.id}?to=${encodeURIComponent(name)}&g=${guestId}`;
         
         const isAnniversary = wedding.eventType === 'anniversary';
-        const eventName = isAnniversary ? "កម្មវិធីខួបអាពាហ៍ពិពាហ៍" : "កម្មវិធីមង្គលការ";
+        const eventName = isAnniversary ? "កម្មវិធីភ្ជាប់ពាក្យ" : "កម្មវិធីមង្គលការ";
         
         const message = `សួស្តី ${name} 🤍\nយើងខ្ញុំសូមគោរពអញ្ជើញចូលរួម${eventName}របស់យើងខ្ញុំ។\n\nសូមចុចលីងខាងក្រោមដើម្បីមើលធៀបអញ្ជើញ និងទីតាំងកម្មវិធី៖\n${link}`;
         
@@ -238,6 +280,20 @@ export function useGuests() {
     const currentPackage = wedding?.packageType || cachedPackageType;
     const isPremium = currentPackage === "PRO" || currentPackage === "PREMIUM";
 
+    const setOpen = (v: boolean) => {
+        // Prevent opening the "Add Guest" modal if limit reached
+        if (v && !isPremium && guests.length >= 20 && !editingGuest) {
+            showToast({
+                title: t("common.upgradeRequired", { defaultValue: "ទាមទារគណនី PRO" }),
+                description: t("guests.upgradeToLimit", { defaultValue: "គណនី Free អាចបញ្ចូលភ្ញៀវបានត្រឹម 20 នាក់ប៉ុណ្ណោះ។ សូមធ្វើការ Upgrade ទៅគណនី PRO ដើម្បីបញ្ចូលភ្ញៀវដោយគ្មានដែនកំណត់!" }),
+                type: "error",
+                action: { label: t("guests.upgradeBtn", { defaultValue: "Upgrade Now" }), onClick: () => window.location.href = "/dashboard/upgrade" }
+            });
+            return;
+        }
+        setOpenInternal(v);
+    };
+
     return {
         guests,
         filteredGuests,
@@ -247,6 +303,9 @@ export function useGuests() {
         open,
         setOpen,
         loading,
+        loadingMore,
+        fetchMoreGuests,
+        hasMore: pagination?.hasMore || false,
         visibleCount,
         setVisibleCount,
         copiedId,

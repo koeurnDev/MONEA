@@ -1,5 +1,4 @@
-"use client";
-import React, { useState, useRef, useEffect } from 'react';
+﻿import React, { useState, useRef, useEffect } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
 import { Music2, Volume2, VolumeX, Disc } from 'lucide-react';
 import { WeddingData } from '../types';

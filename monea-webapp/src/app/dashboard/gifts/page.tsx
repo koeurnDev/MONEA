@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus, Gift, Monitor, Printer, Eye, EyeOff, Search, X } from "lucide-react";
@@ -7,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { GiftForm } from "./gift-form";
-import Link from "next/link";
+import { Link } from 'react-router-dom';
 import { useTranslation } from "@/i18n/LanguageProvider";
 
 // Extracted Components
@@ -232,7 +230,7 @@ export default function GiftPage() {
                         <span className="truncate">{wedding?.themeSettings?.showGiftAmounts === false ? t("gifts.actions.showAmount") : t("gifts.actions.hideAmount")}</span>
                     </Button>
 
-                    <Link href="/dashboard/gifts/live" target="_blank" prefetch={false} className="flex-1 sm:flex-none">
+                    <Link to="/dashboard/gifts/live" target="_blank" className="flex-1 sm:flex-none">
                         <Button variant="outline" className="w-full h-10 px-4 md:px-6 border-none bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground rounded-xl font-kantumruy font-bold transition-all text-[11px] md:text-sm shadow-sm">
                             <Monitor className="mr-2 h-4 w-4" /> {t("gifts.actions.live")}
                         </Button>

@@ -1,9 +1,7 @@
-"use client";
-
 import * as React from "react";
 import { AnimatePresence, m } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import Image from "next/image";
+// next/image replaced with <img>;
 
 interface GallerySlideshowProps {
     images: string[];
@@ -36,13 +34,12 @@ export const GallerySlideshow = ({ images }: GallerySlideshowProps) => {
                     transition={{ duration: 0.8 }}
                     className="absolute inset-0"
                 >
-                    <Image
+                    <img
                         src={images[index]}
-                        alt={`Gallery ${index + 1}`}
-                        fill
+                        alt={`Gallery ${index + 1}`} 
                         className={`object-cover transition-opacity duration-700 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
-                        priority={index === 0}
-                        onLoadingComplete={() => setIsLoading(false)}
+                        
+                        onLoad={() => setIsLoading(false)}
                     />
                     {isLoading && (
                         <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">

@@ -1,4 +1,3 @@
-"use client";
 import * as React from 'react';
 import { Send, MessageSquare } from 'lucide-react';
 import { m } from 'framer-motion';
@@ -52,7 +51,7 @@ export const GuestbookSection = ({ wedding, guestName }: { wedding: WeddingData;
                     viewport={{ once: true }}
                     className="text-center mb-16"
                 >
-                    <h2 className="text-3xl md:text-5xl font-kantumruy font-black text-slate-900 tracking-widest uppercase mb-4">
+                    <h2 className="text-2xl md:text-4xl font-kantumruy font-bold text-slate-900 tracking-normal mb-4">
                         សៀវភៅជូនពរ
                     </h2>
                     <div className="w-12 h-1 bg-[#805C00] mx-auto mb-6" />

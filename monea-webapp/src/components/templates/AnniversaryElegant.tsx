@@ -1,82 +1,169 @@
-import React from 'react';
-import type { WeddingData } from './types';
-import { format } from 'date-fns';
-import { km } from 'date-fns/locale';
+import React, { useState, useRef, useEffect } from 'react';
+import { m, AnimatePresence } from 'framer-motion';
+import type { TemplateProps } from './types';
+import { Volume2, VolumeX } from 'lucide-react';
 
+import { AnniversaryHero } from './anniversary-elegant/AnniversaryHero';
+import { AnniversaryInvitation } from './anniversary-elegant/AnniversaryInvitation';
+import { AnniversaryStory } from './anniversary-elegant/AnniversaryStory';
+import { AnniversaryCountdown } from './anniversary-elegant/AnniversaryCountdown';
 import AnniversaryVows from './anniversary-elegant/AnniversaryVows';
 import AnniversarySchedule from './anniversary-elegant/AnniversarySchedule';
 import AnniversaryGallery from './anniversary-elegant/AnniversaryGallery';
 import AnniversaryLocation from './anniversary-elegant/AnniversaryLocation';
-import AnniversaryGuestbook from './anniversary-elegant/AnniversaryGuestbook';
+import { AnniversaryGift } from './anniversary-elegant/AnniversaryGift';
+import { AnniversaryThankYou } from './anniversary-elegant/AnniversaryThankYou';
 
-export default function AnniversaryElegant({ wedding }: { wedding: WeddingData }) {
-    const { groomName, brideName, date, location } = wedding;
-    
-    // Convert to Khmer digits helper
-    const toKhmerNum = (num: number | string) => {
-        const khmerDigits = ['០','១','២','៣','៤','៥','៦','៧','៨','៩'];
-        return String(num).split('').map(d => /\d/.test(d) ? khmerDigits[parseInt(d)] : d).join('');
+export default function AnniversaryElegant({ wedding, guestName }: TemplateProps) {
+    const { groomName, brideName } = wedding;
+    const [revealed, setRevealed] = useState(false);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+
+    const primaryColor = wedding.themeSettings?.primaryColor || "#3B0764";
+    const musicUrl = wedding.themeSettings?.musicUrl;
+
+    const isWedding = wedding.eventType === 'wedding';
+
+    const entranceHeader = isWedding 
+        ? "— សិរីមង្គលអាពាហ៍ពិពាហ៍ —" 
+        : "— សិរីមង្គលភ្ជាប់ពាក្យ —";
+
+    const coverPhoto = wedding.themeSettings?.coverImageUrl || 
+                       wedding.themeSettings?.heroImage || 
+                       wedding.galleryItems?.[0]?.url || 
+                       '/assets/anniversary-elegant/anniversary-elegant-bg.webp';
+
+    // Support for dashboard force reveal
+    useEffect(() => {
+        const handleForceReveal = () => setRevealed(true);
+        window.addEventListener('FORCE_REVEAL', handleForceReveal);
+        return () => window.removeEventListener('FORCE_REVEAL', handleForceReveal);
+    }, []);
+
+    // Direct User Gesture Audio Playback (iOS Safari & Android Chrome Autoplay policy)
+    const handleOpenEnvelope = () => {
+        setRevealed(true);
+        setIsPlaying(true);
+        if (musicUrl && audioRef.current) {
+            audioRef.current.play().catch((err) => {
+                console.log("Autoplay blocked by browser policy:", err);
+            });
+        }
     };
 
-    const dDate = new Date(date);
-    const day = toKhmerNum(format(dDate, 'dd', { locale: km }));
-    const month = format(dDate, 'MMMM', { locale: km });
-    const year = toKhmerNum(format(dDate, 'yyyy', { locale: km }));
-    
-    // For anniversary, we usually display "GroomName & BrideName" but since it's Husband and Wife, we use the same fields.
-    
-    return (
-        <div className="w-full bg-[#FDFBF7] font-kantumruy text-slate-800">
-            <div 
-                className="relative w-full min-h-screen bg-cover bg-center bg-no-repeat flex flex-col items-center justify-center font-kantumruy"
-                style={{ backgroundImage: `url('/assets/anniversary-elegant/anniversary-elegant-bg.webp')` }}
-                id="hero"
-            >
-                <div className="absolute inset-0 bg-white/20" /> {/* Slight overlay for text readability */}
-                
-                <div className="relative z-10 p-8 text-center max-w-lg mx-auto flex flex-col items-center gap-6">
-                    
-                    <h3 className="text-xl md:text-2xl font-black text-purple-900 tracking-wider">
-                        សិរីមង្គលខួបអាពាហ៍ពិពាហ៍
-                    </h3>
-                    
-                    <div className="space-y-2">
-                        <h1 className="text-4xl md:text-6xl font-khmer-moul text-purple-800 leading-relaxed">
-                            {groomName}
-                        </h1>
-                        <div className="text-2xl text-purple-400 italic font-serif">
-                            និង
-                        </div>
-                        <h1 className="text-4xl md:text-6xl font-khmer-moul text-purple-800 leading-relaxed">
-                            {brideName}
-                        </h1>
-                    </div>
-                    
-                    <div className="w-16 h-px bg-purple-300 mx-auto my-4" />
-                    
-                    <div className="space-y-4 text-purple-900">
-                        <p className="text-sm font-medium">សូមគោរពអញ្ជើញចូលរួមជាអធិបតី</p>
-                        <div className="text-xl font-bold bg-white/50 px-6 py-3 rounded-2xl backdrop-blur-sm border border-white/50 shadow-sm">
-                            ថ្ងៃទី {day} ខែ {month} ឆ្នាំ {year}
-                        </div>
-                        {location && (
-                            <p className="text-xs md:text-sm mt-4 leading-relaxed max-w-sm mx-auto opacity-80">
-                                {location}
-                            </p>
-                        )}
-                    </div>
-                </div>
-            </div>
+    const togglePlay = () => {
+        if (!audioRef.current) return;
+        if (isPlaying) {
+            audioRef.current.pause();
+            setIsPlaying(false);
+        } else {
+            audioRef.current.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+        }
+    };
 
-            <AnniversaryVows wedding={wedding} />
-            <AnniversarySchedule wedding={wedding} />
-            <AnniversaryGallery wedding={wedding} />
-            <AnniversaryLocation wedding={wedding} />
-            <AnniversaryGuestbook wedding={wedding} />
-            
-            <footer className="py-8 text-center text-xs text-purple-900/40 font-medium tracking-widest uppercase">
-                Designed with MONEA
-            </footer>
+    return (
+        <div 
+            style={{ "--primary": primaryColor } as React.CSSProperties}
+            className="w-full bg-[#FAF7F2] font-kantumruy text-slate-800 relative min-h-screen selection:bg-[var(--primary)] selection:text-white"
+        >
+            {/* Background Audio */}
+            {musicUrl && (
+                <audio ref={audioRef} id="bg-music" src={musicUrl} loop preload="auto" />
+            )}
+
+            {/* Entrance Cover / Reveal Screen */}
+            <AnimatePresence>
+                {!revealed && (
+                    <m.div 
+                        initial={{ opacity: 1 }}
+                        exit={{ opacity: 0, scale: 1.05, filter: 'blur(10px)' }}
+                        transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
+                        onClick={handleOpenEnvelope}
+                        className="fixed inset-0 z-[100] flex flex-col justify-between items-center p-6 py-10 text-center select-none overflow-hidden bg-[#FBF6F3] cursor-pointer"
+                        style={{ isolation: 'isolate' }}
+                    >
+                        {/* Romantic Blush Pink Envelope Background */}
+                        <div className="absolute inset-0 z-0 overflow-hidden">
+                            <img
+                                src="/assets/anniversary-elegant/envelope-cover.jpg" 
+                                className="w-full h-full object-cover transform scale-100 transition-transform duration-1000"
+                                alt="Romantic Envelope Cover"
+                            />
+                            {/* Soft Warm Ambient Lighting */}
+                            <div className="absolute inset-0 bg-gradient-to-b from-[#FBF6F3]/50 via-transparent to-[#FBF6F3]/40 pointer-events-none" />
+                        </div>
+
+                        {/* Top: Header & Couple Names in Sky Area */}
+                        <m.div 
+                            initial={{ opacity: 0, y: -15 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8 }}
+                            className="relative z-10 pt-8 sm:pt-10 space-y-1.5 max-w-xs mx-auto"
+                        >
+                            <p className="font-khmer-moul text-xs sm:text-sm text-[#4A154B] tracking-wider drop-shadow-xs">
+                                {entranceHeader}
+                            </p>
+
+                            <h2 className="font-khmer-moul text-lg sm:text-xl text-[#3B0764] leading-relaxed">
+                                {groomName} & {brideName}
+                            </h2>
+                        </m.div>
+
+                        {/* Middle: Clear view of the vintage envelope flap & wax seal (Interactive click target) */}
+                        <div 
+                            onClick={handleOpenEnvelope}
+                            className="flex-1 w-full cursor-pointer"
+                            title="សូមចុចបើកធៀប"
+                        />
+
+                        {/* Bottom Area: Romantic Glassmorphic Guest Honorific Card */}
+                        <m.div
+                            initial={{ opacity: 0, y: 15 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8, delay: 0.3 }}
+                            onClick={handleOpenEnvelope}
+                            className="relative z-10 pb-6 sm:pb-8 w-full max-w-xs mx-auto text-center cursor-pointer"
+                        >
+                            <div className="bg-white/85 backdrop-blur-md border border-rose-200/90 rounded-2xl px-5 py-2.5 shadow-[0_4px_20px_rgba(244,114,182,0.18)] inline-block max-w-[92%] space-y-0.5 hover:scale-105 active:scale-95 transition-transform duration-300">
+                                <p className="text-[10px] text-rose-700 font-bold font-kantumruy">
+                                    — សូមគោរពអញ្ជើញ —
+                                </p>
+                                <h4 className="font-khmer-moul text-xs sm:text-sm text-[#4A154B] leading-relaxed">
+                                    {guestName || "ឯកឧត្តម លោកជំទាវ លោក លោកស្រី"}
+                                </h4>
+                            </div>
+                        </m.div>
+                    </m.div>
+                )}
+            </AnimatePresence>
+
+            {/* Main Stage Canvas */}
+            <main className="relative max-w-[540px] mx-auto min-h-screen shadow-2xl bg-white flex flex-col overflow-hidden">
+                <AnniversaryHero wedding={wedding} />
+                <AnniversaryInvitation wedding={wedding} />
+                <AnniversaryStory wedding={wedding} />
+                <AnniversaryCountdown wedding={wedding} />
+                <AnniversaryVows wedding={wedding} />
+                <AnniversarySchedule wedding={wedding} />
+                <AnniversaryGallery wedding={wedding} />
+                <AnniversaryLocation wedding={wedding} />
+                <AnniversaryGift wedding={wedding} />
+                <AnniversaryThankYou wedding={wedding} />
+            </main>
+
+            {/* Floating Music Button */}
+            {musicUrl && (
+                <div className="fixed bottom-6 right-6 z-40">
+                    <button
+                        onClick={togglePlay}
+                        className="w-12 h-12 rounded-full bg-[#3B0764] text-amber-200 border-2 border-amber-300/50 flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition-all"
+                        aria-label="Toggle Music"
+                    >
+                        {isPlaying ? <Volume2 size={20} /> : <VolumeX size={20} />}
+                    </button>
+                </div>
+            )}
         </div>
     );
 }

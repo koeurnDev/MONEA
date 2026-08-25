@@ -152,7 +152,7 @@ staffRouter.post('/login', async (c) => {
 });
 
 staffRouter.get('/', async (c) => {
-    const user = await getServerUser();
+    const user = await getServerUser(c.req.raw);
     if (!user) return c.json({ error: "Unauthorized" }, 401);
 
     let wedding = await prisma.wedding.findFirst({
@@ -192,7 +192,7 @@ staffRouter.get('/', async (c) => {
 
 staffRouter.post('/', async (c) => {
     try {
-        const user = await getServerUser();
+        const user = await getServerUser(c.req.raw);
         if (!user) return c.json({ error: "Unauthorized" }, 401);
 
         let wedding = await prisma.wedding.findFirst({
@@ -249,7 +249,7 @@ staffRouter.post('/', async (c) => {
 });
 
 staffRouter.delete('/', async (c) => {
-    const user = await getServerUser();
+    const user = await getServerUser(c.req.raw);
     if (!user) return c.json({ error: "Unauthorized" }, 401);
 
     const id = c.req.query("id");

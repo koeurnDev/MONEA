@@ -1,5 +1,5 @@
-import * as React from "react";
-import Image from 'next/image';
+﻿import * as React from "react";
+// next/image replaced with <img>;
 import { WeddingData } from "../types";
 import { RevealSection, CinematicPlaceholder } from '../shared/CinematicComponents';
 import { useTranslation } from "@/i18n/LanguageProvider";
@@ -29,9 +29,8 @@ export function EnglishInvitation({
                     <div className="w-full md:flex-1 space-y-6 md:space-y-10 relative z-10 flex flex-col items-center md:items-start text-center md:text-left pt-8">
                         {/* Khmer Symbol Watermark */}
                         <div className="absolute top-0 right-0 md:-right-20 opacity-[0.07] pointer-events-none select-none -z-10 w-full aspect-square max-w-[300px] md:max-w-[500px]">
-                            <Image 
-                                src="/images/assets/khmer-symbol.png" 
-                                fill 
+                            <img 
+                                src="/images/assets/khmer-symbol.png"  
                                 className="object-contain" 
                                 style={{ mixBlendMode: 'multiply' }}
                                 alt="" 
@@ -104,10 +103,9 @@ export function EnglishInvitation({
                             className="aspect-[3/4] w-full max-w-[280px] md:max-w-md rounded-sm overflow-hidden shadow-2xl border-lux rotate-[1deg] md:rotate-[2deg] relative bg-gold/5"
                         >
                             {galleryImages[11 % galleryImages.length] ? (
-                                <Image 
-                                    src={galleryImages[11 % galleryImages.length]} 
-                                    fill 
-                                    sizes="(max-width: 768px) 50vw, 33vw" 
+                                <img 
+                                    src={galleryImages[11 % galleryImages.length]}  
+                                     
                                     className={`object-cover ${englishPan?.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-105'}`} 
                                     style={{ 
                                         objectPosition: `${englishPan?.localX} ${englishPan?.localY}`,

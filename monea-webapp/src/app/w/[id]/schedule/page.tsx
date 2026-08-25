@@ -1,29 +1,28 @@
-export const dynamic = 'force-dynamic';
-import { prisma } from "@/lib/prisma";
-import { Clock, Calendar, MapPin } from "lucide-react";
+import { Clock, Calendar, Loader2 } from "lucide-react";
+import { useParams } from "react-router-dom";
+import useSWR from "swr";
 
-async function getActivities(weddingId: string) {
-    return await prisma.activity.findMany({
-        where: { weddingId },
-        orderBy: { order: 'asc' },
-    });
-}
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-export default async function SchedulePage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
-    const activities = await getActivities(id);
+export default function SchedulePage() {
+    const { id } = useParams();
+    const { data: activitiesResponse, error, isLoading } = useSWR(id ? `/api/activities?weddingId=${id}` : null, fetcher);
+
+    if (isLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin" /></div>;
+    if (error) return <div>Failed to load schedule</div>;
+
+    const activities = activitiesResponse?.data || [];
 
     return (
         <div className="min-h-screen bg-[#FFFDF5] p-4 pb-24">
             <div className="max-w-md mx-auto">
                 <div className="flex items-center justify-between mb-8">
                     <h1 className="text-2xl font-moul text-red-900">កម្មវិធីការ</h1>
-                    {/* Add back button or home link if needed */}
                 </div>
 
                 {activities.length > 0 ? (
                     <div className="relative border-l-2 border-red-200 ml-4 space-y-8">
-                        {activities.map((activity, index) => (
+                        {activities.map((activity: any) => (
                             <div key={activity.id} className="relative pl-6">
                                 {/* Timeline Dot */}
                                 <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-red-600 border-2 border-[#FFFDF5]"></div>

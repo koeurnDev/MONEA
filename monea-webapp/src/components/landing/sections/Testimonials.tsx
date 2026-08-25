@@ -1,5 +1,3 @@
-"use client";
-
 import { m } from 'framer-motion';
 import { Quote, Star } from "lucide-react";
 import { useTranslation } from "@/i18n/LanguageProvider";
@@ -25,7 +23,7 @@ export function Testimonials() {
     ];
 
     return (
-        <section className="py-32 bg-white dark:bg-[#0A0A0A] relative border-t border-slate-100 dark:border-white/5 overflow-hidden">
+        <section className="py-24 md:py-32 bg-white dark:bg-[#0A0A0A] relative border-t border-slate-100 dark:border-white/5 overflow-hidden">
             <div className="container mx-auto px-6 max-w-6xl relative z-10">
                 <div className="text-center mb-20 flex flex-col items-center">
                     <m.span

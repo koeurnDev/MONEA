@@ -1,5 +1,4 @@
-"use client";
-import { useState, useCallback, useEffect } from "react";
+﻿import { useState, useCallback, useEffect } from "react";
 
 export function useGovernance() {
     const [data, setData] = useState<any>({ history: [], logs: [], templateVersions: [], templateUsage: [] });

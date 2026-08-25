@@ -1,5 +1,4 @@
-"use client";
-
+import React, { lazy, Suspense } from 'react';
 import { useGuests } from "./hooks/useGuests";
 import { GuestListHeader } from "./components/GuestListHeader";
 import { Input } from "@/components/ui/input";
@@ -8,12 +7,11 @@ import { Search, Plus, Users } from "lucide-react";
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
 import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useTranslation } from "@/i18n/LanguageProvider";
-import dynamic from "next/dynamic";
 
-const MobileGuestList = dynamic(() => import("./components/MobileGuestList").then(m => m.MobileGuestList), { ssr: false });
-const DesktopGuestTable = dynamic(() => import("./components/DesktopGuestTable").then(m => m.DesktopGuestTable), { ssr: false });
-const GuestDeleteDialog = dynamic(() => import("./components/GuestDeleteDialog").then(m => m.GuestDeleteDialog), { ssr: false });
-const GuestForm = dynamic(() => import("./guest-form").then(m => m.GuestForm), { ssr: false });
+const MobileGuestList = lazy<React.ComponentType<any>>(() => import("./components/MobileGuestList").then(m => ({ default: (m as any).MobileGuestList })));
+const DesktopGuestTable = lazy<React.ComponentType<any>>(() => import("./components/DesktopGuestTable").then(m => ({ default: (m as any).DesktopGuestTable })));
+const GuestDeleteDialog = lazy<React.ComponentType<any>>(() => import("./components/GuestDeleteDialog").then(m => ({ default: (m as any).GuestDeleteDialog })));
+const GuestForm = lazy<React.ComponentType<any>>(() => import("./guest-form").then(m => ({ default: (m as any).GuestForm })));
 
 export default function GuestPage() {
     const { t, locale } = useTranslation();
@@ -25,6 +23,9 @@ export default function GuestPage() {
         open,
         setOpen,
         loading,
+        loadingMore,
+        fetchMoreGuests,
+        hasMore,
         visibleCount,
         setVisibleCount,
         copiedId,
@@ -174,7 +175,7 @@ export default function GuestPage() {
                             placeholder={t("guests.search")}
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="pl-10 h-10 bg-muted border-transparent focus-visible:ring-rose-600/20 rounded-xl font-kantumruy text-sm"
+                            className="pl-10 h-10 bg-muted border-transparent focus-visible:ring-primary/20 rounded-xl font-kantumruy text-sm"
                         />
                     </div>
                 </div>
@@ -187,8 +188,8 @@ export default function GuestPage() {
                     copiedId={copiedId}
                     isArchived={isArchived}
                     onCopyLink={copyLink}
-                    onEdit={(g) => { setEditingGuest(g); setOpen(true); }}
-                    onDelete={(id, name) => setDeleteGuest({ id, name })}
+                    onEdit={(g: any) => { setEditingGuest(g); setOpen(true); }}
+                    onDelete={(id: any, name: any) => setDeleteGuest({ id, name })}
                 />
 
                 <DesktopGuestTable
@@ -199,9 +200,30 @@ export default function GuestPage() {
                     copiedId={copiedId}
                     isArchived={isArchived}
                     onCopyLink={copyLink}
-                    onEdit={(g) => { setEditingGuest(g); setOpen(true); }}
-                    onDelete={(id, name) => setDeleteGuest({ id, name })}
+                    onEdit={(g: any) => { setEditingGuest(g); setOpen(true); }}
+                    onDelete={(id: any, name: any) => setDeleteGuest({ id, name })}
                 />
+
+                {/* Load More Button for Pagination */}
+                {hasMore && !search && (
+                    <div className="p-6 flex justify-center border-t border-slate-100 dark:border-white/5 print:hidden">
+                        <Button 
+                            variant="outline"
+                            onClick={fetchMoreGuests}
+                            disabled={loadingMore}
+                            className="rounded-xl px-8 h-11 font-kantumruy font-bold border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 shadow-sm"
+                        >
+                            {loadingMore ? (
+                                <span className="flex items-center gap-2">
+                                    <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                                    {t("common.loading.loading", { defaultValue: "កំពុងដំណើរការ..." })}
+                                </span>
+                            ) : (
+                                t("common.actions.loadMore", { defaultValue: "ទាញយកបន្ថែម (Load More)" })
+                            )}
+                        </Button>
+                    </div>
+                )}
             </div>
 
             {/* --- PRINT ONLY FOOTER --- */}
@@ -242,7 +264,7 @@ export default function GuestPage() {
                     }}>
                         <DialogTrigger asChild>
                             <Button
-                                className="w-14 h-14 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center p-0 transition-all border-none"
+                                className="w-14 h-14 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 backdrop-blur-xl border border-red-500/20 shadow-[0_8px_32px_rgba(239,68,68,0.15)] flex items-center justify-center p-0 transition-all"
                             >
                                 <Plus size={28} strokeWidth={3} />
                             </Button>
@@ -269,7 +291,7 @@ export default function GuestPage() {
 
             <GuestDeleteDialog
                 deleteGuest={deleteGuest}
-                onOpenChange={(v) => !v && setDeleteGuest(null)}
+                onOpenChange={(v: any) => !v && setDeleteGuest(null)}
                 onConfirm={confirmDelete}
             />
         </div>

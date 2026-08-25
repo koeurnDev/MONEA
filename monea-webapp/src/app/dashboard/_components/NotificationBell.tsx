@@ -1,14 +1,9 @@
-"use client";
 import * as React from "react";
-import { Bell, Megaphone, X, CheckCheck } from "lucide-react";
+import { Bell, Megaphone, X, CheckCheck, BellOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
     DropdownMenu,
     DropdownMenuContent,
-    DropdownMenuGroup,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useTranslation } from "@/i18n/LanguageProvider";
@@ -22,7 +17,7 @@ export function NotificationBell({ isAuthenticated = true }: { isAuthenticated?:
     const [mounted, setMounted] = React.useState(false);
 
     const { data: rawData } = useSWR(isAuthenticated ? "/api/broadcast" : null, fetcher, {
-        refreshInterval: 60000, // Poll every 60s to save network data
+        refreshInterval: 60000,
         dedupingInterval: 60000,
         revalidateOnFocus: false
     });
@@ -61,72 +56,94 @@ export function NotificationBell({ isAuthenticated = true }: { isAuthenticated?:
     const activeBroadcasts = broadcasts.filter((b: any) => !dismissed.includes(b.id));
 
     if (!mounted) return (
-        <button className="w-10 h-10 rounded-full flex items-center justify-center bg-zinc-100 dark:bg-white/5 opacity-50">
-            <Bell size={18} className="text-zinc-400" />
+        <button className="w-10 h-10 rounded-xl flex items-center justify-center bg-muted/50 text-muted-foreground opacity-50">
+            <Bell size={18} />
         </button>
     );
 
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <button className="relative w-10 h-10 rounded-full flex items-center justify-center bg-zinc-100 hover:bg-zinc-200 dark:bg-white/5 dark:hover:bg-white/10 transition-colors group outline-none">
-                    <Bell size={18} className="text-zinc-600 dark:text-zinc-300 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors" />
+                <button className="relative w-10 h-10 rounded-xl flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 transition-all text-slate-700 dark:text-slate-200 outline-none active:scale-95">
+                    <Bell size={18} />
                     {activeBroadcasts.length > 0 && (
-                        <span className="absolute top-2 right-2.5 w-2 h-2 rounded-full bg-red-500 animate-pulse ring-2 ring-white dark:ring-slate-950" />
+                        <span className="absolute top-2 right-2 w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse ring-2 ring-white dark:ring-[#121217]" />
                     )}
                 </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-80 mt-2 p-0 rounded-2xl border-none shadow-2xl overflow-hidden" align="end">
-                <div className="bg-slate-900 border-b border-slate-800 p-4 flex justify-between items-start">
+            <DropdownMenuContent 
+                className="w-[calc(100vw-2rem)] sm:w-84 mt-2 p-0 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#141419] shadow-xl overflow-hidden" 
+                align="end"
+            >
+                {/* Header */}
+                <div className="bg-slate-50/80 dark:bg-white/5 border-b border-slate-200/80 dark:border-white/10 p-4 flex justify-between items-center">
                     <div>
-                        <h3 className="text-white font-black tracking-tight">{isKm ? "ការជូនដំណឹង" : "Notifications"}</h3>
-                        <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">{isKm ? "ការផ្សព្វផ្សាយពីប្រព័ន្ធ" : "System Broadcasts"}</p>
+                        <h3 className="text-sm font-bold font-kantumruy text-foreground">
+                            {isKm ? "ការជូនដំណឹង" : "Notifications"}
+                        </h3>
+                        <p className="text-[11px] text-muted-foreground font-kantumruy">
+                            {isKm ? "ការផ្សព្វផ្សាយពីប្រព័ន្ធ" : "System Broadcasts"}
+                        </p>
                     </div>
                     {activeBroadcasts.length > 0 && (
                         <button 
                             onClick={handleClearAll}
-                            className="flex items-center gap-1.5 text-xs text-sky-400 font-bold hover:text-white transition-colors py-1 px-2 rounded-lg bg-sky-500/10 hover:bg-sky-500/30"
+                            className="flex items-center gap-1 text-xs text-rose-600 dark:text-rose-400 font-bold hover:underline py-1 px-2 rounded-lg bg-rose-500/10 font-kantumruy"
                         >
-                            <CheckCheck size={14} />
-                            <span>{isKm ? "លុបទាំងអស់" : "Clear All"}</span>
+                            <CheckCheck size={13} />
+                            <span>{isKm ? "សម្អាត" : "Clear"}</span>
                         </button>
                     )}
                 </div>
                 
-                <div className="max-h-[60vh] overflow-y-auto w-full bg-white dark:bg-slate-950 custom-scrollbar">
+                {/* Content List */}
+                <div className="max-h-[60vh] overflow-y-auto w-full">
                     {activeBroadcasts.length === 0 ? (
-                        <div className="p-10 flex flex-col items-center justify-center text-center">
-                            <Bell size={32} className="text-zinc-400 dark:text-zinc-500 mb-3" />
-                            <p className="text-sm font-bold tracking-tight text-slate-900 dark:text-white">{isKm ? "មិនមានការជូនដំណឹងទេ" : "No Notifications"}</p>
-                            <p className="text-[10px] text-zinc-500 dark:text-zinc-400 font-medium uppercase tracking-widest mt-1">{isKm ? "មិនទាន់មានសេចក្តីប្រកាសថ្មីទេ" : "No pending platform broadcasts"}</p>
+                        <div className="p-8 flex flex-col items-center justify-center text-center space-y-3">
+                            <div className="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center">
+                                <BellOff size={22} />
+                            </div>
+                            <div className="space-y-0.5">
+                                <p className="text-sm font-bold text-foreground font-kantumruy">
+                                    {isKm ? "មិនមានការជូនដំណឹងទេ" : "No Notifications"}
+                                </p>
+                                <p className="text-xs text-muted-foreground font-kantumruy">
+                                    {isKm ? "មិនទាន់មានសេចក្តីប្រកាសថ្មីឡើយ" : "No pending broadcasts"}
+                                </p>
+                            </div>
                         </div>
                     ) : (
-                        <div className="flex flex-col">
-                            {activeBroadcasts.map((b: any, i: number) => (
-                                <div key={b.id} className={cn(
-                                    "p-4 flex gap-4 transition-colors hover:bg-zinc-50 dark:hover:bg-white/5 cursor-default relative group",
-                                    i !== activeBroadcasts.length - 1 && "border-b border-zinc-100 dark:border-white/5",
-                                    "bg-blue-50/50 dark:bg-blue-900/10"
-                                )}>
+                        <div className="divide-y divide-slate-100 dark:divide-white/5">
+                            {activeBroadcasts.map((b: any) => (
+                                <div 
+                                    key={b.id} 
+                                    className="p-4 flex gap-3.5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors relative group"
+                                >
                                     <div className={cn(
-                                        "w-10 h-10 rounded-full flex items-center justify-center shrink-0 shadow-sm",
-                                        b.type === 'WARNING' ? 'bg-amber-100 text-amber-600 dark:bg-amber-900/40' :
-                                            b.type === 'SUCCESS' ? 'bg-green-100 text-green-600 dark:bg-green-900/40' :
-                                                'bg-blue-100 text-blue-600 dark:bg-blue-900/40'
+                                        "w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-sm",
+                                        b.type === 'WARNING' ? 'bg-amber-100 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400' :
+                                        b.type === 'SUCCESS' ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400' :
+                                        'bg-blue-100 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400'
                                     )}>
-                                        <Megaphone size={18} />
+                                        <Megaphone size={16} />
                                     </div>
-                                    <div className="space-y-1 pr-4">
-                                        <h4 className="text-sm font-black tracking-tight leading-tight">{b.title}</h4>
-                                        <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium leading-relaxed">{b.message}</p>
-                                        <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest mt-2">{new Date(b.createdAt).toLocaleDateString()}</p>
+                                    <div className="space-y-1 pr-5 flex-1 min-w-0">
+                                        <h4 className="text-xs font-bold text-foreground font-kantumruy leading-snug">
+                                            {b.title}
+                                        </h4>
+                                        <p className="text-[11px] text-muted-foreground font-kantumruy leading-relaxed">
+                                            {b.message}
+                                        </p>
+                                        <p className="text-[9px] text-muted-foreground/60 font-mono pt-0.5">
+                                            {new Date(b.createdAt).toLocaleDateString()}
+                                        </p>
                                     </div>
                                     <button 
                                         onClick={(e) => handleDismiss(b.id, e)}
-                                        className="absolute top-4 right-4 text-zinc-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity bg-white dark:bg-slate-900 rounded-full p-1"
-                                        title={isKm ? "លាក់សារនេះ" : "Dismiss"}
+                                        className="absolute top-3 right-3 text-muted-foreground hover:text-rose-600 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-white/10"
+                                        title={isKm ? "លុប" : "Dismiss"}
                                     >
-                                        <X size={14} />
+                                        <X size={13} />
                                     </button>
                                 </div>
                             ))}

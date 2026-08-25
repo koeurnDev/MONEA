@@ -1,5 +1,5 @@
 export async function sendPasswordResetEmail(email: string, token: string) {
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001";
+    const appUrl = process.env.VITE_APP_URL || "http://localhost:3001";
     const resetLink = `${appUrl}/reset-password?token=${token}`;
     
     return await sendMail({

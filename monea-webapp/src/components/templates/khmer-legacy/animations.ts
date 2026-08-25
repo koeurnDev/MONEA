@@ -1,6 +1,4 @@
-"use client";
-
-import { Variants } from 'framer-motion';
+﻿import { Variants } from 'framer-motion';
 
 export const overlayVariants: Variants = {
     initial: { opacity: 1 },

@@ -1,10 +1,9 @@
-"use client";
-
-import { useForm } from "react-hook-form";
+import { lazy, Suspense } from 'react';
+﻿import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useState } from "react";
-import Link from "next/link";
+import { Link } from 'react-router-dom';
 import { Mail, ArrowLeft, Loader2, ChevronLeft } from "lucide-react";
 import { m, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
@@ -18,11 +17,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
-import dynamic from "next/dynamic";
+// next/dynamic replaced with React.lazy;
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { AUTH_URLS } from "@/lib/constants";
 import { LanguageToggle } from "@/components/LanguageToggle";
-const Turnstile = dynamic(() => import("@marsidev/react-turnstile").then(mod => mod.Turnstile), { ssr: false });
+const Turnstile = lazy(() => import("@marsidev/react-turnstile").then(mod => ({ default: mod.Turnstile })));
 
 export default function ForgotPasswordPage() {
     const { t } = useTranslation();
@@ -96,8 +95,7 @@ export default function ForgotPasswordPage() {
             >
                 <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
                     {/* Back Button */}
-                    <Link
-                        href={AUTH_URLS.SIGN_IN}
+                    <Link to={AUTH_URLS.SIGN_IN}
                         className="absolute left-6 top-6 text-white/40 hover:text-white transition-colors group flex items-center gap-1 text-[10px] font-black uppercase tracking-widest z-20"
                     >
                         <ChevronLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" /> {t('common.auth.back')}
@@ -105,7 +103,7 @@ export default function ForgotPasswordPage() {
 
                     {/* Header */}
                     <div className="text-center mb-8">
-                        <Link href="/" className="inline-flex justify-center">
+                        <Link to="/" className="inline-flex justify-center">
                             <MoneaLogo showText size="md" variant="dark" />
                         </Link>
                         <h1 className="text-2xl font-bold text-white mb-2 font-kantumruy mt-4">{t('common.auth.forgotPasswordTitle')}</h1>
@@ -131,11 +129,11 @@ export default function ForgotPasswordPage() {
                                 )}
                             />
 
-                            {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ? (
+                            {import.meta.env.VITE_TURNSTILE_SITE_KEY ? (
                                 <div className="flex justify-center my-4 scale-90 xs:scale-100 origin-center">
                                     <Turnstile
-                                        siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
-                                        onSuccess={setToken => setTurnstileToken(setToken)}
+                                        siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+                                        onSuccess={(token: string) => setTurnstileToken(token)}
                                         options={{ theme: 'dark', appearance: 'always' }}
                                     />
                                 </div>
@@ -186,7 +184,7 @@ export default function ForgotPasswordPage() {
                     </div>
 
                     <div className="text-center">
-                        <Link href={AUTH_URLS.SIGN_IN} className="font-semibold text-white hover:text-pink-400 transition-colors flex items-center justify-center gap-2 text-sm font-kantumruy">
+                        <Link to={AUTH_URLS.SIGN_IN} className="font-semibold text-white hover:text-pink-400 transition-colors flex items-center justify-center gap-2 text-sm font-kantumruy">
                             <ArrowLeft className="w-4 h-4" /> {t('common.auth.backToSignIn')}
                         </Link>
                     </div>

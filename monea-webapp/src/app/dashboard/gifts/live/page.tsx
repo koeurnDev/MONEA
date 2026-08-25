@@ -1,6 +1,4 @@
-"use client";
-
-import { LazyMotion, domMax, m } from 'framer-motion';
+﻿import { LazyMotion, domMax, m } from 'framer-motion';
 import { Sparkles, Loader2 } from "lucide-react";
 import { useTranslation } from "@/i18n/LanguageProvider";
 
@@ -111,7 +109,7 @@ export default function LiveDisplayPage() {
 
                 <CelebrationOverlay show={showNewGiftFlash} latestGift={latestGift} />
 
-                <style jsx global>{`
+                <style>{`
                     .custom-scrollbar::-webkit-scrollbar { width: 0px; }
                     .mask-gradient-v {
                         mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);

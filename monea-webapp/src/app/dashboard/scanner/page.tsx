@@ -1,12 +1,12 @@
-import { getServerUser } from "@/lib/auth";
-import { redirect } from "next/navigation";
 import ScannerView from "./ScannerView";
+import { useAuth } from "@/hooks/useAuth";
+import { Navigate } from "react-router-dom";
 
-export default async function ScannerPage() {
-    const user = await getServerUser();
+export default function ScannerPage() {
+    const { user } = useAuth();
 
     if (!user) {
-        redirect("/sign-in");
+        return <Navigate to="/sign-in" replace />;
     }
 
     return (

@@ -1,12 +1,10 @@
-"use client";
-
-import { cn } from "@/lib/utils";
+﻿import { cn } from "@/lib/utils";
 import { Home, Users, Calendar, Settings } from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 export function BottomNav() {
-    const pathname = usePathname();
+    const { pathname } = useLocation();
 
     const links = [
         { href: "/dashboard", icon: Home, label: "Home" },
@@ -22,9 +20,8 @@ export function BottomNav() {
                     const isActive = pathname.startsWith(link.href);
                     const Icon = link.icon;
                     return (
-                        <Link
-                            key={link.href}
-                            href={link.href}
+                        <Link key={link.href}
+                            to={link.href}
                             className={cn(
                                 "relative flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300",
                                 isActive

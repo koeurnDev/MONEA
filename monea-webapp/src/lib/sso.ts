@@ -1,14 +1,13 @@
 
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3001";
-const REDIRECT_URI = `${APP_URL}/api/auth/sso/callback`;
+
+const getAppUrl = () => process.env.VITE_APP_URL || "http://localhost:3001";
+const getRedirectUri = () => `${getAppUrl()}/api/auth/sso/callback`;
 
 export function getGoogleAuthUrl(state: string) {
     const rootUrl = "https://accounts.google.com/o/oauth2/v2/auth";
     const options = {
-        redirect_uri: REDIRECT_URI,
-        client_id: GOOGLE_CLIENT_ID!,
+        redirect_uri: getRedirectUri(),
+        client_id: process.env.GOOGLE_CLIENT_ID!,
         state,
         access_type: "offline",
         response_type: "code",
@@ -27,9 +26,9 @@ export async function getGoogleTokens(code: string) {
     const url = "https://oauth2.googleapis.com/token";
     const values = {
         code,
-        client_id: GOOGLE_CLIENT_ID!,
-        client_secret: GOOGLE_CLIENT_SECRET!,
-        redirect_uri: REDIRECT_URI,
+        client_id: process.env.GOOGLE_CLIENT_ID!,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+        redirect_uri: getRedirectUri(),
         grant_type: "authorization_code",
     };
 

@@ -1,5 +1,4 @@
-"use client";
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import { Shield, Lock, User, Settings, AlertTriangle, Zap, CheckCircle2, Loader2, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/i18n/LanguageProvider";

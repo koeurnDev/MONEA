@@ -1,6 +1,4 @@
-"use client";
-
-/**
+﻿/**
  * QuickInviteCard Component
  * Version: 6.0.0 (Clean Implementation)
  */

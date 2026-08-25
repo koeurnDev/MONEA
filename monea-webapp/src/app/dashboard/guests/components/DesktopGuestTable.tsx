@@ -1,5 +1,3 @@
-"use client";
-
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TableSkeleton } from "../../_components/SkeletonComponents";
 import { Button } from "@/components/ui/button";
@@ -39,20 +37,20 @@ export function DesktopGuestTable({
                 </TableHeader>
                 <TableBody>
                     <TableRow className="border-none print:border-t-2 print:border-b-2 print:border-rose-300 hover:bg-transparent hidden print:table-row bg-rose-50/20">
-                        <TableHead className="h-14 px-8 text-[11px] print:text-rose-600 font-black uppercase tracking-widest w-20 border-r print:border-rose-300 print:border-t-2 print:border-l-2">{t("guests.cols.no")}</TableHead>
-                        <TableHead className="h-14 px-8 text-[11px] print:text-rose-600 font-black uppercase tracking-widest border-r print:border-rose-300 text-left print:border-t-2">{t("guests.cols.name")}</TableHead>
-                        <TableHead className="h-14 px-8 text-[11px] print:text-rose-600 font-black uppercase tracking-widest text-center print:border-t-2 print:border-r-2 print:border-rose-300">{t("guests.cols.location")}</TableHead>
+                        <TableHead className="h-14 px-4 text-xs font-bold font-kantumruy print:text-rose-600 w-16 text-center whitespace-nowrap border-r print:border-rose-300 print:border-t-2 print:border-l-2">{t("guests.cols.no")}</TableHead>
+                        <TableHead className="h-14 px-8 text-xs font-bold font-kantumruy print:text-rose-600 border-r print:border-rose-300 text-left print:border-t-2">{t("guests.cols.name")}</TableHead>
+                        <TableHead className="h-14 px-8 text-xs font-bold font-kantumruy print:text-rose-600 text-center print:border-t-2 print:border-r-2 print:border-rose-300">{t("guests.cols.location")}</TableHead>
                     </TableRow>
 
                     <TableRow className="border-none print:hidden hover:bg-transparent">
-                        <TableHead className="h-14 px-8 text-[11px] font-black text-muted-foreground uppercase tracking-widest w-20">{t("guests.cols.no")}</TableHead>
-                        <TableHead className="h-14 px-8 text-[11px] font-black text-muted-foreground uppercase tracking-widest bg-muted/30">
+                        <TableHead className="h-14 px-4 text-xs font-bold font-kantumruy text-muted-foreground w-16 text-center whitespace-nowrap">{t("guests.cols.no")}</TableHead>
+                        <TableHead className="h-14 px-8 text-xs font-bold font-kantumruy text-foreground bg-muted/30">
                             {t("guests.cols.name")}
                         </TableHead>
-                        <TableHead className="h-14 px-8 text-[11px] font-black text-muted-foreground uppercase tracking-widest text-center opacity-70">
+                        <TableHead className="h-14 px-8 text-xs font-bold font-kantumruy text-muted-foreground text-center">
                             {t("guests.cols.location")}
                         </TableHead>
-                        <TableHead className="h-14 px-8 text-[11px] font-black text-muted-foreground uppercase tracking-widest text-right opacity-70">{t("guests.cols.actions")}</TableHead>
+                        <TableHead className="h-14 px-8 text-xs font-bold font-kantumruy text-muted-foreground text-right">{t("guests.cols.actions")}</TableHead>
                     </TableRow>
 
                     {loading ? (
@@ -95,7 +93,7 @@ export function DesktopGuestTable({
                                     "print:bg-transparent print:border-b print:border-slate-200"
                                 )}
                             >
-                                <TableCell className="px-8 py-5 text-muted-foreground print:text-slate-900 font-bold font-kantumruy text-sm print:border-r print:border-l-2 print:border-slate-200 italic">
+                                <TableCell className="px-4 py-5 text-muted-foreground print:text-slate-900 font-bold font-kantumruy text-sm print:border-r print:border-l-2 print:border-slate-200 italic w-16 text-center whitespace-nowrap">
                                     {String(g.sequenceNumber || index + 1).padStart(2, '0')}
                                 </TableCell>
                                 <TableCell className="px-8 py-5 print:border-r print:border-slate-200">

@@ -14,7 +14,7 @@ import { GuestService } from "@/services/GuestService"
 const guestsRouter = new Hono()
 
 guestsRouter.post('/bulk', async (c) => {
-    const user = await getServerUser();
+    const user = await getServerUser(c.req.raw);
     if (!user) return c.json({ error: "Unauthorized" }, 401);
 
     try {
@@ -88,7 +88,7 @@ guestsRouter.get('/bulk', async (c) => {
 
 guestsRouter.post('/checkin', async (c) => {
     try {
-        const user = await getServerUser();
+        const user = await getServerUser(c.req.raw);
         if (!user) {
             return c.json({ error: "Unauthorized" }, 401);
         }
@@ -150,7 +150,7 @@ guestsRouter.post('/checkin', async (c) => {
 
 guestsRouter.get('/latest', async (c) => {
     try {
-        const user = await getServerUser();
+        const user = await getServerUser(c.req.raw);
         if (!user) return c.json({ error: "Unauthorized" }, 401);
 
         const weddingId = user.weddingId || (await prisma.wedding.findFirst({ where: { userId: user.id } }))?.id;
@@ -217,7 +217,7 @@ guestsRouter.post('/view', async (c) => {
 
 guestsRouter.get('/', async (c) => {
     try {
-        const user = await getServerUser();
+        const user = await getServerUser(c.req.raw);
         if (!user) return c.json({ error: "Unauthorized" }, 401);
 
         const ip = getIP(c.req.raw as any); 
@@ -239,7 +239,7 @@ guestsRouter.get('/', async (c) => {
 
 guestsRouter.post('/', async (c) => {
     try {
-        const user = await getServerUser();
+        const user = await getServerUser(c.req.raw);
         if (!user) return c.json({ error: "Unauthorized" }, 401);
 
         let data;
@@ -269,7 +269,7 @@ guestsRouter.post('/', async (c) => {
 
 guestsRouter.patch('/', async (c) => {
     try {
-        const user = await getServerUser();
+        const user = await getServerUser(c.req.raw);
         if (!user) return c.json({ error: "Unauthorized" }, 401);
 
         let data;
@@ -300,7 +300,7 @@ guestsRouter.patch('/', async (c) => {
 
 guestsRouter.delete('/', async (c) => {
     try {
-        const user = await getServerUser();
+        const user = await getServerUser(c.req.raw);
         if (!user) return c.json({ error: "Unauthorized" }, 401);
 
         const id = c.req.query("id");

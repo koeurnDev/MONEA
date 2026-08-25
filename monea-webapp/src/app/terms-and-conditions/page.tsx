@@ -1,7 +1,5 @@
-"use client";
-
-import React from 'react';
-import Link from 'next/link';
+﻿import React from 'react';
+import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import SmoothScroll from '@/components/layout/SmoothScroll';
 import PageTransition from '@/components/layout/PageTransition';
@@ -16,7 +14,7 @@ export default function TermsAndConditionsPage() {
                 <div className="min-h-screen bg-black text-white font-kantumruy">
                     <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
                         <div className="container mx-auto px-6 h-20 flex items-center justify-between">
-                            <Link href="/" className="flex items-center gap-2 group text-white/70 hover:text-white transition-colors">
+                            <Link to="/" className="flex items-center gap-2 group text-white/70 hover:text-white transition-colors">
                                 <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
                                 {t("common.auth.backToHome")}
                             </Link>

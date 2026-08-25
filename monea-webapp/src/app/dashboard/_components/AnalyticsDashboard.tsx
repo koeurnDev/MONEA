@@ -1,6 +1,4 @@
-"use client";
-
-import * as React from 'react';
+﻿import * as React from 'react';
 import useSWR from 'swr';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { m, AnimatePresence } from "framer-motion";
@@ -188,7 +186,7 @@ export function AnalyticsDashboard({ weddingId }: { weddingId: string }) {
                                                 </linearGradient>
                                             </defs>
 
-                                            {/* Area Fill */}
+                                            {/* Area  */}
                                             <m.path
                                                 d={areaPath}
                                                 fill="url(#lineGradient)"

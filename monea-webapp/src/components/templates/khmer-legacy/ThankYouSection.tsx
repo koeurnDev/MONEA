@@ -1,6 +1,5 @@
-"use client";
 import { m } from 'framer-motion';
-import QRCode from "react-qr-code";
+import SafeQRCode from "@/components/ui/SafeQRCode";
 import { WeddingData } from '../types';
 import { RevealSection } from '../shared/CinematicComponents';
 import { useTranslation } from '@/i18n/LanguageProvider';
@@ -26,18 +25,18 @@ export function ThankYouSection({ wedding, smartColors }: ThankYouSectionProps) 
                             >
                                 <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-transparent via-gold-main/20 to-transparent" />
                                 
-                                <div className="text-center space-y-4">
-                                    <p className="font-khmer-moul text-sm text-gold-main tracking-[0.2em] md:tracking-widest font-black uppercase leading-relaxed">
+                                <div className="text-center space-y-3">
+                                    <p className="font-khmer-moul text-sm text-gold-main tracking-wide leading-relaxed">
                                         {wedding.themeSettings?.customLabels?.ticketHeader || t("template.khmerLegacy.ticketHeader")}
                                     </p>
                                     <div className="w-12 h-[1px] bg-gold-main/20 mx-auto" />
-                                    <p className="font-playfair text-[10px] tracking-[0.4em] text-slate-400 uppercase font-black">
+                                    <p className="font-kantumruy text-xs text-slate-400 tracking-wide font-bold">
                                         {wedding.themeSettings?.customLabels?.ticketSubtitle || t("template.khmerLegacy.ticketSubtitle")}
                                     </p>
                                 </div>
 
                                 <div className="p-8 bg-white rounded-[2.5rem] shadow-[inner_0_4px_12px_rgba(0,0,0,0.05)] ring-1 ring-slate-100 group-hover:scale-105 transition-transform duration-700">
-                                    <QRCode
+                                    <SafeQRCode
                                         value={wedding.guestId}
                                         size={200}
                                         style={{ height: "auto", maxWidth: "100%", width: "100%" }}

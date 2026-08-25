@@ -1,23 +1,7 @@
-"use client";
-
-import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
-
-const KhmerLegacy = dynamic(() => import("@/components/templates/KhmerLegacy"), {
-    loading: () => <div className="min-h-screen bg-[#FDFBF7] animate-pulse" />
-});
-
-const AnniversaryElegant = dynamic(() => import("@/components/templates/AnniversaryElegant"), {
-    loading: () => <div className="min-h-screen bg-[#FDFBF7] animate-pulse" />
-});
-
-const ModernMinimal = dynamic(() => import("@/components/templates/ModernMinimal"), {
-    loading: () => <div className="min-h-screen bg-[#FDFBF7] animate-pulse" />
-});
-
-const FloatingRSVP = dynamic(() => import("./FloatingRSVP").then(mod => mod.FloatingRSVP), {
-    ssr: false
-});
+import React, { Suspense, useEffect, useState } from "react";
+import { Helmet } from "react-helmet-async";
+import { getApiUrl } from "@/lib/api-url";
+import { getTemplateComponent } from "@/components/templates";
 
 type PublicWeddingData = {
     id: string;
@@ -40,8 +24,7 @@ export default function WeddingDataView({ id, template, guestId }: { id: string;
     useEffect(() => {
         async function fetchWedding() {
             try {
-                const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://monea-api.seabkoeurn64.workers.dev';
-                const res = await fetch(`${apiUrl}/api/wedding/${id}`, {
+                const res = await fetch(getApiUrl(`api/wedding/${id}`), {
                     credentials: 'include',
                 });
                 
@@ -72,10 +55,37 @@ export default function WeddingDataView({ id, template, guestId }: { id: string;
 
     if (error || !wedding) {
         return (
-            <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center">
-                <div className="text-center">
-                    <h1 className="text-2xl font-bold text-gray-800 mb-2">Wedding Not Found</h1>
-                    <p className="text-gray-600">{error || 'This wedding may not exist or has been removed.'}</p>
+            <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center p-6">
+                <div className="text-center max-w-md bg-white p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-black/5">
+                    <div className="w-20 h-20 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-5 text-3xl font-black">
+                        404
+                    </div>
+                    <h1 className="text-2xl font-black text-slate-800 mb-3 font-kantumruy tracking-tight">រកមិនឃើញទំព័រនេះទេ</h1>
+                    <p className="text-slate-500 text-sm font-medium leading-relaxed font-kantumruy mb-8">
+                        ទំព័រដែលអ្នកកំពុងស្វែងរកប្រហែលជាត្រូវបានលុប ប្ដូរឈ្មោះ ឬមិនមានតាំងពីដំបូង។
+                    </p>
+                    <a href="/" className="inline-flex items-center justify-center gap-2 w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-4 px-6 rounded-2xl font-kantumruy shadow-xl shadow-slate-900/20 transition-all active:scale-95">
+                        ត្រឡប់ទៅទំព័រដើម
+                    </a>
+                </div>
+            </div>
+        );
+    }
+
+    if (!wedding.templateId) {
+        return (
+            <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center p-6">
+                <div className="text-center max-w-md bg-white p-8 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-black/5">
+                    <div className="w-20 h-20 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-5 text-3xl">
+                        🎨
+                    </div>
+                    <h1 className="text-2xl font-black text-slate-800 mb-3 font-kantumruy tracking-tight">សំបុត្រមិនទាន់រួចរាល់ទេ</h1>
+                    <p className="text-slate-500 text-sm font-medium leading-relaxed font-kantumruy mb-8">
+                        សូមបងធ្វើការរចនា (Design) Template សម្រាប់សំបុត្រអញ្ជើញជាមុនសិន។ សូមចុចប៊ូតុងខាងក្រោម៖
+                    </p>
+                    <a href="/dashboard/design" className="inline-flex items-center justify-center gap-2 w-full bg-rose-600 hover:bg-rose-700 text-white font-black py-4 px-6 rounded-2xl font-kantumruy shadow-xl shadow-rose-600/20 transition-all active:scale-95">
+                        ទៅកាន់ការរចនាឥឡូវនេះ
+                    </a>
                 </div>
             </div>
         );
@@ -93,27 +103,54 @@ export default function WeddingDataView({ id, template, guestId }: { id: string;
         console.error("Failed to parse themeSettings", e);
     }
 
+    let parsedActivities = wedding.activities || [];
+    if (typeof parsedActivities === 'string') {
+        try { parsedActivities = JSON.parse(parsedActivities); } catch (e) { parsedActivities = []; }
+    }
+
+    let parsedGalleryItems = wedding.galleryItems || [];
+    if (typeof parsedGalleryItems === 'string') {
+        try { parsedGalleryItems = JSON.parse(parsedGalleryItems); } catch (e) { parsedGalleryItems = []; }
+    }
+    if (themeSettings.galleryItems && Array.isArray(themeSettings.galleryItems)) {
+        parsedGalleryItems = themeSettings.galleryItems;
+    }
+
     const rsvpEnabled = themeSettings.rsvpEnabled !== false;
 
     const weddingForTemplate = {
         ...wedding,
-        eventType: wedding.eventType as "wedding" | "anniversary",
+        themeSettings: themeSettings,
+        activities: parsedActivities,
+        galleryItems: parsedGalleryItems,
+        eventType: (wedding.eventType || "wedding") as "wedding" | "anniversary",
         guestId
     };
 
+    const shareTitle = `${wedding.groomName || 'កូនកំលោះ'} & ${wedding.brideName || 'កូនក្រមុំ'} - អាពាហ៍ពិពាហ៍ | MONEA`;
+    const shareDesc = `សូមគោរពអញ្ជើញចូលរួមពិធីអាពាហ៍ពិពាហ៍របស់យើងខ្ញុំ ${wedding.date ? 'នៅថ្ងៃ ' + new Date(wedding.date).toLocaleDateString('km-KH', { dateStyle: 'full' }) : ''}`;
+    const heroImg = themeSettings?.heroImage || (parsedGalleryItems[0]?.url || '/og-image.jpg');
+
     return (
         <main className="min-h-screen bg-[#FDFBF7]">
-            {wedding.templateId === 'anniversary-elegant' ? (
-                <AnniversaryElegant wedding={weddingForTemplate} />
-            ) : wedding.templateId === 'modern-minimal' ? (
-                <ModernMinimal wedding={weddingForTemplate} guestName={guestId ? "Guest" : undefined} />
-            ) : (
-                <KhmerLegacy wedding={weddingForTemplate} guestName={guestId ? "Guest" : undefined} />
-            )}
-
-            {rsvpEnabled && (
-                <FloatingRSVP weddingId={id} guestId={guestId} />
-            )}
+            <Helmet>
+                <title>{shareTitle}</title>
+                <meta name="description" content={shareDesc} />
+                <meta property="og:title" content={shareTitle} />
+                <meta property="og:description" content={shareDesc} />
+                <meta property="og:image" content={heroImg} />
+                <meta property="og:type" content="website" />
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content={shareTitle} />
+                <meta name="twitter:description" content={shareDesc} />
+                <meta name="twitter:image" content={heroImg} />
+            </Helmet>
+            <Suspense fallback={<div className="min-h-screen bg-[#FDFBF7] animate-pulse" />}>
+                {(() => {
+                    const SelectedTemplate = getTemplateComponent(wedding.templateId);
+                    return <SelectedTemplate wedding={weddingForTemplate as any} guestName={guestId ? "Guest" : undefined} />;
+                })()}
+            </Suspense>
         </main>
     );
 }

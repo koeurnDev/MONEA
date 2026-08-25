@@ -1,5 +1,4 @@
-"use client";
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,7 +15,7 @@ import {
     CheckCircle2,
     Info
 } from "lucide-react";
-import Link from "next/link";
+import { Link } from 'react-router-dom';
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { moneaClient } from "@/lib/api-client";
 
@@ -108,7 +107,7 @@ export default function MasterBroadcastPage() {
             <div className="max-w-5xl mx-auto space-y-8">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <Link href="/admin/master">
+                        <Link to="/admin/master">
                             <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 group">
                                 <ArrowLeft size={18} className="text-slate-500 group-hover:text-slate-900 dark:text-slate-400 dark:group-hover:text-white" />
                             </Button>

@@ -1,6 +1,4 @@
-"use client";
-
-import { Users, DollarSign, Loader2 } from "lucide-react";
+﻿import { Users, DollarSign, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "@/i18n/LanguageProvider";
 

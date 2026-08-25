@@ -1,6 +1,5 @@
-"use client";
-import * as React from "react";
-import { usePathname } from "next/navigation";
+﻿import * as React from "react";
+import { useLocation } from 'react-router-dom';
 
 interface LoadingContextType {
     isLoading: boolean;
@@ -12,7 +11,7 @@ const LoadingContext = React.createContext<LoadingContextType | undefined>(undef
 
 export function LoadingProvider({ children }: { children: React.ReactNode }) {
     const [isLoading, setIsLoading] = React.useState(false);
-    const pathname = usePathname();
+    const { pathname } = useLocation();
     const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
     const startLoading = React.useCallback(() => {

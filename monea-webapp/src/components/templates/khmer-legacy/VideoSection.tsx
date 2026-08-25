@@ -1,6 +1,4 @@
-"use client";
-
-import React from 'react';
+﻿import React from 'react';
 import { RevealSection } from '../shared/CinematicComponents';
 import { WeddingData } from '../types';
 

@@ -1,5 +1,4 @@
-"use client";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+﻿import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -7,7 +6,7 @@ import {
     Server, ShieldAlert, HelpCircle, Layers, GitBranch,
     Zap, RefreshCw
 } from "lucide-react";
-import Link from "next/link";
+import { Link } from 'react-router-dom';
 import { useGovernance } from "./hooks/useGovernance";
 import { SystemVersionsTab } from "./components/SystemVersionsTab";
 import { TemplateSnapshotsTab } from "./components/TemplateSnapshotsTab";
@@ -66,7 +65,7 @@ export default function GovernancePage() {
             <div className="bg-slate-950 text-white">
                 <div className="max-w-7xl mx-auto px-8 py-6 flex items-center justify-between">
                     <div className="flex items-center gap-5">
-                        <Link href="/admin/master/settings">
+                        <Link to="/admin/master/settings">
                             <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 border border-white/10 text-white hover:bg-white/10">
                                 <ArrowLeft size={18} />
                             </Button>

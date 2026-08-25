@@ -2,27 +2,51 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 1. Import Fonts: Handled via Next.js Font Optimization in layout.tsx */
-/* 2. Custom Font Classes (Optional helpers, but Tailwind utilities preferred) */
-/* 2. Khmer Typography — Kantumruy Pro needs extra line-height to render cleanly */
-/* Global Khmer text rendering fix */
-html, body, * {
+@layer utilities {
+  .perspective-\[2000px\] {
+    perspective: 2000px;
+  }
+  .transform-style-3d {
+    transform-style: preserve-3d;
+  }
+  .translate-z-\[-100px\] {
+    transform: translateZ(-100px);
+  }
+  .translate-z-\[0px\] {
+    transform: translateZ(0px);
+  }
+  .translate-z-\[100px\] {
+    transform: translateZ(100px);
+  }
+}
+@font-face {
+  font-family: 'Kh Ang ToaThmor 2';
+  src: url('/fonts/KhAngToaThmor2.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+.font-toathmor2 {
+  font-family: 'Kh Ang ToaThmor 2', sans-serif !important;
+}
+
+:root {
+  --font-kantumruy: 'Kantumruy Pro', sans-serif;
+  font-family: 'Kantumruy Pro', sans-serif;
+}
+
+html, body, *, button, input, select, textarea, a {
+  font-family: 'Kantumruy Pro', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Khmer script needs taller line-height than Latin (vowels sit above/below consonants) */
+/* Universal typography line-height for clean Khmer & English rendering */
 .font-kantumruy,
 .font-khmer,
 .font-siemreap,
 .font-suwannaphum,
-.font-sans {
-  line-height: 1.8;
-  word-break: break-word;
-  overflow-wrap: break-word;
-}
-
-/* Legacy font classes — all redirect to Kantumruy Pro */
 .font-moul,
 .font-khmer-moul-pali,
 .font-khmer-os-moul-light,
@@ -30,9 +54,12 @@ html, body, * {
 .font-gisha,
 .font-clarendon,
 .font-script,
-.font-outfit {
-  font-family: var(--font-kantumruy), sans-serif;
+.font-outfit,
+.font-sans {
+  font-family: 'Kantumruy Pro', sans-serif !important;
   line-height: 1.8;
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 /* 3. Animation សម្រាប់ប៊ូតុង Music */
@@ -157,21 +184,22 @@ html {
   }
 
   html {
-    font-family: var(--font-kantumruy), sans-serif;
+    font-family: 'Kantumruy Pro', sans-serif;
     line-height: 1.8;
   }
 
   body {
     @apply bg-background text-foreground;
-    font-family: var(--font-kantumruy), sans-serif;
+    font-family: 'Kantumruy Pro', sans-serif;
     line-height: 1.8;
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
     overflow-x: hidden;
   }
 
-  /* Headings need slightly tighter but still readable line-height for Khmer */
+  /* Headings with Kantumruy Pro */
   h1, h2, h3, h4, h5, h6 {
+    font-family: 'Kantumruy Pro', sans-serif;
     line-height: 1.5;
     word-break: break-word;
   }
@@ -181,7 +209,7 @@ html {
   textarea,
   select,
   a {
-    font-family: inherit;
+    font-family: 'Kantumruy Pro', sans-serif;
     touch-action: manipulation;
   }
 }

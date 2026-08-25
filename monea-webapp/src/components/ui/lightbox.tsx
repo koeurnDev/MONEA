@@ -1,10 +1,8 @@
-"use client";
-
-import * as React from "react";
+﻿import * as React from "react";
 import { AnimatePresence, m } from "framer-motion";
 import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut } from "lucide-react";
-import Image from "next/image";
-import { CldImage } from 'next-cloudinary';
+// next/image replaced with <img>;
+
 
 interface LightboxProps {
     images: string[];
@@ -101,22 +99,21 @@ export default function Lightbox({ images, initialIndex, isOpen, onClose }: Ligh
                     >
                         <div className="relative w-full h-full pointer-events-auto" onClick={(e) => e.stopPropagation()}>
                             {isCloudinary ? (
-                                <CldImage
+                                <img
                                     src={currentSrc}
                                     alt={`Gallery Image ${index + 1}`}
                                     width={1920}
                                     height={1080}
                                     className="object-contain w-full h-full"
-                                    preserveTransformations
+                                    
                                 />
                             ) : (
-                                <Image
+                                <img
                                     src={currentSrc}
-                                    alt={`Gallery Image ${index + 1}`}
-                                    fill
+                                    alt={`Gallery Image ${index + 1}`} 
                                     className="object-contain w-full h-full"
-                                    sizes="100vw"
-                                    quality={100}
+                                    
+                                    
                                 />
                             )}
                         </div>

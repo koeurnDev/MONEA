@@ -1,0 +1,11 @@
+User-agent: *
+Disallow: /dashboard/
+Disallow: /api/
+Disallow: /preview
+Disallow: /admin
+Allow: /
+Allow: /w/
+Allow: /templates
+Allow: /pricing
+
+Sitemap: https://monea.app/sitemap.xml

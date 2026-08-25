@@ -1,9 +1,6 @@
-"use client";
 import * as React from 'react';
-import { useScroll, useTransform, useSpring, m } from 'framer-motion';
+import { m, useScroll, useTransform, useSpring } from 'framer-motion';
 import { Camera, Heart, Sparkles, Film } from 'lucide-react';
-import { CldImage } from 'next-cloudinary';
-import Image from 'next/image';
 
 interface GalleryItem {
     url: string;
@@ -25,9 +22,9 @@ const KenBurnsImage = React.memo(({ src }: { src: string }) => (
             className="w-[102%] h-[102%] relative will-change-transform"
         >
             {src.startsWith('/') ? (
-                <Image src={src} fill className="object-cover" alt="" sizes="100vw" priority />
+                <img src={src}  className="object-cover" alt=""  />
             ) : (
-                <CldImage src={src} fill className="object-cover" alt="Statement" sizes="100vw" priority />
+                <img src={src}  className="object-cover" alt="Statement" sizes="100vw" />
             )}
         </m.div>
         <div className="absolute inset-0 bg-black/20" />
@@ -36,71 +33,58 @@ const KenBurnsImage = React.memo(({ src }: { src: string }) => (
 KenBurnsImage.displayName = 'KenBurnsImage';
 
 const ParallaxImage = React.memo(({ src, speed, className = "" }: { src: string; speed: number; className?: string }) => {
-    const ref = React.useRef(null);
-    const [mounted, setMounted] = React.useState(false);
-
-    React.useEffect(() => {
-        setMounted(true);
-    }, []);
-
-    const { scrollYProgress } = useScroll({
-        target: ref,
-        offset: ["start end", "end start"]
-    });
-
-    const yParallax = useTransform(scrollYProgress, [0, 1], [0, speed * 200]);
-
-    // Safety check for hydration
-    const y = (mounted && typeof window !== 'undefined' && window.innerWidth >= 768) ? yParallax : 0;
-
     return (
-        <m.div ref={ref} style={{ y }} className={`relative rounded-2xl overflow-hidden shadow-2xl will-change-transform ${className}`}>
+        <m.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className={`relative rounded-2xl overflow-hidden shadow-2xl ${className}`}
+        >
             {src.startsWith('/') ? (
-                <Image src={src} fill className="object-cover" alt="" sizes="(max-width: 768px) 50vw, 33vw" loading="lazy" />
+                <img src={src} className="object-cover w-full h-full" alt="" loading="lazy" />
             ) : (
-                <CldImage src={src} fill className="object-cover" alt="Gallery" sizes="(max-width: 768px) 50vw, 33vw" loading="lazy" />
+                <img src={src} className="object-cover w-full h-full" alt="Gallery" sizes="(max-width: 768px) 50vw, 33vw" loading="lazy" />
             )}
         </m.div>
     );
 });
 ParallaxImage.displayName = 'ParallaxImage';
 
-const CinematicStoryGallery = React.memo(({ items, labels, theme = 'light' }: CinematicStoryGalleryProps) => {
+const CinematicStoryGallery = React.memo(({ items, labels, theme = 'dark' }: CinematicStoryGalleryProps) => {
     const containerRef = React.useRef<HTMLDivElement>(null);
     const horizontalRef = React.useRef<HTMLDivElement>(null);
+    const { scrollYProgress } = useScroll({ target: horizontalRef, offset: ["start end", "end start"] });
+    const xMove = useTransform(scrollYProgress, [0, 1], ["0%", "-50%"]);
+    const springXMove = useSpring(xMove, { stiffness: 100, damping: 30 });
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
-    const { scrollYProgress: horizontalScrollProgress } = useScroll({
-        target: horizontalRef,
-        offset: ["start end", "end start"]
-    });
-
-    const xMove = useTransform(horizontalScrollProgress, [0.1, 0.9], ["0%", "-100%"]);
-
-    const [isMobile, setIsMobile] = React.useState(false);
-    React.useEffect(() => {
-        setIsMobile(window.innerWidth < 768);
-    }, []);
-
-    const springXMove = useSpring(xMove, {
-        stiffness: isMobile ? 100 : 50,
-        damping: isMobile ? 30 : 20,
-        mass: isMobile ? 0.5 : 1
-    });
+    const DEFAULT_STORY_IMAGES = [
+        "/assets/khmer-legacy/621811254_905398285378636_5240747682765358044_n.jpg",
+        "/assets/khmer-legacy/621811002_905396558712142_5126771807004187076_n.jpg",
+        "/assets/khmer-legacy/621811942_905392918712506_8600818650624857202_n.jpg",
+        "/assets/khmer-legacy/621813168_905393265379138_2356104923368506186_n.jpg",
+        "/assets/khmer-legacy/622279784_905392782045853_1189842078802821714_n.jpg",
+        "/assets/khmer-legacy/622374686_905392995379165_1001573724208229331_n.jpg",
+        "/assets/khmer-legacy/622582548_905399002045231_4147705888928073222_n.jpg",
+        "/assets/khmer-legacy/622629866_905398512045280_817022291532741601_n.jpg"
+    ];
 
     // Filter for images and ensure we have enough items
     const safeItems = React.useMemo(() => {
-        const imageItems = (items || []).filter(i => i?.type === 'IMAGE');
-        // If no images at all, fallback to a default
-        if (imageItems.length === 0) return Array(24).fill({ url: '/images/couple.webp', type: 'IMAGE' });
+        const imageItems = (items || [])
+            .filter(i => i?.type === 'IMAGE' && typeof i?.url === 'string' && i.url.trim() !== '')
+            .map(i => ({ url: i.url.trim(), type: 'IMAGE' }));
 
-        // Use all available items, repeating only if necessary to fill the cinematic slots
-        const list = [...imageItems];
-        if (list.length < 24) {
-            let i = 0;
-            while (list.length < 24) {
-                list.push(imageItems[i % imageItems.length]);
-                i++;
-            }
+        const sourceList = imageItems.length > 0 
+            ? imageItems 
+            : DEFAULT_STORY_IMAGES.map(u => ({ url: u, type: 'IMAGE' }));
+
+        const list = [...sourceList];
+        let i = 0;
+        while (list.length < 24) {
+            list.push(sourceList[i % sourceList.length]);
+            i++;
         }
         return list.slice(0, 24);
     }, [items]);
@@ -144,7 +128,7 @@ const CinematicStoryGallery = React.memo(({ items, labels, theme = 'light' }: Ci
             </section>
 
             {/* Page 2: The Collection (Masonry Parallax) */}
-            <section className="py-32 px-6 max-w-7xl mx-auto">
+            <section className="py-32 px-6 max-w-7xl mx-auto relative">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-8">
                     <div className="space-y-3 md:space-y-8 pt-4 md:pt-20">
                         <ParallaxImage src={safeItems[1].url} speed={-0.2} className="aspect-[3/4]" />
@@ -179,9 +163,9 @@ const CinematicStoryGallery = React.memo(({ items, labels, theme = 'light' }: Ci
                     className="flex-1 h-full relative grayscale hover:grayscale-0 transition-all duration-1000"
                 >
                     {safeItems[5].url.startsWith('/') ? (
-                        <Image src={safeItems[5].url} fill className="object-cover" alt="" sizes="50vw" loading="eager" />
+                        <img src={safeItems[5].url}  className="object-cover" alt=""  loading="eager" />
                     ) : (
-                        <CldImage src={safeItems[5].url} fill className="object-cover" alt="Intimacy 1" sizes="50vw" loading="eager" />
+                        <img src={safeItems[5].url}  className="object-cover" alt="Intimacy 1" sizes="50vw" loading="eager" />
                     )}
                     <div className="absolute inset-0 bg-rose-900/10" />
                 </m.div>
@@ -192,9 +176,9 @@ const CinematicStoryGallery = React.memo(({ items, labels, theme = 'light' }: Ci
                     className="flex-1 h-full relative grayscale hover:grayscale-0 transition-all duration-1000"
                 >
                     {safeItems[6].url.startsWith('/') ? (
-                        <Image src={safeItems[6].url} fill className="object-cover" alt="" sizes="50vw" loading="eager" />
+                        <img src={safeItems[6].url}  className="object-cover" alt=""  loading="eager" />
                     ) : (
-                        <CldImage src={safeItems[6].url} fill className="object-cover" alt="Intimacy 2" sizes="50vw" loading="eager" />
+                        <img src={safeItems[6].url}  className="object-cover" alt="Intimacy 2" sizes="50vw" loading="eager" />
                     )}
                     <div className="absolute inset-0 bg-rose-900/10" />
                 </m.div>
@@ -214,9 +198,9 @@ const CinematicStoryGallery = React.memo(({ items, labels, theme = 'light' }: Ci
                         {[safeItems[10], safeItems[11], safeItems[12], safeItems[13]].map((item, i) => (
                             <div key={i} className={`flex-shrink-0 w-[80vw] h-[50vh] sm:w-[60vw] sm:h-[60vh] md:w-[45vw] md:h-[70vh] rounded-3xl overflow-hidden shadow-2xl relative ${isMobile ? 'snap-center' : ''}`}>
                                 {item.url.startsWith('/') ? (
-                                    <Image src={item.url} fill className="object-cover" alt="" sizes="50vw" loading="lazy" />
+                                    <img src={item.url}  className="object-cover" alt=""  loading="lazy" />
                                 ) : (
-                                    <CldImage src={item.url} fill className="object-cover" alt="Journey" sizes="50vw" loading="lazy" />
+                                    <img src={item.url}  className="object-cover" alt="Journey" sizes="50vw" loading="lazy" />
                                 )}
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                                 <div className="absolute bottom-8 left-8 text-white">
@@ -232,42 +216,42 @@ const CinematicStoryGallery = React.memo(({ items, labels, theme = 'light' }: Ci
             </section>
 
             {/* Page 5: The Collage */}
-            <section className="py-32 px-6 bg-slate-900 text-white">
+            <section className="py-32 px-6 bg-slate-900 text-white relative">
                 <div className="max-w-6xl mx-auto">
                     <div className="grid grid-cols-2 md:grid-cols-12 md:grid-rows-6 gap-3 md:gap-4 h-auto md:h-[120vh]">
                         <m.div whileHover={{ scale: 0.98 }} className="col-span-2 md:col-span-8 md:row-span-4 rounded-lg overflow-hidden border border-white/20 p-2 relative aspect-[4/3] md:aspect-auto">
                             {safeItems[14].url.startsWith('/') ? (
-                                <Image src={safeItems[14].url} fill className="object-cover rounded shadow-lg" alt="" sizes="50vw" loading="eager" />
+                                <img src={safeItems[14].url}  className="object-cover rounded shadow-lg" alt=""  loading="eager" />
                             ) : (
-                                <CldImage src={safeItems[14].url} fill className="object-cover rounded shadow-lg" alt="Collage 1" sizes="50vw" loading="eager" />
+                                <img src={safeItems[14].url}  className="object-cover rounded shadow-lg" alt="Collage 1" sizes="50vw" loading="eager" />
                             )}
                         </m.div>
                         <m.div whileHover={{ scale: 1.02 }} className="col-span-1 md:col-span-4 md:row-span-2 rounded-lg overflow-hidden border border-amber-400/30 p-2 relative aspect-square md:aspect-auto">
                             {safeItems[15].url.startsWith('/') ? (
-                                <Image src={safeItems[15].url} fill className="object-cover rounded shadow-lg" alt="" sizes="25vw" loading="eager" />
+                                <img src={safeItems[15].url}  className="object-cover rounded shadow-lg" alt=""  loading="eager" />
                             ) : (
-                                <CldImage src={safeItems[15].url} fill className="object-cover rounded shadow-lg" alt="Collage 2" sizes="25vw" loading="eager" />
+                                <img src={safeItems[15].url}  className="object-cover rounded shadow-lg" alt="Collage 2" sizes="25vw" loading="eager" />
                             )}
                         </m.div>
                         <m.div whileHover={{ scale: 1.05 }} className="col-span-1 md:col-span-4 md:row-span-3 rounded-lg overflow-hidden border border-white/20 p-2 relative aspect-square md:aspect-auto">
                             {safeItems[16].url.startsWith('/') ? (
-                                <Image src={safeItems[16].url} fill className="object-cover rounded shadow-lg" alt="" sizes="25vw" loading="eager" />
+                                <img src={safeItems[16].url}  className="object-cover rounded shadow-lg" alt=""  loading="eager" />
                             ) : (
-                                <CldImage src={safeItems[16].url} fill className="object-cover rounded shadow-lg" alt="Collage 3" sizes="25vw" loading="eager" />
+                                <img src={safeItems[16].url}  className="object-cover rounded shadow-lg" alt="Collage 3" sizes="25vw" loading="eager" />
                             )}
                         </m.div>
                         <m.div whileHover={{ scale: 0.95 }} className="col-span-1 md:col-span-4 md:row-span-2 rounded-lg overflow-hidden border border-white/20 p-2 relative aspect-square md:aspect-auto">
                             {safeItems[17].url.startsWith('/') ? (
-                                <Image src={safeItems[17].url} fill className="object-cover rounded shadow-lg" alt="" sizes="25vw" loading="eager" />
+                                <img src={safeItems[17].url}  className="object-cover rounded shadow-lg" alt=""  loading="eager" />
                             ) : (
-                                <CldImage src={safeItems[17].url} fill className="object-cover rounded shadow-lg" alt="Collage 4" sizes="25vw" loading="eager" />
+                                <img src={safeItems[17].url}  className="object-cover rounded shadow-lg" alt="Collage 4" sizes="25vw" loading="eager" />
                             )}
                         </m.div>
                         <m.div whileHover={{ scale: 1.02 }} className="col-span-1 md:col-span-4 md:row-span-1 rounded-lg overflow-hidden border border-amber-400/30 p-2 relative aspect-square md:aspect-auto">
                             {safeItems[18].url.startsWith('/') ? (
-                                <Image src={safeItems[18].url} fill className="object-cover rounded shadow-lg" alt="" sizes="25vw" />
+                                <img src={safeItems[18].url}  className="object-cover rounded shadow-lg" alt=""  />
                             ) : (
-                                <CldImage src={safeItems[18].url} fill className="object-cover rounded shadow-lg" alt="Collage 5" sizes="25vw" />
+                                <img src={safeItems[18].url}  className="object-cover rounded shadow-lg" alt="Collage 5" sizes="25vw" />
                             )}
                         </m.div>
                     </div>
@@ -305,9 +289,9 @@ const CinematicStoryGallery = React.memo(({ items, labels, theme = 'light' }: Ci
                                 {Array(6).fill(0).map((_, j) => <div key={j} className="w-2 h-4 bg-white/10 rounded-sm" />)}
                             </div>
                             {item.url.startsWith('/') ? (
-                                <Image src={item.url} fill className="object-cover brightness-75 sepia-[0.3]" alt="" sizes="33vw" />
+                                <img src={item.url}  className="object-cover brightness-75 sepia-[0.3]" alt=""  />
                             ) : (
-                                <CldImage src={item.url} fill className="object-cover brightness-75 sepia-[0.3]" alt="Film" sizes="33vw" />
+                                <img src={item.url}  className="object-cover brightness-75 sepia-[0.3]" alt="Film" sizes="33vw" />
                             )}
                         </m.div>
                     ))}
@@ -321,9 +305,9 @@ const CinematicStoryGallery = React.memo(({ items, labels, theme = 'light' }: Ci
             <section className="h-screen relative flex items-center justify-center text-center">
                 <div className="absolute inset-0 z-0">
                     {safeItems[safeItems.length - 1].url.startsWith('/') ? (
-                        <Image src={safeItems[safeItems.length - 1].url} fill className="object-cover" alt="" sizes="100vw" />
+                        <img src={safeItems[safeItems.length - 1].url}  className="object-cover" alt=""  />
                     ) : (
-                        <CldImage src={safeItems[safeItems.length - 1].url} fill className="object-cover" alt="Final" sizes="100vw" />
+                        <img src={safeItems[safeItems.length - 1].url}  className="object-cover" alt="Final" sizes="100vw" />
                     )}
                     <div className="absolute inset-0 bg-black/60" />
                 </div>

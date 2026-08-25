@@ -2,28 +2,32 @@ import { z } from "zod";
 import { EventType, WeddingStatus } from "@prisma/client";
 
 export const weddingSchema = z.object({
-  groomName: z.string().min(1, "Groom name is required").max(100),
-  brideName: z.string().min(1, "Bride name is required").max(100),
-  date: z.coerce.date(),
+  groomName: z.string().max(100).optional().nullable(),
+  brideName: z.string().max(100).optional().nullable(),
+  date: z.any().optional().nullable(),
   location: z.string().max(200).optional().nullable(),
   status: z.nativeEnum(WeddingStatus).optional().default("ACTIVE"),
   eventType: z.nativeEnum(EventType).optional().default("wedding"),
-  templateId: z.string().optional(),
+  templateId: z.string().optional().nullable(),
   paymentInfo: z.string().optional().nullable(),
-  themeSettings: z.record(z.string(), z.any()).optional(),
+  themeSettings: z.record(z.string(), z.any()).optional().nullable(),
   galleryItems: z.array(z.object({
-    url: z.string().url().or(z.literal("")).optional().nullable(),
+    url: z.string().optional().nullable(),
+    publicId: z.string().optional().nullable(),
     type: z.string().optional().default("IMAGE"),
     caption: z.string().optional().nullable(),
-  })).optional(),
+  })).optional().nullable(),
   activities: z.array(z.object({
-    title: z.string().min(1).max(100),
-    time: z.string().min(1).max(50),
+    title: z.string().max(200).optional().nullable(),
+    time: z.string().max(100).optional().nullable(),
     description: z.string().optional().nullable(),
+    icon: z.string().optional().nullable(),
+    publicId: z.string().optional().nullable(),
     order: z.number().int().optional().default(0),
-  })).optional(),
+  })).optional().nullable(),
 });
 
 export const weddingUpdateSchema = weddingSchema.partial().extend({
-  weddingId: z.string().optional()
+  weddingId: z.string().optional().nullable()
 });
+
