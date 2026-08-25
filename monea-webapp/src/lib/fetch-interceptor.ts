@@ -11,8 +11,9 @@ export function setupFetchInterceptor() {
   globalThis.fetch = function (input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
     let url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
     
-    // In development, keep /api/ relative so Vite proxy forwards to local worker
-    if (import.meta.env.DEV) {
+    // In local browser development on localhost, keep /api/ relative so Vite proxy forwards
+    const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    if (isLocal) {
       return originalFetch(input, init);
     }
 

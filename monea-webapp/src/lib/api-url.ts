@@ -6,9 +6,12 @@
 export function getApiUrl(path: string): string {
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
   
-  // In development, ALWAYS use relative path to route through Vite proxy (/api)
-  if (import.meta.env.DEV) {
-    return `/${cleanPath}`;
+  // In local browser development, use relative path so Vite proxy forwards
+  if (typeof window !== 'undefined') {
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    if (isLocal) {
+      return `/${cleanPath}`;
+    }
   }
 
   const rawBase = import.meta.env.VITE_API_URL || import.meta.env.NEXT_PUBLIC_API_URL || '';
