@@ -19,6 +19,7 @@ import { MoneaLogo } from "@/components/ui/MoneaLogo";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { AUTH_URLS } from "@/lib/constants";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { moneaClient } from "@/lib/api-client";
 
 function ResetPasswordForm() {
     const { t } = useTranslation();
@@ -59,24 +60,18 @@ function ResetPasswordForm() {
         setIsLoading(true);
 
         try {
-            const res = await fetch("/api/auth/reset-password", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    token,
-                    newPassword: values.password,
-                }),
+            const res = await moneaClient.post<{ message?: string }>("/api/auth/reset-password", {
+                token,
+                newPassword: values.password,
             });
 
-            const data = await res.json();
-
-            if (res.ok) {
-                setSuccessMessage(data.message || "Password reset successfully!");
+            if (!res.error && res.data) {
+                setSuccessMessage(res.data.message || "Password reset successfully!");
                 setTimeout(() => {
                     router(AUTH_URLS.SIGN_IN);
                 }, 3000);
             } else {
-                setError(data.error || t('common.errors.unexpected'));
+                setError(res.error || t('common.errors.unexpected'));
             }
         } catch (e) {
             setError(t('common.errors.technical'));
