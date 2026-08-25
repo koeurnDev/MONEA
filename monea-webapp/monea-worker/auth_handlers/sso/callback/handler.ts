@@ -5,17 +5,21 @@ import { ROLES } from "@/lib/constants";
 import { getIP } from "@/lib/utils";
 
 export async function GET(req: Request) {
-    const appUrl = process.env.VITE_APP_URL || "http://localhost:3001";
+    const isLocal = typeof req !== 'undefined' && (new URL(req.url).hostname === 'localhost' || new URL(req.url).hostname === '127.0.0.1');
+    const appUrl = isLocal
+        ? (process.env.VITE_APP_URL || "http://localhost:3001")
+        : (process.env.NEXT_PUBLIC_APP_URL || "https://monea-webapp.pages.dev");
+
     try {
         const { searchParams } = new URL(req.url);
         const code = searchParams.get("code");
 
-        if (!code) return Response.redirect(`${appUrl}/login?error=no_code`);
+        if (!code) return Response.redirect(`${appUrl}/sign-in?error=no_code`);
 
         const tokens     = await getGoogleTokens(code);
         const googleUser = await getGoogleUser(tokens.id_token, tokens.access_token);
 
-        if (!googleUser.email) return Response.redirect(`${appUrl}/login?error=no_email`);
+        if (!googleUser.email) return Response.redirect(`${appUrl}/sign-in?error=no_email`);
 
         let user = await prisma.user.findFirst({
             where: { OR: [{ googleId: googleUser.id }, { email: googleUser.email }] },
@@ -46,6 +50,6 @@ export async function GET(req: Request) {
 
     } catch (error) {
         console.error("[SSO Callback Error]", error);
-        return Response.redirect(`${appUrl}/login?error=sso_failed`);
+        return Response.redirect(`${appUrl}/sign-in?error=sso_failed`);
     }
 }

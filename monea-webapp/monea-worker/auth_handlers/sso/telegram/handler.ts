@@ -71,14 +71,23 @@ export async function GET(req: Request) {
         }, { fingerprint });
 
         // 5. Build Response with cookie
+        const isLocal = typeof req !== 'undefined' && (new URL(req.url).hostname === 'localhost' || new URL(req.url).hostname === '127.0.0.1');
+        const appUrl = isLocal
+            ? (process.env.VITE_APP_URL || "http://localhost:3001")
+            : (process.env.NEXT_PUBLIC_APP_URL || "https://monea-webapp.pages.dev");
+
         const cookieSecure = isSecureCookie(req as any);
         const secure       = cookieSecure ? "; Secure" : "";
-        const headers      = new Headers({ "Location": new URL("/dashboard", req.url).toString() });
+        const headers      = new Headers({ "Location": `${appUrl}/dashboard` });
         headers.append("Set-Cookie", `token=${token}; HttpOnly${secure}; Path=/; SameSite=Lax; Max-Age=${60 * 60 * 24 * 30}`);
         return new Response(null, { status: 302, headers });
 
     } catch (error) {
         console.error("[Telegram SSO Callback Error]", error);
-        return Response.redirect(new URL("/sign-in?error=sso_failed", req.url));
+        const isLocal = typeof req !== 'undefined' && (new URL(req.url).hostname === 'localhost' || new URL(req.url).hostname === '127.0.0.1');
+        const appUrl = isLocal
+            ? (process.env.VITE_APP_URL || "http://localhost:3001")
+            : (process.env.NEXT_PUBLIC_APP_URL || "https://monea-webapp.pages.dev");
+        return Response.redirect(`${appUrl}/sign-in?error=sso_failed`);
     }
 }

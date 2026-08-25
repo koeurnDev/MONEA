@@ -30,9 +30,32 @@ import publicStatsRouter from './routers/publicStats'
 import pingRouter from './routers/ping'
 import sentryTunnelRouter from './routers/sentryTunnel'
 import cronRouter from './routers/cron'
+import { cors } from 'hono/cors'
 
 // Export the root hono app
 const app = new Hono().basePath('/api')
+
+// Configure CORS for cross-origin requests (Cloudflare Pages <-> Cloudflare Worker)
+app.use('*', cors({
+  origin: (origin) => {
+    if (!origin) return 'https://monea-webapp.pages.dev';
+    if (
+      origin.startsWith('http://localhost:') ||
+      origin.startsWith('http://127.0.0.1:') ||
+      origin.endsWith('.pages.dev') ||
+      origin.endsWith('monea.app') ||
+      origin === 'https://monea.app'
+    ) {
+      return origin;
+    }
+    return origin;
+  },
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'X-Client-Fingerprint', 'Cache-Control'],
+  exposeHeaders: ['Content-Length', 'X-CSRF-Token'],
+  maxAge: 86400,
+  credentials: true,
+}))
 
 // Polyfill process.env and provide a per-request PrismaClient for Cloudflare Workers
 app.use('*', async (c, next) => {
