@@ -12,14 +12,9 @@ export function getApiUrl(path: string): string {
   }
 
   const rawBase = import.meta.env.VITE_API_URL || import.meta.env.NEXT_PUBLIC_API_URL || '';
-  const apiBase = rawBase.replace(/\/$/, '');
+  const apiBase = (rawBase && rawBase !== 'http://localhost:8787' ? rawBase : 'https://monea-api.seabkoeurn64.workers.dev').replace(/\/$/, '');
   
-  // In production with external API
-  if (apiBase) {
-    return `${apiBase}/${cleanPath}`;
-  }
-  
-  return `/${cleanPath}`;
+  return `${apiBase}/${cleanPath}`;
 }
 
 /**

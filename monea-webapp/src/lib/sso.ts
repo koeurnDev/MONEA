@@ -1,6 +1,12 @@
 
 
-const getAppUrl = () => process.env.VITE_APP_URL || "http://localhost:3001";
+const getAppUrl = () => {
+    const rawApi = process.env.VITE_API_URL || process.env.NEXT_PUBLIC_API_URL;
+    if (rawApi && rawApi !== 'http://localhost:8787') {
+        return rawApi.replace(/\/$/, '');
+    }
+    return process.env.VITE_APP_URL || "http://localhost:3001";
+};
 const getRedirectUri = () => `${getAppUrl()}/api/auth/sso/callback`;
 
 export function getGoogleAuthUrl(state: string) {

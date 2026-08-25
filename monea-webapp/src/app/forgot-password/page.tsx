@@ -1,8 +1,7 @@
-import { lazy, Suspense } from 'react';
-﻿import { useForm } from "react-hook-form";
+import { lazy, Suspense, useState } from 'react';
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useState } from "react";
 import { Link } from 'react-router-dom';
 import { Mail, ArrowLeft, Loader2, ChevronLeft } from "lucide-react";
 import { m, AnimatePresence } from 'framer-motion';
@@ -17,10 +16,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
-// next/dynamic replaced with React.lazy;
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { AUTH_URLS } from "@/lib/constants";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { moneaClient } from "@/lib/api-client";
+
 const Turnstile = lazy(() => import("@marsidev/react-turnstile").then(mod => ({ default: mod.Turnstile })));
 
 export default function ForgotPasswordPage() {
@@ -44,25 +44,15 @@ export default function ForgotPasswordPage() {
         setSuccessMessage("");
         setIsLoading(true);
         try {
-            const res = await fetch("/api/auth/forgot-password", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    email: values.email,
-                    turnstileToken
-                }),
+            const res = await moneaClient.post("/api/auth/forgot-password", {
+                email: values.email,
+                turnstileToken
             });
 
-            if (res.ok) {
+            if (!res.error) {
                 setSuccessMessage(t('common.auth.resetLinkSent'));
             } else {
-                let data;
-                try {
-                    data = await res.json();
-                } catch (e) {
-                    data = { error: `${t('common.errors.unexpected')} (Code: ${res.status})` };
-                }
-                setError(data.error || t('common.errors.technical'));
+                setError(res.error || t('common.errors.technical'));
             }
         } catch (e) {
             setError(t('common.errors.technical'));
@@ -117,11 +107,9 @@ export default function ForgotPasswordPage() {
                                 name="email"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-white/80 text-xs uppercase tracking-wider font-bold ml-1">{t('common.auth.email')}</FormLabel>
-                                        <div className="relative group">
-                                            <div className="absolute left-3 top-3 text-white/40 group-focus-within:text-pink-400 transition-colors">
-                                                <Mail className="w-5 h-5" />
-                                            </div>
+                                        <FormLabel className="text-white/80 font-kantumruy text-xs">{t('common.auth.emailLabel')}</FormLabel>
+                                        <div className="relative">
+                                            <Mail className="absolute left-3 top-3 h-4 w-4 text-white/40" />
                                             <Input placeholder="name@example.com" className="pl-10 bg-white/5 border-white/10 text-white rounded-xl focus:border-pink-500/50 h-11" {...field} />
                                         </div>
                                         <FormMessage className="text-red-400 text-xs" />
@@ -132,7 +120,7 @@ export default function ForgotPasswordPage() {
                             {import.meta.env.VITE_TURNSTILE_SITE_KEY ? (
                                 <div className="flex justify-center my-4 scale-90 xs:scale-100 origin-center">
                                     <Turnstile
-                                        siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+                                        siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || "0x4AAAAAACqptbDqodh591Td"}
                                         onSuccess={(token: string) => setTurnstileToken(token)}
                                         options={{ theme: 'dark', appearance: 'always' }}
                                     />
@@ -159,7 +147,7 @@ export default function ForgotPasswordPage() {
                                         initial={{ opacity: 0, y: -10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: -10 }}
-                                        className="mt-4 p-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-300 text-xs text-center font-kantumruy leading-relaxed"
+                                        className="mt-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs text-center font-kantumruy"
                                     >
                                         {successMessage}
                                     </m.div>
@@ -167,28 +155,17 @@ export default function ForgotPasswordPage() {
                             </AnimatePresence>
 
                             <Button type="submit" disabled={isLoading || !!successMessage || !turnstileToken} className="w-full bg-gradient-to-r from-pink-500 to-rose-600 rounded-xl font-bold uppercase tracking-wide h-11 border border-white/10 hover:shadow-lg hover:shadow-pink-500/20 transition-all mt-6 text-white text-sm">
-                                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : t('common.auth.sendLink')}
+                                {isLoading ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        {t('common.auth.sending')}
+                                    </>
+                                ) : (
+                                    t('common.auth.sendResetLink')
+                                )}
                             </Button>
                         </form>
                     </Form>
-
-                    <div className="relative mt-6 mb-6">
-                        <div className="absolute inset-0 flex items-center">
-                            <span className="w-full border-t border-white/10" />
-                        </div>
-                        <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-[#1c1c1c] px-2 text-white/40 rounded-full font-kantumruy">
-                                {t('common.auth.rememberPassword')}
-                            </span>
-                        </div>
-                    </div>
-
-                    <div className="text-center">
-                        <Link to={AUTH_URLS.SIGN_IN} className="font-semibold text-white hover:text-pink-400 transition-colors flex items-center justify-center gap-2 text-sm font-kantumruy">
-                            <ArrowLeft className="w-4 h-4" /> {t('common.auth.backToSignIn')}
-                        </Link>
-                    </div>
-
                 </div>
             </m.div>
         </div>

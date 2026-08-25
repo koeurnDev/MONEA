@@ -17,6 +17,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
+import { moneaClient } from "@/lib/api-client";
 import SSOIcons from "@/components/auth/SSOIcons";
 import {
     Form,
@@ -70,26 +71,21 @@ export default function SignUpPage() {
         }
         setIsLoading(true);
         try {
-            const res = await fetch("/api/auth/signup", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    name: values.name,
-                    email: values.email,
-                    password: values.password,
-                    turnstileToken
-                }),
+            const res = await moneaClient.post<{ redirectToSignIn?: boolean; error?: string }>("/api/auth/signup", {
+                name: values.name,
+                email: values.email,
+                password: values.password,
+                turnstileToken
             });
-            const data = await res.json();
-            if (res.ok) {
-                if (data.redirectToSignIn) {
+            if (res.data && !res.error) {
+                if (res.data.redirectToSignIn) {
                     navigate(`${AUTH_URLS.SIGN_IN}?hint=check-email`);
                     return;
                 }
                 setRegisteredEmail(values.email);
                 setStep(2);
             } else {
-                setError(data.error || "មានបញ្ហាក្នុងការចុះឈ្មោះ");
+                setError(res.error || "មានបញ្ហាក្នុងការចុះឈ្មោះ");
             }
         } catch (e: any) {
             setError(e?.message || "មិនអាចភ្ជាប់ទៅកាន់ Server បានទេ");
@@ -106,16 +102,14 @@ export default function SignUpPage() {
         setError("");
         setIsLoading(true);
         try {
-            const res = await fetch("/api/auth/verify", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: registeredEmail, otp }),
+            const res = await moneaClient.post<{ error?: string }>("/api/auth/verify", {
+                email: registeredEmail,
+                otp
             });
-            const data = await res.json();
-            if (res.ok) {
+            if (!res.error) {
                 navigate(`${AUTH_URLS.SIGN_IN}?registered=true`);
             } else {
-                setError(data.error || "លេខកូដមិនត្រឹមត្រូវ");
+                setError(res.error || "លេខកូដមិនត្រឹមត្រូវ");
             }
         } catch (e: any) {
             setError(e?.message || "មានបញ្ហាបច្ចេកទេស");

@@ -34,6 +34,7 @@ import { motion as m, AnimatePresence } from "framer-motion";
 import { useSWRConfig } from "swr";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { Turnstile } from "@marsidev/react-turnstile";
+import { moneaClient } from "@/lib/api-client";
 
 const adminLoginSchema = z.object({
     email: z.string().email({ message: "សូមបញ្ចូលអ៊ីមែលឱ្យបានត្រឹមត្រូវ" }),
@@ -83,22 +84,17 @@ export default function AdminLoginPage() {
                 twoFactorToken: values.twoFactorCode || undefined,
             };
 
-            const res = await fetch("/api/auth/signin", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(body),
-            });
+            const res = await moneaClient.post<{ require2FA?: boolean }>("/api/auth/signin", body);
+            const data = res.data;
 
-            const data = await res.json().catch(() => ({}));
-
-            if (res.status === 428 || data.require2FA) {
+            if (res.status === 428 || data?.require2FA) {
                 setRequire2FA(true);
                 setIsLoading(false);
                 setError("សូមបញ្ចូលកូដ 2FA ពី Google Authenticator App របស់អ្នក។");
                 return;
             }
 
-            if (res.ok) {
+            if (!res.error && data) {
                 // Invalidate auth caches
                 await mutate("/api/auth/me");
                 mutate(() => true, undefined, { revalidate: true });
@@ -113,7 +109,7 @@ export default function AdminLoginPage() {
                     setLockoutTimer(900); // 15 minutes lockout
                     setError("អ្នកបានព្យាយាមខុសលើសពី ៥ ដង! ប្រព័ន្ធត្រូវបានចាក់សោសុវត្ថិភាពរយៈពេល ១៥ នាទី។");
                 } else {
-                    setError(data.error || `ការចូលប្រើមិនត្រឹមត្រូវ! (ព្យាយាមបរាជ័យ ${newAttempts}/5)`);
+                    setError(res.error || `ការចូលប្រើមិនត្រឹមត្រូវ! (ព្យាយាមបរាជ័យ ${newAttempts}/5)`);
                 }
             }
         } catch (err) {

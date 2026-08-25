@@ -32,6 +32,7 @@ import { khmerToEnglishNumbers } from "@/lib/utils";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { Turnstile } from "@marsidev/react-turnstile";
+import { moneaClient } from "@/lib/api-client";
 import SSOIcons from "@/components/auth/SSOIcons";
 
 export default function SignInPage() {
@@ -74,19 +75,10 @@ export default function SignInPage() {
                 turnstileToken: captchaToken || undefined,
                 twoFactorToken: show2FA ? twoFactorToken : undefined
             };
-            const res = await fetch("/api/auth/signin", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(body),
-            });
-            let data;
-            try {
-                data = await res.json();
-            } catch (err) {
-                data = { error: "មានបញ្ហាបច្ចេកទេស", details: `HTTP Status Code: ${res.status}` };
-            }
+            const res = await moneaClient.post<{ user?: any; require2FA?: boolean; requireCaptcha?: boolean }>("/api/auth/signin", body);
+            const data = res.data;
 
-            if (res.ok) {
+            if (!res.error && data) {
                 await mutate("/api/auth/me");
                 mutate(() => true, undefined, { revalidate: true });
                 
@@ -99,21 +91,21 @@ export default function SignInPage() {
                 }
                 navigate(0);
             } else {
-                if (res.status === 428 && data.require2FA) {
+                if (res.status === 428 && data?.require2FA) {
                     setShow2FA(true);
                     setError(""); 
                     return;
-                } else if (res.status === 428 && data.requireCaptcha) {
+                } else if (res.status === 428 && data?.requireCaptcha) {
                     setRequireCaptcha(true);
-                } else if (res.status === 400 && data.error?.includes("CAPTCHA")) {
+                } else if (res.status === 400 && res.error?.includes("CAPTCHA")) {
                     setCaptchaToken("");
                 }
                 
-                let errorMsg = data.error;
-                if (data.details) {
-                    errorMsg += `\n[MONEA DEBUG] ${data.details}`;
+                let errorMsg = res.error || "ការចូលប្រើមិនត្រឹមត្រូវ";
+                if (res.details) {
+                    errorMsg += `\n[MONEA DEBUG] ${res.details}`;
                 }
-                setError(errorMsg || "ការចូលប្រើមិនត្រឹមត្រូវ");
+                setError(errorMsg);
             }
         } catch (e: any) {
             setError(e?.message || "មិនអាចភ្ជាប់ទៅកាន់ Server បានទេ");

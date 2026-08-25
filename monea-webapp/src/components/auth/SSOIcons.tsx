@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { useToast } from "@/components/ui/Toast";
 import { useTranslation } from "@/i18n/LanguageProvider";
 
+import { getApiUrl } from "@/lib/api-url";
+
 interface SSOIconsProps {
     className?: string;
 }
@@ -17,7 +19,7 @@ const SSOIcons: React.FC<SSOIconsProps> = ({ className }) => {
              showToast({ title: "SSO Unavailable", description: "Google SSO is not configured on this server.", type: "info" });
              return;
         }
-        window.location.href = "/api/auth/sso/google";
+        window.location.href = getApiUrl("api/auth/sso/google");
     };
 
     const handleTelegramLogin = () => {
@@ -27,7 +29,7 @@ const SSOIcons: React.FC<SSOIconsProps> = ({ className }) => {
              return;
         }
         const safeBotId = botId || '8289587681'; 
-        const authUrl = `${window.location.origin}/api/auth/sso/telegram`;
+        const authUrl = getApiUrl("api/auth/sso/telegram");
         const telegramAuthUrl = `https://oauth.telegram.org/auth?bot_id=${safeBotId}&origin=${encodeURIComponent(window.location.origin)}&return_to=${encodeURIComponent(authUrl)}`;
         
         window.location.href = telegramAuthUrl;
