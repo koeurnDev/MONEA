@@ -11,7 +11,8 @@ export function getApiUrl(path: string): string {
     return `/${cleanPath}`;
   }
 
-  const apiBase = import.meta.env.VITE_API_URL || '';
+  const rawBase = import.meta.env.VITE_API_URL || import.meta.env.NEXT_PUBLIC_API_URL || '';
+  const apiBase = rawBase.replace(/\/$/, '');
   
   // In production with external API
   if (apiBase) {

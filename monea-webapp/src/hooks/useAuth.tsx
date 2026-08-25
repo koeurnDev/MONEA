@@ -35,21 +35,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchUser = useCallback(async () => {
     setIsLoading(true);
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 10000);
+      const res = await moneaClient.get<{ user?: AuthUser } | AuthUser>('/api/auth/me');
       
-      const res = await fetch('/api/auth/me', {
-        credentials: 'include',
-        headers: {
-          'Cache-Control': 'no-cache',
-        },
-        signal: controller.signal,
-      });
-      clearTimeout(timeout);
-
-      if (res.ok) {
-        const data = await res.json();
-        const userObj = data?.user || (data?.id ? data : null);
+      if (res.data) {
+        const userObj = (res.data as any)?.user || ((res.data as any)?.id ? (res.data as AuthUser) : null);
         if (userObj) {
           setUser(userObj);
           setIsLoading(false);
@@ -63,35 +52,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      // For other errors, try once more after a brief delay
+      // Retry once if server error
       if (res.status >= 500) {
         await new Promise(r => setTimeout(r, 1000));
-        try {
-          const res2 = await fetch('/api/auth/me', { 
-            credentials: 'include',
-            headers: {
-              'Cache-Control': 'no-cache',
-            }
-          });
-          if (res2.ok) {
-            const data2 = await res2.json();
-            const userObj2 = data2?.user || (data2?.id ? data2 : null);
-            if (userObj2) { 
-              setUser(userObj2); 
-              setIsLoading(false); 
-              return; 
-            }
-          }
-          if (res2.status === 401) {
-            setUser(null);
+        const retryRes = await moneaClient.get<{ user?: AuthUser } | AuthUser>('/api/auth/me');
+        if (retryRes.data) {
+          const userObj2 = (retryRes.data as any)?.user || ((retryRes.data as any)?.id ? (retryRes.data as AuthUser) : null);
+          if (userObj2) {
+            setUser(userObj2);
             setIsLoading(false);
             return;
           }
-        } catch (_) { 
-          console.warn('Auth retry failed');
         }
       }
-    } catch (error) { 
+    } catch (error) {
       console.warn('Auth fetch failed:', error);
     }
     

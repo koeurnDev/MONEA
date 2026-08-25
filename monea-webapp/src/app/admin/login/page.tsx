@@ -298,7 +298,7 @@ export default function AdminLoginPage() {
                             {/* Cloudflare Turnstile Bot Defense */}
                             <div className="flex justify-center pt-2">
                                 <Turnstile
-                                    siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || "1x00000000000000000000AA"}
+                                    siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || "0x4AAAAAACqptbDqodh591Td"}
                                     onSuccess={(token) => setCaptchaToken(token)}
                                     options={{ theme: 'dark' }}
                                 />

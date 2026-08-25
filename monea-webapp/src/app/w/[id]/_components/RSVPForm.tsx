@@ -194,7 +194,7 @@ export function RSVPForm({ weddingId, guestId, primaryColor, theme = 'dark' }: R
                                 </div>
                                 <div className="flex justify-center my-4">
                                     <Turnstile 
-                                        siteKey="1x00000000000000000000AA"
+                                        siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || "0x4AAAAAACqptbDqodh591Td"}
                                         onSuccess={(token) => setTurnstileToken(token)}
                                         // @ts-ignore
                                         theme={isLight ? 'light' : 'dark'}

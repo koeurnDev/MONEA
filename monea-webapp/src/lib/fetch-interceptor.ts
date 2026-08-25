@@ -18,9 +18,10 @@ export function setupFetchInterceptor() {
 
     // Intercept /api/* calls and redirect to Worker API in production if VITE_API_URL is set
     if (url.startsWith('/api/')) {
-      const apiBase = import.meta.env.VITE_API_URL || '';
+      const rawBase = import.meta.env.VITE_API_URL || import.meta.env.NEXT_PUBLIC_API_URL || '';
+      const apiBase = rawBase.replace(/\/$/, '');
       if (apiBase) {
-        url = url.replace('/api/', `${apiBase}/api/`);
+        url = `${apiBase}${url}`;
       }
       
       // Ensure credentials are included for cross-origin
