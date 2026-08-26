@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import LoadingScreen from '@/components/ui/LoadingScreen';
+import { getApiUrl } from '@/lib/api-url';
 
 /**
  * AuthCallbackPage — receives the JWT token from SSO callback URL params,
@@ -31,7 +32,7 @@ export default function AuthCallbackPage() {
     }
 
     // Exchange the one-time code for a session cookie via the backend
-    fetch('/api/auth/session', {
+    fetch(getApiUrl('api/auth/session'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
@@ -39,7 +40,11 @@ export default function AuthCallbackPage() {
     })
       .then(async (res) => {
         if (res.ok) {
-          // Hard navigation ensures cookie is committed across all tabs and contexts
+          const data = await res.json().catch(() => null);
+          if (data?.token) {
+            localStorage.setItem('auth_token', data.token);
+          }
+          // Hard navigation ensures cookie and session are committed
           window.location.href = '/dashboard';
         } else {
           navigate('/sign-in?error=session_failed', { replace: true });

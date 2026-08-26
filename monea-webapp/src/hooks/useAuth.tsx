@@ -37,7 +37,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const res = await moneaClient.get<{ user?: AuthUser } | AuthUser>('/api/auth/me');
       
-      if (res.data) {
+      // Handle successful response
+      if (res.data && res.status === 200) {
         const userObj = (res.data as any)?.user || ((res.data as any)?.id ? (res.data as AuthUser) : null);
         if (userObj) {
           setUser(userObj);
@@ -46,19 +47,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      // If 401, clear localStorage and logout
+      // Handle 401 - user not authenticated (normal case)
       if (res.status === 401) {
+        console.log('[Auth] User not authenticated - clearing token');
         localStorage.removeItem('auth_token');
         setUser(null);
         setIsLoading(false);
         return;
       }
 
-      // Retry once if server error
+      // Handle server errors with retry
       if (res.status >= 500) {
+        console.warn('[Auth] Server error, retrying once...', res.status);
         await new Promise(r => setTimeout(r, 1000));
         const retryRes = await moneaClient.get<{ user?: AuthUser } | AuthUser>('/api/auth/me');
-        if (retryRes.data) {
+        if (retryRes.data && retryRes.status === 200) {
           const userObj2 = (retryRes.data as any)?.user || ((retryRes.data as any)?.id ? (retryRes.data as AuthUser) : null);
           if (userObj2) {
             setUser(userObj2);
@@ -67,8 +70,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
       }
+
+      // Handle other errors
+      console.warn('[Auth] Auth check failed with status:', res.status, res.error);
     } catch (error) {
-      console.warn('Auth fetch failed:', error);
+      console.warn('[Auth] Auth fetch failed:', error);
       // Clear token on persistent errors
       localStorage.removeItem('auth_token');
     }

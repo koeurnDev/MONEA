@@ -1,0 +1,19 @@
+# Cloudflare Pages Configuration for MONEA Frontend
+name = "monea-webapp"
+compatibility_date = "2024-09-23"
+
+# Pages-specific configuration
+pages_build_output_dir = "dist"
+
+# Environment variables for Pages
+[env.production.vars]
+NODE_ENV = "production"
+VITE_API_URL = "https://monea-api.seabkoeurn64.workers.dev"
+VITE_APP_URL = "https://monea-webapp.pages.dev"
+VITE_TURNSTILE_SITE_KEY = "0x4AAAAAACqptbDqodh591Td"
+VITE_GOOGLE_CLIENT_ID = "30891345600-2s6re86u5pj5fugsc0m0kh3kjhdi1brk.apps.googleusercontent.com"
+VITE_CLOUDINARY_CLOUD_NAME = "dilx4i5s4"
+VITE_CLOUDINARY_API_KEY = "678179776217443"
+VITE_IMAGEKIT_PUBLIC_KEY = "public_XSdgeh7KUyvELBplDQq6JF1e6dg="
+VITE_IMAGEKIT_URL_ENDPOINT = "https://ik.imagekit.io/v8dbam7a6"
+VITE_SENTRY_DSN = "https://15b84fd5663bdaba7083e822e9ae37f0@o4511029455159296.ingest.us.sentry.io/4511029456863232"

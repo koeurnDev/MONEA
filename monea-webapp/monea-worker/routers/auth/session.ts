@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { isSecureCookie, verifyExchangeTicket } from '@/lib/auth';
+import { isSecureCookie, verifyExchangeTicket, getCookieHeader } from '@/lib/auth';
 
 const router = new Hono();
 
@@ -32,13 +32,9 @@ router.post('/', async (c) => {
             return c.json({ error: 'Invalid or expired exchange ticket' }, 401);
         }
 
-        const req = c.req.raw;
-        const cookieSecure = isSecureCookie(req);
-        const secure = cookieSecure ? '; Secure' : '';
-        const maxAge = 60 * 60 * 24 * 30; // 30 days
-
-        c.header('Set-Cookie', `token=${token}; HttpOnly${secure}; Path=/; SameSite=Lax; Max-Age=${maxAge}`);
-        return c.json({ ok: true });
+        const cookieStr = getCookieHeader('token', token, c.req.raw, 60 * 60 * 24 * 30);
+        c.header('Set-Cookie', cookieStr);
+        return c.json({ ok: true, token });
     } catch (error) {
         console.error('[Session] Unexpected Error:', error);
         return c.json({ error: 'Invalid exchange session' }, 401);

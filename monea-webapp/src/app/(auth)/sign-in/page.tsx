@@ -41,7 +41,16 @@ export default function SignInPage() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const { mutate } = useSWRConfig();
-    const [error, setError] = useState("");
+    const urlError = searchParams.get('error');
+    const urlDetails = searchParams.get('details');
+    const initialError = urlError ? (
+        urlError === 'sso_failed' 
+            ? (urlDetails ? `ការចូលប្រើប្រាស់តាម Google បរាជ័យ: ${urlDetails}` : "ការចូលប្រើប្រាស់តាម Google មិនជោគជ័យ។ សូមព្យាយាមម្ដងទៀត។")
+            : urlError === 'telegram_failed'
+            ? "ការចូលប្រើប្រាស់តាម Telegram មិនជោគជ័យ។"
+            : "មានបញ្ហាក្នុងការចូលប្រើប្រាស់"
+    ) : "";
+    const [error, setError] = useState(initialError);
     const [isLoading, setIsLoading] = useState(false);
     const [requireCaptcha, setRequireCaptcha] = useState(true);
     const [captchaToken, setCaptchaToken] = useState("");
@@ -79,17 +88,19 @@ export default function SignInPage() {
             const data = res.data;
 
             if (!res.error && data) {
+                if ((data as any).token) {
+                    localStorage.setItem('auth_token', (data as any).token);
+                }
                 await mutate("/api/auth/me");
                 mutate(() => true, undefined, { revalidate: true });
                 
                 if (data.user?.role === ROLES.EVENT_STAFF) {
-                    navigate("/dashboard/gifts");
+                    window.location.href = "/dashboard/gifts";
                 } else if (data.user?.role === ROLES.PLATFORM_OWNER || data.user?.role === "SUPERADMIN") {
-                    navigate("/admin/master");
+                    window.location.href = "/admin/master";
                 } else {
-                    navigate(AUTH_URLS.DASHBOARD);
+                    window.location.href = AUTH_URLS.DASHBOARD;
                 }
-                navigate(0);
             } else {
                 if (res.status === 428 && data?.require2FA) {
                     setShow2FA(true);

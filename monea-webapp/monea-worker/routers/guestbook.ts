@@ -5,7 +5,6 @@ import { sanitizeObject } from "@/lib/sanitize";
 import { errorResponse, validateRequest } from "@/lib/api-utils";
 import { guestbookSchema } from "@/lib/validations/guestbook";
 import { publicLimiter, getIP } from "@/lib/ratelimit";
-import crypto from "crypto";
 
 const guestbookRouter = new Hono()
 
@@ -66,7 +65,7 @@ guestbookRouter.post('/', async (c) => {
         const weddings = await queryRaw('SELECT id FROM "Wedding" WHERE id = $1 LIMIT 1', weddingId);
         if (!weddings.length) return errorResponse("Wedding not found", 404);
 
-        const id = crypto.randomUUID();
+        const id = globalThis.crypto.randomUUID();
 
         const results = await queryRaw(`
             INSERT INTO "GuestbookEntry" (id, "guestName", message, "weddingId", "createdAt")

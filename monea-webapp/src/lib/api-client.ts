@@ -15,6 +15,10 @@ const CSRF_TTL = 1000 * 60 * 45; // 45 minutes
 
 async function getCsrfToken(): Promise<string | null> {
     const now = Date.now();
+    if (!cachedCsrfToken && typeof window !== 'undefined') {
+        cachedCsrfToken = sessionStorage.getItem('csrf_token');
+    }
+
     if (cachedCsrfToken && (now - lastCsrfFetch < CSRF_TTL)) {
         return cachedCsrfToken;
     }
@@ -27,6 +31,9 @@ async function getCsrfToken(): Promise<string | null> {
         const data = await res.json();
         cachedCsrfToken = data.token;
         lastCsrfFetch = now;
+        if (typeof window !== 'undefined' && data.token) {
+            sessionStorage.setItem('csrf_token', data.token);
+        }
         return cachedCsrfToken;
     } catch (err) {
         console.error("[MoneaClient] CSRF Fetch Error:", err);
@@ -52,6 +59,14 @@ async function request<T>(
     const headers = new Headers(options.headers);
     if (!headers.has("Content-Type") && options.body && !(options.body instanceof FormData)) {
         headers.set("Content-Type", "application/json");
+    }
+
+    // Attach Bearer token from localStorage if available
+    if (typeof window !== 'undefined') {
+        const storedToken = localStorage.getItem('auth_token');
+        if (storedToken && !headers.has("Authorization")) {
+            headers.set("Authorization", `Bearer ${storedToken}`);
+        }
     }
 
     // Attach CSRF token if mutable

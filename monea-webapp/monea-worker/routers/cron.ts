@@ -1,7 +1,6 @@
 import { Hono } from 'hono'
 import { prisma } from '@/lib/prisma'
 import { sendTelegramAlert } from '@/lib/telegram'
-import crypto from 'crypto'
 
 const cronRouter = new Hono()
 
@@ -9,9 +8,14 @@ cronRouter.get('/daily-security', async (c) => {
     const authHeader = c.req.header('authorization') || "";
     const expected = `Bearer ${process.env.CRON_SECRET || "UNSET"}`;
 
-    const a = Buffer.from(authHeader);
-    const b = Buffer.from(expected);
-    if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
+    // Constant-time comparison using Web Crypto (CF Workers compatible)
+    const encoder = new TextEncoder();
+    const aBytes = encoder.encode(authHeader);
+    const bBytes = encoder.encode(expected);
+    let mismatch = aBytes.length !== bBytes.length ? 1 : 0;
+    const len = Math.min(aBytes.length, bBytes.length);
+    for (let i = 0; i < len; i++) mismatch |= aBytes[i] ^ bBytes[i];
+    if (mismatch !== 0) {
         return c.text('Unauthorized', 401);
     }
 

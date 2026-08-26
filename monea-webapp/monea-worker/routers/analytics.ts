@@ -1,7 +1,6 @@
 import { Hono } from 'hono'
 import { prisma } from "@/lib/prisma"
 import { getServerUser } from "@/lib/auth"
-import crypto from "crypto"
 
 const analyticsRouter = new Hono()
 
@@ -22,7 +21,9 @@ analyticsRouter.post('/track', async (c) => {
         const ip = c.req.header("x-forwarded-for") || c.req.header("x-real-ip") || "unknown";
         const userAgent = c.req.header("user-agent") || "unknown";
         
-        const ipHash = crypto.createHash('sha256').update(ip).digest('hex').substring(0, 16);
+        const ipBytes = new TextEncoder().encode(ip);
+        const hashBuffer = await globalThis.crypto.subtle.digest('SHA-256', ipBytes);
+        const ipHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2,'0')).join('').substring(0, 16);
 
         const isMobile = /mobile|iphone|ipad|android/i.test(userAgent);
         const deviceType = isMobile ? "MOBILE" : "DESKTOP";

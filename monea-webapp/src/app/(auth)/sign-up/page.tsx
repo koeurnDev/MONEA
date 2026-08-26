@@ -54,9 +54,6 @@ export default function SignUpPage() {
     const [turnstileToken, setTurnstileToken] = useState<string>("");
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [step, setStep] = useState<1 | 2>(1);
-    const [otp, setOtp] = useState("");
-    const [registeredEmail, setRegisteredEmail] = useState("");
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -71,48 +68,23 @@ export default function SignUpPage() {
         }
         setIsLoading(true);
         try {
-            const res = await moneaClient.post<{ redirectToSignIn?: boolean; error?: string }>("/api/auth/signup", {
-                name: values.name,
-                email: values.email,
+            const res = await moneaClient.post<{ token?: string; user?: any; error?: string }>("/api/auth/signup", {
+                name: values.name.trim(),
+                email: values.email.trim().toLowerCase(),
                 password: values.password,
                 turnstileToken
             });
             if (res.data && !res.error) {
-                if (res.data.redirectToSignIn) {
-                    navigate(`${AUTH_URLS.SIGN_IN}?hint=check-email`);
-                    return;
+                if ((res.data as any).token) {
+                    localStorage.setItem('auth_token', (res.data as any).token);
                 }
-                setRegisteredEmail(values.email);
-                setStep(2);
+                window.location.href = AUTH_URLS.DASHBOARD;
+                return;
             } else {
                 setError(res.error || "មានបញ្ហាក្នុងការចុះឈ្មោះ");
             }
         } catch (e: any) {
             setError(e?.message || "មិនអាចភ្ជាប់ទៅកាន់ Server បានទេ");
-        } finally {
-            setIsLoading(false);
-        }
-    }
-
-    async function handleVerify() {
-        if (!otp || otp.length !== 6) {
-            setError("សូមបញ្ចូលលេខកូដ PIN ៦ ខ្ទង់");
-            return;
-        }
-        setError("");
-        setIsLoading(true);
-        try {
-            const res = await moneaClient.post<{ error?: string }>("/api/auth/verify", {
-                email: registeredEmail,
-                otp
-            });
-            if (!res.error) {
-                navigate(`${AUTH_URLS.SIGN_IN}?registered=true`);
-            } else {
-                setError(res.error || "លេខកូដមិនត្រឹមត្រូវ");
-            }
-        } catch (e: any) {
-            setError(e?.message || "មានបញ្ហាបច្ចេកទេស");
         } finally {
             setIsLoading(false);
         }
@@ -146,218 +118,171 @@ export default function SignUpPage() {
                             <MoneaLogo showText size="sm" />
                         </Link>
                         <h1 className="text-2xl font-bold text-foreground tracking-tight">
-                            {step === 1 
-                                ? (isKm ? "បង្កើតគណនីថ្មី" : "Create Account")
-                                : (isKm ? "ផ្ទៀងផ្ទាត់អ៊ីមែល" : "Verify Email")
-                            }
+                            {isKm ? "បង្កើតគណនីថ្មី" : "Create Account"}
                         </h1>
                         <p className="text-muted-foreground text-xs mt-1">
-                            {step === 1 
-                                ? (isKm ? "ចាប់ផ្តើមដំណើរការរៀបចំមង្គលការរបស់អ្នកដោយឥតគិតថ្លៃ" : "Start planning your wedding for free")
-                                : (isKm ? `យើងបានផ្ញើកូដ ៦ ខ្ទង់ទៅកាន់ ${registeredEmail}` : `We sent a 6-digit code to ${registeredEmail}`)
-                            }
+                            {isKm ? "ចាប់ផ្តើមដំណើរការរៀបចំមង្គលការរបស់អ្នកដោយឥតគិតថ្លៃ" : "Start planning your wedding for free"}
                         </p>
                     </div>
 
-                    {step === 1 ? (
-                        <>
-                            {/* Primary Sign Up Form */}
-                            <Form {...form}>
-                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
-                                    <FormField
-                                        control={form.control}
-                                        name="name"
-                                        render={({ field }) => (
-                                            <FormItem className="space-y-1">
-                                                <FormLabel className="text-foreground text-xs font-bold ml-0.5">
-                                                    {isKm ? "ឈ្មោះពេញ" : "Full Name"}
-                                                </FormLabel>
-                                                <div className="relative group">
-                                                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-rose-600 transition-colors">
-                                                        <User size={16} />
-                                                    </div>
-                                                    <Input
-                                                        placeholder="គង់ សុខា & ម៉ៅ ធីតា"
-                                                        className="h-10 pl-10 bg-background/50 border border-input text-foreground rounded-xl focus:border-rose-500 text-xs font-kantumruy"
-                                                        {...field}
-                                                    />
-                                                </div>
-                                                <FormMessage className="text-rose-600 text-xs" />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="email"
-                                        render={({ field }) => (
-                                            <FormItem className="space-y-1">
-                                                <FormLabel className="text-foreground text-xs font-bold ml-0.5">
-                                                    {isKm ? "អ៊ីមែល" : "Email Address"}
-                                                </FormLabel>
-                                                <div className="relative group">
-                                                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-rose-600 transition-colors">
-                                                        <Mail size={16} />
-                                                    </div>
-                                                    <Input
-                                                        placeholder="name@example.com"
-                                                        autoComplete="email"
-                                                        className="h-10 pl-10 bg-background/50 border border-input text-foreground rounded-xl focus:border-rose-500 text-xs font-mono"
-                                                        {...field}
-                                                    />
-                                                </div>
-                                                <FormMessage className="text-rose-600 text-xs" />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        <FormField
-                                            control={form.control}
-                                            name="password"
-                                            render={({ field }) => (
-                                                <FormItem className="space-y-1">
-                                                    <FormLabel className="text-foreground text-xs font-bold ml-0.5">
-                                                        {isKm ? "ពាក្យសម្ងាត់" : "Password"}
-                                                    </FormLabel>
-                                                    <div className="relative group">
-                                                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-rose-600 transition-colors">
-                                                            <Lock size={14} />
-                                                        </div>
-                                                        <Input
-                                                            type={showPassword ? "text" : "password"}
-                                                            placeholder="••••••••"
-                                                            className="h-10 pl-8 pr-8 bg-background/50 border border-input text-foreground rounded-xl focus:border-rose-500 text-xs"
-                                                            {...field}
-                                                        />
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setShowPassword(!showPassword)}
-                                                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                                                        >
-                                                            {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
-                                                        </button>
-                                                    </div>
-                                                    <FormMessage className="text-rose-600 text-[11px]" />
-                                                </FormItem>
-                                            )}
-                                        />
-
-                                        <FormField
-                                            control={form.control}
-                                            name="confirmPassword"
-                                            render={({ field }) => (
-                                                <FormItem className="space-y-1">
-                                                    <FormLabel className="text-foreground text-xs font-bold ml-0.5">
-                                                        {isKm ? "ផ្ទៀងផ្ទាត់ពាក្យសម្ងាត់" : "Confirm"}
-                                                    </FormLabel>
-                                                    <div className="relative group">
-                                                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-rose-600 transition-colors">
-                                                            <ShieldCheck size={14} />
-                                                        </div>
-                                                        <Input
-                                                            type={showConfirmPassword ? "text" : "password"}
-                                                            placeholder="••••••••"
-                                                            className="h-10 pl-8 pr-8 bg-background/50 border border-input text-foreground rounded-xl focus:border-rose-500 text-xs"
-                                                            {...field}
-                                                        />
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                                                        >
-                                                            {showConfirmPassword ? <EyeOff size={14} /> : <Eye size={14} />}
-                                                        </button>
-                                                    </div>
-                                                    <FormMessage className="text-rose-600 text-[11px]" />
-                                                </FormItem>
-                                            )}
-                                        />
-                                    </div>
-
-                                    {/* Cloudflare Turnstile */}
-                                    {import.meta.env.VITE_TURNSTILE_SITE_KEY && (
-                                        <div className="flex justify-center my-1.5 overflow-hidden scale-90 origin-center min-h-[55px]">
-                                            <Turnstile
-                                                siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
-                                                onSuccess={(token: string) => {
-                                                    setTurnstileToken(token);
-                                                    setError("");
-                                                }}
-                                                onError={() => setError("CAPTCHA failed to load.")}
-                                                options={{ theme: 'auto', appearance: 'always' }}
+                    {/* Primary Sign Up Form */}
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+                            <FormField
+                                control={form.control}
+                                name="name"
+                                render={({ field }) => (
+                                    <FormItem className="space-y-1">
+                                        <FormLabel className="text-foreground text-xs font-bold ml-0.5">
+                                            {isKm ? "ឈ្មោះពេញ" : "Full Name"}
+                                        </FormLabel>
+                                        <div className="relative group">
+                                            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-rose-600 transition-colors">
+                                                <User size={16} />
+                                            </div>
+                                            <Input
+                                                placeholder="គង់ សុខា & ម៉ៅ ធីតា"
+                                                className="h-10 pl-10 bg-background/50 border border-input text-foreground rounded-xl focus:border-rose-500 text-xs font-kantumruy"
+                                                {...field}
                                             />
                                         </div>
+                                        <FormMessage className="text-rose-600 text-xs" />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <FormField
+                                control={form.control}
+                                name="email"
+                                render={({ field }) => (
+                                    <FormItem className="space-y-1">
+                                        <FormLabel className="text-foreground text-xs font-bold ml-0.5">
+                                            {isKm ? "អ៊ីមែល" : "Email Address"}
+                                        </FormLabel>
+                                        <div className="relative group">
+                                            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-rose-600 transition-colors">
+                                                <Mail size={16} />
+                                            </div>
+                                            <Input
+                                                placeholder="name@example.com"
+                                                autoComplete="email"
+                                                className="h-10 pl-10 bg-background/50 border border-input text-foreground rounded-xl focus:border-rose-500 text-xs font-mono"
+                                                {...field}
+                                            />
+                                        </div>
+                                        <FormMessage className="text-rose-600 text-xs" />
+                                    </FormItem>
+                                )}
+                            />
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <FormField
+                                    control={form.control}
+                                    name="password"
+                                    render={({ field }) => (
+                                        <FormItem className="space-y-1">
+                                            <FormLabel className="text-foreground text-xs font-bold ml-0.5">
+                                                {isKm ? "ពាក្យសម្ងាត់" : "Password"}
+                                            </FormLabel>
+                                            <div className="relative group">
+                                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-rose-600 transition-colors">
+                                                    <Lock size={14} />
+                                                </div>
+                                                <Input
+                                                    type={showPassword ? "text" : "password"}
+                                                    placeholder="••••••••"
+                                                    className="h-10 pl-8 pr-8 bg-background/50 border border-input text-foreground rounded-xl focus:border-rose-500 text-xs"
+                                                    {...field}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPassword(!showPassword)}
+                                                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                                >
+                                                    {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                                                </button>
+                                            </div>
+                                            <FormMessage className="text-rose-600 text-[11px]" />
+                                        </FormItem>
                                     )}
+                                />
 
-                                    {/* Submit Button */}
-                                    <Button 
-                                        type="submit" 
-                                        disabled={isLoading || (import.meta.env.VITE_TURNSTILE_SITE_KEY && !turnstileToken)} 
-                                        className="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold h-11 rounded-xl shadow-md shadow-rose-600/20 transition-all text-xs uppercase tracking-wider mt-2"
-                                    >
-                                        {isLoading ? (
-                                            <Loader2 className="w-4 h-4 animate-spin" />
-                                        ) : (
-                                            isKm ? "បង្កើតគណនី" : "Create Account"
-                                        )}
-                                    </Button>
-                                </form>
-                            </Form>
-
-                            {/* Divider to Bottom SSO */}
-                            <div className="relative my-4">
-                                <div className="absolute inset-0 flex items-center">
-                                    <div className="w-full border-t border-border/80" />
-                                </div>
-                                <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-wider">
-                                    <span className="bg-card px-3 text-muted-foreground">
-                                        {isKm ? "ឬបន្តជាមួយ" : "Or continue with"}
-                                    </span>
-                                </div>
+                                <FormField
+                                    control={form.control}
+                                    name="confirmPassword"
+                                    render={({ field }) => (
+                                        <FormItem className="space-y-1">
+                                            <FormLabel className="text-foreground text-xs font-bold ml-0.5">
+                                                {isKm ? "ផ្ទៀងផ្ទាត់ពាក្យសម្ងាត់" : "Confirm"}
+                                            </FormLabel>
+                                            <div className="relative group">
+                                                <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-rose-600 transition-colors">
+                                                    <ShieldCheck size={14} />
+                                                </div>
+                                                <Input
+                                                    type={showConfirmPassword ? "text" : "password"}
+                                                    placeholder="••••••••"
+                                                    className="h-10 pl-8 pr-8 bg-background/50 border border-input text-foreground rounded-xl focus:border-rose-500 text-xs"
+                                                    {...field}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                                >
+                                                    {showConfirmPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                                                </button>
+                                            </div>
+                                            <FormMessage className="text-rose-600 text-[11px]" />
+                                        </FormItem>
+                                    )}
+                                />
                             </div>
 
-                            {/* Bottom SSO Buttons */}
-                            <SSOIcons />
-                        </>
-                    ) : (
-                        /* Step 2: OTP Verification */
-                        <div className="space-y-4 py-2">
-                            <div className="space-y-2">
-                                <div className="relative group">
-                                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-rose-600">
-                                        <Key size={18} />
-                                    </div>
-                                    <Input
-                                        value={otp}
-                                        onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, "").slice(0, 6))}
-                                        placeholder="000000"
-                                        className="pl-11 text-center text-xl font-mono font-black tracking-[0.4em] bg-background/50 border border-input text-foreground rounded-xl focus:border-rose-500 h-12"
-                                        maxLength={6}
-                                        autoFocus
+                            {/* Cloudflare Turnstile */}
+                            {import.meta.env.VITE_TURNSTILE_SITE_KEY && (
+                                <div className="flex justify-center my-1.5 overflow-hidden scale-90 origin-center min-h-[55px]">
+                                    <Turnstile
+                                        siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+                                        onSuccess={(token: string) => {
+                                            setTurnstileToken(token);
+                                            setError("");
+                                        }}
+                                        onError={() => setError("CAPTCHA failed to load.")}
+                                        options={{ theme: 'auto', appearance: 'always' }}
                                     />
                                 </div>
-                            </div>
+                            )}
 
+                            {/* Submit Button */}
                             <Button 
-                                onClick={handleVerify}
-                                disabled={isLoading || otp.length !== 6} 
-                                className="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold h-11 rounded-xl shadow-md shadow-rose-600/20 transition-all text-xs uppercase tracking-wider"
+                                type="submit" 
+                                disabled={isLoading || (import.meta.env.VITE_TURNSTILE_SITE_KEY && !turnstileToken)} 
+                                className="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold h-11 rounded-xl shadow-md shadow-rose-600/20 transition-all text-xs uppercase tracking-wider mt-2"
                             >
-                                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (isKm ? "ផ្ទៀងផ្ទាត់ និងបញ្ចប់" : "Verify & Complete")}
+                                {isLoading ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    isKm ? "បង្កើតគណនី" : "Create Account"
+                                )}
                             </Button>
+                        </form>
+                    </Form>
 
-                            <div className="text-center">
-                                <button 
-                                    type="button" 
-                                    onClick={() => setStep(1)} 
-                                    className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
-                                >
-                                    {isKm ? "← កែប្រែព័ត៌មានឡើងវិញ" : "← Change registration info"}
-                                </button>
-                            </div>
+                    {/* Divider to Bottom SSO */}
+                    <div className="relative my-4">
+                        <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-border/80" />
                         </div>
-                    )}
+                        <div className="relative flex justify-center text-[10px] uppercase font-bold tracking-wider">
+                            <span className="bg-card px-3 text-muted-foreground">
+                                {isKm ? "ឬបន្តជាមួយ" : "Or continue with"}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Bottom SSO Buttons */}
+                    <SSOIcons />
 
                     {/* Error Alert */}
                     <AnimatePresence>

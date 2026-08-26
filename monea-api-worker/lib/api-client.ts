@@ -1,0 +1,161 @@
+/**
+ * MONEA Centralized API Client
+ * 
+ * Provides a hardened fetch wrapper that handles:
+ * 1. Automatic CSRF token management for mutable requests.
+ * 2. Consistent error handling and normalization.
+ * 3. Environment-aware configurations.
+ */
+
+import { getApiUrl } from './api-url';
+
+let cachedCsrfToken: string | null = null;
+let lastCsrfFetch: number = 0;
+const CSRF_TTL = 1000 * 60 * 45; // 45 minutes
+
+async function getCsrfToken(): Promise<string | null> {
+    const now = Date.now();
+    if (!cachedCsrfToken && typeof window !== 'undefined') {
+        cachedCsrfToken = sessionStorage.getItem('csrf_token');
+    }
+
+    if (cachedCsrfToken && (now - lastCsrfFetch < CSRF_TTL)) {
+        return cachedCsrfToken;
+    }
+
+    try {
+        const res = await fetch(getApiUrl("api/auth/csrf"), {
+            credentials: 'include',
+        });
+        if (!res.ok) throw new Error("Failed to fetch CSRF token");
+        const data = await res.json();
+        cachedCsrfToken = data.token;
+        lastCsrfFetch = now;
+        if (typeof window !== 'undefined' && data.token) {
+            sessionStorage.setItem('csrf_token', data.token);
+        }
+        return cachedCsrfToken;
+    } catch (err) {
+        console.error("[MoneaClient] CSRF Fetch Error:", err);
+        // Set timestamp to prevent infinite fetch loop on failure
+        lastCsrfFetch = now;
+        return null;
+    }
+}
+
+export type ApiResponse<T> = {
+    data: T | null;
+    error: string | null;
+    details?: any;
+    status: number;
+};
+
+async function request<T>(
+    path: string, 
+    options: RequestInit = {}
+): Promise<ApiResponse<T>> {
+    const method = options.method?.toUpperCase() || "GET";
+    const isMutable = ["POST", "PUT", "DELETE", "PATCH"].includes(method);
+    
+    // Setup headers
+    const headers = new Headers(options.headers);
+    if (!headers.has("Content-Type") && options.body && !(options.body instanceof FormData)) {
+        headers.set("Content-Type", "application/json");
+    }
+
+    // Attach Bearer token from localStorage if available
+    if (typeof window !== 'undefined') {
+        const storedToken = localStorage.getItem('auth_token');
+        if (storedToken && !headers.has("Authorization")) {
+            headers.set("Authorization", `Bearer ${storedToken}`);
+        }
+    }
+
+    // Attach CSRF token if mutable (excluding csrf endpoint itself)
+    if (isMutable && !path.includes("/api/auth/csrf")) {
+        const token = await getCsrfToken();
+        if (token) {
+            headers.set("X-CSRF-Token", token);
+        }
+    }
+
+    try {
+        const response = await fetch(getApiUrl(path), { 
+            ...options, 
+            headers,
+            credentials: 'include', // Include cookies for cross-origin
+        });
+
+        const text = await response.text();
+        let data: any = null;
+        
+        try {
+            data = text ? JSON.parse(text) : null;
+        } catch (e) {
+            data = { error: "Invalid JSON response from server", raw: text };
+        }
+
+        // Handle 401 Unauthorized globally
+        if (response.status === 401 && !path.includes("/api/auth/")) {
+            console.warn("[MoneaClient] 401 Unauthorized detected on", path);
+            if (typeof window !== 'undefined') {
+                sessionStorage.removeItem('csrf_token');
+                // Optional: trigger auth reset event if needed
+            }
+        }
+
+        if (!response.ok) {
+            let normalizedError: string = `Request failed with status ${response.status}`;
+            if (typeof data?.error === 'string') {
+                normalizedError = data.error;
+            } else if (Array.isArray(data?.error)) {
+                normalizedError = data.error.map((e: any) => e.message ? `${e.path ? e.path.join('.') + ': ' : ''}${e.message}` : JSON.stringify(e)).join(', ');
+            } else if (data?.error) {
+                normalizedError = JSON.stringify(data.error);
+            }
+
+            return {
+                data: null,
+                error: normalizedError,
+                details: data?.details,
+                status: response.status
+            };
+        }
+
+        return {
+            data: data as T,
+            error: null,
+            status: response.status
+        };
+    } catch (error: any) {
+        console.error(`[MoneaClient] ${method} ${path} Error:`, error);
+        return {
+            data: null,
+            error: error.message || "Network error or server unreachable",
+            status: 503
+        };
+    }
+}
+
+export const moneaClient = {
+    get: <T>(path: string, options?: RequestInit) => request<T>(path, { ...options, method: "GET" }),
+    post: <T>(path: string, body?: any, options?: RequestInit) => 
+        request<T>(path, { 
+            ...options, 
+            method: "POST", 
+            body: body instanceof FormData ? body : JSON.stringify(body) 
+        }),
+    put: <T>(path: string, body?: any, options?: RequestInit) => 
+        request<T>(path, { 
+            ...options, 
+            method: "PUT", 
+            body: body instanceof FormData ? body : JSON.stringify(body) 
+        }),
+    delete: <T>(path: string, options?: RequestInit) => request<T>(path, { ...options, method: "DELETE" }),
+    patch: <T>(path: string, body?: any, options?: RequestInit) => 
+        request<T>(path, { 
+            ...options, 
+            method: "PATCH", 
+            body: body instanceof FormData ? body : JSON.stringify(body) 
+        }),
+};

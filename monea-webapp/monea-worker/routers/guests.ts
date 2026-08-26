@@ -3,7 +3,6 @@ import { prisma, queryRaw, executeRaw } from "@/lib/prisma"
 import { getServerUser } from "@/lib/auth"
 import { sanitizeObject } from "@/lib/sanitize"
 import { encrypt } from "@/lib/encryption"
-import crypto from "crypto"
 import { ROLES } from "@/lib/constants"
 import { createLog } from "@/lib/audit-utils"
 import { z } from "zod"
@@ -51,11 +50,17 @@ guestsRouter.post('/bulk', async (c) => {
 
         const values: any[] = [];
         let placeholderIdx = 1;
+        const encryptedPhones = await Promise.all(
+            guests.map((g: any) => {
+                const sanitized = sanitizeObject<any>(g);
+                return sanitized.phone ? encrypt(sanitized.phone) : Promise.resolve("");
+            })
+        );
         const valueStrings = guests.map((g: any, index: number) => {
             const sanitized = sanitizeObject<any>(g);
-            const id = crypto.randomUUID();
+            const id = globalThis.crypto.randomUUID();
             const name = sanitized.name || "Guest";
-            const phone = sanitized.phone ? encrypt(sanitized.phone) : "";
+            const phone = encryptedPhones[index];
             const group = sanitized.group || "Friend";
             const sequenceNum = currentCount + index + 1;
             

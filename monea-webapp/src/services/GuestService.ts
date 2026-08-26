@@ -1,4 +1,3 @@
-import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { encrypt, decrypt } from "@/lib/encryption";
 import { Guest } from "@prisma/client";
@@ -32,10 +31,11 @@ export class GuestService {
             prisma.guest.count({ where: { weddingId } })
         ]);
 
-        const decryptedGuests = guests.map(guest => ({
+        const decryptedGuests = await Promise.all(guests.map(async guest => ({
             ...guest,
-            phone: guest.phone ? decrypt(guest.phone) : null
-        }));
+            phone: guest.phone ? await decrypt(guest.phone) : null
+        })));
+
 
         return {
             items: decryptedGuests,
@@ -57,11 +57,11 @@ export class GuestService {
             const guestCode = `G${String(count + 1).padStart(3, '0')}`;
             const sequenceNumber = count + 1;
 
-            const encryptedPhone = data.phone ? encrypt(data.phone) : null;
+            const encryptedPhone = data.phone ? await encrypt(data.phone) : null;
 
             const guest = await tx.guest.create({
                 data: {
-                    id: crypto.randomUUID(),
+                    id: globalThis.crypto.randomUUID(),
                     weddingId,
                     name: data.name,
                     group: data.group || data.source || "None",
@@ -72,7 +72,7 @@ export class GuestService {
                 }
             });
 
-            if (guest.phone) guest.phone = decrypt(guest.phone);
+            if (guest.phone) guest.phone = await decrypt(guest.phone);
             return guest;
         });
     }
@@ -85,7 +85,7 @@ export class GuestService {
         }
 
         const updateData: any = { ...data };
-        if (updateData.phone) updateData.phone = encrypt(updateData.phone);
+        if (updateData.phone) updateData.phone = await encrypt(updateData.phone);
         if (updateData.guestCode) delete updateData.guestCode; // Prevent manual code override
         if (updateData.sequenceNumber) delete updateData.sequenceNumber;
 
@@ -94,7 +94,7 @@ export class GuestService {
             data: updateData
         });
 
-        if (guest.phone) guest.phone = decrypt(guest.phone);
+        if (guest.phone) guest.phone = await decrypt(guest.phone);
         return guest;
     }
 

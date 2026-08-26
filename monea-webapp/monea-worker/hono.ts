@@ -37,18 +37,30 @@ const app = new Hono().basePath('/api')
 
 // Configure CORS for cross-origin requests (Cloudflare Pages <-> Cloudflare Worker)
 app.use('*', cors({
-  origin: (origin) => {
-    if (!origin) return 'https://monea-webapp.pages.dev';
-    if (
-      origin.startsWith('http://localhost:') ||
-      origin.startsWith('http://127.0.0.1:') ||
-      origin.endsWith('.pages.dev') ||
-      origin.endsWith('monea.app') ||
-      origin === 'https://monea.app'
-    ) {
-      return origin;
+  origin: (origin, c) => {
+    if (!origin) return null; // Allow requests with no origin
+    
+    const allowedOrigins = [
+      'https://monea-webapp.pages.dev',
+      'https://monea.app',
+    ];
+    
+    const allowedPatterns = [
+      /^https:\/\/.*\.pages\.dev$/,
+      /^https:\/\/.*\.monea\.app$/,
+      /^http:\/\/localhost:\d+$/,
+      /^http:\/\/127\.0\.0\.1:\d+$/
+    ];
+    
+    // Check exact matches first
+    if (allowedOrigins.includes(origin)) return origin;
+    
+    // Check pattern matches - this will allow preview URLs like 104954b6.monea-webapp.pages.dev
+    for (const pattern of allowedPatterns) {
+      if (pattern.test(origin)) return origin;
     }
-    return origin;
+    
+    return null; // Reject origin
   },
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'X-Client-Fingerprint', 'Cache-Control'],
@@ -57,7 +69,18 @@ app.use('*', cors({
   credentials: true,
 }))
 
-// Polyfill process.env and provide a per-request PrismaClient for Cloudflare Workers
+let _cachedWorkerPrisma: PrismaClient | null = null;
+
+function getWorkerPrisma(connectionString: string): PrismaClient {
+  if (!_cachedWorkerPrisma) {
+    const pool = new Pool({ connectionString });
+    const adapter = new PrismaNeon(pool);
+    _cachedWorkerPrisma = new PrismaClient({ adapter, log: [] });
+  }
+  return _cachedWorkerPrisma;
+}
+
+// Polyfill process.env and provide optimized cached PrismaClient for Cloudflare Workers
 app.use('*', async (c, next) => {
   if (typeof (globalThis as any).process === 'undefined') {
     (globalThis as any).process = { env: {} };
@@ -65,15 +88,17 @@ app.use('*', async (c, next) => {
   const env = (c.env as any) || {};
   Object.assign((globalThis as any).process.env, env);
 
-  // Per-request PrismaClient to fix Cloudflare I/O context errors
-  const pool = new Pool({ connectionString: (env.DATABASE_URL || process.env.DATABASE_URL) as string });
-  const adapter = new PrismaNeon(pool);
-  const prismaClient = new PrismaClient({ adapter, log: [] });
+  const dbUrl = (env.DATABASE_URL || process.env.DATABASE_URL) as string;
+  const prismaClient = dbUrl ? getWorkerPrisma(dbUrl) : null;
 
   await requestStorage.run(c.req.raw, async () => {
-    await prismaStorage.run(prismaClient, async () => {
+    if (prismaClient) {
+      await prismaStorage.run(prismaClient, async () => {
+        await next();
+      });
+    } else {
       await next();
-    });
+    }
   });
 });
 

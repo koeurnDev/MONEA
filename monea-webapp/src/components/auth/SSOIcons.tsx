@@ -15,7 +15,19 @@ const SSOIcons: React.FC<SSOIconsProps> = ({ className }) => {
     const isKm = locale === 'km';
 
     const handleGoogleLogin = () => {
-        if (!import.meta.env.VITE_GOOGLE_CLIENT_ID && process.env.NODE_ENV !== 'development') {
+        // Only disable in actual development (localhost + dev mode)
+        const isLocalDev = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && import.meta.env.DEV;
+        
+        if (isLocalDev) {
+            showToast({ 
+                title: isKm ? "អភិវឌ្ឍន៍" : "Development Mode", 
+                description: isKm ? "Google SSO មិនដំណើរការនៅក្នុង localhost ទេ។ សូមប្រើការចុះឈ្មោះធម្មតា។" : "Google SSO is disabled in development. Please use regular sign up/in.", 
+                type: "info" 
+            });
+            return;
+        }
+        
+        if (!import.meta.env.VITE_GOOGLE_CLIENT_ID) {
              showToast({ title: "SSO Unavailable", description: "Google SSO is not configured on this server.", type: "info" });
              return;
         }
@@ -23,8 +35,20 @@ const SSOIcons: React.FC<SSOIconsProps> = ({ className }) => {
     };
 
     const handleTelegramLogin = () => {
+        // Only disable in actual development (localhost + dev mode)
+        const isLocalDev = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && import.meta.env.DEV;
+        
+        if (isLocalDev) {
+            showToast({ 
+                title: isKm ? "អភិវឌ្ឍន៍" : "Development Mode", 
+                description: isKm ? "Telegram SSO មិនដំណើរការនៅក្នុង localhost ទេ។ សូមប្រើការចុះឈ្មោះធម្មតា។" : "Telegram SSO is disabled in development. Please use regular sign up/in.", 
+                type: "info" 
+            });
+            return;
+        }
+        
         const botId = import.meta.env.VITE_TELEGRAM_BOT_ID;
-        if (!botId && process.env.NODE_ENV !== 'development') {
+        if (!botId) {
              showToast({ title: "SSO Unavailable", description: "Telegram SSO is not configured on this server.", type: "info" });
              return;
         }
