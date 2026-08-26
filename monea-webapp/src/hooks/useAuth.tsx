@@ -46,7 +46,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       }
 
+      // If 401, clear localStorage and logout
       if (res.status === 401) {
+        localStorage.removeItem('auth_token');
         setUser(null);
         setIsLoading(false);
         return;
@@ -67,6 +69,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       console.warn('Auth fetch failed:', error);
+      // Clear token on persistent errors
+      localStorage.removeItem('auth_token');
     }
     
     setUser(null);
@@ -78,6 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [fetchUser])
 
   const logout = useCallback(async () => {
+    localStorage.removeItem('auth_token');
     await moneaClient.post('/api/auth/logout');
     setUser(null);
     window.location.href = '/sign-in';

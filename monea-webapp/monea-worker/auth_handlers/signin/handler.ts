@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { authenticator } from "@otplib/preset-default";
 import { prisma } from "@/lib/prisma";
-import { signToken, generateFingerprint, isSecureCookie } from "@/lib/auth";
+import { signToken, generateFingerprint, isSecureCookie, getCookieHeader } from "@/lib/auth";
 import { ROLES } from "@/lib/constants";
 // Dynamic require moved inside POST for safety
 import { sendTelegramAlert } from "@/lib/telegram";
@@ -169,17 +169,12 @@ export async function POST(req: Request) {
         }
 
         if (user) {
-            // 1. Try Peppered Password Comparison
+            // Compare password — auto-detects PBKDF2 (new) and bcrypt (legacy)
             let isPasswordValid = false;
             if (user.password) {
                 isPasswordValid = await CryptoUtils.compare(password, user.password);
-            }
-
-            // CryptoUtils.compare auto-detects bcrypt legacy hashes and PBKDF2 new hashes
-            if (!isPasswordValid && user.password) {
-                isPasswordValid = await CryptoUtils.compare(password, user.password);
+                // Lazy migration: if valid but stored as legacy bcrypt, upgrade to PBKDF2
                 if (isPasswordValid && CryptoUtils.isLegacy(user.password)) {
-                    // Lazy migration: upgrade legacy bcrypt → PBKDF2
                     const newHash = await CryptoUtils.hash(password);
                     await prisma.user.update({ where: { id: user.id }, data: { password: newHash } });
                     console.log(`[Security] User ${user.id} migrated to PBKDF2.`);
@@ -241,8 +236,8 @@ export async function POST(req: Request) {
                 console.log(`[Auth] Signin Success - UserID: ${user.id}, Role: ${role}, Secure: ${cookieSecure}`);
 
                 const headers = new Headers({ "Content-Type": "application/json" });
-                headers.append("Set-Cookie", `token=${token}; HttpOnly${secure}; Path=/; SameSite=${sameSite}; Max-Age=${60 * 60 * 24 * 30}`);
-                return new Response(JSON.stringify({ success: true, user: { id: user.id, email: user.email, role } }), { status: 200, headers });
+                headers.append("Set-Cookie", getCookieHeader("token", token, req, 60 * 60 * 24 * 30));
+                return new Response(JSON.stringify({ success: true, token, user: { id: user.id, email: user.email, role } }), { status: 200, headers });
             } else {
                 return await handleFailure(user, "User");
             }
@@ -275,18 +270,13 @@ export async function POST(req: Request) {
         }
 
         if (staff && staff.password) {
-            // 1. Try Peppered Password Comparison
+            // Compare password — auto-detects PBKDF2 (new) and bcrypt (legacy)
             let isPasswordValid = await CryptoUtils.compare(password, staff.password);
-
-            // CryptoUtils.compare auto-detects bcrypt legacy hashes and PBKDF2 new hashes
-            if (!isPasswordValid && staff.password) {
-                isPasswordValid = await CryptoUtils.compare(password, staff.password);
-                if (isPasswordValid && CryptoUtils.isLegacy(staff.password)) {
-                    // Lazy migration: upgrade legacy bcrypt → PBKDF2
-                    const newHash = await CryptoUtils.hash(password);
-                    await prisma.staff.update({ where: { id: staff.id }, data: { password: newHash } });
-                    console.log(`[Security] Staff ${staff.id} migrated to PBKDF2.`);
-                }
+            // Lazy migration: if valid but stored as legacy bcrypt, upgrade to PBKDF2
+            if (isPasswordValid && CryptoUtils.isLegacy(staff.password)) {
+                const newHash = await CryptoUtils.hash(password);
+                await prisma.staff.update({ where: { id: staff.id }, data: { password: newHash } });
+                console.log(`[Security] Staff ${staff.id} migrated to PBKDF2.`);
             }
 
             if (isPasswordValid) {
@@ -294,7 +284,7 @@ export async function POST(req: Request) {
                     if (!twoFactorToken) return Response.json({ require2FA: true, error: "2FA Token required" }, { status: 428 });
 
                     // 1. Try TOTP
-                    let is2faValid = authenticator.check(twoFactorToken, (user as any).twoFactorSecret);
+                    let is2faValid = authenticator.check(twoFactorToken, (staff as any).twoFactorSecret);
 
                     // 2. Try Recovery Codes if TOTP fails (Peppered)
                     if (!is2faValid && (staff as any).twoFactorRecoveryCodes) {
@@ -332,8 +322,8 @@ export async function POST(req: Request) {
 
                 const token = await signToken({ staffId: staff.id, weddingId: staff.weddingId, role: ROLES.EVENT_STAFF, name: staff.name }, { fingerprint, expiresIn: "12h" });
                 const headers = new Headers({ "Content-Type": "application/json" });
-                headers.append("Set-Cookie", `staff_token=${token}; HttpOnly${secure}; Path=/; SameSite=${sameSite}; Max-Age=${60 * 60 * 12}`);
-                return new Response(JSON.stringify({ success: true, user: { id: staff.id, email: staff.email, role: ROLES.EVENT_STAFF } }), { status: 200, headers });
+                headers.append("Set-Cookie", getCookieHeader("staff_token", token, req, 60 * 60 * 12));
+                return new Response(JSON.stringify({ success: true, token, user: { id: staff.id, email: staff.email, role: ROLES.EVENT_STAFF } }), { status: 200, headers });
             } else {
                 return await handleFailure(staff, "Staff");
             }

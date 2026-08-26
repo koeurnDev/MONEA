@@ -1,14 +1,18 @@
 
-
 export const dynamic = 'force-dynamic';
 import { prisma } from "@/lib/prisma";
 import { verifyTelegramAuth } from "@/lib/telegram-auth";
-import { signToken, generateFingerprint, isSecureCookie } from "@/lib/auth";
+import { signToken, generateFingerprint, createExchangeTicket } from "@/lib/auth";
 import { ROLES } from "@/lib/constants";
 import { getIP } from "@/lib/utils";
 
 
 export async function GET(req: Request) {
+    const isLocal = typeof req !== 'undefined' && (new URL(req.url).hostname === 'localhost' || new URL(req.url).hostname === '127.0.0.1');
+    const appUrl = isLocal
+        ? (process.env.VITE_APP_URL || "http://localhost:3001")
+        : (process.env.NEXT_PUBLIC_APP_URL || process.env.VITE_APP_URL || "https://monea-webapp.pages.dev");
+
     try {
         const { searchParams } = new URL(req.url);
         const data: Record<string, string> = {};
@@ -20,14 +24,14 @@ export async function GET(req: Request) {
         // 1. Verify Telegram Auth Data
         if (!verifyTelegramAuth(data)) {
             console.error("[Telegram SSO] Verification failed");
-            return Response.redirect(new URL("/sign-in?error=telegram_failed", req.url));
+            return Response.redirect(`${appUrl}/sign-in?error=telegram_failed`);
         }
 
-        // 2. Check for Auth Expiration (optional but recommended: 24h)
+        // 2. Check for Auth Expiration (24h)
         const authDate = parseInt(data.auth_date);
         const now = Math.floor(Date.now() / 1000);
         if (now - authDate > 86400) {
-            return Response.redirect(new URL("/sign-in?error=telegram_expired", req.url));
+            return Response.redirect(`${appUrl}/sign-in?error=telegram_expired`);
         }
 
         // 3. Find or Create User
@@ -46,9 +50,7 @@ export async function GET(req: Request) {
         });
 
         if (!user) {
-            // New user via Telegram
-            // Note: Since Telegram doesn't provide email, we create a placeholder email or ask later.
-            // For now, we'll use a placeholder email like telegram_ID@monea.local
+            // New user via Telegram — placeholder email since Telegram doesn't provide one
             user = await prisma.user.create({
                 data: {
                     email: `tg_${telegramId}@monea.local`, 
@@ -60,7 +62,7 @@ export async function GET(req: Request) {
             });
         }
 
-        // 4. Create Session
+        // 4. Create Session Token
         const ip = getIP(req);
         const fingerprint = await generateFingerprint({ headers: req.headers, ip });
 
@@ -70,24 +72,18 @@ export async function GET(req: Request) {
             role: user.role,
         }, { fingerprint });
 
-        // 5. Build Response with cookie
-        const isLocal = typeof req !== 'undefined' && (new URL(req.url).hostname === 'localhost' || new URL(req.url).hostname === '127.0.0.1');
-        const appUrl = isLocal
-            ? (process.env.VITE_APP_URL || "http://localhost:3001")
-            : (process.env.NEXT_PUBLIC_APP_URL || "https://monea-webapp.pages.dev");
+        // 5. Use the exchange ticket flow — same as Google SSO.
+        //    Avoids the cross-origin SameSite cookie issue between workers.dev and pages.dev.
+        //    The frontend /auth/callback page exchanges this short-lived code via the
+        //    /api/auth/session endpoint (same Pages origin) to set the HttpOnly cookie correctly.
+        const exchangeTicket = await createExchangeTicket(token);
 
-        const cookieSecure = isSecureCookie(req as any);
-        const secure       = cookieSecure ? "; Secure" : "";
-        const headers      = new Headers({ "Location": `${appUrl}/dashboard` });
-        headers.append("Set-Cookie", `token=${token}; HttpOnly${secure}; Path=/; SameSite=Lax; Max-Age=${60 * 60 * 24 * 30}`);
-        return new Response(null, { status: 302, headers });
+        const redirectUrl = new URL(`${appUrl}/auth/callback`);
+        redirectUrl.searchParams.set('code', exchangeTicket);
+        return Response.redirect(redirectUrl.toString(), 302);
 
     } catch (error) {
         console.error("[Telegram SSO Callback Error]", error);
-        const isLocal = typeof req !== 'undefined' && (new URL(req.url).hostname === 'localhost' || new URL(req.url).hostname === '127.0.0.1');
-        const appUrl = isLocal
-            ? (process.env.VITE_APP_URL || "http://localhost:3001")
-            : (process.env.NEXT_PUBLIC_APP_URL || "https://monea-webapp.pages.dev");
         return Response.redirect(`${appUrl}/sign-in?error=sso_failed`);
     }
 }
