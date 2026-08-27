@@ -1,85 +1,87 @@
-const CACHE_NAME = 'monea-pwa-v1';
-const ASSETS_TO_CACHE = [
-    '/',
-    '/manifest.json',
-    '/favicon.png',
-    '/icons/icon-192x192.png',
-    '/icons/icon-512x512.png',
+/**
+ * Service Worker for Mobile Performance
+ * Caches static assets and API responses
+ */
+
+const CACHE_NAME = 'monea-v1';
+const API_CACHE_NAME = 'monea-api-v1';
+
+// Assets to cache immediately
+const STATIC_ASSETS = [
+  '/',
+  '/index.html',
+  '/manifest.json',
 ];
 
+// Install event - cache static assets
 self.addEventListener('install', (event) => {
-    event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => {
-            // Use Individual add to prevent one failure from blocking all
-            return Promise.allSettled(
-                ASSETS_TO_CACHE.map(url => cache.add(url))
-            ).then(results => {
-                const failed = results.filter(r => r.status === 'rejected');
-                if (failed.length > 0) {
-                    console.warn('[SW] Some assets failed to cache:', failed);
-                }
-            });
-        })
-    );
-    self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(STATIC_ASSETS);
+    })
+  );
+  self.skipWaiting();
 });
 
+// Activate event - clean old caches
 self.addEventListener('activate', (event) => {
-    event.waitUntil(
-        caches.keys().then((cacheNames) => {
-            return Promise.all(
-                cacheNames.map((cacheName) => {
-                    if (cacheName !== CACHE_NAME) {
-                        return caches.delete(cacheName);
-                    }
-                })
-            );
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME && cacheName !== API_CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
         })
-    );
+      );
+    })
+  );
+  self.clients.claim();
 });
 
+// Fetch event - network first, fallback to cache
 self.addEventListener('fetch', (event) => {
-    // Only handle HTTP/HTTPS requests to avoid Chrome Extension/Data URI issues
-    if (!event.request.url.startsWith('http')) return;
+  const { request } = event;
+  const url = new URL(request.url);
 
-    // We want to skip caching for API calls, Next.js internal files, and HMR
-    if (event.request.url.includes('/api/') ||
-        event.request.url.includes('/_next/') ||
-        event.request.url.includes('hot-reloader') ||
-        event.request.url.includes('webpack_hmr')) {
-        return;
-    }
-
+  // API requests - network first with cache fallback
+  if (url.pathname.startsWith('/api/')) {
     event.respondWith(
-        caches.match(event.request).then((response) => {
-            // Development bypass: If we're on localhost, prefer network but fallback to cache
-            const isLocalhost = event.request.url.includes('localhost');
-
-            if (isLocalhost && !response) {
-                return fetch(event.request);
-            }
-
-            return response || fetch(event.request).then((fetchResponse) => {
-                // Ensure we have a valid response before caching
-                if (!fetchResponse || fetchResponse.status !== 200 || fetchResponse.type !== 'basic') {
-                    return fetchResponse;
-                }
-
-                return caches.open(CACHE_NAME).then((cache) => {
-                    // Dynamically cache other assets on the fly
-                    if (event.request.method === 'GET') {
-                        cache.put(event.request, fetchResponse.clone());
-                    }
-                    return fetchResponse;
-                });
+      fetch(request)
+        .then((response) => {
+          // Clone response for caching
+          const responseClone = response.clone();
+          
+          // Cache successful GET requests
+          if (request.method === 'GET' && response.ok) {
+            caches.open(API_CACHE_NAME).then((cache) => {
+              cache.put(request, responseClone);
             });
-        }).catch(() => {
-            // Return a minimal offline response to avoid "Failed to convert value to 'Response'" error
-            return new Response('Offline content not available', {
-                status: 503,
-                statusText: 'Service Unavailable',
-                headers: new Headers({ 'Content-Type': 'text/plain' })
-            });
+          }
+          
+          return response;
+        })
+        .catch(() => {
+          // Fallback to cache if network fails
+          return caches.match(request);
         })
     );
+    return;
+  }
+
+  // Static assets - cache first
+  event.respondWith(
+    caches.match(request).then((cached) => {
+      return cached || fetch(request).then((response) => {
+        // Cache new static assets
+        if (request.method === 'GET') {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(request, responseClone);
+          });
+        }
+        return response;
+      });
+    })
+  );
 });

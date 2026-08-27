@@ -12,47 +12,62 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    sourcemap: false, // Disable sourcemaps for mobile performance
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // React ecosystem
-          if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
-            return 'react-vendor'
+          // Critical mobile chunks
+          if (id.includes('react') || id.includes('react-dom')) {
+            return 'react-core'
+          }
+          if (id.includes('react-router-dom')) {
+            return 'react-router'
           }
           
-          // UI framework
-          if (id.includes('@radix-ui/') || id.includes('framer-motion') || id.includes('lucide-react')) {
-            return 'ui-vendor'
+          // UI framework - split for lazy loading
+          if (id.includes('@radix-ui/')) {
+            return 'radix-ui'
+          }
+          if (id.includes('framer-motion')) {
+            return 'animations' // Lazy load animations on mobile
+          }
+          if (id.includes('lucide-react')) {
+            return 'icons'
           }
           
-          // Form and validation
+          // Form handling
           if (id.includes('react-hook-form') || id.includes('@hookform/resolvers') || id.includes('zod')) {
-            return 'forms-vendor'
+            return 'forms'
           }
           
-          // Heavy libraries
+          // Heavy features - separate for conditional loading
           if (id.includes('xlsx')) {
-            return 'xlsx-vendor'
+            return 'excel' // Load only when needed
           }
-          if (id.includes('qr-code') || id.includes('qr-scanner')) {
-            return 'qr-vendor'
+          if (id.includes('qr-code') || id.includes('qr-scanner') || id.includes('qrcode')) {
+            return 'qr-code' // Load only for QR features
           }
           if (id.includes('date-fns') || id.includes('react-day-picker')) {
-            return 'date-vendor'
+            return 'date-picker'
+          }
+          if (id.includes('react-easy-crop')) {
+            return 'image-crop'
+          }
+          if (id.includes('canvas-confetti')) {
+            return 'animations-extra'
           }
           
-          // Image processing
-          if (id.includes('react-easy-crop') || id.includes('sharp')) {
-            return 'image-vendor'
+          // API and networking
+          if (id.includes('swr')) {
+            return 'data-fetching'
           }
           
-          // Utility libraries
-          if (id.includes('clsx') || id.includes('tailwind-merge') || id.includes('class-variance-authority') || id.includes('canvas-confetti')) {
-            return 'utils-vendor'
+          // Utilities - keep small
+          if (id.includes('clsx') || id.includes('tailwind-merge') || id.includes('class-variance-authority')) {
+            return 'utilities'
           }
           
-          // Node modules default
+          // Default vendor chunk
           if (id.includes('node_modules')) {
             return 'vendor'
           }
@@ -60,23 +75,26 @@ export default defineConfig({
         chunkFileNames: (chunkInfo) => {
           const facadeModuleId = chunkInfo.facadeModuleId
           if (facadeModuleId) {
-            // Create separate chunks for different app sections
+            // Route-based code splitting for mobile
             if (facadeModuleId.includes('/dashboard/')) {
-              return 'assets/dashboard-[name]-[hash].js'
+              return 'routes/dashboard-[name]-[hash].js'
             }
             if (facadeModuleId.includes('/admin/')) {
-              return 'assets/admin-[name]-[hash].js'
+              return 'routes/admin-[name]-[hash].js'
             }
             if (facadeModuleId.includes('/(auth)/')) {
-              return 'assets/auth-[name]-[hash].js'
+              return 'routes/auth-[name]-[hash].js'
+            }
+            if (facadeModuleId.includes('/wedding/')) {
+              return 'routes/wedding-[name]-[hash].js'
             }
           }
-          return 'assets/[name]-[hash].js'
+          return 'chunks/[name]-[hash].js'
         }
       }
     },
-    // Increase chunk size warning limit since we're optimizing
-    chunkSizeWarningLimit: 600,
+    // Reduced chunk size limit for mobile
+    chunkSizeWarningLimit: 300,
   },
   server: {
     port: 3001,

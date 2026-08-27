@@ -2,7 +2,82 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobile Performance Optimizations */
+@media (max-width: 768px) {
+  /* Reduce GPU load on mobile */
+  * {
+    -webkit-transform: translateZ(0);
+    -moz-transform: translateZ(0);
+    -ms-transform: translateZ(0);
+    -o-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+
+  /* Disable heavy animations on mobile */
+  .animate-spin-slow,
+  .animate-bounce,
+  .animate-pulse {
+    animation: none !important;
+  }
+
+  /* Simplify shadows for mobile performance */
+  .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  }
+
+  /* Remove backdrop filters that cause freezing */
+  .backdrop-blur-sm, .backdrop-blur-md, .backdrop-blur-lg, .backdrop-blur-xl {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background-color: rgba(255, 255, 255, 0.9) !important;
+  }
+  
+  .dark .backdrop-blur-sm, 
+  .dark .backdrop-blur-md, 
+  .dark .backdrop-blur-lg, 
+  .dark .backdrop-blur-xl {
+    background-color: rgba(0, 0, 0, 0.9) !important;
+  }
+
+  /* Optimize transforms */
+  .transform {
+    transform: none !important;
+  }
+
+  /* Reduce transition complexity */
+  .transition-all {
+    transition: opacity 0.2s ease !important;
+  }
+}
+
+/* Mobile Performance Optimizations */
 @layer utilities {
+  /* Mobile-safe animations */
+  .mobile-safe-animation {
+    animation-duration: 0.2s;
+    animation-fill-mode: both;
+  }
+  
+  /* GPU acceleration only when needed */
+  .gpu-accelerate {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+  
+  /* Mobile touch optimizations */
+  .mobile-touch {
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  
+  /* Performance-optimized transforms */
+  .safe-transform {
+    will-change: transform;
+    transform: translateZ(0);
+  }
+
   .perspective-\[2000px\] {
     perspective: 2000px;
   }
@@ -195,6 +270,15 @@ html {
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;
     overflow-x: hidden;
+    
+    /* Mobile performance optimizations */
+    -webkit-overflow-scrolling: touch;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    
+    /* Prevent mobile freezing */
+    transform: translateZ(0);
+    backface-visibility: hidden;
   }
 
   /* Headings with Kantumruy Pro */

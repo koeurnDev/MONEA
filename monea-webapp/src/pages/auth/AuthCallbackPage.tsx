@@ -41,16 +41,33 @@ export default function AuthCallbackPage() {
       .then(async (res) => {
         if (res.ok) {
           const data = await res.json().catch(() => null);
+          console.log('[Auth Callback] Session response:', data);
+          
           if (data?.token) {
+            // Store token in localStorage FIRST before refetching
             localStorage.setItem('auth_token', data.token);
+            console.log('[Auth Callback] Token stored in localStorage');
+            
+            // Small delay to ensure localStorage is written
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // Refetch user to update auth context
+            await refetch();
+            console.log('[Auth Callback] User refetched successfully');
+            
+            // Use navigate instead of hard redirect
+            navigate('/dashboard', { replace: true });
+          } else {
+            console.error('[Auth Callback] No token in response');
+            navigate('/sign-in?error=no_token', { replace: true });
           }
-          // Hard navigation ensures cookie and session are committed
-          window.location.href = '/dashboard';
         } else {
+          console.error('[Auth Callback] Session failed:', res.status);
           navigate('/sign-in?error=session_failed', { replace: true });
         }
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error('[Auth Callback] Network error:', err);
         navigate('/sign-in?error=network_error', { replace: true });
       });
   }, [searchParams, navigate]);

@@ -1,43 +1,77 @@
 ﻿import { SWRConfig } from "swr";
-import { ReactNode, useState, useEffect } from "react";
+import { ReactNode, useState, useEffect, useRef } from "react";
 
-function localStorageProvider() {
+// Optimized cache provider for mobile
+function mobileOptimizedProvider() {
     if (typeof window === "undefined") return new Map();
 
-    // When initializing, we restore the data from `localStorage` into a map.
-    const map = new Map(JSON.parse(localStorage.getItem("app-cache") || "[]"));
+    // Simple in-memory cache for mobile performance
+    const cache = new Map();
+    
+    // Throttled localStorage sync to prevent blocking
+    const syncRef = { current: null as any };
+    const syncToStorage = () => {
+        if (syncRef.current) clearTimeout(syncRef.current);
+        syncRef.current = setTimeout(() => {
+            try {
+                const appCache = JSON.stringify(Array.from(cache.entries()).slice(0, 20)); // Limit cache size
+                localStorage.setItem("app-cache", appCache);
+            } catch (e) {
+                console.warn('[Cache] Failed to sync to localStorage:', e);
+            }
+        }, 1000);
+    };
 
-    // Before unloading the app, we write back all the data into `localStorage`.
-    window.addEventListener("beforeunload", () => {
-        const appCache = JSON.stringify(Array.from(map.entries()));
-        localStorage.setItem("app-cache", appCache);
-    });
+    // Load from localStorage once on init
+    try {
+        const saved = localStorage.getItem("app-cache");
+        if (saved) {
+            const entries = JSON.parse(saved);
+            entries.forEach(([key, value]: [string, any]) => cache.set(key, value));
+        }
+    } catch (e) {
+        console.warn('[Cache] Failed to load from localStorage:', e);
+    }
 
-    // We still use the map for write & read for performance.
-    return map as any;
+    // Light sync on visibility change (mobile-friendly)
+    if ('visibilitychange' in document) {
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) syncToStorage();
+        });
+    }
+
+    return cache;
 }
 
-const swrDefaultConfig = {
+const mobileOptimizedConfig = {
     fetcher: (url: string) => fetch(url).then((res) => res.json()),
     revalidateOnFocus: false,
-    dedupingInterval: 60000,
+    revalidateOnReconnect: false, // Disable for mobile performance
+    dedupingInterval: 120000, // Longer dedup for mobile
     shouldRetryOnError: false,
+    errorRetryCount: 1, // Limit retries
+    errorRetryInterval: 3000, // Longer intervals
+    focusThrottleInterval: 300000, // 5 minutes
 };
 
 export const SWRProvider = ({ children }: { children: ReactNode }) => {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        setMounted(true);
+        // Delay mount for better mobile startup
+        const timer = setTimeout(() => setMounted(true), 50);
+        return () => clearTimeout(timer);
     }, []);
 
+    if (!mounted) {
+        return <>{children}</>;
+    }
+
     return (
-        <SWRConfig
-            value={{
-                ...swrDefaultConfig,
-                provider: mounted ? localStorageProvider : undefined,
-            }}
-        >
+        <SWRConfig value={{
+            ...mobileOptimizedConfig,
+            provider: mobileOptimizedProvider,
+        }}>
             {children}
         </SWRConfig>
     );

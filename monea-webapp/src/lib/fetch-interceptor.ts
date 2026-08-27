@@ -1,6 +1,6 @@
 /**
  * Global fetch interceptor for static export
- * Automatically redirects /api/* calls to NEXT_PUBLIC_API_URL
+ * Automatically redirects /api/* calls to VITE_API_URL
  */
 
 const originalFetch = globalThis.fetch;
@@ -13,15 +13,16 @@ export function setupFetchInterceptor() {
     
     // In local browser development on localhost, keep /api/ relative so Vite proxy forwards
     const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-    if (isLocal) {
+    if (isLocal && import.meta.env.DEV) {
       return originalFetch(input, init);
     }
 
     // Intercept /api/* calls and redirect to Worker API in production
     if (typeof url === 'string' && url.startsWith('/api/')) {
-      const rawBase = import.meta.env.VITE_API_URL || import.meta.env.NEXT_PUBLIC_API_URL || '';
-      const apiBase = (rawBase && rawBase !== 'http://localhost:8787' ? rawBase : 'https://monea-api.seabkoeurn64.workers.dev').replace(/\/$/, '');
+      const apiBase = (import.meta.env.VITE_API_URL || 'https://monea-api.seabkoeurn64.workers.dev').replace(/\/$/, '');
       url = `${apiBase}${url}`;
+      
+      console.log(`[FetchInterceptor] Redirecting ${input} -> ${url}`);
       
       // Ensure credentials are included for cross-origin
       init = {

@@ -30,12 +30,57 @@ export function getApiUrl(path: string): string {
 }
 
 /**
- * Enhanced fetch that automatically uses correct API URL
+ * Enhanced fetch that automatically uses correct API URL with mobile optimizations
  */
+let requestCache = new Map();
+let requestPromises = new Map();
+
+// Mobile-specific optimizations
+const isMobile = typeof window !== 'undefined' && (
+  window.innerWidth <= 768 || 
+  /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+);
+
 export async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
   const url = getApiUrl(path);
-  return fetch(url, {
+  
+  // Mobile: More aggressive request deduplication
+  const method = init?.method || 'GET';
+  const cacheKey = `${method}:${url}`;
+  
+  if (method === 'GET' && requestPromises.has(cacheKey)) {
+    return requestPromises.get(cacheKey)!.then((r: Response) => r.clone());
+  }
+  
+  const fetchPromise = fetch(url, {
     ...init,
-    credentials: 'include', // Important for cookies with cross-origin
+    credentials: 'include',
+    // Mobile optimizations
+    cache: method === 'GET' ? 'force-cache' : 'no-cache',
+    priority: isMobile ? 'high' : 'auto' as any,
+    // Shorter timeout for mobile
+    signal: AbortSignal.timeout(isMobile ? 10000 : 15000),
   });
+  
+  // Longer dedup window for mobile
+  if (method === 'GET') {
+    requestPromises.set(cacheKey, fetchPromise);
+    setTimeout(() => requestPromises.delete(cacheKey), isMobile ? 3000 : 1000);
+  }
+  
+  return fetchPromise;
+}
+
+/**
+ * Mobile-optimized preloading
+ */
+export function preloadCriticalEndpoints() {
+  if (typeof window !== 'undefined' && !isMobile) {
+    // Only preload on non-mobile to save bandwidth
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(() => {
+        apiFetch('/system/status').catch(() => {});
+      });
+    }
+  }
 }

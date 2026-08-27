@@ -1,5 +1,6 @@
 ﻿import * as React from "react";
 import { useLocation } from 'react-router-dom';
+import { useMobileDetection } from '../../hooks/useMobileDetection';
 
 interface LoadingContextType {
     isLoading: boolean;
@@ -12,15 +13,19 @@ const LoadingContext = React.createContext<LoadingContextType | undefined>(undef
 export function LoadingProvider({ children }: { children: React.ReactNode }) {
     const [isLoading, setIsLoading] = React.useState(false);
     const { pathname } = useLocation();
+    const { isMobile } = useMobileDetection();
     const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
     const startLoading = React.useCallback(() => {
         setIsLoading(true);
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        
+        // Shorter timeout for mobile to prevent freezing
+        const timeout = isMobile ? 4000 : 6000;
         timeoutRef.current = setTimeout(() => {
             setIsLoading(false);
-        }, 6000);
-    }, []);
+        }, timeout);
+    }, [isMobile]);
 
     const stopLoading = React.useCallback(() => {
         setIsLoading(false);
@@ -30,10 +35,12 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
         }
     }, []);
 
-    // Stop loading when the pathname changes (navigation complete)
+    // Stop loading when pathname changes (navigation complete)
     React.useEffect(() => {
-        stopLoading();
-    }, [pathname, stopLoading]);
+        // Debounce for mobile performance
+        const timer = setTimeout(stopLoading, isMobile ? 100 : 0);
+        return () => clearTimeout(timer);
+    }, [pathname, stopLoading, isMobile]);
 
     return (
         <LoadingContext.Provider value={{ isLoading, startLoading, stopLoading }}>
