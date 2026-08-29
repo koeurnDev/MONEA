@@ -36,7 +36,7 @@ export class GuestServiceDrizzle {
 
       // Get total count
       const totalResult = await db
-        .select({ count: count() })
+        .select({ count: count(guests.id) })
         .from(guests)
         .where(eq(guests.weddingId, weddingId));
 
@@ -76,7 +76,7 @@ export class GuestServiceDrizzle {
 
     // Get current count
     const countResult = await db
-      .select({ count: count() })
+      .select({ count: count(guests.id) })
       .from(guests)
       .where(eq(guests.weddingId, weddingId));
     

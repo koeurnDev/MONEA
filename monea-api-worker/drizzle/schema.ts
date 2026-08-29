@@ -133,7 +133,6 @@ export const guests = pgTable('Guest', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   phone: text('phone'),
-  email: text('email'),
   group: text('group'),
   source: text('source'),
   weddingId: text('weddingId').notNull(),

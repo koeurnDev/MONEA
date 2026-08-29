@@ -232,7 +232,6 @@ export class GiftServiceDrizzle {
                     id: g.id,
                     name: g.name,
                     phone: g.phone ? decrypt(g.phone) : null,
-                    email: g.email,
                     guestCode: g.guestCode,
                     group: g.group,
                     source: g.source,
