@@ -1,4 +1,4 @@
-﻿import * as React from "react";
+import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Users, PartyPopper, CalendarCheck, TrendingUp, Sparkles, Activity, ShieldCheck, Database, Clock, ArrowUpRight, CheckCircle2 } from "lucide-react";
@@ -31,28 +31,28 @@ export default function AdminDashboardClient({ initialStats, initialLogs, userRo
     const cards = [
         {
             title: t('admin.overview.stats.activeHirers'),
-            value: initialStats.totalUsers,
+            value: initialStats?.totalUsers ?? 0,
             trend: "+12%",
             desc: t('account.profile.description'),
             icon: Users,
         },
         {
             title: t('admin.overview.stats.totalProjects'),
-            value: initialStats.totalProjects,
+            value: initialStats?.totalProjects ?? (initialStats as any)?.totalWeddings ?? 0,
             trend: "+5.4%",
             desc: t('admin.overview.recentWeddings.subtitle'),
             icon: PartyPopper,
         },
         {
             title: t('admin.overview.stats.activeProjects'),
-            value: initialStats.activeProjects,
+            value: initialStats?.activeProjects ?? (initialStats as any)?.activeWeddings ?? 0,
             trend: "Active",
             desc: t('admin.overview.stats.activeHirers'),
             icon: CalendarCheck,
         },
         {
             title: t('admin.overview.stats.totalRevenue'),
-            value: initialStats.financialOverview.USD,
+            value: initialStats?.financialOverview?.USD ?? 0,
             trend: "USD",
             desc: t('admin.overview.actions.revenueGrowth'),
             icon: TrendingUp,
@@ -164,8 +164,8 @@ export default function AdminDashboardClient({ initialStats, initialLogs, userRo
                             </CardHeader>
                             <CardContent className="p-0">
                                 <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                                    {initialLogs.map((log, i) => (
-                                        <div key={log.id} className="flex items-center justify-between p-5 px-8 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                    {(initialLogs || []).map((log, i) => (
+                                        <div key={log.id || i} className="flex items-center justify-between p-5 px-8 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                                             <div className="flex items-center gap-4">
                                                 <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500">
                                                     {log.action === 'CREATE' ? <ArrowUpRight size={16} /> :
@@ -178,11 +178,11 @@ export default function AdminDashboardClient({ initialStats, initialLogs, userRo
                                                 </div>
                                             </div>
                                             <div className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">
-                                                {new Date(log.createdAt).toLocaleTimeString('km-KH', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Phnom_Penh' })}
+                                                {log.createdAt ? new Date(log.createdAt).toLocaleTimeString('km-KH', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Phnom_Penh' }) : ''}
                                             </div>
                                         </div>
                                     ))}
-                                    {initialLogs.length === 0 && (
+                                    {(!initialLogs || initialLogs.length === 0) && (
                                         <div className="p-16 text-center space-y-3">
                                             <Activity className="text-slate-300 mx-auto" size={24} />
                                             <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">{t('admin.settings.support.noTickets')}</p>

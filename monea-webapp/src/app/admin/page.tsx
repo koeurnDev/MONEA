@@ -38,8 +38,8 @@ export default function AdminDashboardPage() {
 
     return (
         <AdminDashboardClient
-            initialStats={statsResponse?.data || {}}
-            initialLogs={logsResponse?.data || []}
+            initialStats={statsResponse?.data || (statsResponse && !statsResponse.error ? statsResponse : {})}
+            initialLogs={logsResponse?.data || (Array.isArray(logsResponse) ? logsResponse : [])}
             userRole={user.role}
         />
     );

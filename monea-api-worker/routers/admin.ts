@@ -283,12 +283,20 @@ adminRouter.get('/stats', async (c) => {
             return acc;
         }, { USD: 0, KHR: 0 });
 
-        return c.json({
+        const statsData = {
             totalUsers: Number(userResults[0]?.count || 0),
+            totalProjects: Number(weddingResults[0]?.count || 0),
             totalWeddings: Number(weddingResults[0]?.count || 0),
+            activeProjects: Number(activeResults[0]?.count || 0),
             activeWeddings: Number(activeResults[0]?.count || 0),
+            newProjectsToday: Number(todayResults[0]?.count || 0),
             newWeddingsToday: Number(todayResults[0]?.count || 0),
             financialOverview
+        };
+
+        return c.json({
+            ...statsData,
+            data: statsData
         });
     } catch (error: any) {
         console.error("[Admin Stats API] Error:", error?.message || error);
