@@ -56,13 +56,15 @@ export const prisma = new Proxy({} as PrismaClient, {
   },
 });
 
+import { getRawSql } from "./db-raw";
+
 /**
  * Simple helper functions for raw SQL (legacy compatibility)
  */
 export async function queryRaw<T = any>(query: string, ...values: any[]): Promise<T[]> {
   try {
-    const client = getPrisma();
-    return await (client as any).$queryRawUnsafe(query, ...values);
+    const sql = getRawSql();
+    return await sql(query, values) as T[];
   } catch (error: any) {
     console.error(`[Prisma Raw Query Error] ${query}`, error?.message || error);
     throw error;
@@ -71,8 +73,9 @@ export async function queryRaw<T = any>(query: string, ...values: any[]): Promis
 
 export async function executeRaw(query: string, ...values: any[]): Promise<number> {
   try {
-    const client = getPrisma();
-    return await (client as any).$executeRawUnsafe(query, ...values);
+    const sql = getRawSql();
+    const result = await sql(query, values, { fullResults: true }) as any;
+    return result.rowCount || 0;
   } catch (error: any) {
     console.error(`[Prisma Raw Exec Error] ${query}`, error?.message || error);
     throw error;
