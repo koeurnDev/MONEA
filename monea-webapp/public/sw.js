@@ -1,87 +1,113 @@
 /**
- * Service Worker for Mobile Performance
- * Caches static assets and API responses
+ * MONEA Service Worker v2
+ * Handles static assets caching & SPA navigation fallback gracefully.
  */
 
-const CACHE_NAME = 'monea-v1';
-const API_CACHE_NAME = 'monea-api-v1';
-
-// Assets to cache immediately
+const CACHE_NAME = 'monea-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/favicon.png',
+  '/logo.png',
 ];
 
-// Install event - cache static assets
+// Install: Cache critical shell assets immediately
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
+      return cache.addAll(STATIC_ASSETS).catch((err) => {
+        console.warn('[SW] Pre-caching failed:', err);
+      });
     })
   );
   self.skipWaiting();
 });
 
-// Activate event - clean old caches
+// Activate: Delete all previous outdated caches immediately
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME && cacheName !== API_CACHE_NAME) {
-            return caches.delete(cacheName);
+        cacheNames.map((name) => {
+          if (name !== CACHE_NAME) {
+            return caches.delete(name);
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-// Fetch event - network first, fallback to cache
+// Fetch: Smart routing & error safety
 self.addEventListener('fetch', (event) => {
   const { request } = event;
+
+  // 1. Never intercept non-GET requests, API calls, or cross-origin workers requests
+  if (
+    request.method !== 'GET' ||
+    request.url.includes('/api/') ||
+    request.url.includes('workers.dev') ||
+    request.url.startsWith('chrome-extension') ||
+    request.url.includes('googleapis.com') ||
+    request.url.includes('googleusercontent.com')
+  ) {
+    return; // Let browser handle natively
+  }
+
   const url = new URL(request.url);
 
-  // API requests - network first with cache fallback
-  if (url.pathname.startsWith('/api/')) {
+  // 2. SPA Navigation requests (e.g. /sign-up, /dashboard, /dashboard/schedule)
+  if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
-        .then((response) => {
-          // Clone response for caching
-          const responseClone = response.clone();
-          
-          // Cache successful GET requests
-          if (request.method === 'GET' && response.ok) {
-            caches.open(API_CACHE_NAME).then((cache) => {
-              cache.put(request, responseClone);
-            });
-          }
-          
-          return response;
-        })
         .catch(() => {
-          // Fallback to cache if network fails
-          return caches.match(request);
+          return caches.match('/index.html') || caches.match('/');
+        })
+        .then((response) => {
+          if (response) return response;
+          return caches.match('/index.html');
         })
     );
     return;
   }
 
-  // Static assets - cache first
+  // 3. Static assets: Cache-first with network fallback
   event.respondWith(
-    caches.match(request).then((cached) => {
-      return cached || fetch(request).then((response) => {
-        // Cache new static assets
-        if (request.method === 'GET') {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(request, responseClone);
-          });
+    caches.match(request).then((cachedResponse) => {
+      if (cachedResponse) {
+        // Fetch in background to revalidate cache (stale-while-revalidate for same-origin)
+        if (url.origin === self.location.origin) {
+          fetch(request)
+            .then((networkResponse) => {
+              if (networkResponse && networkResponse.status === 200) {
+                const responseClone = networkResponse.clone();
+                caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
+              }
+            })
+            .catch(() => { /* ignore background update errors */ });
         }
-        return response;
-      });
+        return cachedResponse;
+      }
+
+      // Not in cache: fetch from network
+      return fetch(request)
+        .then((networkResponse) => {
+          if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+            return networkResponse;
+          }
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
+          return networkResponse;
+        })
+        .catch((fetchError) => {
+          // If navigation or image fails, return a safe fallback or let error propagate safely
+          console.warn('[SW] Fetch failed for:', request.url, fetchError);
+          if (request.destination === 'image') {
+            return new Response('', { status: 404, statusText: 'Not Found' });
+          }
+          throw fetchError;
+        });
     })
   );
 });

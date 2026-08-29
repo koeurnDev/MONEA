@@ -1,14 +1,17 @@
 import { Hono } from 'hono'
-import { prisma } from "@/lib/prisma"
+import { getDb } from "@/lib/drizzle"
+import { weddings, activities, galleryItems, guests, invitationAnalytics } from "@/drizzle/schema"
+import { eq, desc, and } from "drizzle-orm"
 import { getServerUser } from "@/lib/auth"
 import { sanitizeObject, sanitize } from "@/lib/sanitize"
 import { encrypt, decrypt } from "@/lib/encryption"
 import { ROLES } from "@/lib/constants"
-import { EventType, WeddingStatus } from "@prisma/client"
 import { weddingSchema, weddingUpdateSchema } from "@/lib/validations/wedding"
 import { isEditingLocked } from "@/lib/permissions"
 import { cloudinaryDelete } from "@/lib/cloudinary-edge"
 import { publicLimiter, getIP } from "@/lib/ratelimit"
+import { getUserWeddingFull, getWeddingByIdFull, generateId } from "@/lib/drizzle-helpers"
+import { queryRaw } from "@/lib/prisma"
 import { z } from "zod"
 
 const weddingRouter = new Hono()
@@ -33,35 +36,38 @@ weddingRouter.get('/analytics/stats', async (c) => {
                 return c.json({ error: "Forbidden: You do not have access to this wedding" }, 403);
             }
         } else {
-            const wedding = await prisma.wedding.findUnique({
-                where: { id: weddingId },
-                select: { userId: true }
-            });
-            if (!wedding || wedding.userId !== user.userId) {
+            const db = getDb(c.env);
+            const weddingCheck = await db.select({ userId: weddings.userId })
+                .from(weddings)
+                .where(eq(weddings.id, weddingId))
+                .limit(1);
+            
+            if (!weddingCheck.length || weddingCheck[0].userId !== user.userId) {
                 return c.json({ error: "Forbidden: You do not own this wedding" }, 403);
             }
         }
 
         const stats = await Promise.allSettled([
-            (prisma as any).invitationAnalytics.groupBy({
-                by: ['type'],
-                where: { weddingId },
-                _count: { _all: true }
-            }),
-            (prisma as any).invitationAnalytics.groupBy({
-                by: ['deviceType'],
-                where: { weddingId, type: "VIEW" },
-                _count: { _all: true }
-            })
+            queryRaw(`
+                SELECT type, COUNT(*) as "_count"
+                FROM "InvitationAnalytics"
+                WHERE "weddingId" = $1
+                GROUP BY type
+            `, weddingId),
+            queryRaw(`
+                SELECT "deviceType", COUNT(*) as "_count"
+                FROM "InvitationAnalytics"
+                WHERE "weddingId" = $1 AND type = 'VIEW'
+                GROUP BY "deviceType"
+            `, weddingId)
         ]);
 
         const rawTypeStats = stats[0].status === 'fulfilled' ? (stats[0].value as any[]) : [];
         const rawDeviceStats = stats[1].status === 'fulfilled' ? (stats[1].value as any[]) : [];
 
         const getCount = (type: string) => {
-            const stat = rawTypeStats.find(s => s.type === type);
-            if (!stat) return 0;
-            return typeof stat._count === 'object' ? (stat._count._all || 0) : (stat._count || 0);
+            const stat = rawTypeStats.find((s: any) => s.type === type);
+            return stat ? Number(stat._count || 0) : 0;
         };
 
         const totalViews = getCount("VIEW");
@@ -74,17 +80,17 @@ weddingRouter.get('/analytics/stats', async (c) => {
         sevenDaysAgo.setHours(0, 0, 0, 0);
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 21);
 
-        let dailyTrendRaw: { day: Date, count: bigint }[] = [];
+        let dailyTrendRaw: any[] = [];
         try {
-            dailyTrendRaw = await prisma.$queryRaw`
+            dailyTrendRaw = await queryRaw(`
                 SELECT DATE_TRUNC('day', "createdAt") as day, COUNT(*) as count
                 FROM "InvitationAnalytics"
-                WHERE "weddingId" = ${weddingId} 
-                  AND "type" = 'VIEW'::"AnalyticsType"
-                  AND "createdAt" >= ${sevenDaysAgo}
+                WHERE "weddingId" = $1
+                  AND "type" = 'VIEW'
+                  AND "createdAt" >= $2
                 GROUP BY day
                 ORDER BY day ASC
-            `;
+            `, weddingId, sevenDaysAgo);
         } catch (e: any) {
             console.error("[Stats] Failed to query daily trend:", e.message);
         }
@@ -154,14 +160,14 @@ weddingRouter.post('/analytics', async (c) => {
         const isMobile = userAgent.toLowerCase().includes("mobile") || userAgent.toLowerCase().includes("android") || userAgent.toLowerCase().includes("iphone");
         const deviceType = isMobile ? "MOBILE" : "DESKTOP";
 
-        await (prisma as any).invitationAnalytics.create({
-            data: {
-                weddingId,
-                type,
-                ipHash,
-                userAgent: userAgent.slice(0, 255),
-                deviceType
-            }
+        const db = getDb(c.env);
+        await db.insert(invitationAnalytics).values({
+            id: globalThis.crypto.randomUUID(),
+            weddingId,
+            type,
+            ipHash,
+            userAgent: userAgent.slice(0, 255),
+            deviceType
         });
 
         return c.json({ success: true });
@@ -175,10 +181,11 @@ weddingRouter.get('/notes', async (c) => {
     const user = await getServerUser(c.req.raw);
     if (!user) return c.json({ error: "Unauthorized" }, 401);
 
-    const wedding = await prisma.wedding.findFirst({
-        where: { userId: user.userId },
-        select: { notes: true }
-    });
+    const wedding = await getDb(c.env).select({ notes: weddings.notes })
+        .from(weddings)
+        .where(eq(weddings.userId, user.userId))
+        .limit(1)
+        .then(r => r[0]);
 
     if (!wedding) return c.json({ error: "Wedding not found" }, 404);
 
@@ -192,18 +199,19 @@ weddingRouter.patch('/notes', async (c) => {
     const body = await c.req.json();
     const { notes } = sanitizeObject<any>(body);
 
-    const wedding = await prisma.wedding.findFirst({
-        where: { userId: user.userId }
-    });
+    const wedding = await getDb(c.env).select()
+        .from(weddings)
+        .where(eq(weddings.userId, user.userId))
+        .limit(1)
+        .then(r => r[0]);
 
     if (!wedding) return c.json({ error: "Wedding not found" }, 404);
 
-    const updated = await prisma.wedding.update({
-        where: { id: wedding.id },
-        data: { notes }
-    });
+    await getDb(c.env).update(weddings)
+        .set({ notes })
+        .where(eq(weddings.id, wedding.id));
 
-    return c.json({ notes: updated.notes });
+    return c.json({ notes });
 });
 
 weddingRouter.post('/rsvp', async (c) => {
@@ -252,52 +260,54 @@ weddingRouter.post('/rsvp', async (c) => {
         const sanitizedNotes = rsvpNotes ? sanitize(rsvpNotes) : null;
 
         if (guestId) {
-            const existingGuest = await prisma.guest.findUnique({ 
-                where: { id: guestId },
-                select: { weddingId: true }
-            });
+            const db = getDb(c.env);
+            const existingGuest = await db.select({ weddingId: guests.weddingId })
+                .from(guests)
+                .where(eq(guests.id, guestId))
+                .limit(1);
 
-            if (!existingGuest) return c.json({ error: "Guest not found" }, 404);
-            if (existingGuest.weddingId !== weddingId) {
+            if (!existingGuest.length) return c.json({ error: "Guest not found" }, 404);
+            if (existingGuest[0].weddingId !== weddingId) {
                 console.error(`[Security] BOLA Attempt: Guest ${guestId} does not belong to wedding ${weddingId}`);
                 return c.json({ error: "Access denied" }, 403);
             }
 
-            const updatedGuest = await prisma.guest.update({
-                where: { id: guestId },
-                data: {
+            const [updatedGuest] = await db.update(guests)
+                .set({
                     rsvpStatus,
                     adultsCount: adultsCount || 1,
                     childrenCount: childrenCount || 0,
                     rsvpNotes: sanitizedNotes,
                     rsvpAt: new Date(),
-                }
-            });
+                })
+                .where(eq(guests.id, guestId))
+                .returning();
+            
             return c.json({ success: true, guest: updatedGuest });
         }
 
-        const weddingExists = await prisma.wedding.findUnique({
-            where: { id: weddingId },
-            select: { id: true }
-        });
+        const db = getDb(c.env);
+        const weddingExists = await db.select({ id: weddings.id })
+            .from(weddings)
+            .where(eq(weddings.id, weddingId))
+            .limit(1);
         
-        if (!weddingExists) {
+        if (!weddingExists.length) {
             console.warn(`[Security] Invalid weddingId provided for anonymous RSVP: ${weddingId}`);
             return c.json({ error: "Wedding not found" }, 404);
         }
 
-        const newGuest = await prisma.guest.create({
-            data: {
-                weddingId,
-                name: rsvpNotes?.startsWith("Name: ") ? rsvpNotes.replace("Name: ", "").substring(0, 50) : "General Guest",
-                rsvpStatus,
-                adultsCount: adultsCount || 1,
-                childrenCount: childrenCount || 0,
-                rsvpNotes: rsvpNotes || "General RSVP",
-                rsvpAt: new Date(),
-                source: "WEBSITE_RSVP"
-            }
-        });
+        const [newGuest] = await db.insert(guests).values({
+            id: globalThis.crypto.randomUUID(),
+            weddingId,
+            name: rsvpNotes?.startsWith("Name: ") ? rsvpNotes.replace("Name: ", "").substring(0, 50) : "General Guest",
+            rsvpStatus,
+            adultsCount: adultsCount || 1,
+            childrenCount: childrenCount || 0,
+            rsvpNotes: rsvpNotes || "General RSVP",
+            rsvpAt: new Date(),
+            source: "WEBSITE_RSVP"
+        }).returning();
 
         return c.json({ success: true, guest: newGuest });
 
@@ -318,29 +328,31 @@ weddingRouter.get('/', async (c) => {
         const id = c.req.query("id");
         const full = c.req.query("full") === "true";
 
-        let wedding;
-        const include = full ? {
-            galleryItems: { orderBy: { id: 'asc' } as any },
-            activities: { orderBy: { order: 'asc' } as any }
-        } : undefined;
-
+        let wedding: any;
+        
         if (user.role === "STAFF") {
             const staffWeddingId = (user as any).weddingId;
-            wedding = await prisma.wedding.findUnique({
-                where: { id: staffWeddingId },
-                include
-            });
+            wedding = full 
+                ? await getWeddingByIdFull(staffWeddingId, c.env)
+                : await getDb(c.env).select().from(weddings).where(eq(weddings.id, staffWeddingId)).limit(1).then(r => r[0]);
         } else if (id) {
-            wedding = await prisma.wedding.findUnique({
-                where: { id, userId: user.userId },
-                include
-            });
+            // ✅ SECURITY: Verify ownership before fetching full data
+            const tempWedding = await getDb(c.env).select().from(weddings).where(eq(weddings.id, id)).limit(1).then(r => r[0]);
+            
+            if (!tempWedding) {
+                return c.json({ error: "Wedding not found" }, 404);
+            }
+            
+            if (tempWedding.userId !== user.userId) {
+                console.error(`[SECURITY] IDOR attempt: User ${user.userId} tried to access wedding ${id} owned by ${tempWedding.userId}`);
+                return c.json({ error: "Forbidden: You do not own this wedding" }, 403);
+            }
+            
+            wedding = full ? await getWeddingByIdFull(id, c.env) : tempWedding;
         } else {
-            wedding = await prisma.wedding.findFirst({
-                where: { userId: user.userId },
-                orderBy: { createdAt: 'desc' },
-                include
-            });
+            wedding = full 
+                ? await getUserWeddingFull(user.userId, c.env)
+                : await getDb(c.env).select().from(weddings).where(eq(weddings.userId, user.userId)).orderBy(desc(weddings.createdAt)).limit(1).then(r => r[0]);
         }
 
         if (!wedding) {
@@ -349,18 +361,18 @@ weddingRouter.get('/', async (c) => {
         }
 
         const safeWedding = { ...wedding };
-        delete (safeWedding as any).paymentInfo; 
+        delete safeWedding.paymentInfo;
         
         try {
             if (wedding.paymentInfo) {
-                (safeWedding as any).paymentInfo = await decrypt(wedding.paymentInfo);
+                safeWedding.paymentInfo = await decrypt(wedding.paymentInfo);
             }
         } catch (e: any) {
             console.error(`[Wedding API Debug] Decryption failure: ${e.message}`);
         }
 
         let responseData: any = safeWedding;
-        if (wedding && wedding.themeSettings) {
+        if (wedding.themeSettings) {
             try {
                 const parsed = typeof wedding.themeSettings === 'string' 
                     ? JSON.parse(wedding.themeSettings) 
@@ -371,6 +383,7 @@ weddingRouter.get('/', async (c) => {
             }
         }
 
+        console.log(`[Wedding API Debug] GET Success. Returning wedding with date: ${responseData.date}`);
         return c.json(responseData);
     } catch (error: any) {
         console.error(`[Wedding GET ERROR] ${error.message}`, { stack: error.stack });
@@ -386,9 +399,10 @@ weddingRouter.post('/', async (c) => {
 
         if (!user) return c.json({ error: "Unauthorized" }, 401);
 
-        const existingWedding = await prisma.wedding.findFirst({
-            where: { userId: user.userId }
-        });
+        const existingWedding = await getDb(c.env).select().from(weddings)
+            .where(eq(weddings.userId, user.userId))
+            .limit(1)
+            .then(r => r[0]);
         
         if (existingWedding) {
             return c.json({ error: "Wedding already exists" }, 409);
@@ -407,26 +421,37 @@ weddingRouter.post('/', async (c) => {
         const sanitizedData = sanitizeObject<any>(validated.data);
         const { groomName, brideName, date, location, eventType, paymentInfo } = sanitizedData;
 
-        const wedding = await prisma.wedding.create({
-            data: {
-                userId: user.userId,
-                groomName: groomName || "Groom",
-                brideName: brideName || "Bride",
-                date: date,
-                location: location,
-                status: "ACTIVE" as WeddingStatus,
-                eventType: eventType || "wedding",
-                paymentInfo: paymentInfo ? await encrypt(paymentInfo) : null,
-                themeSettings: sanitizedData.themeSettings || {},
-            }
-        });
+        const newWedding = await getDb(c.env).insert(weddings).values({
+            id: generateId(),
+            userId: user.userId,
+            groomName: groomName || "Groom",
+            brideName: brideName || "Bride",
+            date: date ? new Date(date) : new Date(),
+            location: location || "",
+            status: "ACTIVE",
+            eventType: eventType || "wedding",
+            paymentInfo: paymentInfo ? await encrypt(paymentInfo) : null,
+            themeSettings: JSON.stringify(sanitizedData.themeSettings || {}),
+        }).returning();
 
+        const wedding = newWedding[0];
+        
+        const responseWedding: any = { ...wedding };
         if (wedding.paymentInfo) {
-            wedding.paymentInfo = await decrypt(wedding.paymentInfo);
+            responseWedding.paymentInfo = await decrypt(wedding.paymentInfo);
+        }
+        
+        // Parse themeSettings back to object for response
+        if (typeof responseWedding.themeSettings === 'string') {
+            try {
+                responseWedding.themeSettings = JSON.parse(responseWedding.themeSettings);
+            } catch (e) {
+                responseWedding.themeSettings = {};
+            }
         }
 
         console.log(`[Wedding API Debug] POST Success. WeddingId: ${wedding.id}`);
-        return c.json(wedding);
+        return c.json(responseWedding);
     } catch (error: any) {
         console.error(`[Wedding API Debug] POST CRASH: ${error.message}`, error);
         return c.json({ error: "Internal Server Error in Wedding POST", details: error.message }, 500);
@@ -453,21 +478,22 @@ weddingRouter.put('/', async (c) => {
         const sanitizedBody = sanitizeObject<any>(validated.data);
         const { status, templateId, groomName, brideName, location, date, eventType, paymentInfo, weddingId } = sanitizedBody;
 
-        let wedding;
-        const includeObj = { galleryItems: true, activities: true };
+        let wedding: any;
         if (user.role === "STAFF") {
-            wedding = await prisma.wedding.findUnique({ where: { id: (user as any).weddingId }, include: includeObj });
+            wedding = await getWeddingByIdFull((user as any).weddingId, c.env);
         } else if (weddingId) {
-            wedding = await prisma.wedding.findUnique({ where: { id: weddingId, userId: user.userId }, include: includeObj });
+            const tempWedding = await getDb(c.env).select().from(weddings)
+                .where(and(eq(weddings.id, weddingId), eq(weddings.userId, user.userId)))
+                .limit(1)
+                .then(r => r[0]);
+            if (tempWedding) {
+                wedding = await getWeddingByIdFull(weddingId, c.env);
+            }
         }
 
         // Fallback: If weddingId wasn't provided or didn't match, find the user's latest wedding
         if (!wedding && user.userId) {
-            wedding = await prisma.wedding.findFirst({
-                where: { userId: user.userId },
-                orderBy: { createdAt: 'desc' },
-                include: includeObj
-            });
+            wedding = await getUserWeddingFull(user.userId, c.env);
         }
 
         let currentTheme = {};
@@ -488,20 +514,20 @@ weddingRouter.put('/', async (c) => {
 
         // If user still has no wedding in database, CREATE one automatically
         if (!wedding && user.userId) {
-            wedding = await prisma.wedding.create({
-                data: {
-                    userId: user.userId,
-                    groomName: groomName || "Groom",
-                    brideName: brideName || "Bride",
-                    date: date ? new Date(date) : new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
-                    location: location || "",
-                    status: (status as WeddingStatus) || "ACTIVE",
-                    templateId: templateId || "khmer-legacy",
-                    eventType: (eventType as EventType) || "wedding",
-                    themeSettings: mergedTheme,
-                },
-                include: includeObj
-            });
+            const newWedding = await getDb(c.env).insert(weddings).values({
+                id: generateId(),
+                userId: user.userId,
+                groomName: groomName || "Groom",
+                brideName: brideName || "Bride",
+                date: date ? new Date(date) : new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+                location: location || "",
+                status: status || "ACTIVE",
+                templateId: templateId || "khmer-legacy",
+                eventType: eventType || "wedding",
+                themeSettings: JSON.stringify(mergedTheme),
+            }).returning();
+            
+            wedding = await getWeddingByIdFull(newWedding[0].id, c.env);
             console.log(`[Wedding API Debug] Auto-created new wedding for user ${user.userId}. WeddingId: ${wedding.id}`);
         }
 
@@ -519,17 +545,17 @@ weddingRouter.put('/', async (c) => {
             return c.json({ error: "The selected template requires a Premium package." }, 403);
         }
 
-        const updateData: any = {
-            ...(status && { status: status as WeddingStatus }),
-            ...(templateId && { templateId }),
-            ...(groomName !== undefined && { groomName: groomName || "" }),
-            ...(brideName !== undefined && { brideName: brideName || "" }),
-            ...(location !== undefined && { location: location || "" }),
-            ...(date && !isNaN(new Date(date).getTime()) && { date: new Date(date) }),
-            ...(eventType && { eventType: eventType as EventType }),
-            ...(paymentInfo && { paymentInfo: await encrypt(paymentInfo) }),
-            themeSettings: mergedTheme
-        };
+        const updateData: any = {};
+        if (status) updateData.status = status;
+        if (templateId) updateData.templateId = templateId;
+        if (groomName !== undefined) updateData.groomName = groomName || "";
+        if (brideName !== undefined) updateData.brideName = brideName || "";
+        if (location !== undefined) updateData.location = location || "";
+        if (date && !isNaN(new Date(date).getTime())) updateData.date = new Date(date);
+        if (eventType) updateData.eventType = eventType;
+        if (paymentInfo) updateData.paymentInfo = await encrypt(paymentInfo);
+        updateData.themeSettings = JSON.stringify(mergedTheme);
+        
         console.log("[Wedding API] Merged Theme to save:", mergedTheme);
 
         if (sanitizedBody.themeSettings) {
@@ -558,7 +584,7 @@ weddingRouter.put('/', async (c) => {
 
         if (sanitizedBody.galleryItems) {
             const incomingPublicIds = sanitizedBody.galleryItems.map((item: any) => item?.publicId).filter(Boolean);
-            const deletedGalleryItems = (wedding as any).galleryItems?.filter((item: any) => item.publicId && !incomingPublicIds.includes(item.publicId)) || [];
+            const deletedGalleryItems = (wedding.galleryItems || []).filter((item: any) => item.publicId && !incomingPublicIds.includes(item.publicId));
             
             for (const item of deletedGalleryItems) {
                 try {
@@ -569,22 +595,29 @@ weddingRouter.put('/', async (c) => {
                 }
             }
 
-            updateData.galleryItems = {
-                deleteMany: {},
-                create: sanitizedBody.galleryItems
-                    .map((item: any, idx: number) => ({
-                        url: item?.url || "",
-                        publicId: item?.publicId || null,
-                        type: item?.type || 'IMAGE',
-                        caption: item?.caption || `slot:${idx}`
-                    }))
-                    .filter((item: any) => item.url || item.publicId)
-            };
+            // Delete old gallery items
+            await getDb(c.env).delete(galleryItems).where(eq(galleryItems.weddingId, wedding.id));
+            
+            // Insert new gallery items
+            const newGalleryItems = sanitizedBody.galleryItems
+                .map((item: any, idx: number) => ({
+                    id: generateId(),
+                    weddingId: wedding.id,
+                    url: item?.url || "",
+                    publicId: item?.publicId || null,
+                    type: item?.type || 'IMAGE',
+                    caption: item?.caption || `slot:${idx}`
+                }))
+                .filter((item: any) => item.url || item.publicId);
+            
+            if (newGalleryItems.length > 0) {
+                await getDb(c.env).insert(galleryItems).values(newGalleryItems);
+            }
         }
 
         if (sanitizedBody.activities) {
             const incomingActivityPublicIds = sanitizedBody.activities.map((item: any) => item.publicId).filter(Boolean);
-            const deletedActivities = (wedding as any).activities?.filter((item: any) => item.publicId && !incomingActivityPublicIds.includes(item.publicId)) || [];
+            const deletedActivities = (wedding.activities || []).filter((item: any) => item.publicId && !incomingActivityPublicIds.includes(item.publicId));
             
             for (const item of deletedActivities) {
                 try {
@@ -595,31 +628,44 @@ weddingRouter.put('/', async (c) => {
                 }
             }
 
-            updateData.activities = {
-                deleteMany: {},
-                create: sanitizedBody.activities.map((item: any) => ({
-                    title: item.title || "Activity",
-                    time: item.time || "",
-                    description: item.description || "",
-                    icon: item.icon || null,
-                    publicId: item.publicId || null,
-                    order: item.order || 0
-                }))
-            };
+            // Delete old activities
+            await getDb(c.env).delete(activities).where(eq(activities.weddingId, wedding.id));
+            
+            // Insert new activities
+            const newActivities = sanitizedBody.activities.map((item: any) => ({
+                id: generateId(),
+                weddingId: wedding.id,
+                title: item.title || "Activity",
+                time: item.time || "",
+                description: item.description || "",
+                icon: item.icon || null,
+                publicId: item.publicId || null,
+                order: item.order || 0
+            }));
+            
+            if (newActivities.length > 0) {
+                await getDb(c.env).insert(activities).values(newActivities);
+            }
         }
 
-        wedding = await prisma.wedding.update({
-            where: { id: wedding.id },
-            data: updateData,
-            include: includeObj
-        });
+        // Update the wedding
+        await getDb(c.env).update(weddings)
+            .set(updateData)
+            .where(eq(weddings.id, wedding.id));
 
-        if (wedding.paymentInfo) {
-            wedding.paymentInfo = await decrypt(wedding.paymentInfo);
+        // Fetch updated wedding with relations
+        const updatedWedding = await getWeddingByIdFull(wedding.id, c.env);
+
+        if (!updatedWedding) {
+            return c.json({ error: "Failed to fetch updated wedding" }, 500);
         }
 
-        console.log(`[Wedding API Debug] PUT Success. WeddingId: ${wedding.id}`);
-        return c.json(wedding);
+        if (updatedWedding.paymentInfo) {
+            updatedWedding.paymentInfo = await decrypt(updatedWedding.paymentInfo);
+        }
+
+        console.log(`[Wedding API Debug] PUT Success. WeddingId: ${updatedWedding.id}`);
+        return c.json(updatedWedding);
     } catch (error: any) {
         console.error(`[Wedding API Debug] PUT CRASH: ${error.message}`, error);
         return c.json({ error: "Internal Server Error in Wedding PUT", details: error.message }, 500);
@@ -631,13 +677,7 @@ weddingRouter.get('/:id', async (c) => {
     try {
         const weddingId = c.req.param("id");
         
-        const wedding = await prisma.wedding.findUnique({
-            where: { id: weddingId },
-            include: {
-                activities: { orderBy: { order: 'asc' } },
-                galleryItems: { orderBy: { createdAt: 'asc' }, take: 50 },
-            },
-        });
+        const wedding = await getWeddingByIdFull(weddingId, c.env);
 
         if (!wedding) {
             return c.json({ error: "Wedding not found" }, 404);
@@ -655,12 +695,12 @@ weddingRouter.get('/:id', async (c) => {
             }
         }
 
-        let galleryItems: any[] = wedding.galleryItems;
+        let galleryItemsList: any[] = wedding.galleryItems || [];
         if (parsedThemeSettings?.galleryItems && Array.isArray(parsedThemeSettings.galleryItems)) {
-            galleryItems = parsedThemeSettings.galleryItems;
-        } else if (galleryItems && Array.isArray(galleryItems)) {
+            galleryItemsList = parsedThemeSettings.galleryItems;
+        } else if (galleryItemsList && Array.isArray(galleryItemsList)) {
             const reconstructed: any[] = [];
-            galleryItems.forEach((item: any, idx: number) => {
+            galleryItemsList.forEach((item: any, idx: number) => {
                 if (item.caption?.startsWith("slot:")) {
                     const slotIdx = parseInt(item.caption.replace("slot:", ""), 10);
                     if (!isNaN(slotIdx)) {
@@ -670,7 +710,7 @@ weddingRouter.get('/:id', async (c) => {
                 }
                 reconstructed[idx] = item;
             });
-            galleryItems = reconstructed;
+            galleryItemsList = reconstructed;
         }
 
         // Return only public fields
@@ -683,8 +723,8 @@ weddingRouter.get('/:id', async (c) => {
             eventType: wedding.eventType,
             templateId: wedding.templateId,
             themeSettings: parsedThemeSettings || {},
-            activities: wedding.activities,
-            galleryItems: galleryItems,
+            activities: wedding.activities || [],
+            galleryItems: galleryItemsList,
         });
     } catch (error: any) {
         console.error("[Wedding GET]", error);

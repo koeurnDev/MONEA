@@ -23,7 +23,7 @@ export default defineConfig({
           if (id.includes('react-router-dom')) {
             return 'react-router'
           }
-          
+
           // UI framework - split for lazy loading
           if (id.includes('@radix-ui/')) {
             return 'radix-ui'
@@ -34,12 +34,12 @@ export default defineConfig({
           if (id.includes('lucide-react')) {
             return 'icons'
           }
-          
+
           // Form handling
           if (id.includes('react-hook-form') || id.includes('@hookform/resolvers') || id.includes('zod')) {
             return 'forms'
           }
-          
+
           // Heavy features - separate for conditional loading
           if (id.includes('xlsx')) {
             return 'excel' // Load only when needed
@@ -56,17 +56,17 @@ export default defineConfig({
           if (id.includes('canvas-confetti')) {
             return 'animations-extra'
           }
-          
+
           // API and networking
           if (id.includes('swr')) {
             return 'data-fetching'
           }
-          
+
           // Utilities - keep small
           if (id.includes('clsx') || id.includes('tailwind-merge') || id.includes('class-variance-authority')) {
             return 'utilities'
           }
-          
+
           // Default vendor chunk
           if (id.includes('node_modules')) {
             return 'vendor'

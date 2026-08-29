@@ -1,5 +1,7 @@
 import { Hono } from 'hono';
-import { prisma, queryRaw, executeRaw } from "@/lib/prisma";
+import { getDb } from "@/lib/drizzle";
+import { weddings, guests, logs } from "@/drizzle/schema";
+import { eq, desc, count, sql, and } from "drizzle-orm";
 import { getServerUser } from "@/lib/auth";
 import { sanitizeObject } from "@/lib/sanitize";
 import { encrypt } from "@/lib/encryption";
@@ -8,18 +10,26 @@ import { createLog } from "@/lib/audit-utils";
 import { z } from "zod";
 import { guestSchema } from "@/lib/validations/guest";
 import { standardLimiter, getIP } from "@/lib/ratelimit";
-import { GuestService } from "@/services/GuestService";
+import { GuestServiceDrizzle } from "@/lib/GuestServiceDrizzle";
+import { generateId } from "@/lib/drizzle-helpers";
 
 const guestsRouter = new Hono();
 
 /**
  * Helper to resolve weddingId safely from authenticated user or staff context
  */
-async function resolveWeddingId(user: any): Promise<string | null> {
+async function resolveWeddingId(user: any, env: any): Promise<string | null> {
     if (user?.weddingId) return user.weddingId;
     const userId = user?.userId || user?.id;
     if (!userId) return null;
-    const wedding = await prisma.wedding.findFirst({ where: { userId } });
+    
+    const db = getDb(env);
+    const wedding = await db.select({ id: weddings.id })
+        .from(weddings)
+        .where(eq(weddings.userId, userId))
+        .limit(1)
+        .then(r => r[0]);
+    
     return wedding?.id || null;
 }
 
@@ -35,67 +45,74 @@ guestsRouter.post('/bulk', async (c) => {
             return c.json({ error: "Invalid JSON format" }, 400);
         }
 
-        const { guests } = body;
+        const { guests: guestsData } = body;
 
-        if (!Array.isArray(guests)) {
+        if (!Array.isArray(guestsData)) {
             return c.json({ error: "Invalid data format" }, 400);
         }
 
-        if (guests.length > 500) {
+        if (guestsData.length > 500) {
             return c.json({ error: "Too many guests at once (Max 500)" }, 400);
         }
 
         let weddingId: string | null = null;
+        const db = getDb(c.env);
+        
         if (user.type === "staff") {
             weddingId = user.weddingId || null;
         } else {
-            const results: any = await queryRaw('SELECT id FROM "Wedding" WHERE "userId" = $1 LIMIT 1', user.userId || user.id);
-            if (!results || !results.length) {
+            const weddingResult = await db.select({ id: weddings.id })
+                .from(weddings)
+                .where(eq(weddings.userId, user.userId || user.id))
+                .limit(1)
+                .then(r => r[0]);
+            
+            if (!weddingResult) {
                 return c.json({ error: "Please create a wedding profile first" }, 403);
             }
-            weddingId = results[0].id;
+            weddingId = weddingResult.id;
         }
 
         if (!weddingId) {
             return c.json({ error: "Wedding ID not found" }, 400);
         }
 
-        console.log(`[BulkImport] User ${user.userId || user.id} importing ${guests.length} guests for wedding ${weddingId}`);
+        console.log(`[BulkImport] User ${user.userId || user.id} importing ${guestsData.length} guests for wedding ${weddingId}`);
 
-        const counts: any = await queryRaw('SELECT COUNT(*)::int as count FROM "Guest" WHERE "weddingId" = $1', weddingId);
-        const currentCount = counts[0]?.count || 0;
+        // Get current count
+        const countResult = await db.select({ count: count() })
+            .from(guests)
+            .where(eq(guests.weddingId, weddingId))
+            .then(r => r[0]);
+        
+        const currentCount = countResult?.count || 0;
 
-        const values: any[] = [];
-        let placeholderIdx = 1;
+        // Prepare bulk insert data
         const encryptedPhones = await Promise.all(
-            guests.map((g: any) => {
+            guestsData.map((g: any) => {
                 const sanitized = sanitizeObject<any>(g);
-                return sanitized.phone ? encrypt(sanitized.phone) : Promise.resolve("");
+                return sanitized.phone ? encrypt(sanitized.phone) : Promise.resolve(null);
             })
         );
 
-        const valueStrings = guests.map((g: any, index: number) => {
+        const bulkData = guestsData.map((g: any, index: number) => {
             const sanitized = sanitizeObject<any>(g);
-            const id = globalThis.crypto.randomUUID();
-            const name = sanitized.name || "Guest";
-            const phone = encryptedPhones[index];
-            const group = sanitized.group || "Friend";
-            const sequenceNum = currentCount + index + 1;
-            
-            const startIdx = placeholderIdx;
-            placeholderIdx += 6;
-            values.push(id, name, phone, group, weddingId, sequenceNum);
-            
-            return `($${startIdx}, $${startIdx + 1}, $${startIdx + 2}, $${startIdx + 3}, $${startIdx + 4}, $${startIdx + 5})`;
+            return {
+                id: generateId(),
+                name: sanitized.name || "Guest",
+                phone: encryptedPhones[index],
+                group: sanitized.group || "Friend",
+                weddingId: weddingId!,
+                sequenceNumber: currentCount + index + 1,
+                guestCode: `G${String(currentCount + index + 1).padStart(3, "0")}`,
+                source: "BULK_IMPORT" as const
+            };
         });
 
-        const sql = `
-            INSERT INTO "Guest" (id, name, phone, "group", "weddingId", "sequenceNumber")
-            VALUES ${valueStrings.join(", ")}
-        `;
+        // Insert all guests
+        await db.insert(guests).values(bulkData);
 
-        const count = await executeRaw(sql, ...values);
-        return c.json({ success: true, count });
+        return c.json({ success: true, count: bulkData.length });
     } catch (error: any) {
         console.error("[BulkImport] CRITICAL Error:", error?.message || error);
         return c.json({ 
@@ -124,37 +141,51 @@ guestsRouter.post('/checkin', async (c) => {
         }
 
         const currentUserId = user.userId || user.id;
+        const db = getDb(c.env);
 
         if (user.type === "staff") {
             if (user.weddingId !== weddingId) {
                 return c.json({ error: "Access Denied: Staff mismatch" }, 403);
             }
         } else if (user.role !== ROLES.PLATFORM_OWNER && user.role !== "SUPERADMIN") {
-            const wedding = await prisma.wedding.findFirst({
-                where: { id: weddingId, userId: currentUserId }
-            });
+            const wedding = await db.select()
+                .from(weddings)
+                .where(and(
+                    eq(weddings.id, weddingId),
+                    eq(weddings.userId, currentUserId)
+                ))
+                .limit(1)
+                .then((r: any) => r[0]);
+            
             if (!wedding) {
                 return c.json({ error: "Access Denied: Wedding ownership mismatch" }, 403);
             }
         }
 
-        const guest = await prisma.guest.update({
-            where: { id: guestId, weddingId: weddingId },
-            data: {
+        const updatedGuest = await db.update(guests)
+            .set({
                 hasArrived: true,
                 arrivedAt: new Date()
-            },
-            select: { name: true, group: true }
-        });
+            })
+            .where(and(
+                eq(guests.id, guestId),
+                eq(guests.weddingId, weddingId)
+            ))
+            .returning({ name: guests.name, group: guests.group });
 
-        await prisma.log.create({
-            data: {
-                action: "CHECK_IN",
-                description: `Guest ${guest.name} checked in`,
-                actorName: user.name || user.email || "Unknown Actor",
-                weddingId: weddingId,
-                ip: c.req.header("x-forwarded-for") || "unknown"
-            }
+        if (!updatedGuest[0]) {
+            return c.json({ error: "Guest not found" }, 404);
+        }
+
+        const guest = updatedGuest[0];
+
+        await db.insert(logs).values({
+            id: generateId(),
+            action: "CHECK_IN",
+            description: `Guest ${guest.name} checked in`,
+            actorName: user.name || user.email || "Unknown Actor",
+            weddingId: weddingId,
+            ip: c.req.header("x-forwarded-for") || "unknown"
         });
 
         return c.json({
@@ -179,19 +210,36 @@ guestsRouter.get('/latest', async (c) => {
         const user = await getServerUser(c.req.raw);
         if (!user) return c.json({ error: "Unauthorized" }, 401);
 
-        const weddingId = await resolveWeddingId(user);
+        const weddingId = await resolveWeddingId(user, c.env);
         if (!weddingId) return c.json({ error: "No wedding found" }, 404);
 
-        const wedding = await prisma.wedding.findUnique({
-            where: { id: weddingId },
-            select: { groomName: true, brideName: true, eventType: true }
-        });
+        const db = getDb(c.env);
 
-        const latestGuest = await prisma.guest.findFirst({
-            where: { weddingId, hasArrived: true, arrivedAt: { not: null } },
-            orderBy: { arrivedAt: 'desc' },
-            select: { id: true, name: true, group: true, arrivedAt: true }
-        });
+        const wedding = await db.select({
+            groomName: weddings.groomName,
+            brideName: weddings.brideName,
+            eventType: weddings.eventType
+        })
+            .from(weddings)
+            .where(eq(weddings.id, weddingId))
+            .limit(1)
+            .then(r => r[0]);
+
+        const latestGuest = await db.select({
+            id: guests.id,
+            name: guests.name,
+            group: guests.group,
+            arrivedAt: guests.arrivedAt
+        })
+            .from(guests)
+            .where(and(
+                eq(guests.weddingId, weddingId),
+                eq(guests.hasArrived, true),
+                sql`${guests.arrivedAt} IS NOT NULL`
+            ))
+            .orderBy(desc(guests.arrivedAt))
+            .limit(1)
+            .then((r: any) => r[0] || null);
 
         return c.json({
             wedding,
@@ -225,15 +273,18 @@ guestsRouter.post('/view', async (c) => {
             return c.json({ error: "Guest ID is required" }, 400);
         }
 
-        const guest = await prisma.guest.findUnique({ where: { id: guestId } });
+        const db = getDb(c.env);
+        const guest = await db.select()
+            .from(guests)
+            .where(eq(guests.id, guestId))
+            .limit(1)
+            .then(r => r[0]);
+        
         if (!guest) return c.json({ error: "Guest not found" }, 404);
 
-        await prisma.guest.update({
-            where: { id: guestId },
-            data: {
-                views: { increment: 1 }
-            }
-        });
+        await db.update(guests)
+            .set({ views: sql`${guests.views} + 1` })
+            .where(eq(guests.id, guestId));
 
         return c.json({ success: true });
     } catch (error: any) {
@@ -254,14 +305,18 @@ guestsRouter.get('/', async (c) => {
         const limit = parseInt(c.req.query("limit") || "50", 10);
         const offset = parseInt(c.req.query("offset") || "0", 10);
 
-        const weddingId = await resolveWeddingId(user);
+        const weddingId = await resolveWeddingId(user, c.env);
         if (!weddingId) return c.json({ items: [], pagination: { total: 0, limit, offset, hasMore: false } });
 
-        const result = await GuestService.getGuests(weddingId, { limit, offset });
+        console.log(`[Guests GET] Fetching guests for wedding ${weddingId}, limit=${limit}, offset=${offset}`);
+        const result = await GuestServiceDrizzle.getGuests(weddingId, c.env, { limit, offset });
+        console.log(`[Guests GET] Success: ${result.items.length} guests returned`);
         return c.json(result);
     } catch (error: any) {
-        console.error("Fetch Guests Error:", error?.message || error);
-        return c.json({ error: "Failed to fetch guests" }, 500);
+        console.error("[Guests GET] CRITICAL ERROR:", error);
+        console.error("[Guests GET] Error stack:", error?.stack);
+        console.error("[Guests GET] Error message:", error?.message);
+        return c.json({ error: "Failed to fetch guests", details: error?.message }, 500);
     }
 });
 
@@ -281,11 +336,11 @@ guestsRouter.post('/', async (c) => {
         if (!validated.success) return c.json({ error: validated.error.issues }, 400);
         
         const sanitizedData = sanitizeObject<any>(validated.data);
-        const weddingId = await resolveWeddingId(user);
+        const weddingId = await resolveWeddingId(user, c.env);
 
         if (!weddingId) return c.json({ error: "Wedding not found" }, 404);
 
-        const guest = await GuestService.createGuest(weddingId, sanitizedData);
+        const guest = await GuestServiceDrizzle.createGuest(weddingId, c.env, sanitizedData);
         await createLog(weddingId, "CREATE", `Added guest: ${guest.name}`, user.email || user.role || "system");
 
         return c.json(guest, 201);
@@ -312,11 +367,11 @@ guestsRouter.patch('/', async (c) => {
 
         const { id, ...updateFields } = validated.data;
         const sanitizedFields = sanitizeObject<any>(updateFields);
-        const weddingId = await resolveWeddingId(user);
+        const weddingId = await resolveWeddingId(user, c.env);
 
         if (!weddingId) return c.json({ error: "Wedding not found" }, 404);
 
-        const guest = await GuestService.updateGuest(id, weddingId, sanitizedFields);
+        const guest = await GuestServiceDrizzle.updateGuest(id, weddingId, c.env, sanitizedFields);
         await createLog(weddingId, "UPDATE", `Updated guest: ${guest.name}`, user.email || user.role || "system");
 
         return c.json(guest);
@@ -334,10 +389,10 @@ guestsRouter.delete('/', async (c) => {
         const id = c.req.query("id");
         if (!id) return c.json({ error: "ID required" }, 400);
 
-        const weddingId = await resolveWeddingId(user);
+        const weddingId = await resolveWeddingId(user, c.env);
         if (!weddingId) return c.json({ error: "Wedding not found" }, 404);
 
-        const guest = await GuestService.deleteGuest(id, weddingId);
+        const guest = await GuestServiceDrizzle.deleteGuest(id, weddingId, c.env);
         await createLog(weddingId, "DELETE", `Deleted guest: ${guest.name}`, user.email || user.role || "system");
 
         return c.json({ success: true });

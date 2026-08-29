@@ -219,15 +219,15 @@ export default function StaffManagementPage() {
 
 
             {/* Content Area */}
-            <div className="bg-card rounded-[2rem] shadow-[0_8px_40px_rgba(0,0,0,0.06)] dark:shadow-[0_4px_32px_rgba(0,0,0,0.2)] overflow-hidden border-none">
+            <div className="bg-card rounded-3xl sm:rounded-[2rem] shadow-sm border border-slate-200/80 dark:border-white/5 overflow-hidden">
                 <div className="overflow-x-auto">
                     <Table>
                         <TableHeader className="bg-muted/30">
                             <TableRow className="border-none hover:bg-transparent">
-                                <TableHead className="h-14 px-8 text-sm font-bold text-muted-foreground uppercase tracking-tight">{t("dashboard.staff.table.name")}</TableHead>
-                                <TableHead className="h-14 px-8 text-sm font-bold text-muted-foreground uppercase tracking-tight">{t("dashboard.staff.table.role")}</TableHead>
-                                <TableHead className="h-14 px-8 text-sm font-bold text-muted-foreground uppercase tracking-tight">{t("dashboard.staff.table.emailPin")}</TableHead>
-                                <TableHead className="h-14 px-8 text-sm font-bold text-muted-foreground uppercase tracking-tight text-right">{t("dashboard.staff.table.actions")}</TableHead>
+                                <TableHead className="h-12 sm:h-14 px-4 sm:px-8 text-xs sm:text-sm font-bold text-muted-foreground uppercase tracking-tight">{t("dashboard.staff.table.name")}</TableHead>
+                                <TableHead className="h-12 sm:h-14 px-4 sm:px-8 text-xs sm:text-sm font-bold text-muted-foreground uppercase tracking-tight">{t("dashboard.staff.table.role")}</TableHead>
+                                <TableHead className="h-12 sm:h-14 px-4 sm:px-8 text-xs sm:text-sm font-bold text-muted-foreground uppercase tracking-tight">{t("dashboard.staff.table.emailPin")}</TableHead>
+                                <TableHead className="h-12 sm:h-14 px-4 sm:px-8 text-xs sm:text-sm font-bold text-muted-foreground uppercase tracking-tight text-right">{t("dashboard.staff.table.actions")}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -239,17 +239,17 @@ export default function StaffManagementPage() {
                                 </TableRow>
                             ) : staffList.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={4} className="p-12">
-                                        <div className="max-w-md mx-auto bg-muted/30 rounded-[2.5rem] p-10 text-center group hover:bg-muted/50 transition-all">
-                                            <div className="w-20 h-20 bg-background shadow-sm rounded-full flex items-center justify-center text-muted-foreground/30 mx-auto mb-6 group-hover:scale-110 transition-transform duration-500">
-                                                <UserCog className="w-10 h-10" />
+                                    <TableCell colSpan={4} className="p-8 sm:p-12">
+                                        <div className="max-w-md mx-auto bg-muted/30 rounded-3xl p-6 sm:p-10 text-center group hover:bg-muted/50 transition-all">
+                                            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-background shadow-sm rounded-full flex items-center justify-center text-muted-foreground/30 mx-auto mb-4 sm:mb-6 group-hover:scale-110 transition-transform duration-500">
+                                                <UserCog className="w-8 h-8 sm:w-10 sm:h-10" />
                                             </div>
-                                            <h3 className="text-xl font-black text-foreground mb-2 font-kantumruy">{t("dashboard.staff.table.empty.title")}</h3>
-                                            <p className="text-muted-foreground mb-10 font-medium font-kantumruy">{t("dashboard.staff.table.empty.description")}</p>
+                                            <h3 className="text-lg sm:text-xl font-black text-foreground mb-2 font-kantumruy">{t("dashboard.staff.table.empty.title")}</h3>
+                                            <p className="text-xs sm:text-sm text-muted-foreground mb-6 sm:mb-10 font-medium font-kantumruy">{t("dashboard.staff.table.empty.description")}</p>
 
                                             <Button
                                                 onClick={() => setIsDialogOpen(true)}
-                                                className="bg-red-600 hover:bg-red-700 text-white rounded-xl h-12 px-10 font-bold shadow-md transition-all font-kantumruy"
+                                                className="bg-rose-600 hover:bg-rose-700 text-white rounded-xl h-11 px-8 font-bold shadow-md transition-all font-kantumruy text-xs"
                                             >
                                                 {t("dashboard.staff.table.empty.button")}
                                             </Button>
@@ -258,65 +258,65 @@ export default function StaffManagementPage() {
                                 </TableRow>
                             ) : (
                                 staffList.map((staff) => (
-                                    <TableRow key={staff.id} className="border-none hover:bg-muted/10 transition-colors group">
-                                        <TableCell className="px-8 py-5">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center text-muted-foreground font-black text-sm group-hover:bg-red-50 dark:group-hover:bg-red-950/20 group-hover:text-red-600 transition-colors shadow-sm">
+                                    <TableRow key={staff.id} className="border-b border-border/40 hover:bg-muted/10 transition-colors group">
+                                        <TableCell className="px-4 sm:px-8 py-3.5 sm:py-5">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-9 h-9 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-600 font-bold text-xs shadow-xs flex-none">
                                                     {staff.name.charAt(0).toUpperCase()}
                                                 </div>
-                                                <span className="font-black text-foreground font-kantumruy">{staff.name}</span>
+                                                <span className="font-bold text-foreground font-kantumruy text-xs sm:text-sm whitespace-nowrap">{staff.name}</span>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="px-8 py-5">
-                                            <span className="bg-muted text-muted-foreground px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-tight shadow-sm">
+                                        <TableCell className="px-4 sm:px-8 py-3.5 sm:py-5">
+                                            <span className="bg-muted text-muted-foreground px-2.5 py-0.5 rounded-lg text-[11px] font-bold uppercase tracking-tight shadow-xs whitespace-nowrap">
                                                 {staff.role}
                                             </span>
                                         </TableCell>
-                                        <TableCell className="px-8 py-5">
+                                        <TableCell className="px-4 sm:px-8 py-3.5 sm:py-5">
                                             {staff.email ? (
-                                                <span className="font-bold text-foreground text-sm">{staff.email}</span>
+                                                <span className="font-medium text-muted-foreground text-xs">{staff.email}</span>
                                             ) : (
-                                                <div className="flex items-center gap-3 w-fit">
-                                                    <span className="tracking-[0.2em] font-black font-mono text-foreground text-sm">
+                                                <div className="flex items-center gap-2 w-fit">
+                                                    <span className="tracking-widest font-bold font-mono text-foreground text-xs">
                                                         {visiblePins[staff.id] ? staff.pin : "••••••"}
                                                     </span>
                                                     <button
                                                         onClick={() => togglePinVisibility(staff.id)}
-                                                        className="text-muted-foreground/40 hover:text-foreground transition-colors"
+                                                        className="text-muted-foreground/50 hover:text-foreground transition-colors p-1"
                                                     >
-                                                        {visiblePins[staff.id] ? <EyeOff size={14} /> : <Eye size={14} />}
+                                                        {visiblePins[staff.id] ? <EyeOff size={13} /> : <Eye size={13} />}
                                                     </button>
                                                 </div>
                                             )}
                                         </TableCell>
-                                        <TableCell className="px-8 py-5 text-right">
-                                            <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <TableCell className="px-4 sm:px-8 py-3.5 sm:py-5 text-right">
+                                            <div className="flex items-center justify-end gap-1 sm:opacity-0 sm:group-hover:opacity-100 opacity-100 transition-opacity">
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="w-9 h-9 rounded-lg text-muted-foreground/40 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-all"
+                                                    className="w-8 h-8 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-all"
                                                     onClick={() => copyLink(staff)}
                                                     title={t("dashboard.staff.copyMagicLink")}
                                                 >
-                                                    {copiedId === staff.id ? <Check size={16} /> : <Copy size={16} />}
+                                                    {copiedId === staff.id ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
                                                 </Button>
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="w-9 h-9 rounded-lg text-muted-foreground/40 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-all"
+                                                    className="w-8 h-8 rounded-lg text-slate-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/30 transition-all"
                                                     onClick={() => setQrStaff(staff)}
                                                     title={t("dashboard.staff.showQrCode")}
                                                 >
-                                                    <QrIcon size={16} />
+                                                    <QrIcon size={14} />
                                                 </Button>
-                                                <div className="w-px h-4 bg-muted-foreground/10 mx-1" />
+                                                <div className="w-px h-3.5 bg-muted-foreground/20 mx-0.5" />
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="w-9 h-9 rounded-lg text-muted-foreground/40 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all"
+                                                    className="w-8 h-8 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all"
                                                     onClick={() => handleDeleteStaff(staff.id, staff.name)}
                                                 >
-                                                    <Trash2 size={16} />
+                                                    <Trash2 size={14} />
                                                 </Button>
                                             </div>
                                         </TableCell>
@@ -326,7 +326,7 @@ export default function StaffManagementPage() {
                         </TableBody>
                     </Table>
                 </div>
-            </div >
+            </div>
         </div >
     );
 }

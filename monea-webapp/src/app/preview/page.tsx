@@ -40,7 +40,7 @@ const DEFAULT_PREVIEW_WEDDING: WeddingData = {
         },
         bankAccounts: [
             {
-                bankName: "ABA Bank (KHQR)",
+                bankName: "ABA Bank",
                 accountName: "KAB SIN & MEAS CHANMEANA",
                 accountNumber: "001 234 567",
                 qrUrl: "/images/qr.webp",
@@ -64,6 +64,37 @@ const DEFAULT_PREVIEW_WEDDING: WeddingData = {
     ]
 };
 
+function decodeHtmlEntities(str: any): any {
+    if (typeof str !== 'string') return str;
+    let decoded = str;
+    for (let i = 0; i < 5; i++) {
+        const next = decoded
+            .replace(/&amp;/g, '&')
+            .replace(/&#x2F;/g, '/')
+            .replace(/&#x27;/g, "'")
+            .replace(/&quot;/g, '"')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>');
+        if (next === decoded) break;
+        decoded = next;
+    }
+    return decoded;
+}
+
+function deepDecodeEntities(obj: any): any {
+    if (!obj || typeof obj !== 'object') {
+        return typeof obj === 'string' ? decodeHtmlEntities(obj) : obj;
+    }
+    if (Array.isArray(obj)) {
+        return obj.map(deepDecodeEntities);
+    }
+    const res: any = {};
+    for (const k of Object.keys(obj)) {
+        res[k] = deepDecodeEntities(obj[k]);
+    }
+    return res;
+}
+
 export default function PreviewPage() {
     const [wedding, setWedding] = useState<WeddingData | null>(null);
     const [mounted, setMounted] = useState(false);
@@ -71,24 +102,39 @@ export default function PreviewPage() {
     useEffect(() => {
         setMounted(true);
 
-        // Fetch initial data via moneaClient (includes auth headers)
-        moneaClient.get<any>('/api/wedding?full=true')
-            .then(res => {
-                if (res.data && res.data.id) {
-                    let data = { ...res.data };
-                    if (typeof data.themeSettings === 'string' && data.themeSettings !== "") {
-                        try { data.themeSettings = JSON.parse(data.themeSettings); } catch (e) { data.themeSettings = {}; }
-                    }
-                    // Ensure required fields exist
-                    if (!data.groomName) data.groomName = DEFAULT_PREVIEW_WEDDING.groomName;
-                    if (!data.brideName) data.brideName = DEFAULT_PREVIEW_WEDDING.brideName;
-                    if (!data.date) data.date = DEFAULT_PREVIEW_WEDDING.date;
-                    setWedding(prev => prev ? prev : data);
-                }
-            })
-            .catch(err => {
-                console.warn("[Preview] initial fetch error:", err);
+        // Check URL params first (for template gallery preview)
+        const urlParams = new URLSearchParams(window.location.search);
+        const templateIdParam = urlParams.get('templateId');
+
+        if (templateIdParam) {
+            // Template gallery preview mode - use default data with specified template
+            console.log("[Preview] Template gallery mode:", templateIdParam);
+            setWedding({
+                ...DEFAULT_PREVIEW_WEDDING,
+                templateId: templateIdParam
             });
+        } else {
+            // Dashboard preview mode - fetch user's wedding data
+            moneaClient.get<any>('/api/wedding?full=true')
+                .then(res => {
+                    if (res.data && res.data.id) {
+                        let data = deepDecodeEntities({ ...res.data });
+                        if (typeof data.themeSettings === 'string' && data.themeSettings !== "") {
+                            try { data.themeSettings = deepDecodeEntities(JSON.parse(data.themeSettings)); } catch (e) { data.themeSettings = {}; }
+                        }
+                        // Ensure required fields exist
+                        if (!data.groomName) data.groomName = DEFAULT_PREVIEW_WEDDING.groomName;
+                        if (!data.brideName) data.brideName = DEFAULT_PREVIEW_WEDDING.brideName;
+                        if (!data.date) data.date = DEFAULT_PREVIEW_WEDDING.date;
+                        setWedding(prev => prev ? prev : data);
+                    }
+                })
+                .catch(err => {
+                    console.warn("[Preview] initial fetch error:", err);
+                    // Fallback to default if fetch fails
+                    setWedding(DEFAULT_PREVIEW_WEDDING);
+                });
+        }
 
         let readyPings = 0;
         const readyInterval = setInterval(() => {
@@ -137,7 +183,7 @@ export default function PreviewPage() {
             if (event.data?.type === "SCROLL_TO_SECTION" && event.data.payload) {
                 const sectionId = event.data.payload;
                 window.dispatchEvent(new CustomEvent('FORCE_REVEAL'));
-                
+
                 setTimeout(() => {
                     const element = document.getElementById(sectionId);
                     if (element) {

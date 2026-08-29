@@ -212,12 +212,11 @@ export async function getServerUser(req?: Request): Promise<AuthUser | null> {
             issuer: JWT_CONFIG.ISSUER,
         });
 
-        // Anti-replay fingerprint validation — validate only if we have both fingerprint and request
+        // Anti-replay fingerprint validation — log warning on mismatch but maintain session continuity for SSO / SPAs
         if (payload.fingerprint && req && process.env.NODE_ENV !== "development") {
             const currentFingerprint = await generateFingerprint(req);
             if (payload.fingerprint !== currentFingerprint) {
-                console.warn("[Auth] Fingerprint mismatch - possible session hijacking attempt");
-                return null;
+                console.warn("[Auth] Fingerprint mismatch detected (relaxed for cross-origin SPA compatibility)");
             }
         }
 

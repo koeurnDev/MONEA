@@ -1,6 +1,5 @@
 import { MessageSquare, Heart, Loader2 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { BottomNav } from "@/components/layout/BottomNav";
 import { GuestbookForm } from "./GuestbookForm";
 import { HydratedDate } from "@/components/shared/HydratedDate";
 import { useParams } from "react-router-dom";
@@ -77,15 +76,12 @@ export default function GuestbookPage() {
                     )}
                 </div>
 
-                <div className="text-center pb-4">
-                    <a href={`/w/${id}`} className="text-xs font-medium text-gray-400 hover:text-rose-500 transition-colors uppercase tracking-widest">
-                        ← Back to Wedding
+                <div className="text-center pb-8 pt-4">
+                    <a href={`/w/${id}`} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white/80 dark:bg-white/10 shadow-xs border border-slate-200/60 dark:border-white/10 text-xs font-bold font-kantumruy text-rose-600 hover:text-rose-700 transition-colors">
+                        ← ត្រឡប់ទៅកាន់ធៀបការ
                     </a>
                 </div>
             </div>
-
-            {/* New Bottom Navigation */}
-            <BottomNav />
         </div>
     );
 }

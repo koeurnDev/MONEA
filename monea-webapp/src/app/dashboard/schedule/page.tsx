@@ -316,8 +316,8 @@ export default function SchedulePage() {
                                                 </div>
 
                                                 {/* Icon Avatar */}
-                                                <div className="hidden xs:flex flex-shrink-0 w-10 h-10 rounded-2xl bg-rose-500/10 text-rose-600 items-center justify-center">
-                                                    {IconComp ? <IconComp size={18} /> : <Clock size={18} />}
+                                                <div className="flex flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-rose-500/10 text-rose-600 items-center justify-center">
+                                                    {IconComp ? <IconComp className="w-4 h-4 sm:w-5 sm:h-5" /> : <Clock className="w-4 h-4 sm:w-5 sm:h-5" />}
                                                 </div>
 
                                                 {/* Time & Title Info */}

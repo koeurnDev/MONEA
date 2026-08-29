@@ -20,34 +20,18 @@ function MobileLoader() {
 }
 
 function AppContent() {
-  const { isMobile } = useMobilePerformance();
-
   return (
-    <>
-      {isMobile ? (
-        // Simplified provider stack for mobile - no AnimationProvider
-        <AuthProvider>
-          <LanguageProvider initialLocale="km">
-            <ToastProvider>
-              <Suspense fallback={<MobileLoader />}>
-                <Router />
-              </Suspense>
-            </ToastProvider>
-          </LanguageProvider>
-        </AuthProvider>
-      ) : (
-        // Full provider stack for desktop with animations
-        <AnimationProvider>
-          <AuthProvider>
-            <LanguageProvider initialLocale="km">
-              <ToastProvider>
-                <Router />
-              </ToastProvider>
-            </LanguageProvider>
-          </AuthProvider>
-        </AnimationProvider>
-      )}
-    </>
+    <AnimationProvider>
+      <AuthProvider>
+        <LanguageProvider initialLocale="km">
+          <ToastProvider>
+            <Suspense fallback={<MobileLoader />}>
+              <Router />
+            </Suspense>
+          </ToastProvider>
+        </LanguageProvider>
+      </AuthProvider>
+    </AnimationProvider>
   );
 }
 

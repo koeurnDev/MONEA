@@ -77,7 +77,7 @@ export function GuestListHeader({
                                     <Plus className="mr-2 h-4 w-4" /> {t("guests.form.addBtn")}
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="sm:max-w-[480px] rounded-3xl border-none bg-card p-4 pt-10 md:p-8 md:pt-14 shadow-2xl">
+                            <DialogContent className="sm:max-w-[460px] max-h-[85vh] overflow-y-auto rounded-3xl border border-border/50 bg-card p-6 shadow-2xl">
                                 <div className="sr-only">
                                     <DialogTitle>{t("guests.form.title")}</DialogTitle>
                                     <DialogDescription>

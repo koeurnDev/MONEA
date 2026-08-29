@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import * as nextRoute from '@/server/auth_handlers/2fa/setup/handler';
+import * as nextRoute from '@/auth_handlers/2fa/setup/handler';
 
 const router = new Hono();
 

@@ -1,18 +1,27 @@
 import { Hono } from 'hono';
-import { prisma } from "@/lib/prisma";
+import { getDb } from "@/lib/drizzle";
+import { weddings, guests, invitationAnalytics } from "@/drizzle/schema";
+import { eq } from "drizzle-orm";
 import { getServerUser } from "@/lib/auth";
+import { queryRaw } from "@/lib/prisma";
 
 const analyticsRouter = new Hono();
 
 /**
  * Helper to resolve weddingId safely from authenticated user context
  */
-async function resolveWeddingId(user: any): Promise<string | null> {
+async function resolveWeddingId(env: any, user: any): Promise<string | null> {
     if (user?.weddingId) return user.weddingId;
     const userId = user?.userId || user?.id;
     if (!userId) return null;
-    const wedding = await prisma.wedding.findFirst({ where: { userId } });
-    return wedding?.id || null;
+    
+    const db = getDb(env);
+    const result = await db.select({ id: weddings.id })
+        .from(weddings)
+        .where(eq(weddings.userId, userId))
+        .limit(1);
+    
+    return result.length > 0 ? result[0].id : null;
 }
 
 analyticsRouter.post('/track', async (c) => {
@@ -41,22 +50,23 @@ analyticsRouter.post('/track', async (c) => {
         const isMobile = /mobile|iphone|ipad|android/i.test(userAgent);
         const deviceType = isMobile ? "MOBILE" : "DESKTOP";
 
-        await (prisma as any).invitationAnalytics.create({
-            data: {
-                weddingId,
-                type,
-                ipHash,
-                userAgent: userAgent.substring(0, 255),
-                deviceType
-            }
+        const db = getDb(c.env);
+        await db.insert(invitationAnalytics).values({
+            id: globalThis.crypto.randomUUID(),
+            weddingId,
+            type,
+            ipHash,
+            userAgent: userAgent.substring(0, 255),
+            deviceType
         });
 
         if (type === "VIEW" && guestId) {
             try {
-                await prisma.guest.update({
-                    where: { id: guestId },
-                    data: { views: { increment: 1 } }
-                });
+                // Use raw SQL for increment operation
+                await queryRaw(
+                    'UPDATE "Guest" SET views = views + 1 WHERE id = $1',
+                    guestId
+                );
             } catch (e: any) {
                 console.warn("[Analytics Track] Failed to increment guest view:", e?.message || e);
             }
@@ -74,7 +84,7 @@ analyticsRouter.get('/summary', async (c) => {
         const user = await getServerUser(c.req.raw);
         if (!user) return c.json({ error: "Unauthorized" }, 401);
 
-        const weddingId = await resolveWeddingId(user);
+        const weddingId = await resolveWeddingId(c.env, user);
         if (!weddingId) {
             return c.json({ 
                 stats: { totalGuests: 0, checkInCount: 0, totalGiftsUsd: 0, totalGiftsKhr: 0, giftsCount: 0, wishesCount: 0 },
@@ -82,56 +92,51 @@ analyticsRouter.get('/summary', async (c) => {
             });
         }
 
-        const [
-            guestStats,
-            checkInStats,
-            giftStats,
-            giftUsdStats,
-            giftKhrStats,
-            wishesStats,
-            guestsBySource,
-            giftsByGuest
-        ] = await Promise.all([
-            prisma.guest.count({ where: { weddingId } }),
-            prisma.guest.count({ where: { weddingId, hasArrived: true } }),
-            prisma.gift.count({ where: { weddingId } }),
-            prisma.gift.aggregate({ where: { weddingId, currency: 'USD' }, _sum: { amount: true } }),
-            prisma.gift.aggregate({ where: { weddingId, currency: 'KHR' }, _sum: { amount: true } }),
-            prisma.guestbookEntry.count({ where: { weddingId } }),
-            prisma.guest.groupBy({ by: ['source', 'group'], where: { weddingId }, _count: { id: true } }),
-            prisma.gift.findMany({ where: { weddingId }, include: { guest: { select: { source: true, group: true } } } })
+        // Use optimized raw SQL for analytics summary
+        const analyticsQuery = `
+            SELECT 
+                (SELECT COUNT(*) FROM "Guest" WHERE "weddingId" = $1) as "totalGuests",
+                (SELECT COUNT(*) FROM "Guest" WHERE "weddingId" = $1 AND "hasArrived" = true) as "checkInCount",
+                (SELECT COUNT(*) FROM "Gift" WHERE "weddingId" = $1) as "giftsCount",
+                (SELECT COALESCE(SUM("amount"), 0) FROM "Gift" WHERE "weddingId" = $1 AND "currency" = 'USD') as "totalGiftsUsd",
+                (SELECT COALESCE(SUM("amount"), 0) FROM "Gift" WHERE "weddingId" = $1 AND "currency" = 'KHR') as "totalGiftsKhr",
+                (SELECT COUNT(*) FROM "GuestbookEntry" WHERE "weddingId" = $1) as "wishesCount"
+        `;
+
+        const sourceStatsQuery = `
+            SELECT 
+                COALESCE(g.source, g."group", 'មិនបានបញ្ជាក់') as source,
+                COUNT(DISTINCT g.id) as guests,
+                COALESCE(SUM(CASE WHEN gi.currency = 'USD' THEN gi.amount ELSE 0 END), 0) as usd,
+                COALESCE(SUM(CASE WHEN gi.currency = 'KHR' THEN gi.amount ELSE 0 END), 0) as khr
+            FROM "Guest" g
+            LEFT JOIN "Gift" gi ON gi."guestId" = g.id AND gi."weddingId" = $1
+            WHERE g."weddingId" = $1
+            GROUP BY COALESCE(g.source, g."group", 'មិនបានបញ្ជាក់')
+            ORDER BY COUNT(DISTINCT g.id) DESC
+            LIMIT 5
+        `;
+
+        const [statsResult, sourceStats] = await Promise.all([
+            queryRaw(analyticsQuery, weddingId),
+            queryRaw(sourceStatsQuery, weddingId)
         ]);
 
-        const sourceMap: Record<string, { guests: number; usd: number; khr: number }> = {};
-        
-        guestsBySource.forEach((g: any) => {
-            const source = g.source || g.group || "មិនបានបញ្ជាក់";
-            if (!sourceMap[source]) sourceMap[source] = { guests: 0, usd: 0, khr: 0 };
-            sourceMap[source].guests += g._count.id;
-        });
+        const stats = (statsResult as any[])[0];
 
-        giftsByGuest.forEach((gift: any) => {
-            const source = gift.guest?.source || gift.guest?.group || "មិនបានបញ្ជាក់";
-            if (sourceMap[source]) {
-                if (gift.currency === 'USD') sourceMap[source].usd += Number(gift.amount || 0);
-                if (gift.currency === 'KHR') sourceMap[source].khr += Number(gift.amount || 0);
-            }
-        });
-
-        const sortedSources = Object.entries(sourceMap)
-            .sort((a: any, b: any) => b[1].guests - a[1].guests)
-            .slice(0, 5);
+        // Add caching for analytics (60 seconds)
+        c.header('Cache-Control', 'private, max-age=60, s-maxage=0');
 
         return c.json({
             stats: {
-                totalGuests: guestStats,
-                checkInCount: checkInStats,
-                totalGiftsUsd: Number(giftUsdStats._sum.amount || 0),
-                totalGiftsKhr: Number(giftKhrStats._sum.amount || 0),
-                giftsCount: giftStats,
-                wishesCount: wishesStats
+                totalGuests: Number(stats.totalGuests || 0),
+                checkInCount: Number(stats.checkInCount || 0),
+                totalGiftsUsd: Number(stats.totalGiftsUsd || 0),
+                totalGiftsKhr: Number(stats.totalGiftsKhr || 0),
+                giftsCount: Number(stats.giftsCount || 0),
+                wishesCount: Number(stats.wishesCount || 0)
             },
-            sourceStats: sortedSources
+            sourceStats: sourceStats || []
         });
     } catch (error: any) {
         console.error(`[Analytics API] GET Error:`, error?.message || error);

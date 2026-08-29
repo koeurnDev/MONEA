@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Link, useLocation } from 'react-router-dom';
 import { m } from "framer-motion";
 import { Home, Users, Palette, LayoutGrid } from "lucide-react";
@@ -20,12 +20,13 @@ export default function MobileBottomNav({ onOpenMenu }: MobileBottomNavProps) {
         setPendingHref(null);
     }, [pathname]);
 
-    const tabs = [
+    // Memoize tabs to prevent recreation on every render
+    const tabs = useMemo(() => [
         { href: "/dashboard", label: t("dashboard.nav.home", { defaultValue: "ទំព័រដើម" }), icon: Home },
         { href: "/dashboard/guests", label: t("dashboard.nav.guests", { defaultValue: "គ្រប់គ្រងភ្ញៀវ" }), icon: Users },
-        { href: "menu", label: t("dashboard.nav.menu", { defaultValue: "ម៉ឺនុយ" }), icon: LayoutGrid, isAction: true },
+        { label: t("dashboard.nav.menu", { defaultValue: "ម៉ឺនុយ" }), icon: LayoutGrid, isAction: true },
         { href: "/dashboard/design", label: t("dashboard.nav.design", { defaultValue: "ឌីហ្សាញ" }), icon: Palette },
-    ];
+    ], [t]);
 
     if (pathname.includes("/dashboard/design")) return null;
 
@@ -42,6 +43,7 @@ export default function MobileBottomNav({ onOpenMenu }: MobileBottomNavProps) {
                                 key={idx}
                                 type="button"
                                 onClick={onOpenMenu}
+                                aria-label={tab.label}
                                 className="flex-1 flex flex-col items-center justify-center gap-1 h-full py-1 group outline-none active:scale-95 transition-transform"
                             >
                                 <div className="w-10 h-10 rounded-2xl bg-rose-500 text-white flex items-center justify-center shadow-md shadow-rose-500/25 group-hover:bg-rose-600 transition-colors">
@@ -57,10 +59,11 @@ export default function MobileBottomNav({ onOpenMenu }: MobileBottomNavProps) {
                     return (
                         <Link
                             key={idx}
-                            to={tab.href}
+                            to={tab.href!}
+                            aria-current={isActive ? "page" : undefined}
                             onClick={() => {
                                 if (!isActive) {
-                                    setPendingHref(tab.href);
+                                    setPendingHref(tab.href!);
                                     startLoading();
                                 }
                             }}

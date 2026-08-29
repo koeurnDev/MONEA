@@ -23,15 +23,29 @@ export default function AuthCallbackPage() {
     if (processed.current) return;
     processed.current = true;
 
+    const token = searchParams.get('token');
     const code = searchParams.get('code');
     const error = searchParams.get('error');
 
-    if (error || !code) {
-      navigate(`/sign-in?error=${error || 'no_code'}`, { replace: true });
+    if (error) {
+      navigate(`/sign-in?error=${error}`, { replace: true });
       return;
     }
 
-    // Exchange the one-time code for a session cookie via the backend
+    // Direct token support — fastest and most reliable
+    if (token) {
+      localStorage.setItem('auth_token', token);
+      console.log('[Auth Callback] Direct token stored in localStorage');
+      window.location.href = '/dashboard';
+      return;
+    }
+
+    if (!code) {
+      navigate('/sign-in?error=no_code', { replace: true });
+      return;
+    }
+
+    // Fallback: Exchange the one-time code for a session cookie via the backend
     fetch(getApiUrl('api/auth/session'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -39,30 +53,38 @@ export default function AuthCallbackPage() {
       body: JSON.stringify({ code }),
     })
       .then(async (res) => {
+        console.log('[Auth Callback] Response status:', res.status);
+        console.log('[Auth Callback] Response headers:', Object.fromEntries(res.headers.entries()));
+        
+        // Get raw response text first
+        const text = await res.text();
+        console.log('[Auth Callback] Raw response:', text);
+        
         if (res.ok) {
-          const data = await res.json().catch(() => null);
-          console.log('[Auth Callback] Session response:', data);
+          let data = null;
+          try {
+            data = text ? JSON.parse(text) : null;
+          } catch (e) {
+            console.error('[Auth Callback] JSON parse error:', e);
+            navigate('/sign-in?error=invalid_response', { replace: true });
+            return;
+          }
+          
+          console.log('[Auth Callback] Parsed response:', data);
           
           if (data?.token) {
-            // Store token in localStorage FIRST before refetching
+            // Store token in localStorage FIRST before redirecting
             localStorage.setItem('auth_token', data.token);
             console.log('[Auth Callback] Token stored in localStorage');
             
-            // Small delay to ensure localStorage is written
-            await new Promise(resolve => setTimeout(resolve, 100));
-            
-            // Refetch user to update auth context
-            await refetch();
-            console.log('[Auth Callback] User refetched successfully');
-            
-            // Use navigate instead of hard redirect
-            navigate('/dashboard', { replace: true });
+            // Clean redirect to dashboard
+            window.location.href = '/dashboard';
           } else {
-            console.error('[Auth Callback] No token in response');
+            console.error('[Auth Callback] No token in response, data:', data);
             navigate('/sign-in?error=no_token', { replace: true });
           }
         } else {
-          console.error('[Auth Callback] Session failed:', res.status);
+          console.error('[Auth Callback] Session failed:', res.status, text);
           navigate('/sign-in?error=session_failed', { replace: true });
         }
       })

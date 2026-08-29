@@ -19,26 +19,31 @@ export function NotificationProvider({ weddingId, children }: { weddingId: strin
         { refreshInterval: 30000 }
     );
 
+    // Handle Guestbook / Wish notifications
     React.useEffect(() => {
         if (wishes && Array.isArray(wishes)) {
             if (lastWishCount.current !== null && wishes.length > lastWishCount.current) {
+                // Safely grab the latest wish (assuming API returns latest at index 0)
                 const newWish = wishes[0];
-                showToast({
-                    title: "សារជូនពរថ្មី! (New Wish)",
-                    description: `${newWish.guestName}: "${newWish.message.substring(0, 50)}..."`,
-                    type: "wish"
-                });
+                if (newWish) {
+                    showToast({
+                        title: "សារជូនពរថ្មី! (New Wish)",
+                        description: `${newWish.guestName || "ភ្ញៀវកិត្តិយស"}: "${(newWish.message || "").substring(0, 50)}..."`,
+                        type: "wish"
+                    });
+                }
             }
             lastWishCount.current = wishes.length;
         }
     }, [wishes, showToast]);
 
+    // Handle RSVP notifications
     React.useEffect(() => {
         if (stats && typeof stats.rsvpSubmits === 'number') {
             if (lastRsvpCount.current !== null && stats.rsvpSubmits > lastRsvpCount.current) {
                 showToast({
                     title: "មានការឆ្លើយតប RSVP ថ្មី!",
-                    description: "មានភ្ញៀវទើបតែបានឆ្លើយតបមកកាន់អ្នក។",
+                    description: "មានភ្ញៀវទើបតែได้ឆ្លើយតបមកកាន់អ្នក។",
                     type: "success"
                 });
             }

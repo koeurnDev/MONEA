@@ -1,33 +1,41 @@
 
 
 const getAppUrl = (req?: Request) => {
-    // In browser environment (client-side)
-    if (typeof window !== 'undefined') {
-        return window.location.origin;
-    }
+    // Always return frontend URL, not API worker URL
     
-    // In server environment with request object
-    if (req) {
-        const url = new URL(req.url);
-        if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
-            return `http://${url.host}`;
-        }
-        return `https://${url.host}`;
-    }
-    
-    // Fallback for server environments without request
     // Check if we're in development mode
-    if (process.env.NODE_ENV === 'development' || process.env.VITE_APP_URL?.includes('localhost')) {
+    if (process.env.NODE_ENV === 'development' || 
+        (req && (req.url.includes('localhost') || req.url.includes('127.0.0.1')))) {
         return process.env.VITE_APP_URL || 'http://localhost:3001';
     }
     
-    // Production fallback
-    return process.env.VITE_APP_URL || 'https://monea-webapp.pages.dev';
+    // Production: Always use the deployed frontend URL
+    // Check if we have NEXT_PUBLIC_APP_URL env variable
+    if (process.env.NEXT_PUBLIC_APP_URL) {
+        return process.env.NEXT_PUBLIC_APP_URL;
+    }
+    
+    // Fallback to Cloudflare Pages deployment
+    return 'https://monea-webapp.pages.dev';
 };
 
 export const getRedirectUri = (req?: Request) => {
-    const appUrl = getAppUrl(req);
-    return `${appUrl}/api/auth/sso/callback`;
+    // This is the OAuth redirect_uri that Google will callback to
+    // MUST match exactly what's configured in Google Console
+    
+    if (req) {
+        const url = new URL(req.url);
+        // Development: localhost
+        if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+            return `http://${url.host}/api/auth/sso/callback`;
+        }
+        // Production: Use actual hostname from request
+        return `https://${url.hostname}/api/auth/sso/callback`;
+    }
+    
+    // Fallback: Use the deployed worker URL
+    // This MUST match what's in Google OAuth Console
+    return 'https://monea-api.seabkoeurn64.workers.dev/api/auth/sso/callback';
 };
 
 export function getGoogleAuthUrl(state: string, req?: Request) {

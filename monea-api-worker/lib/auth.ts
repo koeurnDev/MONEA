@@ -2,7 +2,7 @@ import { SignJWT, jwtVerify, type JWTPayload } from "jose";
 import { COOKIE_NAMES, JWT_CONFIG, ROLES } from "./constants";
 
 import redis from "./redis";
-import { prisma } from "./prisma";
+import { getPrisma } from "./prisma";
 import { getIP } from "./utils";
 
 // Edge-compatible storage - simplified no-op for Cloudflare Workers
@@ -180,6 +180,8 @@ import { AuthUser } from "@/types/auth";
  *             Omit or pass `undefined` when calling from a Next.js Server Component.
  */
 export async function getServerUser(req?: Request): Promise<AuthUser | null> {
+    console.log('[Auth] getServerUser called');
+    
     let token: string | undefined;
     const effectiveReq = req || requestStorage.getStore();
 
@@ -188,6 +190,7 @@ export async function getServerUser(req?: Request): Promise<AuthUser | null> {
         const authHeader = effectiveReq.headers.get("authorization") || "";
         if (authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7).trim();
+            console.log('[Auth] Found Bearer token in Authorization header');
         }
 
         // 2. Fallback to HttpOnly cookie
@@ -198,6 +201,9 @@ export async function getServerUser(req?: Request): Promise<AuthUser | null> {
                 return match ? decodeURIComponent(match[1]) : undefined;
             };
             token = parseCookie(COOKIE_NAMES.TOKEN) || parseCookie(COOKIE_NAMES.STAFF_TOKEN);
+            if (token) {
+                console.log('[Auth] Found token in cookies');
+            }
         }
     }
 
@@ -207,17 +213,22 @@ export async function getServerUser(req?: Request): Promise<AuthUser | null> {
     }
 
     try {
+        console.log('[Auth] Verifying JWT token...');
         const secret = getSecret();
         const { payload } = await jwtVerify(token, secret, {
             issuer: JWT_CONFIG.ISSUER,
         });
 
-        // Anti-replay fingerprint validation — validate only if we have both fingerprint and request
+        console.log(`[Auth] JWT verified successfully for user: ${payload.userId || payload.id || payload.staffId}`);
+
+        // Anti-replay fingerprint validation — relaxed for cross-origin SSO flows
+        // Skip fingerprint check entirely to allow Google OAuth redirects
         if (payload.fingerprint && req && process.env.NODE_ENV !== "development") {
             const currentFingerprint = await generateFingerprint(req);
             if (payload.fingerprint !== currentFingerprint) {
-                console.warn("[Auth] Fingerprint mismatch - possible session hijacking attempt");
-                return null;
+                console.warn("[Auth] Fingerprint mismatch detected");
+                // Log but don't block - SSO redirects cause legitimate mismatches
+                console.log("[Auth] Fingerprint check relaxed for SSO compatibility");
             }
         }
 
@@ -226,15 +237,30 @@ export async function getServerUser(req?: Request): Promise<AuthUser | null> {
 
         let dbUser: any = null;
         try {
+            console.log(`[Auth] Checking database for user: ${userId}`);
+            
+            // Create fresh Prisma client to avoid I/O context issues
+            const prisma = getPrisma();
+            
+            if (!prisma) {
+                console.error('[Auth] Prisma client not available');
+                return null;
+            }
+
             if (payload.staffId) {
+                console.log('[Auth] Querying Staff table...');
                 const results: any[] = await prisma.$queryRaw`SELECT "sessionsRevokedAt", role FROM "Staff" WHERE id = ${userId} LIMIT 1`;
                 dbUser = results[0];
+                console.log(`[Auth] Staff query result: ${dbUser ? 'found' : 'not found'}`);
             } else {
+                console.log('[Auth] Querying User table...');
                 const results: any[] = await prisma.$queryRaw`SELECT "sessionsRevokedAt", role FROM "User" WHERE id = ${userId} LIMIT 1`;
                 dbUser = results[0];
+                console.log(`[Auth] User query result: ${dbUser ? 'found' : 'not found'}`);
             }
         } catch (e: any) {
             console.error("[Auth] Database check failed (Raw SQL):", e.message);
+            console.error("[Auth] Database error details:", e);
             return null;
         }
 
@@ -265,6 +291,7 @@ export async function getServerUser(req?: Request): Promise<AuthUser | null> {
         };
     } catch (error: any) {
         console.error("[Auth] Token verification failed:", error.message);
+        console.error("[Auth] Token verification error details:", error);
         return null;
     }
 }

@@ -74,7 +74,22 @@ export const GeneralGallerySection: React.FC<GeneralGallerySectionProps> = ({
                                         className="relative aspect-square rounded-2xl overflow-hidden group shadow-sm border border-slate-200/80 dark:border-white/10 cursor-grab active:cursor-grabbing bg-slate-100 dark:bg-black/20"
                                     >
                                         <img src={item.url} alt="Extra Gallery" className="w-full h-full object-cover transition-transform group-hover:scale-105 pointer-events-none" />
-                                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                                        
+                                        {/* Mobile Direct Delete Button */}
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                removeGalleryItem(globalIdx);
+                                            }}
+                                            className="sm:hidden absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-black/70 active:bg-rose-600 text-white flex items-center justify-center shadow-md backdrop-blur-sm"
+                                            title="លុបរូបភាព"
+                                        >
+                                            <Trash2 size={13} />
+                                        </button>
+
+                                        {/* Desktop Hover Overlay */}
+                                        <div className="hidden sm:flex absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity items-center justify-center backdrop-blur-[2px]">
                                             <button
                                                 type="button"
                                                 onClick={() => removeGalleryItem(globalIdx)}

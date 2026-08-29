@@ -1,5 +1,8 @@
 import { Hono } from 'hono';
 import { prisma, queryRaw, executeRaw } from "@/lib/prisma";
+import { getDb } from "@/lib/drizzle";
+import { systemConfig, broadcasts } from "@/drizzle/schema";
+import { eq, desc } from "drizzle-orm";
 import { getServerUser } from "@/lib/auth";
 import { ROLES } from "@/lib/constants";
 import { SystemGovernance, GOVERNANCE_ACTIONS } from "@/lib/governance";
@@ -341,10 +344,18 @@ adminMasterRouter.get('/settings', async (c) => {
             return c.json({ error: "Unauthorized" }, 401);
         }
 
-        let config = await (prisma as any).systemConfig.findUnique({ where: { id: "GLOBAL" } });
+        const db = getDb(c.env);
+        let config = await db.select()
+            .from(systemConfig)
+            .where(eq(systemConfig.id, "GLOBAL"))
+            .limit(1)
+            .then((r: any) => r[0]);
 
         if (!config) {
-            config = await (prisma as any).systemConfig.create({ data: { id: "GLOBAL" } });
+            config = await db.insert(systemConfig)
+                .values({ id: "GLOBAL" })
+                .returning()
+                .then((r: any) => r[0]);
         }
 
         return c.json(config);
@@ -367,28 +378,48 @@ adminMasterRouter.post('/settings', async (c) => {
         const parsedStadPrice = stadPrice !== undefined && !isNaN(parseFloat(stadPrice)) ? parseFloat(stadPrice) : undefined;
         const parsedProPrice = proPrice !== undefined && !isNaN(parseFloat(proPrice)) ? parseFloat(proPrice) : undefined;
 
-        const config = await (prisma as any).systemConfig.upsert({
-            where: { id: "GLOBAL" },
-            update: {
-                maintenanceMode,
-                maintenanceStart: maintenanceStart ? new Date(maintenanceStart) : null,
-                maintenanceEnd: maintenanceEnd ? new Date(maintenanceEnd) : null,
-                allowNewSignups,
-                globalCheckIn,
-                ...(parsedStadPrice !== undefined && { stadPrice: parsedStadPrice }),
-                ...(parsedProPrice !== undefined && { proPrice: parsedProPrice })
-            },
-            create: {
-                id: "GLOBAL",
-                maintenanceMode,
-                maintenanceStart: maintenanceStart ? new Date(maintenanceStart) : null,
-                maintenanceEnd: maintenanceEnd ? new Date(maintenanceEnd) : null,
-                allowNewSignups,
-                globalCheckIn,
-                stadPrice: parsedStadPrice ?? 9,
-                proPrice: parsedProPrice ?? 19
-            }
-        });
+        const db = getDb(c.env);
+        
+        // Check if config exists
+        const existing = await db.select()
+            .from(systemConfig)
+            .where(eq(systemConfig.id, "GLOBAL"))
+            .limit(1)
+            .then((r: any) => r[0]);
+
+        let config;
+        if (existing) {
+            // Update existing
+            const updateData: any = {};
+            if (maintenanceMode !== undefined) updateData.maintenanceMode = maintenanceMode;
+            if (maintenanceStart !== undefined) updateData.maintenanceStart = maintenanceStart ? new Date(maintenanceStart) : null;
+            if (maintenanceEnd !== undefined) updateData.maintenanceEnd = maintenanceEnd ? new Date(maintenanceEnd) : null;
+            if (allowNewSignups !== undefined) updateData.allowNewSignups = allowNewSignups;
+            if (globalCheckIn !== undefined) updateData.globalCheckIn = globalCheckIn;
+            if (parsedStadPrice !== undefined) updateData.stadPrice = parsedStadPrice.toString();
+            if (parsedProPrice !== undefined) updateData.proPrice = parsedProPrice.toString();
+
+            config = await db.update(systemConfig)
+                .set(updateData)
+                .where(eq(systemConfig.id, "GLOBAL"))
+                .returning()
+                .then((r: any) => r[0]);
+        } else {
+            // Create new
+            config = await db.insert(systemConfig)
+                .values({
+                    id: "GLOBAL",
+                    maintenanceMode: maintenanceMode ?? false,
+                    maintenanceStart: maintenanceStart ? new Date(maintenanceStart) : null,
+                    maintenanceEnd: maintenanceEnd ? new Date(maintenanceEnd) : null,
+                    allowNewSignups: allowNewSignups ?? true,
+                    globalCheckIn: globalCheckIn ?? true,
+                    stadPrice: parsedStadPrice !== undefined ? parsedStadPrice.toString() : "9.0",
+                    proPrice: parsedProPrice !== undefined ? parsedProPrice.toString() : "19.0"
+                })
+                .returning()
+                .then((r: any) => r[0]);
+        }
 
         const ip = c.req.header("x-forwarded-for") || "unknown";
         const userAgent = c.req.header("user-agent") || "unknown";
@@ -1188,12 +1219,16 @@ adminMasterRouter.get('/export', async (c) => {
 adminMasterRouter.get('/broadcast', async (c) => {
     try {
         const user = await getServerUser(c.req.raw);
-        if (!user || (user.role !== ROLES.PLATFORM_OWNER && user.role !== ROLES.EVENT_MANAGER && user.role !== "SUPERADMIN")) {
+        if (!isAuthorizedMaster(user)) {
             return c.json({ error: "Unauthorized" }, 401);
         }
 
-        const broadcasts = await prisma.broadcast.findMany({ orderBy: { createdAt: "desc" } });
-        return c.json(broadcasts);
+        const db = getDb(c.env);
+        const allBroadcasts = await db.select()
+            .from(broadcasts)
+            .orderBy(desc(broadcasts.createdAt));
+            
+        return c.json(allBroadcasts);
     } catch (error: any) {
         console.error("Broadcast Get Error:", error?.message || error);
         return c.json({ error: "Failed to fetch broadcasts" }, 500);
@@ -1203,23 +1238,26 @@ adminMasterRouter.get('/broadcast', async (c) => {
 adminMasterRouter.post('/broadcast', async (c) => {
     try {
         const user = await getServerUser(c.req.raw);
-        if (!user || (user.role !== ROLES.PLATFORM_OWNER && user.role !== ROLES.EVENT_MANAGER && user.role !== "SUPERADMIN")) {
+        if (!isAuthorizedMaster(user)) {
             return c.json({ error: "Unauthorized" }, 401);
         }
 
         const body = await c.req.json();
         const { title, message, type, expiresAt, scheduledAt } = body;
 
-        const broadcast = await prisma.broadcast.create({
-            data: {
+        const db = getDb(c.env);
+        const broadcast = await db.insert(broadcasts)
+            .values({
+                id: `bc_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
                 title,
                 message,
                 type: type || "INFO",
                 scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
                 expiresAt: expiresAt ? new Date(expiresAt) : null,
                 active: true
-            }
-        });
+            })
+            .returning()
+            .then((r: any) => r[0]);
 
         return c.json(broadcast);
     } catch (error: any) {
@@ -1231,14 +1269,16 @@ adminMasterRouter.post('/broadcast', async (c) => {
 adminMasterRouter.delete('/broadcast', async (c) => {
     try {
         const user = await getServerUser(c.req.raw);
-        if (!user || (user.role !== ROLES.PLATFORM_OWNER && user.role !== ROLES.EVENT_MANAGER && user.role !== "SUPERADMIN")) {
+        if (!isAuthorizedMaster(user)) {
             return c.json({ error: "Unauthorized" }, 401);
         }
 
         const id = c.req.query("id");
         if (!id) return c.json({ error: "ID required" }, 400);
 
-        await prisma.broadcast.delete({ where: { id } });
+        const db = getDb(c.env);
+        await db.delete(broadcasts).where(eq(broadcasts.id, id));
+        
         return c.json({ success: true });
     } catch (error: any) {
         console.error("Broadcast Delete Error:", error?.message || error);
@@ -1260,29 +1300,41 @@ adminMasterRouter.get('/audit', async (c) => {
         const limit = 50;
         const skip = (page - 1) * limit;
 
-        const where: any = {
-            OR: [
-                { description: { contains: search, mode: 'insensitive' as const } },
-                { actorName: { contains: search, mode: 'insensitive' as const } },
-                { wedding: { groomName: { contains: search, mode: 'insensitive' as const } } },
-                { wedding: { brideName: { contains: search, mode: 'insensitive' as const } } }
-            ]
-        };
+        const searchPattern = `%${search}%`;
+        
+        let whereClause = `WHERE (l.description ILIKE $1 OR l."actorName" ILIKE $1 OR w."groomName" ILIKE $1 OR w."brideName" ILIKE $1)`;
+        const params: any[] = [searchPattern];
+        
+        if (action && action !== "ALL") {
+            whereClause += ` AND l.action = $2`;
+            params.push(action);
+            params.push(limit, skip);
+        } else {
+            params.push(limit, skip);
+        }
 
-        if (action && action !== "ALL") where.action = action;
+        const logs = await queryRaw(`
+            SELECT 
+                l.*,
+                json_build_object('groomName', w."groomName", 'brideName', w."brideName", 'id', w.id) as wedding
+            FROM "Log" l
+            LEFT JOIN "Wedding" w ON l."weddingId" = w.id
+            ${whereClause}
+            ORDER BY l."createdAt" DESC
+            LIMIT $${params.length - 1} OFFSET $${params.length}
+        `, ...params);
 
-        const logs = await prisma.log.findMany({
-            where,
-            include: { wedding: { select: { groomName: true, brideName: true, id: true } } },
-            orderBy: { createdAt: "desc" },
-            take: limit,
-            skip: skip
-        });
+        const totalResult = await queryRaw(`
+            SELECT count(*) as count 
+            FROM "Log" l
+            LEFT JOIN "Wedding" w ON l."weddingId" = w.id
+            ${whereClause}
+        `, searchPattern, ...(action && action !== "ALL" ? [action] : []));
 
-        const total = await prisma.log.count({ where });
+        const total = Number(totalResult[0]?.count || 0);
 
         return c.json({
-            logs,
+            logs: logs || [],
             pagination: {
                 total,
                 pages: Math.ceil(total / limit),

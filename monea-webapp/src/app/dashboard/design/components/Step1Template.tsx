@@ -107,12 +107,13 @@ const Step1Template: React.FC<Step1TemplateProps> = ({ wedding, updateEventType,
                             >
                                 <div className="flex items-center gap-4 sm:gap-6">
                                     {/* Template Thumbnail Image */}
-                                    <div className="w-20 sm:w-24 aspect-[2/3] bg-slate-100 rounded-2xl overflow-hidden relative shadow-md group-hover:scale-105 transition-transform duration-500 shrink-0 border border-slate-200/50">
+                                    <div className="w-24 sm:w-28 md:w-24 aspect-[2/3] bg-slate-100 rounded-2xl overflow-hidden relative shadow-md group-hover:scale-105 transition-transform duration-500 shrink-0 border border-slate-200/50">
                                         {tmpl.image ? (
                                             <img
                                                 src={tmpl.image}
                                                 alt={tmpl.title} 
                                                 className="w-full h-full object-cover"
+                                                loading="eager"
                                             />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center text-slate-400">

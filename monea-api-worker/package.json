@@ -18,7 +18,7 @@
     "@hono/zod-validator": "^0.9.0",
     "@hookform/resolvers": "^5.2.2",
     "@marsidev/react-turnstile": "^1.6.0",
-    "@neondatabase/serverless": "^1.1.0",
+    "@neondatabase/serverless": "0.10.3",
     "@next/bundle-analyzer": "^14.2.3",
     "@otplib/preset-browser": "^12.0.1",
     "@otplib/preset-default": "^12.0.1",
@@ -54,6 +54,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
+    "drizzle-orm": "^0.45.2",
     "eslint": "^8.57.1",
     "framer-motion": "^12.24.7",
     "hono": "^4.13.3",
@@ -96,6 +97,8 @@
     "seed": "tsx prisma/seed.ts"
   },
   "devDependencies": {
+    "@types/ws": "^8.18.1",
+    "drizzle-kit": "^0.31.10",
     "typescript": "^7.0.2",
     "vercel": "47.0.4",
     "wrangler": "^4.125.0"

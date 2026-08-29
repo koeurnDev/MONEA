@@ -256,8 +256,8 @@ export default function GuestPage() {
             </div>
 
             {/* Mobile Floating Action Button (FAB) */}
-            {!isArchived && (
-                <div className="md:hidden fixed bottom-28 right-6 z-40 print:hidden">
+            {!isArchived && filteredGuests.length > 0 && (
+                <div className="md:hidden fixed bottom-24 right-5 z-40 print:hidden">
                     <Dialog open={open} onOpenChange={(v) => {
                         setOpen(v);
                         if (!v) setEditingGuest(null);
@@ -269,7 +269,7 @@ export default function GuestPage() {
                                 <Plus size={28} strokeWidth={3} />
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="w-[94vw] max-w-[480px] rounded-3xl border-none shadow-2xl p-4 pt-10 bg-card">
+                        <DialogContent className="w-[94vw] max-w-[460px] max-h-[85vh] overflow-y-auto rounded-3xl border border-border/50 shadow-2xl p-6 bg-card">
                             <div className="sr-only">
                                 <DialogTitle>{t("guests.form.title")}</DialogTitle>
                                 <DialogDescription>

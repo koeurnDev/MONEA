@@ -1,4 +1,4 @@
-﻿import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { m } from "framer-motion";
 import { useTheme } from "next-themes";
 import * as React from "react";
@@ -27,12 +27,12 @@ export function MoneaLogo({ className, showText = false, size = "md", variant = 
                 : "text-black";
 
     return (
-        <div className={cn("inline-flex items-center bg-transparent p-0 m-0 border-none shadow-none", className)}>
+        <div className={cn("inline-flex items-center justify-center bg-transparent p-0 m-0 border-none shadow-none whitespace-nowrap shrink-0", className)}>
             {showText && (
                 <m.span 
                     whileHover={{ scale: 1.05 }}
                     className={cn(
-                    "font-outfit font-black tracking-[0.2em] uppercase transition-all duration-300 cursor-default select-none",
+                    "font-outfit font-black tracking-[0.2em] uppercase whitespace-nowrap transition-all duration-300 cursor-default select-none",
                     activeColor,
                     size === "sm" ? "text-sm" : size === "md" ? "text-lg" : size === "xl" ? "text-4xl" : size === "2xl" ? "text-5xl" : "text-2xl"
                 )}>

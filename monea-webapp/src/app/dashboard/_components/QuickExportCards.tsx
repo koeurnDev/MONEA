@@ -1,5 +1,5 @@
-﻿import { Users, DollarSign, Loader2 } from "lucide-react";
-import { useState } from "react";
+﻿import { useState } from "react";
+import { Users, DollarSign, Loader2 } from "lucide-react";
 import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface QuickExportCardsProps {
@@ -21,15 +21,16 @@ export function QuickExportCards({ weddingId }: QuickExportCardsProps) {
     };
 
     const exportGuests = async () => {
+        if (!weddingId) return;
         setLoading("guests");
         try {
             const [guestsRes, weddingRes] = await Promise.all([
-                fetch("/api/guests"),
-                fetch("/api/wedding")
+                fetch(`/api/guests?weddingId=${weddingId}`),
+                fetch(`/api/wedding?weddingId=${weddingId}`)
             ]);
-            
+
             if (!guestsRes.ok || !weddingRes.ok) throw new Error("Failed to fetch data");
-            
+
             const guests = await guestsRes.json();
             const wedding = await weddingRes.json();
             const XLSX = await import("xlsx");
@@ -67,15 +68,16 @@ export function QuickExportCards({ weddingId }: QuickExportCardsProps) {
     };
 
     const exportGifts = async () => {
+        if (!weddingId) return;
         setLoading("gifts");
         try {
             const [giftsRes, weddingRes] = await Promise.all([
-                fetch("/api/gifts"),
-                fetch("/api/wedding")
+                fetch(`/api/gifts?weddingId=${weddingId}`),
+                fetch(`/api/wedding?weddingId=${weddingId}`)
             ]);
-            
+
             if (!giftsRes.ok || !weddingRes.ok) throw new Error("Failed to fetch data");
-            
+
             const gifts = await giftsRes.json();
             const wedding = await weddingRes.json();
             const XLSX = await import("xlsx");
@@ -132,22 +134,31 @@ export function QuickExportCards({ weddingId }: QuickExportCardsProps) {
     };
 
     return (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3 md:gap-4">
             <button
                 onClick={exportGuests}
                 disabled={loading !== null}
-                className="flex flex-col items-center gap-3 p-5 rounded-3xl bg-blue-50/50 dark:bg-blue-950/10 hover:bg-blue-100 transition-all border border-transparent hover:border-blue-100 group"
+                className="flex flex-col items-center justify-center gap-2.5 p-4 md:p-5 rounded-2xl md:rounded-3xl bg-blue-50/50 dark:bg-blue-950/10 hover:bg-blue-100/70 dark:hover:bg-blue-950/30 active:scale-95 transition-all border border-border/40 hover:border-blue-200 group outline-none"
             >
-                {loading === "guests" ? <Loader2 className="w-6 h-6 text-blue-600 animate-spin" /> : <Users className="w-6 h-6 text-blue-600 group-hover:scale-110 transition-transform" />}
-                <span className="font-bold font-kantumruy text-sm">{t("dashboard.quickActions.guests")}</span>
+                {loading === "guests" ? (
+                    <Loader2 className="w-5 h-5 md:w-6 md:h-6 text-blue-600 animate-spin" />
+                ) : (
+                    <Users className="w-5 h-5 md:w-6 md:h-6 text-blue-600 group-hover:scale-110 transition-transform" />
+                )}
+                <span className="font-bold font-kantumruy text-xs md:text-sm text-foreground">{t("dashboard.quickActions.guests")}</span>
             </button>
+
             <button
                 onClick={exportGifts}
                 disabled={loading !== null}
-                className="flex flex-col items-center gap-3 p-5 rounded-3xl bg-emerald-50/50 dark:bg-emerald-950/10 hover:bg-emerald-100 transition-all border border-transparent hover:border-emerald-100 group"
+                className="flex flex-col items-center justify-center gap-2.5 p-4 md:p-5 rounded-2xl md:rounded-3xl bg-emerald-50/50 dark:bg-emerald-950/10 hover:bg-emerald-100/70 dark:hover:bg-emerald-950/30 active:scale-95 transition-all border border-border/40 hover:border-emerald-200 group outline-none"
             >
-                {loading === "gifts" ? <Loader2 className="w-6 h-6 text-emerald-600 animate-spin" /> : <DollarSign className="w-6 h-6 text-emerald-600 group-hover:scale-110 transition-transform" />}
-                <span className="font-bold font-kantumruy text-sm">{t("dashboard.quickActions.gifts")}</span>
+                {loading === "gifts" ? (
+                    <Loader2 className="w-5 h-5 md:w-6 md:h-6 text-emerald-600 animate-spin" />
+                ) : (
+                    <DollarSign className="w-5 h-5 md:w-6 md:h-6 text-emerald-600 group-hover:scale-110 transition-transform" />
+                )}
+                <span className="font-bold font-kantumruy text-xs md:text-sm text-foreground">{t("dashboard.quickActions.gifts")}</span>
             </button>
         </div>
     );

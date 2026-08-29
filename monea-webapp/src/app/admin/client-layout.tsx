@@ -1,8 +1,6 @@
-import React, { lazy, Suspense, useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useLocation } from 'react-router-dom';
+import React, { lazy, useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Users, Settings, LogOut, Shield, Menu, Activity, Bell, Megaphone, Globe } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { m, AnimatePresence } from 'framer-motion';
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
@@ -11,7 +9,6 @@ import { AdminLanguageToggle } from "@/components/AdminLanguageToggle";
 import { ToastProvider } from "@/components/ui/Toast";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import AdminHealthPulse from "@/components/admin/AdminHealthPulse";
-// next/dynamic replaced with React.lazy;
 import { moneaClient } from "@/lib/api-client";
 
 const ConfirmModal = lazy<React.ComponentType<any>>(() => import("@/components/ui/ConfirmModal").then(m => ({ default: (m as any).ConfirmModal })));
@@ -63,7 +60,11 @@ export default function AdminClientLayout({ children }: { children: React.ReactN
                     {t("admin.sidebar.governance")}
                 </div>
                 {navItems.map((item) => {
-                    const isActive = pathname === item.href;
+                    // Fixed active logic: exact match for root /admin, startsWith for sub-routes
+                    const isActive = item.href === "/admin"
+                        ? pathname === "/admin"
+                        : pathname.startsWith(item.href);
+
                     return (
                         <Link
                             key={item.href}
@@ -77,7 +78,7 @@ export default function AdminClientLayout({ children }: { children: React.ReactN
                             )}
                         >
                             {isActive && (
-                                <m.div 
+                                <m.div
                                     layoutId={isMobile ? "mobile-sidebar-active" : "sidebar-active"}
                                     className="absolute left-0 w-1 h-8 bg-slate-800 dark:bg-slate-300 rounded-full pointer-events-none"
                                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
@@ -169,7 +170,7 @@ export default function AdminClientLayout({ children }: { children: React.ReactN
 
                             <div className="hidden lg:flex flex-col">
                                 <h2 className="text-lg font-bold text-slate-800 dark:text-white tracking-tight">
-                                    {navItems.find(i => pathname === i.href)?.label || t("admin.sidebar.overview")}
+                                    {navItems.find(i => pathname.startsWith(i.href))?.label || t("admin.sidebar.overview")}
                                 </h2>
                             </div>
                         </div>
@@ -199,6 +200,5 @@ export default function AdminClientLayout({ children }: { children: React.ReactN
                 </main>
             </div>
         </ToastProvider>
-    )
+    );
 }
-

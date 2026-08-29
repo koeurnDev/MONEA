@@ -62,9 +62,22 @@ app.use('*', cors({
     
     return null; // Reject origin
   },
-  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'X-Client-Fingerprint', 'Cache-Control'],
-  exposeHeaders: ['Content-Length', 'X-CSRF-Token'],
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'],
+  allowHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-CSRF-Token',
+    'X-Client-Fingerprint',
+    'Cache-Control',
+    'Pragma',
+    'sentry-trace',
+    'baggage',
+    'Accept',
+    'Accept-Language',
+    'Origin',
+    'X-Requested-With',
+  ],
+  exposeHeaders: ['Content-Length', 'X-CSRF-Token', 'sentry-trace', 'baggage'],
   maxAge: 86400,
   credentials: true,
 }))

@@ -4,12 +4,17 @@
  * In development, uses Vite proxy via relative path
  */
 export function getApiUrl(path: string): string {
+  if (!path) return '';
+
+  // If path is already a full URL, return it directly
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    return path;
+  }
+
   let cleanPath = path.startsWith('/') ? path.slice(1) : path;
   if (!cleanPath.startsWith('api/') && cleanPath !== 'api') {
     cleanPath = `api/${cleanPath}`;
   }
-  
-  // Debug logging removed for production
   
   // In local browser development, use relative path so Vite proxy forwards
   if (typeof window !== 'undefined') {

@@ -14,6 +14,7 @@ import confetti from "canvas-confetti";
 import { Joyride, Step } from "react-joyride";
 import clsx from "clsx";
 import { useTranslation } from "@/i18n/LanguageProvider";
+import { useMobileDetection } from "@/hooks/useMobileDetection";
 
 import { StepWizard } from "./components/StepWizard";
 import { PreviewSync, MobilePreviewWrapper } from "./components/PreviewSync";
@@ -46,7 +47,8 @@ export default function DesignPage() {
 
 function DesignContent() {
     const { t } = useTranslation();
-    const [isSheetOpen, setIsSheetOpen] = useState(false);
+    const { isMobile } = useMobileDetection();
+    const [isSheetOpen, setIsSheetOpen] = useState(true);
     const {
         mounted,
         wedding,
@@ -466,48 +468,57 @@ function DesignContent() {
         <div className="md:hidden fixed inset-0 w-screen h-[100dvh] z-[99999] bg-background flex flex-col overflow-hidden" role="dialog" aria-label="Mobile Design Editor">
             {/* MOBILE HEADER */}
             <div className={clsx(
-                "h-[40px] bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-white/10 flex items-center justify-between px-2 z-50 transition-all",
+                "h-[48px] bg-white/95 dark:bg-[#0a0a0a]/95 backdrop-blur-xl border-b border-slate-200/60 dark:border-white/10 flex items-center justify-between px-3 z-50 transition-all shadow-xs",
                 isSheetOpen ? "flex-none relative" : "absolute top-0 left-0 w-full"
             )}>
-                <div className="flex-1 flex justify-start">
+                <div className="flex-1 flex justify-start items-center">
                     {isSheetOpen ? (
-                        <Link to="/dashboard" className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors">
-                            <ArrowLeft size={22} strokeWidth={2.5} />
+                        <Link to="/dashboard" className="p-1.5 -ml-1 text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors flex items-center gap-1">
+                            <ArrowLeft size={20} strokeWidth={2.5} />
+                            <span className="text-xs font-bold font-kantumruy">Dashboard</span>
                         </Link>
                     ) : (
                         <button 
                             onClick={() => setIsSheetOpen(true)} 
-                            className="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white flex items-center gap-1 transition-colors"
+                            className="px-2.5 py-1 text-slate-700 dark:text-white bg-slate-100 dark:bg-white/10 hover:bg-slate-200 rounded-full flex items-center gap-1.5 transition-all font-bold text-xs font-kantumruy active:scale-95"
                         >
-                            <ArrowLeft size={22} strokeWidth={2.5} />
-                            <span className="text-[13px] font-bold hidden sm:inline-block">កែប្រែ</span>
+                            <ArrowLeft size={16} strokeWidth={2.5} />
+                            <span>កែសម្រួល</span>
                         </button>
                     )}
                 </div>
                 
-                <div className="flex-none flex justify-center items-center scale-95 sm:scale-100">
+                <div className="flex-none flex justify-center items-center scale-95">
                     <MoneaLogo size="sm" showText={true} />
                 </div>
                 
-                <div className="flex-1 flex justify-end items-center gap-2 pr-1">
+                <div className="flex-1 flex justify-end items-center gap-1.5 pr-0.5">
                     <button
                         onClick={() => setIsShareModalOpen(true)}
-                        className="text-blue-600 hover:text-blue-700 bg-blue-50/50 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400 h-8 w-8 flex items-center justify-center rounded-full transition-all"
+                        className="text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400 h-8 w-8 flex items-center justify-center rounded-full transition-all"
                         title="ចែករំលែក (Share)"
                     >
                         <Share2 size={15} />
                     </button>
-                    {isSheetOpen && (
+                    {isSheetOpen ? (
                         <button
                             onClick={() => setIsSheetOpen(false)}
-                            className="tour-preview text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 dark:text-slate-300 h-8 w-8 flex items-center justify-center rounded-full transition-all"
+                            className="tour-preview text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 h-8 px-2.5 flex items-center justify-center rounded-full transition-all font-kantumruy font-bold text-xs gap-1 active:scale-95"
                             title={t("design.wizard.preview", { defaultValue: "មើលលទ្ធផល" })}
                         >
-                            <ExternalLink size={16} />
+                            <ExternalLink size={14} />
+                            <span>មើលគំរូ</span>
                         </button>
+                    ) : (
+                        <Link
+                            to="/dashboard"
+                            className="text-slate-600 dark:text-slate-300 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 h-8 px-2.5 flex items-center justify-center rounded-full transition-all font-kantumruy font-bold text-xs"
+                        >
+                            រួចរាល់
+                        </Link>
                     )}
                     {/* Auto-save Indicator (Mobile) */}
-                    <div className="flex items-center justify-center h-8 px-2 text-slate-400 dark:text-slate-500">
+                    <div className="flex items-center justify-center h-8 pl-1 text-slate-400 dark:text-slate-500">
                         {loading ? <Loader2 size={16} className="animate-spin text-rose-500" /> : <CheckCircle2 size={16} className="text-emerald-500" />}
                     </div>
                 </div>
@@ -515,7 +526,7 @@ function DesignContent() {
             {/* Progress Bar */}
             <div className={clsx(
                 "h-1 w-full bg-slate-100 dark:bg-white/5 relative overflow-hidden z-50 transition-all",
-                isSheetOpen ? "flex-none" : "absolute top-[40px] left-0 w-full"
+                isSheetOpen ? "flex-none" : "absolute top-[48px] left-0 w-full"
             )}>
                 <div className="absolute top-0 left-0 h-full bg-rose-500 transition-all duration-500 rounded-r-full" style={{ width: `${progress}%` }} />
             </div>
@@ -529,7 +540,7 @@ function DesignContent() {
                             {editorPanel}
                         </div>
                         {/* BOTTOM TABS FOR EDITOR */}
-                        <div className="flex-none h-[65px] bg-card border-t dark:border-white/5 flex items-center justify-around px-2 font-khmer shadow-[0_-10px_30px_rgba(0,0,0,0.1)] gap-1">
+                        <div className="flex-none min-h-[64px] pb-[env(safe-area-inset-bottom,6px)] pt-1.5 bg-card border-t border-slate-200/80 dark:border-white/10 flex items-center justify-around px-2 font-khmer shadow-[0_-10px_30px_rgba(0,0,0,0.08)] gap-1">
                             {[1,2,3,4,5].map((stepId) => {
                                 const stepTitles = ["ទម្រង់", "ព័ត៌មាន", "ពេលវេលា", "រូបភាព", "ការកំណត់"];
                                 const icons = [LayoutTemplate, Type, Clock, ImageIcon, Settings];
@@ -539,14 +550,14 @@ function DesignContent() {
                                         key={stepId}
                                         onClick={() => setCurrentStep(stepId)}
                                         className={clsx(
-                                            "flex-1 flex flex-col items-center justify-center h-[56px] rounded-xl transition-all duration-300 gap-1",
+                                            "flex-1 flex flex-col items-center justify-center h-[52px] rounded-xl transition-all duration-200 gap-1 active:scale-95",
                                             currentStep === stepId
-                                                ? "bg-slate-100 dark:bg-[#1a1a1a] text-rose-500 shadow-sm border border-slate-200/50 dark:border-white/5" 
+                                                ? "bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400 shadow-xs border border-rose-200/60 dark:border-rose-500/30 font-bold" 
                                                 : "text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5"
                                         )}
                                     >
                                         <Icon className={clsx("w-5 h-5", currentStep === stepId ? "stroke-[2.5]" : "stroke-2")} />
-                                        <span className="text-[9px] font-black leading-none tracking-wide">{stepTitles[stepId - 1]}</span>
+                                        <span className="text-[10px] font-bold font-kantumruy leading-none tracking-wide">{stepTitles[stepId - 1]}</span>
                                     </button>
                                 )
                             })}
@@ -554,9 +565,19 @@ function DesignContent() {
                     </div>
                 ) : (
                     // PREVIEW MODE
-                    <div className="flex-1 flex flex-col bg-black">
+                    <div className="flex-1 flex flex-col bg-background relative">
                         <div className="flex-1 relative overflow-hidden">
                             <MobilePreviewWrapper wedding={wedding} currentStep={currentStep} />
+                        </div>
+                        {/* Floating Edit Button in Preview Mode */}
+                        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-auto">
+                            <button
+                                onClick={() => setIsSheetOpen(true)}
+                                className="flex items-center gap-2 px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs font-kantumruy rounded-full shadow-xl shadow-rose-600/30 active:scale-95 transition-all"
+                            >
+                                <Palette size={16} />
+                                <span>ត្រឡប់ទៅកែប្រែវិញ (Edit)</span>
+                            </button>
                         </div>
                     </div>
                 )}
@@ -567,8 +588,8 @@ function DesignContent() {
 
     return (
         <div className="relative h-[calc(100vh)] w-full overflow-hidden flex flex-col">
-            {desktopLayout}
-            {mobileLayout}
+            {!isMobile && desktopLayout}
+            {isMobile && mobileLayout}
 
             {isLocked && (
                 <div className="absolute inset-0 z-[100001] bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-500">

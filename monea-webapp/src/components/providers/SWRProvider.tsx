@@ -1,4 +1,4 @@
-﻿import { SWRConfig } from "swr";
+import { SWRConfig } from "swr";
 import { ReactNode, useState, useEffect, useRef } from "react";
 
 // Optimized cache provider for mobile
@@ -44,7 +44,14 @@ function mobileOptimizedProvider() {
 }
 
 const mobileOptimizedConfig = {
-    fetcher: (url: string) => fetch(url).then((res) => res.json()),
+    fetcher: async (url: string) => {
+        const res = await fetch(url);
+        if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.error || `HTTP error ${res.status}`);
+        }
+        return res.json();
+    },
     revalidateOnFocus: false,
     revalidateOnReconnect: false, // Disable for mobile performance
     dedupingInterval: 120000, // Longer dedup for mobile

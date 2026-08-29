@@ -1,5 +1,8 @@
 import { Hono } from 'hono';
 import { setCookie } from 'hono/cookie';
+import { getDb } from "@/lib/drizzle";
+import { weddings, users, guests, gifts, staff as staffTable, logs, securityLogs, governanceLogs, weddingTemplateVersions } from "@/drizzle/schema";
+import { eq, desc, and, inArray, gt } from "drizzle-orm";
 import { prisma, queryRaw } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
 import { ROLES } from "@/lib/constants";
@@ -26,25 +29,25 @@ adminRouter.get('/weddings', async (c) => {
 
     const limit = parseInt(c.req.query("limit") || "50", 10);
     const page = parseInt(c.req.query("page") || "1", 10);
-    const skip = (page - 1) * limit;
+    const offset = (page - 1) * limit;
 
     try {
-        const [weddings, total] = await Promise.all([
-            prisma.wedding.findMany({
-                include: {
-                    user: {
-                        select: { email: true }
-                    }
-                },
-                orderBy: { createdAt: 'desc' },
-                take: limit,
-                skip: skip
-            }),
-            prisma.wedding.count()
-        ]);
+        // Use raw SQL for better performance with joins
+        const weddingsData = await queryRaw(`
+            SELECT 
+                w.*,
+                json_build_object('email', u.email) as user
+            FROM "Wedding" w
+            LEFT JOIN "User" u ON w."userId" = u.id
+            ORDER BY w."createdAt" DESC
+            LIMIT $1 OFFSET $2
+        `, limit, offset);
+
+        const totalResult = await queryRaw('SELECT count(*) as count FROM "Wedding"');
+        const total = Number(totalResult[0]?.count || 0);
 
         return c.json({
-            data: weddings,
+            data: weddingsData,
             pagination: {
                 total,
                 page,
@@ -68,15 +71,17 @@ adminRouter.put('/weddings', async (c) => {
 
         if (!id) return c.json({ error: "Wedding ID is required" }, 400);
 
-        const updated = await prisma.wedding.update({
-            where: { id },
-            data: {
-                packageType,
-                status,
-                paymentStatus,
-                expiresAt: expiresAt ? new Date(expiresAt) : null
-            }
-        });
+        const db = getDb(c.env);
+        const updateData: any = {};
+        if (packageType) updateData.packageType = packageType;
+        if (status) updateData.status = status;
+        if (paymentStatus) updateData.paymentStatus = paymentStatus;
+        if (expiresAt) updateData.expiresAt = new Date(expiresAt);
+
+        const [updated] = await db.update(weddings)
+            .set(updateData)
+            .where(eq(weddings.id, id))
+            .returning();
 
         return c.json(updated);
     } catch (error: any) {

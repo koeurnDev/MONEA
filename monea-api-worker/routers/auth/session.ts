@@ -37,7 +37,15 @@ router.post('/', async (c) => {
         const cookieStr = getCookieHeader('token', token, c.req.raw, 60 * 60 * 24 * 30);
         c.header('Set-Cookie', cookieStr);
         
-        return c.json({ ok: true, success: true });
+        // Disable compression for this response to avoid encoding issues
+        c.header('Content-Type', 'application/json; charset=utf-8');
+        c.header('Cache-Control', 'no-store, no-cache, must-revalidate');
+        
+        // Return the token so the frontend can store it in localStorage
+        // This allows the Authorization: Bearer header to work for cross-origin requests
+        const response = { ok: true, success: true, token };
+        console.log('[Session] Returning response:', JSON.stringify(response).substring(0, 100));
+        return c.json(response);
     } catch (error: any) {
         console.error('[Session Exception]:', error?.message || error);
         return c.json({ success: false, error: 'Invalid exchange session' }, 401);

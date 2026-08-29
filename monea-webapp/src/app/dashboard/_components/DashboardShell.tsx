@@ -55,7 +55,7 @@ export function DashboardShell({ children, isStaff, isAdmin, initialUser }: Dash
     const { data: user, error } = useSWR("/api/auth/me", fetcher, {
         fallbackData: initialUser,
         revalidateOnFocus: false,
-        dedupingInterval: 60000, // 60 seconds deduping for less CPU/Network noise
+        dedupingInterval: 60000,
     });
     const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
     const [isLogoutModalOpen, setIsLogoutModalOpen] = React.useState(false);
@@ -71,33 +71,13 @@ export function DashboardShell({ children, isStaff, isAdmin, initialUser }: Dash
 
     React.useEffect(() => {
         if (error?.status === 401) {
-            console.log(`[DashboardShell Debug] 401 detected. initialUser present: ${!!initialUser}`);
             if (initialUser) {
                 console.warn("[DashboardShell] SWR returned 401, but ignoring because initialUser is present.");
             } else {
-                console.log("[DashboardShell Debug] Redirecting to login because no initialUser.");
                 handleLogout();
             }
         }
     }, [error, initialUser, logout]);
-
-    // REDIRECTION LOGIC: Consolidated to Server Components (DashboardPage) to avoid loops
-    /*
-    React.useEffect(() => {
-        if (!mounted || !user || isStaff || isAdmin === false) return;
-
-        const weddingCount = user._count?.weddings ?? 0;
-        const isCreating = pathname === "/dashboard/create";
-        const isAccount = pathname === "/dashboard/account";
-        const isSupport = pathname === "/dashboard/support";
-
-        if (weddingCount === 0 && !isCreating && !isAccount && !isSupport) {
-            navigate("/dashboard/create");
-        } else if (weddingCount > 0 && isCreating) {
-            navigate("/dashboard");
-        }
-    }, [mounted, user, pathname, isStaff, isAdmin, router]);
-    */
 
     const isDesignPage = pathname?.includes("/dashboard/design");
     const isLivePage = pathname?.includes("/dashboard/gifts/live");
@@ -113,16 +93,14 @@ export function DashboardShell({ children, isStaff, isAdmin, initialUser }: Dash
 
     const isEffectiveAdmin = isAdmin || user?.role === 'ADMIN' || user?.role === 'SUPERADMIN' || user?.role === 'PLATFORM_OWNER' || user?.type === 'admin';
 
-    // Memoize the Sidebar to prevent re-renders when 'user' state changes
     const memoizedSidebar = React.useMemo(() => (
         <DashboardSidebar isStaff={isStaff} isAdmin={isEffectiveAdmin} />
     ), [isStaff, isEffectiveAdmin]);
 
-    // Role-based title and subtitle for the header identity
     const isPlatformAdmin = isEffectiveAdmin || user?.role === ROLES.EVENT_STAFF;
     const userName = user?.name || (user?.email ? user.email.split('@')[0] : "");
-    const resolvedTitle = isPlatformAdmin 
-        ? t('admin.header.role') 
+    const resolvedTitle = isPlatformAdmin
+        ? t('admin.header.role')
         : (userName || "MONEA User");
     const resolvedSubtitle = isPlatformAdmin
         ? t('admin.header.platform')
@@ -133,7 +111,7 @@ export function DashboardShell({ children, isStaff, isAdmin, initialUser }: Dash
     }
 
     return (
-        <div className="flex min-h-screen w-full max-w-full overflow-x-hidden bg-background font-sans text-foreground print:!bg-white print:!text-black">
+        <div className="flex min-h-screen w-full max-w-full overflow-x-clip bg-background font-sans text-foreground print:!bg-white print:!text-black">
             {/* Desktop Sidebar */}
             <aside className="w-[280px] bg-card hidden md:flex flex-col fixed h-full z-20 shadow-sm dark:shadow-none print:hidden border-r border-border/50">
                 {memoizedSidebar}
@@ -141,7 +119,7 @@ export function DashboardShell({ children, isStaff, isAdmin, initialUser }: Dash
 
             {/* Main Content */}
             <main className={cn(
-                "flex-1 min-w-0 max-w-full overflow-x-hidden flex flex-col md:ml-[280px] min-h-screen relative print:ml-0 print:m-0 print:p-0",
+                "flex-1 min-w-0 max-w-full overflow-x-clip flex flex-col md:ml-[280px] min-h-screen relative print:ml-0 print:m-0 print:p-0",
                 !isDesignPage && "pb-32 md:pb-0",
                 isDesignPage && "p-0 h-screen overflow-hidden"
             )}>
@@ -151,12 +129,13 @@ export function DashboardShell({ children, isStaff, isAdmin, initialUser }: Dash
                         "h-16 md:h-20 sticky top-0 z-30 flex items-center px-4 sm:px-6 md:px-10 print:hidden transition-all duration-300",
                         "bg-background/80 backdrop-blur-2xl supports-[backdrop-filter]:bg-background/60 border-b border-border/50 shadow-sm"
                     )}>
-                        <div className="w-full max-w-7xl mx-auto flex items-center justify-between">
+                        <div className="w-full max-w-7xl mx-auto flex items-center justify-between relative">
                             <div className="flex items-center gap-4">
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="md:hidden -ml-2 text-muted-foreground hover:text-foreground"
+                                    aria-label="Open Navigation Menu"
+                                    className="md:hidden -ml-2 text-muted-foreground hover:text-foreground active:scale-95 transition-transform"
                                     onClick={() => setIsMobileMenuOpen(true)}
                                 >
                                     <Menu className="h-6 w-6" />
@@ -180,17 +159,18 @@ export function DashboardShell({ children, isStaff, isAdmin, initialUser }: Dash
                                         </span>
                                     </div>
                                 </Link>
+                            </div>
 
-                                <div className="md:hidden absolute left-1/2 -translate-x-1/2 scale-75 pointer-events-none">
-                                    <MoneaLogo showText size="sm" />
-                                </div>
+                            {/* Centered Mobile Logo */}
+                            <div className="md:hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-center">
+                                <MoneaLogo showText size="sm" />
                             </div>
 
                             <div className="flex items-center gap-2 md:gap-4">
                                 <ThemeToggle />
                                 <NotificationBell isAuthenticated={!!user} />
-                                <Link 
-                                    to="/dashboard/account" 
+                                <Link
+                                    to="/dashboard/account"
                                     aria-label="Account Settings"
                                     className="md:hidden flex items-center justify-center w-8 h-8 rounded-xl bg-slate-100 dark:bg-zinc-800 border border-slate-200/80 dark:border-white/10 text-muted-foreground hover:text-foreground active:scale-95 transition-transform"
                                 >
@@ -228,22 +208,23 @@ export function DashboardShell({ children, isStaff, isAdmin, initialUser }: Dash
                     {children}
                 </div>
 
-                {/* Mobile Bottom Navigation */}
-                <div className="print:hidden">
-                    <MobileBottomNav onOpenMenu={() => setIsMobileMenuOpen(true)} />
-                </div>
-
-                <ConfirmModal
-                    open={isLogoutModalOpen}
-                    onClose={() => setIsLogoutModalOpen(false)}
-                    onConfirm={handleLogout}
-                    title={t("dashboard.logout.confirmTitle")}
-                    description={t("dashboard.logout.confirmDescription")}
-                    confirmLabel={t("common.actions.logout")}
-                    cancelLabel={t("common.actions.cancel")}
-                    variant="logout"
-                />
             </main>
+
+            {/* Mobile Bottom Navigation — outside <main> so fixed positioning is relative to viewport, not scroll container */}
+            <div className="print:hidden">
+                <MobileBottomNav onOpenMenu={() => setIsMobileMenuOpen(true)} />
+            </div>
+
+            <ConfirmModal
+                open={isLogoutModalOpen}
+                onClose={() => setIsLogoutModalOpen(false)}
+                onConfirm={handleLogout}
+                title={t("dashboard.logout.confirmTitle")}
+                description={t("dashboard.logout.confirmDescription")}
+                confirmLabel={t("common.actions.logout")}
+                cancelLabel={t("common.actions.cancel")}
+                variant="logout"
+            />
         </div>
     );
 }

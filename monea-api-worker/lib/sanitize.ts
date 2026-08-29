@@ -11,17 +11,25 @@ export function sanitize(input: any): string {
   const trimmed = input.trim();
   if (!trimmed) return "";
 
-  // 1. First strip raw HTML tags completely (e.g. <script> alert(1) </script> -> alert(1))
-  const tagStripped = trimmed.replace(/<[^>]*>?/gm, "");
+  // 1. If it's a URL or media path, validate and strip dangerous protocols
+  if (/^(https?:\/\/|\/|data:image\/|blob:|tel:|mailto:)/i.test(trimmed)) {
+    if (/^\s*(javascript|vbscript|data:text\/html):/i.test(trimmed)) {
+      return "";
+    }
+    // Clean up any previously double-escaped entities
+    return trimmed
+      .replace(/&amp;/g, "&")
+      .replace(/&#x2F;/g, "/")
+      .replace(/&#x27;/g, "'")
+      .replace(/&quot;/g, '"');
+  }
 
-  // 2. Encode risky HTML entities cleanly
-  return tagStripped
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#x27;")
-    .replace(/\//g, "&#x2F;");
+  // 2. Strip dangerous script, iframe, style and HTML tags
+  return trimmed
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, "")
+    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "")
+    .replace(/<[^>]*>?/gm, "");
 }
 
 /**

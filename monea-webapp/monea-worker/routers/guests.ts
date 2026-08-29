@@ -235,10 +235,14 @@ guestsRouter.get('/', async (c) => {
         const weddingId = user.weddingId || (await prisma.wedding.findFirst({ where: { userId: user.id } }))?.id;
         if (!weddingId) return c.json({ items: [], pagination: { total: 0, limit, offset, hasMore: false } });
 
+        console.log(`[Guests GET] weddingId=${weddingId} limit=${limit} offset=${offset}`);
         const result = await GuestService.getGuests(weddingId, { limit, offset });
+        console.log(`[Guests GET] Success: ${result.items.length} items`);
         return c.json(result);
     } catch (error: any) {
-        return c.json({ error: "Failed to fetch guests" }, 500);
+        console.error(`[Guests GET] ERROR: ${error?.message}`);
+        console.error(`[Guests GET] STACK: ${error?.stack}`);
+        return c.json({ error: "Failed to fetch guests", message: error?.message }, 500);
     }
 });
 

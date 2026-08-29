@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import * as nextRoute from '@/server/auth_handlers/sso/google/handler';
+import * as nextRoute from '@/auth_handlers/sso/google/handler';
 
 const router = new Hono();
 

@@ -201,7 +201,32 @@ export const CategorizedSlots: React.FC<CategorizedSlotsProps> = ({
                                         {hasUrl ? (
                                             <>
                                                 <img src={item.url!} alt={slot.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
-                                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center gap-2 backdrop-blur-[2px]">
+                                                
+                                                {/* Mobile Direct Action Pills (Visible on Mobile, Hover on Desktop) */}
+                                                <div className="absolute inset-x-2 bottom-2 z-10 flex sm:hidden items-center justify-center gap-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setActiveSlotIdx(slot.index);
+                                                            slotInputRef.current?.click();
+                                                        }}
+                                                        className="flex-1 bg-black/75 backdrop-blur-md text-white py-1.5 px-2 rounded-lg font-bold text-[11px] shadow-md flex items-center justify-center gap-1 active:scale-95"
+                                                    >
+                                                        <Plus size={12} />
+                                                        <span>ប្តូររូប</span>
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeGalleryItem(slot.index)}
+                                                        className="bg-rose-600/90 backdrop-blur-md text-white py-1.5 px-2 rounded-lg font-bold text-[11px] shadow-md flex items-center justify-center gap-1 active:scale-95"
+                                                    >
+                                                        <Trash2 size={12} />
+                                                        <span>លុប</span>
+                                                    </button>
+                                                </div>
+
+                                                {/* Desktop Hover Overlay */}
+                                                <div className="hidden sm:flex absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-all duration-200 items-center justify-center gap-2 backdrop-blur-[2px]">
                                                     <button
                                                         type="button"
                                                         onClick={() => {

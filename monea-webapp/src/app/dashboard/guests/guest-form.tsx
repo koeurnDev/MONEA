@@ -78,60 +78,56 @@ export function GuestForm({ onSuccess, onDone, initialData }: { onSuccess: () =>
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
 
-                <div className="space-y-6">
+                <div className="space-y-4">
                     {/* Section Header */}
                     <m.div
-                        initial={{ opacity: 0, x: -20 }}
+                        initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
-                        className="flex items-center gap-4 px-2 mb-2"
+                        className="flex items-center gap-3.5 mb-1"
                     >
                         <div className="relative">
-                            <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full" />
-                            <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-primary-foreground shadow-lg border border-white/20">
-                                <User className="w-5 h-5 md:w-6 md:h-6" />
+                            <div className="w-10 h-10 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center border border-amber-500/20 shadow-xs">
+                                <User className="w-5 h-5" />
                             </div>
                         </div>
                         <div>
-                            <h3 className="text-lg md:text-xl font-bold text-foreground font-kantumruy leading-tight">
+                            <h3 className="text-base font-bold text-foreground font-kantumruy leading-tight">
                                 {t("guests.form.sectionTitle")}
                             </h3>
-                            <p className="text-xs text-muted-foreground font-kantumruy mt-1 opacity-70 flex items-center gap-1.5">
-                                <Sparkles size={12} className="text-primary" />
+                            <p className="text-xs text-muted-foreground font-kantumruy opacity-75 flex items-center gap-1">
+                                <Sparkles size={11} className="text-amber-500" />
                                 <span>{t("guests.form.sectionSubtitle")}</span>
                             </p>
                         </div>
                     </m.div>
 
                     <m.div
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 }}
-                        className="bg-slate-50/80 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-3xl p-4 md:p-8 space-y-6 shadow-xl dark:shadow-2xl backdrop-blur-xl relative overflow-hidden group"
+                        transition={{ delay: 0.05 }}
+                        className="bg-slate-50/80 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-2xl p-4 space-y-4 shadow-sm backdrop-blur-xl"
                     >
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-[50px] -mr-16 -mt-16 rounded-full group-hover:bg-primary/10 transition-colors duration-500" />
-
                         <FormField
                             control={form.control}
                             name="name"
                             render={({ field }) => (
-                                <FormItem className="space-y-2">
-                                    <FormLabel className="text-xs font-bold text-slate-700 dark:text-slate-200 font-kantumruy px-1 block mb-1">
+                                <FormItem className="space-y-1.5">
+                                    <FormLabel className="text-xs font-bold text-foreground font-kantumruy">
                                         {t("guests.form.nameLabel")} <span className="text-rose-500">*</span>
                                     </FormLabel>
                                     <FormControl>
                                         <div className="relative group/input">
-                                            <div className="absolute inset-0 bg-primary/0 group-focus-within/input:bg-primary/[0.02] rounded-2xl transition-all duration-300" />
-                                            <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500 dark:text-slate-400 group-focus-within/input:text-primary group-focus-within/input:scale-110 transition-all duration-300 z-20" />
+                                            <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within/input:text-rose-500 transition-colors z-20" />
                                             <Input
                                                 placeholder={t("guests.form.namePlaceholder")}
-                                                className="pl-12 h-11 md:h-14 text-base rounded-2xl font-kantumruy border-slate-200 dark:border-white/10 bg-white/80 dark:bg-background/50 hover:bg-white dark:hover:bg-background/80 focus:bg-white dark:focus:bg-background backdrop-blur-md shadow-sm dark:shadow-none focus-visible:ring-primary/10 focus-visible:border-primary/30 transition-all duration-300 font-bold placeholder:text-muted-foreground/40 placeholder:font-normal"
+                                                className="pl-10 h-11 text-sm rounded-xl font-kantumruy border-border/80 bg-background/80 focus:bg-background focus-visible:ring-rose-500/20 focus-visible:border-rose-500/50 font-bold"
                                                 {...field}
                                             />
                                         </div>
                                     </FormControl>
-                                    <FormMessage className="font-kantumruy text-[10px] mt-1 italic text-rose-500/80" />
+                                    <FormMessage className="font-kantumruy text-[10px] mt-0.5 text-rose-500" />
                                 </FormItem>
                             )}
                         />
@@ -140,22 +136,21 @@ export function GuestForm({ onSuccess, onDone, initialData }: { onSuccess: () =>
                             control={form.control}
                             name="source"
                             render={({ field }) => (
-                                <FormItem className="space-y-2">
-                                    <FormLabel className="text-xs font-bold text-slate-700 dark:text-slate-200 font-kantumruy px-1 block mb-1">
+                                <FormItem className="space-y-1.5">
+                                    <FormLabel className="text-xs font-bold text-foreground font-kantumruy">
                                         {t("guests.form.locationLabel")}
                                     </FormLabel>
                                     <FormControl>
                                         <div className="relative group/input">
-                                            <div className="absolute inset-0 bg-primary/0 group-focus-within/input:bg-primary/[0.02] rounded-2xl transition-all duration-300" />
-                                            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500 dark:text-slate-400 group-focus-within/input:text-primary group-focus-within/input:scale-110 transition-all duration-300 z-20" />
+                                            <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within/input:text-rose-500 transition-colors z-20" />
                                             <Input
                                                 placeholder={t("guests.form.locationPlaceholder")}
-                                                className="pl-12 h-11 md:h-14 text-sm rounded-2xl font-kantumruy border-slate-200 dark:border-white/10 bg-white/80 dark:bg-background/50 hover:bg-white dark:hover:bg-background/80 focus:bg-white dark:focus:bg-background backdrop-blur-md shadow-sm dark:shadow-none focus-visible:ring-primary/10 focus-visible:border-primary/30 transition-all duration-300 font-medium placeholder:text-muted-foreground/40"
+                                                className="pl-10 h-11 text-sm rounded-xl font-kantumruy border-border/80 bg-background/80 focus:bg-background focus-visible:ring-rose-500/20 focus-visible:border-rose-500/50 font-medium"
                                                 {...field}
                                             />
                                         </div>
                                     </FormControl>
-                                    <FormMessage className="font-kantumruy text-[10px] mt-1 italic text-rose-500/80" />
+                                    <FormMessage className="font-kantumruy text-[10px] mt-0.5 text-rose-500" />
                                 </FormItem>
                             )}
                         />
@@ -163,26 +158,25 @@ export function GuestForm({ onSuccess, onDone, initialData }: { onSuccess: () =>
                 </div>
 
                 <m.div
-                    initial={{ opacity: 0, y: 10 }}
+                    initial={{ opacity: 0, y: 5 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
+                    transition={{ delay: 0.1 }}
                 >
                     <Button
                         type="submit"
                         disabled={loading}
-                        className="w-full h-12 md:h-14 rounded-2xl text-base md:text-lg font-bold font-kantumruy transition-all bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-500 hover:to-rose-500 text-white shadow-xl shadow-red-500/25 active:scale-98 group/btn"
+                        className="w-full h-11 rounded-xl text-sm font-bold font-kantumruy transition-all bg-rose-600 hover:bg-rose-700 text-white shadow-lg shadow-rose-600/20 active:scale-98"
                     >
-
-                        <div className="relative flex items-center justify-center gap-2.5">
+                        <div className="flex items-center justify-center gap-2">
                             {loading ? (
                                 <>
-                                    <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
                                     <span>{t("guests.form.saving")}</span>
                                 </>
                             ) : (
                                 <>
                                     <span>{initialData ? t("guests.form.editBtn") : t("guests.form.saveBtn")}</span>
-                                    <Sparkles className="w-5 h-5 group-hover/btn:rotate-12 transition-transform" />
+                                    <Sparkles className="w-4 h-4" />
                                 </>
                             )}
                         </div>

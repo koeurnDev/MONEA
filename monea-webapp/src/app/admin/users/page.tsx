@@ -3,7 +3,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Loader2, Users, Search, Filter, User, ArrowRight } from "lucide-react";
+import { Users, Search, Filter, User, ArrowRight } from "lucide-react";
 
 import { ROLES, ROLE_LABELS } from "@/lib/constants";
 import { DeleteUserAdminDialog } from "./components/DeleteUserAdminDialog";
@@ -23,13 +23,19 @@ export default function AdminUsersPage() {
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
 
+    // Fetch All Users
     useEffect(() => {
-        fetch("/api/admin/users?t=" + Date.now()).then(res => {
-            if (res.ok) res.json().then(result => setUsers(result.data || []));
-            setLoading(false);
-        });
+        fetch("/api/admin/users", { cache: "no-store" }) // Use native cache control
+            .then(res => {
+                if (res.ok) {
+                    res.json().then(result => setUsers(result.data || []));
+                }
+            })
+            .catch(err => console.error("Failed to fetch users:", err))
+            .finally(() => setLoading(false));
     }, []);
 
+    // Fetch User Details
     useEffect(() => {
         if (!selectedUserId) {
             setSelectedUserDetails(null);
@@ -37,7 +43,7 @@ export default function AdminUsersPage() {
         }
 
         setLoadingDetails(true);
-        fetch(`/api/admin/users/${selectedUserId}?t=` + Date.now())
+        fetch(`/api/admin/users/${selectedUserId}`, { cache: "no-store" })
             .then(res => {
                 if (res.ok) {
                     res.json().then(result => {
@@ -93,7 +99,7 @@ export default function AdminUsersPage() {
             setSavingRole(false);
         }
     };
-    
+
     const handleDeleteUser = async () => {
         if (!selectedUserDetails) return;
 
@@ -112,8 +118,6 @@ export default function AdminUsersPage() {
                 const now = new Date().toISOString();
                 setUsers(prev => prev.map(u => u.id === selectedUserDetails.id ? { ...u, deletedAt: now } : u));
                 setSelectedUserDetails({ ...selectedUserDetails, deletedAt: now });
-                setDeletingUser(false);
-                setShowDeleteDialog(false);
             } else {
                 const data = await res.json();
                 showToast({
@@ -121,11 +125,10 @@ export default function AdminUsersPage() {
                     description: data.error || "មិនអាចផ្អាកគណនីបានទេ។",
                     type: "info"
                 });
-                setDeletingUser(false);
-                setShowDeleteDialog(false);
             }
         } catch (error) {
             showToast({ title: "Error", description: "Unexpected error during deletion.", type: "info" });
+        } finally {
             setDeletingUser(false);
             setShowDeleteDialog(false);
         }
@@ -134,7 +137,7 @@ export default function AdminUsersPage() {
     const handleRestoreUser = async () => {
         if (!selectedUserDetails) return;
 
-        setSavingRole(true); 
+        setSavingRole(true);
         try {
             const res = await fetch(`/api/admin/users/${selectedUserDetails.id}`, {
                 method: "PATCH",
@@ -165,8 +168,8 @@ export default function AdminUsersPage() {
         }
     };
 
-    const filteredUsers = users.filter(u => 
-        u.email.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const filteredUsers = users.filter(u =>
+        u.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (u.name && u.name.toLowerCase().includes(searchQuery.toLowerCase()))
     );
 
@@ -194,21 +197,21 @@ export default function AdminUsersPage() {
                     <h2 className="text-4xl font-black tracking-tight text-foreground font-kantumruy">គ្រប់គ្រងអ្នកប្រើប្រាស់</h2>
                     <p className="text-muted-foreground font-medium font-kantumruy text-sm max-w-xl">មើល និងគ្រប់គ្រងគណនីប្តីប្រពន្ធទាំងអស់ដែលប្រើប្រាស់ប្រព័ន្ធ MONEA ។ អ្នកអាចកែប្រែតួនាទី ឬផ្អាកគណនីបណ្ដោះអាសន្ន។</p>
                 </div>
-                
+
                 <div className="flex items-center gap-3">
                     <div className="relative group">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-red-500 transition-colors" size={18} />
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             placeholder="ស្វែងរកអ៊ីមែល ឬឈ្មោះ..."
                             className="h-12 pl-11 pr-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all font-kantumruy font-medium text-sm w-full md:w-[300px]"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
-                    <Button 
-                        variant="outline" 
-                        size="icon" 
+                    <Button
+                        variant="outline"
+                        size="icon"
                         className="h-12 w-12 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
                     >
                         <Filter size={20} />
@@ -240,13 +243,17 @@ export default function AdminUsersPage() {
                                 </TableCell>
                             </TableRow>
                         ) : filteredUsers.map((user) => (
-                            <TableRow key={user.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer" onClick={() => setSelectedUserId(user.id)}>
+                            <TableRow
+                                key={user.id}
+                                className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer"
+                                onClick={() => setSelectedUserId(user.id)}
+                            >
                                 <TableCell className="px-6 py-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500">
+                                        <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 shrink-0">
                                             <User size={16} />
                                         </div>
-                                        <div className="flex flex-col max-w-[200px]">
+                                        <div className="flex flex-col min-w-0">
                                             <span className="font-bold text-slate-900 dark:text-white truncate" title={user.name}>{user.name || "N/A"}</span>
                                             <span className="text-xs text-slate-500 truncate" title={user.email}>{user.email}</span>
                                         </div>
@@ -272,7 +279,7 @@ export default function AdminUsersPage() {
                                 <TableCell>
                                     {user.weddings && user.weddings.length > 0 ? (
                                         <div className="flex flex-col">
-                                            <span className="text-sm font-medium font-kantumruy">{user.weddings[0].groomName} & {user.weddings[0].brideName}</span>
+                                            <span className="text-sm font-medium font-kantumruy truncate max-w-[150px]">{user.weddings[0].groomName} & {user.weddings[0].brideName}</span>
                                             {user.weddings.length > 1 && (
                                                 <span className="text-[10px] text-slate-400">+{user.weddings.length - 1} more</span>
                                             )}
@@ -282,18 +289,19 @@ export default function AdminUsersPage() {
                                     )}
                                 </TableCell>
                                 <TableCell>
-                                    <div className="flex flex-col">
-                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                            {new Date(user.createdAt).toLocaleDateString('km-KH', { timeZone: 'Asia/Phnom_Penh' })}
-                                        </span>
-                                    </div>
+                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300 tabular-nums whitespace-nowrap">
+                                        {new Date(user.createdAt).toLocaleDateString('km-KH', { timeZone: 'Asia/Phnom_Penh' })}
+                                    </span>
                                 </TableCell>
                                 <TableCell className="text-right px-6">
-                                    <Button 
-                                        variant="outline" 
-                                        size="sm" 
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
                                         className="rounded-lg border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all font-kantumruy text-xs font-medium h-8 group/btn"
-                                        onClick={() => setSelectedUserId(user.id)}
+                                        onClick={(e) => {
+                                            e.stopPropagation(); // Prevents double firing since row is also clickable
+                                            setSelectedUserId(user.id);
+                                        }}
                                     >
                                         Manage
                                         <ArrowRight size={14} className="ml-1.5 group-hover/btn:translate-x-1 transition-transform opacity-70" />
@@ -305,7 +313,7 @@ export default function AdminUsersPage() {
                 </Table>
             </div>
 
-            <UserDetailsDialog 
+            <UserDetailsDialog
                 selectedUserId={selectedUserId}
                 setSelectedUserId={setSelectedUserId}
                 loadingDetails={loadingDetails}

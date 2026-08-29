@@ -2,8 +2,9 @@ import { useEffect, useState, useRef } from "react";
 import { m, AnimatePresence } from "framer-motion";
 import useSWR from "swr";
 import confetti from "canvas-confetti";
-import { Sparkles, Heart } from "lucide-react";
+import { Sparkles, Heart, ArrowLeft } from "lucide-react";
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
+import { Link } from "react-router-dom";
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -53,6 +54,16 @@ export default function DisplayPage() {
 
     return (
         <div className="fixed inset-0 bg-black overflow-hidden flex flex-col items-center justify-center font-kantumruy z-[100]">
+            {/* Top Back Button */}
+            <div className="absolute top-4 left-4 z-50">
+                <Link
+                    to="/dashboard"
+                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white/80 hover:text-white backdrop-blur-md transition-all text-xs font-bold font-kantumruy border border-white/10"
+                >
+                    <ArrowLeft size={14} />
+                    <span>Dashboard</span>
+                </Link>
+            </div>
             {/* Cinematic Background */}
             <div className="absolute inset-0 z-0">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(212,175,55,0.15)_0%,_transparent_60%)]" />

@@ -1,5 +1,7 @@
 import { Hono } from 'hono';
-import { prisma } from "@/lib/prisma";
+import { getDb } from "@/lib/drizzle";
+import { galleryItems } from "@/drizzle/schema";
+import { eq, desc } from "drizzle-orm";
 
 const galleryRouter = new Hono();
 
@@ -15,10 +17,13 @@ galleryRouter.get('/:weddingId', async (c) => {
     }
 
     try {
-        const items = await prisma.galleryItem.findMany({
-            where: { weddingId },
-            orderBy: { createdAt: 'desc' },
-        });
+        const db = getDb(c.env);
+        
+        const items = await db
+            .select()
+            .from(galleryItems)
+            .where(eq(galleryItems.weddingId, weddingId))
+            .orderBy(desc(galleryItems.createdAt));
 
         return c.json({ success: true, items });
     } catch (error: any) {

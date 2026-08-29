@@ -195,12 +195,43 @@ export function useDesignWizard() {
     useEffect(() => {
         if (isLoadedRef.current) return;
 
+function decodeHtmlEntities(str: any): any {
+    if (typeof str !== 'string') return str;
+    let decoded = str;
+    for (let i = 0; i < 5; i++) {
+        const next = decoded
+            .replace(/&amp;/g, '&')
+            .replace(/&#x2F;/g, '/')
+            .replace(/&#x27;/g, "'")
+            .replace(/&quot;/g, '"')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>');
+        if (next === decoded) break;
+        decoded = next;
+    }
+    return decoded;
+}
+
+function deepDecodeEntities(obj: any): any {
+    if (!obj || typeof obj !== 'object') {
+        return typeof obj === 'string' ? decodeHtmlEntities(obj) : obj;
+    }
+    if (Array.isArray(obj)) {
+        return obj.map(deepDecodeEntities);
+    }
+    const res: any = {};
+    for (const k of Object.keys(obj)) {
+        res[k] = deepDecodeEntities(obj[k]);
+    }
+    return res;
+}
+
         if (swrWedding) {
             if (swrWedding.id) {
-                let data = { ...swrWedding };
+                let data = deepDecodeEntities({ ...swrWedding });
                 if (typeof data.themeSettings === 'string' && data.themeSettings !== "") {
                     try {
-                        data.themeSettings = JSON.parse(data.themeSettings);
+                        data.themeSettings = deepDecodeEntities(JSON.parse(data.themeSettings));
                     } catch (e) {
                         data.themeSettings = {};
                     }

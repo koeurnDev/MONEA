@@ -1,7 +1,7 @@
 ﻿import { useEffect, useState, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Clock, ArrowUpRight, Sparkles, CheckCircle2, Search, Filter, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { m } from 'framer-motion';
@@ -13,10 +13,14 @@ export default function AdminLogsPage() {
     const [search, setSearch] = useState("");
 
     const fetchLogs = useCallback(async () => {
+        setLoading(true);
         try {
             const url = filter === "all" ? "/api/admin/logs?limit=50" : `/api/admin/logs?limit=50&action=${filter}`;
             const res = await fetch(url);
-            if (res.ok) setLogs(await res.json());
+            if (res.ok) {
+                const data = await res.json();
+                setLogs(Array.isArray(data) ? data : []);
+            }
         } catch (e) {
             console.error(e);
         } finally {
@@ -28,13 +32,15 @@ export default function AdminLogsPage() {
         fetchLogs();
     }, [fetchLogs]);
 
-    const filteredLogs = logs.filter(log =>
-        log.actorName.toLowerCase().includes(search.toLowerCase()) ||
-        log.description.toLowerCase().includes(search.toLowerCase())
-    );
+    const filteredLogs = logs.filter(log => {
+        const actor = (log.actorName || "").toLowerCase();
+        const desc = (log.description || "").toLowerCase();
+        const query = search.toLowerCase();
+        return actor.includes(query) || desc.includes(query);
+    });
 
     return (
-        <div className="max-w-6xl mx-auto space-y-10">
+        <div className="max-w-6xl mx-auto space-y-10 font-kantumruy">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="space-y-1">
                     <h2 className="text-3xl font-black tracking-tight text-slate-900">គម្រោងត្រួតពិនិត្យ (Audit Logs)</h2>
@@ -59,7 +65,7 @@ export default function AdminLogsPage() {
                     <div className="flex items-center gap-3">
                         <Filter className="w-4 h-4 text-slate-400" />
                         <Select value={filter} onValueChange={setFilter}>
-                            <SelectTrigger className="w-[180px] h-10 rounded-xl">
+                            <SelectTrigger className="w-[180px] h-10 rounded-xl font-bold">
                                 <SelectValue placeholder="ប្រភេទសកម្មភាព" />
                             </SelectTrigger>
                             <SelectContent>
@@ -84,38 +90,45 @@ export default function AdminLogsPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50">
-                                {filteredLogs.map((log, i) => (
-                                    <m.tr
-                                        key={log.id}
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{ delay: i * 0.02 }}
-                                        className="hover:bg-slate-50 transition-colors"
-                                    >
-                                        <td className="px-8 py-5 text-xs font-bold text-slate-400 tabular-nums">
-                                            {new Date(log.createdAt).toLocaleString('km-KH', { timeZone: 'Asia/Phnom_Penh' })}
+                                {loading ? (
+                                    <tr>
+                                        <td colSpan={4} className="p-16 text-center text-slate-400 font-medium">
+                                            កំពុងទាញយកទិន្នន័យ...
                                         </td>
-                                        <td className="px-8 py-5">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-2 h-2 rounded-full bg-red-400" />
-                                                <span className="text-sm font-bold text-slate-900">{log.actorName}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-8 py-5">
-                                            <span className={`px-2 py-1 rounded-md text-[10px] font-black ${log.action === 'CREATE' ? 'bg-green-50 text-green-600' :
+                                    </tr>
+                                ) : filteredLogs.length > 0 ? (
+                                    filteredLogs.map((log, i) => (
+                                        <m.tr
+                                            key={log.id || i}
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            transition={{ delay: i * 0.02 }}
+                                            className="hover:bg-slate-50 transition-colors"
+                                        >
+                                            <td className="px-8 py-5 text-xs font-bold text-slate-400 tabular-nums">
+                                                {log.createdAt ? new Date(log.createdAt).toLocaleString('km-KH', { timeZone: 'Asia/Phnom_Penh' }) : '-'}
+                                            </td>
+                                            <td className="px-8 py-5">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-2 h-2 rounded-full bg-red-400" />
+                                                    <span className="text-sm font-bold text-slate-900">{log.actorName || "Unknown"}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-8 py-5">
+                                                <span className={`px-2 py-1 rounded-md text-[10px] font-black ${log.action === 'CREATE' ? 'bg-green-50 text-green-600' :
                                                     log.action === 'DELETE' ? 'bg-red-50 text-red-600' :
                                                         log.action === 'GIFT' ? 'bg-amber-50 text-amber-600' :
                                                             'bg-blue-50 text-blue-600'
-                                                }`}>
-                                                {log.action}
-                                            </span>
-                                        </td>
-                                        <td className="px-8 py-5 text-sm font-medium text-slate-600 font-kantumruy">
-                                            {log.description}
-                                        </td>
-                                    </m.tr>
-                                ))}
-                                {filteredLogs.length === 0 && !loading && (
+                                                    }`}>
+                                                    {log.action || 'INFO'}
+                                                </span>
+                                            </td>
+                                            <td className="px-8 py-5 text-sm font-medium text-slate-600">
+                                                {log.description || '-'}
+                                            </td>
+                                        </m.tr>
+                                    ))
+                                ) : (
                                     <tr>
                                         <td colSpan={4} className="p-20 text-center text-slate-400 font-medium">
                                             មិនមានកំណត់ត្រាដែលត្រូវនឹងការស្វែងរករបស់អ្នកឡើយ

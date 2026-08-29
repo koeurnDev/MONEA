@@ -120,18 +120,18 @@ export function DashboardDataView({ weddingId }: { weddingId: string }) {
                 {statsData.map((stat: any, i: number) => (
                     <div key={i} className="relative rounded-2xl md:rounded-3xl bg-card border border-border/60 dark:border-border/40 hover:-translate-y-0.5 transition-all duration-200 overflow-hidden shadow-sm">
                         <div className={cn("h-1 w-full", i === 0 ? "bg-blue-500" : i === 1 ? "bg-emerald-500" : "bg-rose-500")} />
-                        <div className="p-3 md:p-5 flex flex-col gap-1">
-                            <div className="flex items-center gap-1.5">
+                        <div className="p-3.5 md:p-5 flex flex-col gap-1">
+                            <div className="flex items-center gap-1.5 min-w-0">
                                 {(() => {
                                     const Icon = stat.icon as any;
-                                    return <Icon size={10} className={cn("opacity-70 flex-shrink-0", stat.accent)} />;
+                                    return <Icon size={12} className={cn("opacity-80 flex-shrink-0", stat.accent)} />;
                                 })()}
-                                <p className="text-[8px] md:text-[10px] font-black text-muted-foreground/50 uppercase tracking-[0.12em] truncate">{stat.label}</p>
+                                <p className="text-[10px] sm:text-xs font-bold text-muted-foreground font-kantumruy truncate">{stat.label}</p>
                             </div>
-                            <div className="text-base md:text-2xl font-black font-kantumruy tracking-tight text-foreground leading-none mt-0.5">
+                            <div className="text-lg md:text-2xl font-black font-kantumruy tracking-tight text-foreground leading-none mt-0.5">
                                 {stat.value}
                             </div>
-                            <p className={cn("text-[9px] md:text-[10px] font-bold uppercase tracking-[0.12em]", stat.accent)}>{stat.sub}</p>
+                            <p className={cn("text-[10px] md:text-xs font-bold font-mono tracking-tight", stat.accent)}>{stat.sub}</p>
                         </div>
                     </div>
                 ))}

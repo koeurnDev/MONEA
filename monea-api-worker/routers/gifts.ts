@@ -1,9 +1,11 @@
 import { Hono } from 'hono';
-import { prisma } from "@/lib/prisma";
+import { getDb } from "@/lib/drizzle";
+import { weddings } from "@/drizzle/schema";
+import { eq } from "drizzle-orm";
 import { getServerUser } from "@/lib/auth";
 import { sanitizeObject } from "@/lib/sanitize";
 import { giftSchema } from "@/lib/validations/gift";
-import { GiftService } from "@/services/GiftService";
+import { GiftServiceDrizzle } from "@/lib/GiftServiceDrizzle";
 
 function logError(api: string, error: any, context?: any) {
     console.error(`[${new Date().toISOString()}] ${api} ERROR: ${error?.message || error}`, {
@@ -17,12 +19,18 @@ const giftsRouter = new Hono();
 /**
  * Helper to resolve weddingId safely from authenticated user or staff context
  */
-async function resolveWeddingId(user: any): Promise<string | null> {
+async function resolveWeddingId(env: any, user: any): Promise<string | null> {
     if (user?.weddingId) return user.weddingId;
     const userId = user?.userId || user?.id;
     if (!userId) return null;
-    const wedding = await prisma.wedding.findFirst({ where: { userId } });
-    return wedding?.id || null;
+    
+    const db = getDb(env);
+    const result = await db.select({ id: weddings.id })
+        .from(weddings)
+        .where(eq(weddings.userId, userId))
+        .limit(1);
+    
+    return result.length > 0 ? result[0].id : null;
 }
 
 giftsRouter.get('/stats', async (c) => {
@@ -30,18 +38,28 @@ giftsRouter.get('/stats', async (c) => {
         const user = await getServerUser(c.req.raw);
         if (!user) return c.json({ error: "Unauthorized" }, 401);
 
-        const weddingId = await resolveWeddingId(user);
+        const weddingId = await resolveWeddingId(c.env, user);
         if (!weddingId) return c.json({ guests: { total: 0, arrived: 0 } });
 
-        const [totalGuests, arrivedGuests] = await Promise.all([
-            prisma.guest.count({ where: { weddingId } }),
-            prisma.guest.count({ where: { weddingId, hasArrived: true } })
-        ]);
+        const db = getDb(c.env);
+        const { guests } = await import("@/drizzle/schema");
+        const { and } = await import("drizzle-orm");
+
+        const totalResult = await db.select({ count: guests.id })
+            .from(guests)
+            .where(eq(guests.weddingId, weddingId));
+        
+        const arrivedResult = await db.select({ count: guests.id })
+            .from(guests)
+            .where(and(
+                eq(guests.weddingId, weddingId),
+                eq(guests.hasArrived, true)
+            ));
 
         return c.json({
             guests: {
-                total: totalGuests,
-                arrived: arrivedGuests
+                total: totalResult.length,
+                arrived: arrivedResult.length
             }
         });
     } catch (error: any) {
@@ -58,7 +76,7 @@ giftsRouter.get('/', async (c) => {
         const limit = parseInt(c.req.query("limit") || "50", 10);
         const offset = parseInt(c.req.query("offset") || "0", 10);
 
-        const weddingId = await resolveWeddingId(user);
+        const weddingId = await resolveWeddingId(c.env, user);
         if (!weddingId) {
             return c.json({ 
                 items: [], 
@@ -67,7 +85,7 @@ giftsRouter.get('/', async (c) => {
             });
         }
 
-        const result = await GiftService.getGifts(weddingId, { limit, offset });
+        const result = await GiftServiceDrizzle.getGifts(c.env, weddingId, { limit, offset });
         return c.json({ ...result, role: user.role });
     } catch (error: any) {
         console.error(`[Gifts API] GET ERROR:`, error?.message || error);
@@ -94,11 +112,11 @@ giftsRouter.post('/', async (c) => {
         }
 
         const sanitized = sanitizeObject<any>(validated.data);
-        const weddingId = await resolveWeddingId(user);
+        const weddingId = await resolveWeddingId(c.env, user);
 
         if (!weddingId) return c.json({ error: "Wedding not found" }, 404);
 
-        const gift = await GiftService.createGift(weddingId, sanitized);
+        const gift = await GiftServiceDrizzle.createGift(c.env, weddingId, sanitized);
         return c.json(gift, 201);
     } catch (error: any) {
         console.error(`[Gifts API] POST ERROR:`, error?.message || error);

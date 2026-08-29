@@ -12,7 +12,7 @@ import { useEffect } from 'react'
  */
 export default function DashboardLayout() {
   const { user, isLoading, refetch } = useAuth()
-  
+
   // Add effect to handle potential auth state recovery
   useEffect(() => {
     if (!isLoading && !user) {
@@ -22,7 +22,7 @@ export default function DashboardLayout() {
           // If refetch fails, we'll redirect
         })
       }, 100)
-      
+
       return () => clearTimeout(timeoutId)
     }
   }, [user, isLoading, refetch])

@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import * as disable2FAHandler from '@/server/auth_handlers/2fa/disable/handler';
+import * as disable2FAHandler from '@/auth_handlers/2fa/disable/handler';
 
 const router = new Hono();
 

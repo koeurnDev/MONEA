@@ -20,28 +20,49 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue>({
   user: null,
   isLoading: true,
-  refetch: async () => {},
-  logout: async () => {},
+  refetch: async () => { },
+  logout: async () => { },
 })
 
 /**
  * Optimized AuthProvider for mobile performance
  */
+// ─── DEV-ONLY Auth Bypass ───────────────────────────────────────────────────
+// Set VITE_DEV_BYPASS_AUTH=true in .env.local to skip login during UI development.
+const DEV_MOCK_USER: AuthUser = {
+  id: 'dev-user-001',
+  userId: 'dev-user-001',
+  email: 'dev@monea.test',
+  name: 'Dev User',
+  role: 'USER',
+  weddingId: undefined,
+  type: 'user',
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const isBypassMode = import.meta.env.VITE_DEV_BYPASS_AUTH === 'true';
+
+  const [user, setUser] = useState<AuthUser | null>(isBypassMode ? DEV_MOCK_USER : null)
+  const [isLoading, setIsLoading] = useState(isBypassMode ? false : true)
   const fetchingRef = useRef(false)
   const retryCountRef = useRef(0)
 
   const fetchUser = useCallback(async () => {
+    // In bypass mode, always use mock user
+    if (isBypassMode) {
+      setUser(DEV_MOCK_USER);
+      setIsLoading(false);
+      return;
+    }
+
     // Prevent concurrent fetches
     if (fetchingRef.current) return
     fetchingRef.current = true
-    
+
     try {
       setIsLoading(true);
       const res = await moneaClient.get<{ user?: AuthUser } | AuthUser>('/api/auth/me');
-      
+
       // Handle successful response
       if (res.data && res.status === 200) {
         const userObj = (res.data as any)?.user || ((res.data as any)?.id ? (res.data as AuthUser) : null);
@@ -77,9 +98,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(false);
       fetchingRef.current = false;
     }
-  }, [])
+  }, [isBypassMode])
 
   useEffect(() => {
+    if (isBypassMode) return; // Skip fetch in bypass mode
     // Debounce initial fetch for mobile
     const timer = setTimeout(fetchUser, 100);
     return () => clearTimeout(timer);
@@ -87,6 +109,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     setUser(null);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('auth_token');
+    }
     try {
       await moneaClient.post('/api/auth/logout');
     } catch (e) {

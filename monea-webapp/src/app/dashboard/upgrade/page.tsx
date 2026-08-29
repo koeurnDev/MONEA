@@ -437,7 +437,7 @@ export default function UpgradePage() {
 
             {/* Payment Modal */}
             <Dialog open={showPayment} onOpenChange={(open) => !isSuccessCelebration && setShowPayment(open)}>
-                <DialogContent className="sm:max-w-md bg-white dark:bg-[#141419] border border-slate-200/80 dark:border-white/10 rounded-3xl p-0 overflow-hidden shadow-2xl font-kantumruy">
+                <DialogContent className="w-[94vw] sm:max-w-md max-h-[90dvh] overflow-y-auto bg-white dark:bg-[#141419] border border-slate-200/80 dark:border-white/10 rounded-3xl p-0 shadow-2xl font-kantumruy">
                     <DialogHeader className="p-6 pb-4 bg-muted/30 border-b border-border/40 text-center">
                         <DialogTitle className="text-lg font-bold text-foreground">
                             {t("common.upgrade.secure_payment", { defaultValue: "ទូទាត់ប្រាក់ប្រកបដោយសុវត្ថិភាព" })}

@@ -16,7 +16,10 @@
             "@/lib/*":          ["./lib/*"],
             "@/services/*":     ["./lib/*"],
             "@/types/*":        ["./types/*"],
-            "@/server/*":       ["./*"]
+            "@/server/*":       ["./*"],
+            "@/auth_handlers/*": ["./auth_handlers/*"],
+            "@/routers/*":      ["./routers/*"],
+            "@/drizzle/*":      ["./drizzle/*"]
         }
     },
     "include": ["**/*.ts", "**/*.d.ts"],

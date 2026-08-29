@@ -1,10 +1,7 @@
 import { Hono } from 'hono';
-import { Pool } from '@neondatabase/serverless';
-import { PrismaNeon } from '@prisma/adapter-neon';
-import { PrismaClient } from '@prisma/client';
-import { prismaStorage } from '@/lib/prisma';
-import { requestStorage } from '@/lib/auth';
+import { compress } from 'hono/compress';
 import dashboardRouter from './routers/dashboard';
+import dashboardCombinedRouter from './routers/dashboard-combined';
 import guestbookRouter from './routers/guestbook';
 import authRouter from './routers/auth';
 import paymentRouter from './routers/payment';
@@ -35,70 +32,78 @@ import { cors } from 'hono/cors';
 // Export the root hono app
 const app = new Hono().basePath('/api');
 
-// Configure CORS for cross-origin requests (Cloudflare Pages <-> Cloudflare Worker)
+// Disable compression globally to prevent encoding issues with cross-origin requests
+// Browser will handle gzip/br decompression automatically if needed
+// app.use('*', compress());  // DISABLED - causing response decoding issues
+
+// Global middleware to serialize Date objects in JSON responses
+app.use('*', async (c, next) => {
+  // Store original json method
+  const originalJson = c.json.bind(c);
+  
+  // Override json method to serialize Date objects
+  c.json = function(data: any, status?: number, headers?: any) {
+    // Recursively convert Date objects to ISO strings
+    const serializeData = (obj: any): any => {
+      if (obj === null || obj === undefined) return obj;
+      if (obj instanceof Date) {
+        console.log('[Date Serializer] Converting Date to ISO string:', obj.toISOString());
+        return obj.toISOString();
+      }
+      if (Array.isArray(obj)) return obj.map(serializeData);
+      if (typeof obj === 'object' && obj.constructor === Object) {
+        const serialized: any = {};
+        for (const [key, value] of Object.entries(obj)) {
+          serialized[key] = serializeData(value);
+        }
+        return serialized;
+      }
+      return obj;
+    };
+    
+    const serializedData = serializeData(data);
+    return originalJson(serializedData, status as any, headers);
+  } as any;
+  
+  await next();
+});
+
+// Configure CORS for cross-origin requests (optimized for performance)
 app.use('*', cors({
   origin: (origin, c) => {
-    // Debug logging
-    console.log(`[CORS] Checking origin: ${origin}`);
-    
-    if (!origin) {
-      // For requests without origin (same-origin, Postman, curl, etc.)
-      console.log('[CORS] No origin header - allowing');
-      return 'https://monea-webapp.pages.dev';
-    }
+    if (!origin) return 'https://monea-webapp.pages.dev';
     
     const allowedOrigins = [
       'https://monea-webapp.pages.dev',
       'https://monea.app',
+      'https://www.monea.app',
       'http://localhost:5173',
       'http://localhost:3000',
       'http://localhost:3001',
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:3001',
     ];
     
-    const allowedPatterns = [
-      /^https:\/\/[a-z0-9]+\.monea-webapp\.pages\.dev$/,
-      /^https:\/\/.*\.pages\.dev$/,
-      /^https:\/\/.*\.monea\.app$/,
-      /^http:\/\/localhost:\d+$/,
-      /^http:\/\/127\.0\.0\.1:\d+$/
-    ];
+    // Quick exact match check
+    if (allowedOrigins.includes(origin)) return origin;
     
-    // Check exact matches first
-    if (allowedOrigins.includes(origin)) {
-      console.log(`[CORS] Allowed exact origin: ${origin}`);
-      return origin;
-    }
+    // Pattern match for preview deployments (supports hyphens and custom branches)
+    if (origin.match(/^https:\/\/[a-z0-9-]+\.monea-webapp\.pages\.dev$/)) return origin;
+    if (origin.match(/^https:\/\/(.*\.)?monea\.app$/)) return origin;
+    if (origin.match(/^http:\/\/localhost:\d+$/)) return origin;
+    if (origin.match(/^http:\/\/127\.0\.0\.1:\d+$/)) return origin;
     
-    // Check pattern matches - for preview deployments like 36f25f50.monea-webapp.pages.dev
-    for (const pattern of allowedPatterns) {
-      if (pattern.test(origin)) {
-        console.log(`[CORS] Allowed pattern origin: ${origin}`);
-        return origin;
-      }
-    }
-    
-    console.warn(`[CORS] Rejected origin: ${origin}`);
     return null; // Reject origin
   },
-  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'X-Client-Fingerprint', 'Cache-Control'],
-  exposeHeaders: ['Content-Length', 'X-CSRF-Token'],
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'],
+  allowHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'X-Client-Fingerprint', 'Cache-Control', 'Pragma', 'sentry-trace', 'baggage', 'Priority'],
+  exposeHeaders: ['Content-Length', 'Cache-Control', 'X-CSRF-Token', 'sentry-trace', 'baggage'],
   maxAge: 86400,
-  credentials: true, // MUST be true for auth cookies/tokens
+  credentials: true,
 }));
 
-let _cachedWorkerPrisma: PrismaClient | null = null;
-
-function getWorkerPrisma(connectionString: string): PrismaClient {
-  if (!_cachedWorkerPrisma) {
-    const pool = new Pool({ connectionString });
-    const adapter = new PrismaNeon(pool);
-    _cachedWorkerPrisma = new PrismaClient({ adapter, log: [] });
-  }
-  return _cachedWorkerPrisma;
-}
-
-// Polyfill process.env and provide optimized cached PrismaClient for Cloudflare Workers
+// Polyfill process.env - simplified for better performance
 app.use('*', async (c, next) => {
   if (typeof (globalThis as any).process === 'undefined') {
     (globalThis as any).process = { env: {} };
@@ -106,23 +111,25 @@ app.use('*', async (c, next) => {
   const env = (c.env as any) || {};
   Object.assign((globalThis as any).process.env, env);
 
-  const dbUrl = (env.DATABASE_URL || process.env.DATABASE_URL) as string;
-  const prismaClient = dbUrl ? getWorkerPrisma(dbUrl) : null;
-
-  await requestStorage.run(c.req.raw, async () => {
-    if (prismaClient) {
-      await prismaStorage.run(prismaClient, async () => {
-        await next();
-      });
-    } else {
-      await next();
-    }
-  });
+  await next();
 });
 
-// Basic health check endpoint
+// Basic health check endpoint with aggressive caching
 app.get('/health', (c) => {
+  c.header('Cache-Control', 'public, max-age=300, s-maxage=300, stale-while-revalidate=600');
+  c.header('CDN-Cache-Control', 'max-age=300');
   return c.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Test endpoint with edge caching
+app.get('/ping', (c) => {
+  c.header('Cache-Control', 'public, max-age=60, s-maxage=60, stale-while-revalidate=120');
+  c.header('CDN-Cache-Control', 'max-age=60');
+  return c.json({ 
+    message: 'pong',
+    timestamp: new Date().toISOString(),
+    edge: 'optimized'
+  });
 });
 
 // Debug endpoint to check cookies and headers
@@ -138,6 +145,7 @@ app.get('/debug/headers', (c) => {
 
 // Mount routers
 app.route('/dashboard', dashboardRouter);
+app.route('/dashboard', dashboardCombinedRouter); // Combined/optimized routes
 app.route('/guestbook', guestbookRouter);
 app.route('/auth', authRouter);
 app.route('/payment', paymentRouter);
@@ -164,6 +172,24 @@ app.route('/public-stats', publicStatsRouter);
 app.route('/ping', pingRouter);
 app.route('/sentry-tunnel', sentryTunnelRouter);
 app.route('/cron', cronRouter);
+
+// Global Error Handler - simplified for better performance  
+app.onError((err, c) => {
+  console.error(`[Error] ${c.req.method} ${c.req.url}:`, err?.message || err);
+  
+  // Set CORS headers for error responses
+  const origin = c.req.header('origin');
+  if (origin) c.header('Access-Control-Allow-Origin', origin);
+  c.header('Access-Control-Allow-Credentials', 'true');
+  c.header('Connection', 'keep-alive');
+
+  return c.json({ 
+    success: false, 
+    error: "Internal Server Error", 
+    details: err?.message || "Unknown error",
+    timestamp: new Date().toISOString()
+  }, 500);
+});
 
 // Export type for RPC client if needed on frontend
 export type AppType = typeof app;

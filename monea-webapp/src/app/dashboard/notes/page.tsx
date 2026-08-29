@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { BookOpen, Save, Loader2, Sparkles, AlertCircle, CheckCircle2, FileText, StickyNote, History, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { m, AnimatePresence } from 'framer-motion';
@@ -144,52 +144,60 @@ export default function NotesPage() {
                 </p>
             </div>
             {/* Header Actions Only */}
-            <div className="flex flex-col md:flex-row md:items-end justify-end gap-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                    <h2 className="text-xl font-bold font-kantumruy text-foreground tracking-tight">
+                        កំណត់ត្រា (Wedding Notes)
+                    </h2>
+                    <p className="text-xs text-muted-foreground font-kantumruy mt-0.5">
+                        កត់ត្រាការចំណាយ ឬព័ត៌មានសំខាន់ៗដែលត្រូវចងចាំ
+                    </p>
+                </div>
 
-                <div className="flex items-center gap-4 print:hidden">
+                <div className="flex items-center gap-2.5 print:hidden">
                     {lastSaved && (
-                        <div className="hidden sm:flex items-center gap-2 text-emerald-600 bg-emerald-500/10 px-4 py-2 rounded-full shadow-sm animate-in fade-in slide-in-from-right-4">
-                            <CheckCircle2 className="w-4 h-4" />
-                            <span className="text-xs font-bold font-khmer">{t("dashboard.notes.saved")}</span>
+                        <div className="hidden sm:flex items-center gap-1.5 text-emerald-600 bg-emerald-500/10 px-3 py-1.5 rounded-full text-xs font-bold font-kantumruy shadow-xs">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>{t("dashboard.notes.saved")}</span>
                         </div>
                     )}
                     <Button
                         variant="outline"
                         onClick={handlePrint}
-                        className="h-12 px-6 rounded-xl border-dashed border-2 hover:bg-muted font-kantumruy font-bold transition-all flex items-center gap-2"
+                        className="flex-1 sm:flex-none h-11 px-4 rounded-xl border border-border hover:bg-muted font-kantumruy font-bold text-xs transition-all flex items-center justify-center gap-1.5 active:scale-95"
                     >
-                        <Printer className="w-4 h-4" />
-                        {t("dashboard.notes.pdf")}
+                        <Printer className="w-3.5 h-3.5" />
+                        <span>{t("dashboard.notes.pdf")}</span>
                     </Button>
                     <Button
                         onClick={handleSave}
                         disabled={saving}
-                        className="h-12 px-8 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-widest shadow-md active:scale-95 transition-all flex items-center gap-2"
+                        className="flex-1 sm:flex-none h-11 px-6 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold font-kantumruy text-xs shadow-md shadow-rose-600/20 active:scale-95 transition-all flex items-center justify-center gap-1.5"
                     >
                         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                        {t("dashboard.notes.save")}
+                        <span>{t("dashboard.notes.save")}</span>
                     </Button>
                 </div>
             </div>
 
             {/* Main Content Card */}
             <m.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-card rounded-[2rem] shadow-[0_8px_40px_rgba(0,0,0,0.06)] dark:shadow-[0_4px_32px_rgba(0,0,0,0.2)] p-8 md:p-12 relative overflow-hidden will-change-transform"
+                className="bg-card rounded-3xl shadow-sm p-4 sm:p-8 md:p-12 relative overflow-hidden border border-slate-200/80 dark:border-white/5 will-change-transform"
             >
-                <div className="absolute top-0 right-0 w-64 h-64 bg-red-500/5 blur-[60px] rounded-full -mr-32 -mt-32 pointer-events-none" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/5 blur-[60px] rounded-full -mr-32 -mt-32 pointer-events-none" />
 
-                <div className="relative z-10 space-y-6">
-                    <div className="flex items-center gap-3 mb-4">
-                        <StickyNote className="w-5 h-5 text-red-500" />
-                        <h3 className="text-sm font-black text-foreground uppercase tracking-wide">{t("dashboard.notes.workspace")}</h3>
+                <div className="relative z-10 space-y-5 sm:space-y-6">
+                    <div className="flex items-center gap-2.5">
+                        <StickyNote className="w-4 h-4 text-rose-500" />
+                        <h3 className="text-xs font-bold text-foreground font-kantumruy uppercase tracking-wide">{t("dashboard.notes.workspace")}</h3>
                     </div>
 
                     {error && (
-                        <div className="p-4 bg-red-500/10 text-red-600 rounded-2xl flex items-center gap-3 animate-pulse">
-                            <AlertCircle className="w-5 h-5" />
-                            <p className="text-sm font-bold font-khmer">{error}</p>
+                        <div className="p-3.5 bg-red-500/10 text-red-600 rounded-2xl flex items-center gap-2.5 text-xs font-bold font-kantumruy">
+                            <AlertCircle className="w-4 h-4 shrink-0" />
+                            <p>{error}</p>
                         </div>
                     )}
 
@@ -198,9 +206,9 @@ export default function NotesPage() {
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
                             placeholder={t("dashboard.notes.placeholder")}
-                            className="w-full min-h-[500px] bg-muted/40 border-none rounded-3xl p-8 text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:ring-4 focus:ring-primary/5 focus:bg-background shadow-inner transition-all font-kantumruy leading-relaxed text-lg resize-none"
+                            className="w-full min-h-[350px] sm:min-h-[500px] bg-slate-50/70 dark:bg-black/20 border border-slate-200/60 dark:border-white/5 rounded-2xl sm:rounded-3xl p-4 sm:p-8 text-foreground placeholder:text-muted-foreground/30 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:bg-background shadow-inner transition-all font-kantumruy leading-relaxed text-sm sm:text-base resize-none"
                         />
-                        <div className="absolute bottom-6 right-8 flex items-center gap-2 text-muted-foreground/30 group-focus-within:text-muted-foreground transition-colors">
+                        <div className="absolute bottom-4 right-5 sm:bottom-6 sm:right-8 flex items-center gap-2 text-muted-foreground/30 group-focus-within:text-rose-500 transition-colors pointer-events-none">
                             <Sparkles className="w-4 h-4" />
                         </div>
                     </div>

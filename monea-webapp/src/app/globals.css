@@ -2,51 +2,31 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hide default browser (Edge / Windows / Chrome) password reveal buttons */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+input::-webkit-credentials-auto-fill-button {
+  visibility: hidden;
+  position: absolute;
+  right: 0;
+}
+
 /* Mobile Performance Optimizations */
 @media (max-width: 768px) {
-  /* Reduce GPU load on mobile */
-  * {
-    -webkit-transform: translateZ(0);
-    -moz-transform: translateZ(0);
-    -ms-transform: translateZ(0);
-    -o-transform: translateZ(0);
-    transform: translateZ(0);
-  }
-
-  /* Disable heavy animations on mobile */
+  /* Disable heavy continuous animations on mobile */
   .animate-spin-slow,
-  .animate-bounce,
-  .animate-pulse {
+  .animate-bounce {
     animation: none !important;
   }
 
-  /* Simplify shadows for mobile performance */
-  .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl {
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
-  }
-
-  /* Remove backdrop filters that cause freezing */
-  .backdrop-blur-sm, .backdrop-blur-md, .backdrop-blur-lg, .backdrop-blur-xl {
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    background-color: rgba(255, 255, 255, 0.9) !important;
-  }
-  
-  .dark .backdrop-blur-sm, 
-  .dark .backdrop-blur-md, 
-  .dark .backdrop-blur-lg, 
-  .dark .backdrop-blur-xl {
-    background-color: rgba(0, 0, 0, 0.9) !important;
-  }
-
-  /* Optimize transforms */
-  .transform {
-    transform: none !important;
-  }
-
-  /* Reduce transition complexity */
-  .transition-all {
-    transition: opacity 0.2s ease !important;
+  /* Simplify heavy shadows for mobile performance */
+  .shadow-2xl {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
   }
 }
 

@@ -1,7 +1,9 @@
 import { Hono } from 'hono'
-import { prisma } from "@/lib/prisma"
+import { getDb } from "@/lib/drizzle"
+import { weddings, systemConfig } from "@/drizzle/schema"
+import { eq, desc } from "drizzle-orm"
 import { getServerUser } from "@/lib/auth"
-import { PaymentService } from "@/services/PaymentService"
+import { PaymentService } from "@/lib/PaymentService"
 import { verifyTurnstile } from "@/lib/turnstile"
 import { z } from "zod"
 import { ROLES } from "@/lib/constants"
@@ -28,13 +30,19 @@ paymentRouter.post('/check-status', async (c) => {
     try {
         const { md5, orderId, packageType: reqPackageType, weddingId: bodyWeddingId } = await c.req.json()
 
-        const wedding = await prisma.wedding.findFirst({
-            where: user.weddingId
-                ? { id: user.weddingId }
-                : { userId: user.userId },
-            orderBy: { createdAt: 'desc' },
-            select: { id: true, packageType: true, paymentStatus: true, paymentHash: true, paymentInfo: true }
+        const db = getDb(c.env)
+        const wedding = await db.select({
+            id: weddings.id,
+            packageType: weddings.packageType,
+            paymentStatus: weddings.paymentStatus,
+            paymentHash: weddings.paymentHash,
+            paymentInfo: weddings.paymentInfo
         })
+            .from(weddings)
+            .where(user.weddingId ? eq(weddings.id, user.weddingId) : eq(weddings.userId, user.userId))
+            .orderBy(desc(weddings.createdAt))
+            .limit(1)
+            .then((r: any) => r[0]);
 
         if (!wedding) return c.json({ error: "Wedding not found" }, 404)
 
@@ -57,7 +65,12 @@ paymentRouter.post('/check-status', async (c) => {
             if (parts[1] === "PRO" || parts[1] === "PREMIUM") actualPackage = parts[1]
         }
 
-        const config    = await prisma.systemConfig.findUnique({ where: { id: "GLOBAL" } })
+        const config = await db.select()
+            .from(systemConfig)
+            .where(eq(systemConfig.id, "GLOBAL"))
+            .limit(1)
+            .then((r: any) => r[0]);
+            
         const accountID = (config?.bakongConfig as any)?.accountID || process.env.BAKONG_ACCOUNT_ID || ""
 
         const result = await PaymentService.verifyBakongTransaction(
@@ -100,15 +113,23 @@ paymentRouter.post('/confirm', async (c) => {
         const isHuman = await verifyTurnstile(turnstileToken)
         if (!isHuman) return c.json({ error: "CAPTCHA verification failed" }, 400)
 
+        const db = getDb(c.env)
         let wedding
+        
         if (user.role === ROLES.EVENT_STAFF) {
             if (!user.weddingId) return c.json({ error: "Staff not assigned to any wedding" }, 403)
-            wedding = await prisma.wedding.findUnique({ where: { id: user.weddingId } })
+            wedding = await db.select()
+                .from(weddings)
+                .where(eq(weddings.id, user.weddingId))
+                .limit(1)
+                .then((r: any) => r[0]);
         } else {
-            wedding = await prisma.wedding.findFirst({
-                where: { userId: user.id },
-                orderBy: { createdAt: 'desc' },
-            })
+            wedding = await db.select()
+                .from(weddings)
+                .where(eq(weddings.userId, user.id))
+                .orderBy(desc(weddings.createdAt))
+                .limit(1)
+                .then((r: any) => r[0]);
         }
 
         if (!wedding) return c.json({ error: "Wedding not found" }, 404)
@@ -120,10 +141,16 @@ paymentRouter.post('/confirm', async (c) => {
         const expiresAt = new Date()
         expiresAt.setDate(expiresAt.getDate() + 30)
 
-        const updated = await prisma.wedding.update({
-            where: { id: wedding.id },
-            data: { packageType, paymentStatus: "AWAITING_VERIFICATION", expiresAt, status: "ACTIVE" },
-        })
+        const updated = await db.update(weddings)
+            .set({ 
+                packageType, 
+                paymentStatus: "AWAITING_VERIFICATION", 
+                expiresAt, 
+                status: "ACTIVE" 
+            })
+            .where(eq(weddings.id, wedding.id))
+            .returning()
+            .then((r: any) => r[0]);
 
         const ip = c.req.header("x-real-ip") || c.req.header("x-forwarded-for") || "unknown"
         const ua = c.req.header("user-agent") || "unknown"
@@ -146,12 +173,17 @@ paymentRouter.post('/submit-slip', async (c) => {
         const body = await c.req.json()
         const { packageType, receiptImage, txRef, note, weddingId } = body
 
+        const db = getDb(c.env)
         let targetWeddingId = weddingId
+        
         if (!targetWeddingId) {
-            const wedding = await prisma.wedding.findFirst({
-                where: { userId: user.id },
-                orderBy: { createdAt: 'desc' }
-            })
+            const wedding = await db.select({ id: weddings.id })
+                .from(weddings)
+                .where(eq(weddings.userId, user.id))
+                .orderBy(desc(weddings.createdAt))
+                .limit(1)
+                .then((r: any) => r[0]);
+                
             if (!wedding) return c.json({ error: "Wedding not found" }, 404)
             targetWeddingId = wedding.id
         }
@@ -159,17 +191,18 @@ paymentRouter.post('/submit-slip', async (c) => {
         const expiresAt = new Date()
         expiresAt.setDate(expiresAt.getDate() + 30)
 
-        const updated = await prisma.wedding.update({
-            where: { id: targetWeddingId },
-            data: {
+        const updated = await db.update(weddings)
+            .set({
                 packageType: packageType || "PRO",
                 paymentStatus: "AWAITING_VERIFICATION",
                 paymentInfo: receiptImage || null,
                 paymentHash: txRef || (note ? `NOTE: ${note}` : `SLIP_SUBMITTED_${Date.now()}`),
                 expiresAt,
                 status: "ACTIVE"
-            }
-        })
+            })
+            .where(eq(weddings.id, targetWeddingId))
+            .returning()
+            .then((r: any) => r[0]);
 
         return c.json({ success: true, message: "Receipt submitted successfully", wedding: updated })
     } catch (error: any) {
@@ -194,13 +227,22 @@ paymentRouter.post('/generate-qr', async (c) => {
             return c.json({ error: "packageType must be PRO or PREMIUM" }, 400)
         }
 
-        const userId  = user.userId || user.id
-        const wedding = await prisma.wedding.findFirst({
-            where: user.weddingId ? { id: user.weddingId } : { userId },
-            orderBy: { createdAt: 'desc' },
-        })
+        const db = getDb(c.env)
+        const userId = user.userId || user.id
+        
+        const wedding = await db.select()
+            .from(weddings)
+            .where(user.weddingId ? eq(weddings.id, user.weddingId) : eq(weddings.userId, userId))
+            .orderBy(desc(weddings.createdAt))
+            .limit(1)
+            .then((r: any) => r[0]);
 
-        const config = await prisma.systemConfig.findUnique({ where: { id: "GLOBAL" } })
+        const config = await db.select()
+            .from(systemConfig)
+            .where(eq(systemConfig.id, "GLOBAL"))
+            .limit(1)
+            .then((r: any) => r[0]);
+            
         const stadPrice    = config?.stadPrice  ?? 9.00
         const proPrice     = config?.proPrice   ?? 19.00
         const bakongCfg    = (config?.bakongConfig as any) || {}
@@ -208,8 +250,12 @@ paymentRouter.post('/generate-qr', async (c) => {
         const ACCOUNT_ID    = bakongCfg.accountID    || process.env.BAKONG_ACCOUNT_ID
 
         if (!ACCOUNT_ID) {
-            console.error("[payment/generate-qr] BAKONG_ACCOUNT_ID not configured")
-            return c.json({ error: "Bakong payment account is not configured" }, 500)
+            console.warn("[payment/generate-qr] BAKONG_ACCOUNT_ID not configured")
+            // Return 400 (client error) instead of 500 since this is a configuration issue
+            return c.json({ 
+                error: "Payment system not configured", 
+                message: "Please contact support to enable online payments" 
+            }, 400)
         }
 
         const amount  = packageType === "PRO" ? stadPrice : proPrice
@@ -246,14 +292,21 @@ paymentRouter.post('/generate-gift-qr', async (c) => {
         const { amount, currency = "USD" } = await c.req.json()
         if (!amount || amount <= 0) return c.json({ error: "Invalid amount" }, 400)
 
-        const weddingId = user.weddingId
-            || (await prisma.wedding.findFirst({ where: { userId: user.id } }))?.id
+        const db = getDb(c.env)
+        const weddingId = user.weddingId || 
+            (await db.select({ id: weddings.id })
+                .from(weddings)
+                .where(eq(weddings.userId, user.id))
+                .limit(1)
+                .then((r: any) => r[0]?.id));
+                
         if (!weddingId) return c.json({ error: "Wedding not found" }, 404)
 
-        const settings = await prisma.wedding.findUnique({
-            where:  { id: weddingId },
-            select: { themeSettings: true },
-        })
+        const settings = await db.select({ themeSettings: weddings.themeSettings })
+            .from(weddings)
+            .where(eq(weddings.id, weddingId))
+            .limit(1)
+            .then((r: any) => r[0]);
 
         const bankAccounts  = (settings?.themeSettings as any)?.bankAccounts || []
         const bakongAccount = bankAccounts.find((acc: any) =>
@@ -296,10 +349,17 @@ paymentRouter.post('/manual-verify', async (c) => {
     try {
         const { packageType } = await c.req.json()
 
-        const wedding = await prisma.wedding.findFirst({
-            where:  { userId: user.userId },
-            select: { id: true, paymentHash: true, paymentStatus: true, paymentInfo: true },
+        const db = getDb(c.env)
+        const wedding = await db.select({
+            id: weddings.id,
+            paymentHash: weddings.paymentHash,
+            paymentStatus: weddings.paymentStatus,
+            paymentInfo: weddings.paymentInfo
         })
+            .from(weddings)
+            .where(eq(weddings.userId, user.userId))
+            .limit(1)
+            .then((r: any) => r[0]);
 
         if (!wedding)             return c.json({ error: "Wedding not found" }, 404)
         if (wedding.paymentStatus === "PAID") return c.json({ status: "PAID", alreadyPaid: true })
@@ -307,7 +367,12 @@ paymentRouter.post('/manual-verify', async (c) => {
 
         const orderId = wedding.paymentInfo || `MANUAL_REFRESH_${Date.now()}`
 
-        const config    = await prisma.systemConfig.findUnique({ where: { id: "GLOBAL" } })
+        const config = await db.select()
+            .from(systemConfig)
+            .where(eq(systemConfig.id, "GLOBAL"))
+            .limit(1)
+            .then((r: any) => r[0]);
+            
         const accountID = (config?.bakongConfig as any)?.accountID || process.env.BAKONG_ACCOUNT_ID
 
         if (!accountID) return c.json({ error: "System misconfiguration: Missing Bakong ID" }, 500)

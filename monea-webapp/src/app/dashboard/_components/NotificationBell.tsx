@@ -72,7 +72,7 @@ export function NotificationBell({ isAuthenticated = true }: { isAuthenticated?:
                 </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent 
-                className="w-[calc(100vw-2rem)] sm:w-84 mt-2 p-0 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#141419] shadow-xl overflow-hidden" 
+                className="w-[calc(100vw-2rem)] sm:w-80 sm:max-w-sm mt-2 p-0 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#141419] shadow-2xl overflow-hidden z-50" 
                 align="end"
             >
                 {/* Header */}
