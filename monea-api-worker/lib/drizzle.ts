@@ -41,10 +41,7 @@ export function getDb(env?: any) {
   }
 
   // Create Neon HTTP client
-  const sql = neon(dbUrl, {
-    arrayMode: false,
-    fullResults: false,
-  });
+  const sql = neon(dbUrl);
 
   // Create Drizzle instance with schema
   cachedDb = drizzle(sql, { schema });

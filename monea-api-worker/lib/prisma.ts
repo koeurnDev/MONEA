@@ -64,9 +64,10 @@ import { getRawSql } from "./db-raw";
 export async function queryRaw<T = any>(query: string, ...values: any[]): Promise<T[]> {
   try {
     const sql = getRawSql();
-    return await sql(query, values) as T[];
+    // neon tagged template function used as a regular function takes (query, params[])
+    return await (sql as any)(query, values) as T[];
   } catch (error: any) {
-    console.error(`[Prisma Raw Query Error] ${query}`, error?.message || error);
+    console.error(`[Prisma Raw Query Error]`, error?.message || error);
     throw error;
   }
 }
@@ -74,10 +75,10 @@ export async function queryRaw<T = any>(query: string, ...values: any[]): Promis
 export async function executeRaw(query: string, ...values: any[]): Promise<number> {
   try {
     const sql = getRawSql();
-    const result = await sql(query, values, { fullResults: true }) as any;
-    return result.rowCount || 0;
+    const result = await (sql as any)(query, values, { fullResults: true }) as any;
+    return result?.rowCount || 0;
   } catch (error: any) {
-    console.error(`[Prisma Raw Exec Error] ${query}`, error?.message || error);
+    console.error(`[Prisma Raw Exec Error]`, error?.message || error);
     throw error;
   }
 }

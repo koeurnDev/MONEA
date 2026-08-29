@@ -19,21 +19,20 @@ function getDatabaseUrl(env?: any): string {
 
 export function getRawSql(env?: any) {
   const dbUrl = getDatabaseUrl(env);
-  
+
+  if (!dbUrl) {
+    throw new Error('[DB Raw] DATABASE_URL is missing from environment');
+  }
+
+  // Only use cache if URL matches — prevents using stale connections
   if (cachedSql && cachedDbUrl === dbUrl) {
     return cachedSql;
   }
-  
-  if (!dbUrl) {
-    throw new Error('[DB Raw] DATABASE_URL is missing');
-  }
-  
-  cachedSql = neon(dbUrl, {
-    arrayMode: false,
-    fullResults: false,
-  });
+
+  // Use default neon options (no arrayMode, no fullResults — simplest/safest)
+  cachedSql = neon(dbUrl);
   cachedDbUrl = dbUrl;
-  
+
   return cachedSql;
 }
 
