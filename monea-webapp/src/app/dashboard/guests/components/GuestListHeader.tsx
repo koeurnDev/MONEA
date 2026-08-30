@@ -15,7 +15,9 @@ interface GuestListHeaderProps {
     setOpen: (v: boolean) => void;
     editingGuest: any;
     setEditingGuest: (v: any) => void;
-    loadData: () => void;
+    loadData: (options?: { silent?: boolean }) => void;
+    onOptimisticAdd?: (guestData: any) => void;
+    onOptimisticUpdate?: (guestId: string, updatedFields: any) => void;
     onExportExcel: () => void;
     onPrintPdf: () => void;
 }
@@ -29,6 +31,8 @@ export function GuestListHeader({
     editingGuest,
     setEditingGuest,
     loadData,
+    onOptimisticAdd,
+    onOptimisticUpdate,
     onExportExcel,
     onPrintPdf
 }: GuestListHeaderProps) {
@@ -89,6 +93,8 @@ export function GuestListHeader({
                                         initialData={editingGuest}
                                         onSuccess={loadData}
                                         onDone={() => { setOpen(false); setEditingGuest(null); }}
+                                        onOptimisticAdd={onOptimisticAdd}
+                                        onOptimisticUpdate={onOptimisticUpdate}
                                     />
                                 </div>
                             </DialogContent>

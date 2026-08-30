@@ -41,7 +41,9 @@ export const EntranceEnvelope = ({ wedding, guestName, onReveal, onStartOpen, au
                     initial={{ opacity: 1 }}
                     exit={{ opacity: 0, scale: 1.05, filter: 'blur(10px)' }}
                     transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
-                    className="fixed inset-0 z-[100] flex flex-col justify-between items-center p-6 py-10 text-center select-none overflow-hidden bg-[#0A0D14]"
+                    onClick={handleOpen}
+                    onTouchEnd={handleOpen}
+                    className="fixed inset-0 z-[100] flex flex-col justify-between items-center p-6 py-10 text-center select-none overflow-hidden bg-[#0A0D14] cursor-pointer"
                     style={{ isolation: 'isolate' }}
                 >
                     {/* Full-bleed Pre-Wedding Photo Background */}
@@ -49,6 +51,7 @@ export const EntranceEnvelope = ({ wedding, guestName, onReveal, onStartOpen, au
                         <img
                             src={heroImage} 
                             className="w-full h-full object-cover transform scale-100 filter brightness-[0.92] transition-transform duration-1000"
+                            style={{ objectPosition: 'center 20%' }}
                             alt="Pre-wedding Cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/85" />
@@ -77,11 +80,11 @@ export const EntranceEnvelope = ({ wedding, guestName, onReveal, onStartOpen, au
                         {/* Couple Names */}
                         <div className="space-y-1">
                             <h2 className="font-kantumruy font-black text-2xl sm:text-3xl text-white drop-shadow-[0_3px_12px_rgba(0,0,0,0.9)] tracking-tight">
-                                {wedding.groomName}
+                                {wedding.groomName || "សុវណ្ណរាជ មាន"}
                             </h2>
                             <p className="text-xs text-white/60 font-serif italic">&</p>
                             <h2 className="font-kantumruy font-black text-2xl sm:text-3xl text-white drop-shadow-[0_3px_12px_rgba(0,0,0,0.9)] tracking-tight">
-                                {wedding.brideName}
+                                {wedding.brideName || "មាស ចាន់មានណា"}
                             </h2>
                         </div>
 
@@ -93,12 +96,19 @@ export const EntranceEnvelope = ({ wedding, guestName, onReveal, onStartOpen, au
                             
                         {/* Ultra Clean Sleek Button */}
                         <button
-                            onClick={handleOpen}
-                            className="w-full py-3.5 px-6 rounded-full font-bold font-kantumruy text-slate-950 bg-white hover:bg-slate-100 active:scale-95 transition-all text-sm shadow-[0_4px_25px_rgba(255,255,255,0.25)] flex items-center justify-center gap-2"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpen();
+                            }}
+                            className="w-full py-3.5 px-6 rounded-full font-bold font-kantumruy text-slate-950 bg-white hover:bg-slate-100 active:scale-95 transition-all text-sm shadow-[0_4px_25px_rgba(255,255,255,0.25)] flex items-center justify-center gap-2 animate-pulse"
                         >
-                            <span>សូមចុចបើកធៀប</span>
+                            <span>✨ សូមចុចបើកធៀប</span>
                             <ArrowRight size={15} />
                         </button>
+
+                        <p className="text-[10px] text-white/60 font-kantumruy tracking-wider">
+                            (ចុចត្រង់ណាក៏បាន ឬ អូសឡើងលើដើម្បីបើក)
+                        </p>
                     </m.div>
                 </m.div>
             )}

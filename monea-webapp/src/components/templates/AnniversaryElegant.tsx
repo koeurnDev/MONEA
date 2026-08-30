@@ -106,7 +106,7 @@ export default function AnniversaryElegant({ wedding, guestName }: TemplateProps
                             </p>
 
                             <h2 className="font-khmer-moul text-lg sm:text-xl text-[#3B0764] leading-relaxed">
-                                {groomName} & {brideName}
+                                {groomName || "សុវណ្ណរាជ"} & {brideName || "ចាន់មានណា"}
                             </h2>
                         </m.div>
 
@@ -117,13 +117,13 @@ export default function AnniversaryElegant({ wedding, guestName }: TemplateProps
                             title="សូមចុចបើកធៀប"
                         />
 
-                        {/* Bottom Area: Romantic Glassmorphic Guest Honorific Card */}
+                        {/* Bottom Area: Romantic Glassmorphic Guest Honorific Card & Open Action */}
                         <m.div
                             initial={{ opacity: 0, y: 15 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8, delay: 0.3 }}
                             onClick={handleOpenEnvelope}
-                            className="relative z-10 pb-6 sm:pb-8 w-full max-w-xs mx-auto text-center cursor-pointer"
+                            className="relative z-10 pb-6 sm:pb-8 w-full max-w-xs mx-auto text-center cursor-pointer space-y-3"
                         >
                             <div className="bg-white/85 backdrop-blur-md border border-rose-200/90 rounded-2xl px-5 py-2.5 shadow-[0_4px_20px_rgba(244,114,182,0.18)] inline-block max-w-[92%] space-y-0.5 hover:scale-105 active:scale-95 transition-transform duration-300">
                                 <p className="text-[10px] text-rose-700 font-bold font-kantumruy">
@@ -133,6 +133,20 @@ export default function AnniversaryElegant({ wedding, guestName }: TemplateProps
                                     {guestName || "ឯកឧត្តម លោកជំទាវ លោក លោកស្រី"}
                                 </h4>
                             </div>
+
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleOpenEnvelope();
+                                }}
+                                className="w-full py-3.5 px-6 rounded-2xl font-khmer-moul text-white bg-gradient-to-r from-purple-700 via-pink-700 to-purple-700 hover:from-purple-600 hover:to-pink-600 active:scale-95 transition-all text-xs sm:text-sm tracking-wider shadow-[0_4px_25px_rgba(147,51,234,0.35)] flex items-center justify-center gap-2 border border-purple-300/40 animate-pulse"
+                            >
+                                <span>✨ សូមចុចបើកធៀប</span>
+                            </button>
+
+                            <p className="text-[10px] text-purple-900/70 font-kantumruy tracking-wider">
+                                (ចុចត្រង់ណាក៏បាន ឬ អូសឡើងលើដើម្បីបើក)
+                            </p>
                         </m.div>
                     </m.div>
                 )}

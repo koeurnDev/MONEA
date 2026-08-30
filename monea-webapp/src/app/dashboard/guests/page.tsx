@@ -34,6 +34,8 @@ export default function GuestPage() {
         deleteGuest,
         setDeleteGuest,
         loadData,
+        addGuestOptimistic,
+        updateGuestOptimistic,
         exportCSV,
         copyLink,
         handlePrint,
@@ -158,6 +160,8 @@ export default function GuestPage() {
                 editingGuest={editingGuest}
                 setEditingGuest={setEditingGuest}
                 loadData={loadData}
+                onOptimisticAdd={addGuestOptimistic}
+                onOptimisticUpdate={updateGuestOptimistic}
                 onExportExcel={exportCSV}
                 onPrintPdf={handlePrint}
             />
@@ -283,6 +287,8 @@ export default function GuestPage() {
                                     setOpen(false);
                                     setEditingGuest(null);
                                 }}
+                                onOptimisticAdd={addGuestOptimistic}
+                                onOptimisticUpdate={updateGuestOptimistic}
                             />
                         </DialogContent>
                     </Dialog>

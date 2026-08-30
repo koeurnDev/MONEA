@@ -21,6 +21,7 @@ import { LocationMap } from './khmer-legacy/LocationMap';
 import GiftSection from "./khmer-legacy/GiftSection";
 import { ThankYouSection } from "./khmer-legacy/ThankYouSection";
 import { FooterSection } from "./khmer-legacy/FooterSection";
+import { CelebrationNavigator } from "./khmer-legacy/CelebrationNavigator";
 
 export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingData; guestName?: string }) {
     const { t } = useTranslation();
@@ -151,14 +152,19 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                         variants={overlayVariants}
                         initial="initial"
                         exit="exit"
-                        className="fixed inset-0 z-[100] flex flex-col justify-between items-center p-6 py-10 text-center select-none overflow-hidden bg-[#0A1226]"
+                        onClick={handleOpenEnvelope}
+                        onTouchEnd={handleOpenEnvelope}
+                        className="fixed inset-0 z-[100] flex flex-col justify-between items-center p-6 py-10 text-center select-none overflow-hidden bg-[#0A1226] cursor-pointer"
                         style={{ isolation: 'isolate' }}
                     >
                         {/* Full Background (Pre-Wedding Photo or Botanical Garden Arch) */}
                         <div className="absolute inset-0 z-0 overflow-hidden">
                             <img
                                 src={wedding.themeSettings?.coverImageUrl || heroImage || "/assets/khmer-legacy/621811254_905398285378636_5240747682765358044_n.jpg"} 
-                                className="w-full h-full object-cover transform scale-100 filter brightness-[0.88] transition-transform duration-1000"
+                                className="w-full h-full object-cover transform scale-100 filter brightness-[0.88] transition-all duration-500"
+                                style={{
+                                    objectPosition: `${heroPan.localX || '50%'} ${heroPan.localY || '20%'}`,
+                                }}
                                 alt="Pre-wedding Cover"
                             />
                             {/* Soft Vignette & Radial Glow */}
@@ -188,11 +194,11 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                             {/* Couple Names */}
                             <div className="space-y-0.5 pt-1">
                                 <h2 className="font-khmer-moul text-2xl sm:text-3xl md:text-4xl text-gold-gradient text-gold-embossed drop-shadow-[0_4px_18px_rgba(0,0,0,0.95)] tracking-wide">
-                                    {wedding.groomName}
+                                    {wedding.groomName || "សុវណ្ណរាជ មាន"}
                                 </h2>
                                 <p className="text-xs text-[#D4AF37] font-khmer-moul drop-shadow-md py-0.5">និង</p>
                                 <h2 className="font-khmer-moul text-2xl sm:text-3xl md:text-4xl text-gold-gradient text-gold-embossed drop-shadow-[0_4px_18px_rgba(0,0,0,0.95)] tracking-wide">
-                                    {wedding.brideName}
+                                    {wedding.brideName || "មាស ចាន់មានណា"}
                                 </h2>
                             </div>
                         </m.div>
@@ -213,15 +219,22 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                                 <span className="text-amber-200">{guestName || "ឯកឧត្តម លោកជំទាវ លោក លោកស្រី"}</span>
                             </div>
                                 
-                            {/* Royal Gold Open Button */}
+                            {/* Royal Gold Open Button with Pulse Glow */}
                             <m.button
                                 whileHover={{ scale: 1.03 }}
                                 whileTap={{ scale: 0.97 }}
-                                onClick={handleOpenEnvelope}
-                                className="w-full py-3.5 px-6 rounded-2xl font-khmer-moul text-amber-200 bg-[#0A1226]/95 hover:bg-[#14234b] active:scale-95 transition-all text-xs sm:text-sm tracking-wider shadow-[0_4px_25px_rgba(212,175,55,0.35)] flex items-center justify-center gap-2 border-2 border-[#D4AF37] cursor-pointer pointer-events-auto"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleOpenEnvelope();
+                                }}
+                                className="w-full py-3.5 px-6 rounded-2xl font-khmer-moul text-amber-200 bg-[#0A1226]/95 hover:bg-[#14234b] active:scale-95 transition-all text-xs sm:text-sm tracking-wider shadow-[0_4px_25px_rgba(212,175,55,0.45)] flex items-center justify-center gap-2 border-2 border-[#D4AF37] cursor-pointer pointer-events-auto animate-pulse"
                             >
-                                <span>សូមចុចបើកធៀប</span>
+                                <span>✨ សូមចុចបើកធៀប</span>
                             </m.button>
+
+                            <p className="text-[10px] text-amber-300/70 font-kantumruy tracking-wider">
+                                (ចុចត្រង់ណាក៏បាន ឬ អូសឡើងលើដើម្បីបើក)
+                            </p>
                         </m.div>
                     </m.div>
                 )}
@@ -379,6 +392,9 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                     <FooterSection wedding={wedding} />
                 </div>
             </div>
+
+            {/* Floating Mobile Bottom Navigation Bar (Appears on Scroll) */}
+            {revealed && <CelebrationNavigator wedding={wedding} />}
         </div>
     );
 }

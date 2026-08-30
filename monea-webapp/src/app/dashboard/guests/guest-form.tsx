@@ -20,7 +20,19 @@ import { moneaClient } from "@/lib/api-client";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { useToast } from "@/components/ui/Toast";
 
-export function GuestForm({ onSuccess, onDone, initialData }: { onSuccess: () => void, onDone?: () => void, initialData?: any }) {
+export function GuestForm({
+    onSuccess,
+    onDone,
+    initialData,
+    onOptimisticAdd,
+    onOptimisticUpdate
+}: {
+    onSuccess: (options?: { silent?: boolean }) => void;
+    onDone?: () => void;
+    initialData?: any;
+    onOptimisticAdd?: (guestData: any) => void;
+    onOptimisticUpdate?: (guestId: string, updatedFields: any) => void;
+}) {
     const { t } = useTranslation();
     const { showToast } = useToast();
     const [loading, setLoading] = useState(false);
@@ -39,19 +51,38 @@ export function GuestForm({ onSuccess, onDone, initialData }: { onSuccess: () =>
     });
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
-        setLoading(true);
+        const isEditing = !!initialData;
+        const guestId = initialData?.id;
+
+        // 1. Instant Optimistic UI Update (0ms delay!)
+        if (isEditing && guestId) {
+            onOptimisticUpdate?.(guestId, values);
+        } else {
+            onOptimisticAdd?.(values);
+        }
+
+        // 2. Immediately close modal and reset form
+        if (onDone) onDone();
+        form.reset();
+
+        showToast({
+            title: t("common.success") || "ជោគជ័យ",
+            description: isEditing ? (t("guests.form.editSuccess") || "បានកែប្រែព័ត៌មានភ្ញៀវ") : (t("guests.form.addSuccess") || "បានបញ្ចូលភ្ញៀវដោយជោគជ័យ"),
+            type: "success",
+        });
+
+        // 3. Fire background network sync
         try {
             const url = "/api/guests";
-            const body = initialData ? { ...values, id: initialData.id } : values;
+            const body = isEditing ? { ...values, id: guestId } : values;
 
-            const res = initialData 
+            const res = isEditing 
                 ? await moneaClient.patch(url, body)
                 : await moneaClient.post(url, body);
 
             if (!res.error) {
-                onSuccess();
-                form.reset();
-                if (onDone) onDone();
+                // Silently refresh in background without full-screen loader
+                onSuccess({ silent: true });
             } else {
                 const isLimitError = (res as any).status === 429 || res.error?.toLowerCase().includes("limit") || res.error?.toLowerCase().includes("upgrade");
                 if (isLimitError) {
@@ -68,11 +99,11 @@ export function GuestForm({ onSuccess, onDone, initialData }: { onSuccess: () =>
                         type: "error"
                     });
                 }
+                onSuccess({ silent: true });
             }
         } catch (error) {
             console.error(error);
-        } finally {
-            setLoading(false);
+            onSuccess({ silent: true });
         }
     }
 

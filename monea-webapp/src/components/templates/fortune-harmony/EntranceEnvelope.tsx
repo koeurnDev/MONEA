@@ -29,7 +29,9 @@ export const EntranceEnvelope: React.FC<EntranceEnvelopeProps> = ({
                     initial={{ opacity: 1 }}
                     exit={{ opacity: 0, scale: 1.05, filter: 'blur(10px)' }}
                     transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
-                    className="fixed inset-0 z-[100] flex flex-col justify-between items-center p-6 py-10 text-center select-none overflow-hidden bg-[#3B070E]"
+                    onClick={onOpen}
+                    onTouchEnd={onOpen}
+                    className="fixed inset-0 z-[100] flex flex-col justify-between items-center p-6 py-10 text-center select-none overflow-hidden bg-[#3B070E] cursor-pointer"
                     style={{ isolation: 'isolate' }}
                 >
                     {/* Full-bleed Pre-Wedding Photo Background */}
@@ -37,6 +39,7 @@ export const EntranceEnvelope: React.FC<EntranceEnvelopeProps> = ({
                         <img
                             src={heroImage} 
                             className="w-full h-full object-cover transform scale-100 filter brightness-[0.92] transition-transform duration-1000"
+                            style={{ objectPosition: 'center 20%' }}
                             alt="Pre-wedding Cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/85" />
@@ -83,11 +86,18 @@ export const EntranceEnvelope: React.FC<EntranceEnvelopeProps> = ({
 
                         {/* Imperial Gold Ingot Button in Khmer Moul */}
                         <button
-                            onClick={onOpen}
-                            className="w-full py-4 px-6 rounded-2xl font-khmer-moul text-[#540913] bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-300 hover:from-amber-200 hover:to-yellow-200 active:scale-95 transition-all text-xs sm:text-sm tracking-wider shadow-[0_4px_25px_rgba(217,119,6,0.45)] flex items-center justify-center gap-2 border-2 border-amber-200"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onOpen();
+                            }}
+                            className="w-full py-4 px-6 rounded-2xl font-khmer-moul text-[#540913] bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-300 hover:from-amber-200 hover:to-yellow-200 active:scale-95 transition-all text-xs sm:text-sm tracking-wider shadow-[0_4px_25px_rgba(217,119,6,0.45)] flex items-center justify-center gap-2 border-2 border-amber-200 animate-pulse"
                         >
                             <span>✨ សូមចុចបើកធៀប</span>
                         </button>
+
+                        <p className="text-[10px] text-amber-200/70 font-kantumruy tracking-wider">
+                            (ចុចត្រង់ណាក៏បាន ឬ អូសឡើងលើដើម្បីបើក)
+                        </p>
                     </motion.div>
                 </motion.div>
             )}

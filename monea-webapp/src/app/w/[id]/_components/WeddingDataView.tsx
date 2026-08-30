@@ -147,7 +147,7 @@ export default function WeddingDataView({ id, template, guestId }: { id: string;
             </Helmet>
             <Suspense fallback={<div className="min-h-screen bg-[#FDFBF7] animate-pulse" />}>
                 {(() => {
-                    const SelectedTemplate = getTemplateComponent(wedding.templateId);
+                    const SelectedTemplate = getTemplateComponent(template || wedding.templateId || "khmer-legacy");
                     return <SelectedTemplate wedding={weddingForTemplate as any} guestName={guestId ? "Guest" : undefined} />;
                 })()}
             </Suspense>

@@ -78,7 +78,7 @@ export function useKhmerLegacy(wedding: WeddingData) {
     const heroImage = wedding.themeSettings?.heroImage || (galleryImages && galleryImages.length > 0 && galleryImages[0] !== "" ? galleryImages[0] : "/assets/khmer-legacy/621811254_905398285378636_5240747682765358044_n.jpg");
     const smartColors = useSmartColor(heroImage);
 
-    const heroPan = useImagePan(wedding.themeSettings?.heroImageX || '50%', wedding.themeSettings?.heroImagePosition || '0%', 'heroImageX', 'heroImagePosition');
+    const heroPan = useImagePan(wedding.themeSettings?.heroImageX || '50%', wedding.themeSettings?.heroImagePosition || '15%', 'heroImageX', 'heroImagePosition');
     const englishPan = useImagePan(wedding.themeSettings?.englishImageX || '50%', wedding.themeSettings?.englishImagePosition || '50%', 'englishImageX', 'englishImagePosition');
     
     // Editorial Pans

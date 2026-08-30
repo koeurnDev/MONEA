@@ -87,11 +87,11 @@ export const HeroSection = ({ wedding }: { wedding: WeddingData }) => {
                 {/* Couple Names */}
                 <div className="space-y-0.5">
                     <h1 className="font-khmer-moul text-2xl sm:text-3xl md:text-4xl text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)] leading-relaxed">
-                        {groomName}
+                        {groomName || "សុវណ្ណរាជ មាន"}
                     </h1>
                     <p className="text-sm font-serif italic text-white/70 py-0.5">&amp;</p>
                     <h1 className="font-khmer-moul text-2xl sm:text-3xl md:text-4xl text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)] leading-relaxed">
-                        {brideName}
+                        {brideName || "មាស ចាន់មានណា"}
                     </h1>
                 </div>
 

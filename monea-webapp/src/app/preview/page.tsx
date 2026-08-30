@@ -164,6 +164,16 @@ export default function PreviewPage() {
                     });
                 }
 
+                if (!cleanPayload.groomName || cleanPayload.groomName.trim() === "") {
+                    cleanPayload.groomName = DEFAULT_PREVIEW_WEDDING.groomName;
+                }
+                if (!cleanPayload.brideName || cleanPayload.brideName.trim() === "") {
+                    cleanPayload.brideName = DEFAULT_PREVIEW_WEDDING.brideName;
+                }
+                if (!cleanPayload.templateId) {
+                    cleanPayload.templateId = "khmer-legacy";
+                }
+
                 setWedding(cleanPayload);
             }
 

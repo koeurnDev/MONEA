@@ -95,7 +95,7 @@ export function HeroSection({ wedding, heroImage, smartColors, heroPan, formatte
                 {/* Couple Names */}
                 <div className="space-y-1">
                     <h1 className="text-3xl sm:text-4xl md:text-5xl font-khmer-moul text-gold-gradient text-gold-embossed drop-shadow-[0_4px_20px_rgba(0,0,0,0.95)] tracking-wide leading-tight py-0.5">
-                        {wedding.groomName}
+                        {wedding.groomName || "សុវណ្ណរាជ មាន"}
                     </h1>
                     
                     <p className="text-xs sm:text-sm text-[#D4AF37] font-khmer-moul drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] py-0.5">
@@ -103,7 +103,7 @@ export function HeroSection({ wedding, heroImage, smartColors, heroPan, formatte
                     </p>
 
                     <h1 className="text-3xl sm:text-4xl md:text-5xl font-khmer-moul text-gold-gradient text-gold-embossed drop-shadow-[0_4px_20px_rgba(0,0,0,0.95)] tracking-wide leading-tight py-0.5">
-                        {wedding.brideName}
+                        {wedding.brideName || "មាស ចាន់មានណា"}
                     </h1>
                 </div>
             </m.div>

@@ -532,15 +532,27 @@ function DesignContent() {
             </div>
 
             {/* TABS FOR MOBILE */}
-            <div className="flex-1 flex flex-col min-h-0 bg-background">
+            <div className="flex-1 flex flex-col min-h-0 bg-background relative">
                 {isSheetOpen ? (
                     // EDITOR MODE
-                    <div className="flex-1 flex flex-col min-h-0">
+                    <div className="flex-1 flex flex-col min-h-0 relative">
                         <div className="flex-1 flex flex-col overflow-hidden relative">
                             {editorPanel}
                         </div>
+
+                        {/* Floating Quick Preview Button in Mobile Editor Mode */}
+                        <div className="absolute bottom-[72px] right-3 z-40 pointer-events-auto">
+                            <button
+                                onClick={() => setIsSheetOpen(false)}
+                                className="flex items-center gap-1.5 px-4 py-2.5 bg-slate-900/95 dark:bg-white/95 text-white dark:text-slate-900 font-bold text-xs font-kantumruy rounded-full shadow-xl shadow-black/25 backdrop-blur-md active:scale-95 transition-all border border-white/20"
+                            >
+                                <ExternalLink size={14} />
+                                <span>មើលគំរូ (Preview)</span>
+                            </button>
+                        </div>
+
                         {/* BOTTOM TABS FOR EDITOR */}
-                        <div className="flex-none min-h-[64px] pb-[env(safe-area-inset-bottom,6px)] pt-1.5 bg-card border-t border-slate-200/80 dark:border-white/10 flex items-center justify-around px-2 font-khmer shadow-[0_-10px_30px_rgba(0,0,0,0.08)] gap-1">
+                        <div className="flex-none min-h-[64px] pb-[env(safe-area-inset-bottom,8px)] pt-1.5 bg-card border-t border-slate-200/80 dark:border-white/10 flex items-center justify-around px-2 font-khmer shadow-[0_-10px_30px_rgba(0,0,0,0.08)] gap-1">
                             {[1,2,3,4,5].map((stepId) => {
                                 const stepTitles = ["ទម្រង់", "ព័ត៌មាន", "ពេលវេលា", "រូបភាព", "ការកំណត់"];
                                 const icons = [LayoutTemplate, Type, Clock, ImageIcon, Settings];
@@ -573,7 +585,7 @@ function DesignContent() {
                         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-auto">
                             <button
                                 onClick={() => setIsSheetOpen(true)}
-                                className="flex items-center gap-2 px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs font-kantumruy rounded-full shadow-xl shadow-rose-600/30 active:scale-95 transition-all"
+                                className="flex items-center gap-2 px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-xs sm:text-sm font-kantumruy rounded-full shadow-2xl active:scale-95 transition-all border border-white/20"
                             >
                                 <Palette size={16} />
                                 <span>ត្រឡប់ទៅកែប្រែវិញ (Edit)</span>

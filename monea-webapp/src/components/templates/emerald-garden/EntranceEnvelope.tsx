@@ -29,7 +29,9 @@ export const EntranceEnvelope: React.FC<EntranceEnvelopeProps> = ({
                     initial={{ opacity: 1 }}
                     exit={{ opacity: 0, scale: 1.05, filter: 'blur(10px)' }}
                     transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
-                    className="fixed inset-0 z-[100] flex flex-col justify-between items-center p-6 py-10 text-center select-none overflow-hidden bg-[#071710]"
+                    onClick={onOpen}
+                    onTouchEnd={onOpen}
+                    className="fixed inset-0 z-[100] flex flex-col justify-between items-center p-6 py-10 text-center select-none overflow-hidden bg-[#071710] cursor-pointer"
                     style={{ isolation: 'isolate' }}
                 >
                     {/* Full-bleed Pre-Wedding Photo Background */}
@@ -37,6 +39,7 @@ export const EntranceEnvelope: React.FC<EntranceEnvelopeProps> = ({
                         <img
                             src={heroImage} 
                             className="w-full h-full object-cover transform scale-100 filter brightness-[0.92] transition-transform duration-1000"
+                            style={{ objectPosition: 'center 20%' }}
                             alt="Pre-wedding Cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/85" />
@@ -81,11 +84,18 @@ export const EntranceEnvelope: React.FC<EntranceEnvelopeProps> = ({
 
                         {/* Emerald Jade Button */}
                         <button
-                            onClick={onOpen}
-                            className="w-full py-4 px-6 rounded-2xl font-khmer-moul text-white bg-gradient-to-r from-emerald-700 via-teal-700 to-emerald-700 hover:from-emerald-600 hover:to-teal-600 active:scale-95 transition-all text-xs sm:text-sm tracking-wider shadow-[0_4px_25px_rgba(5,150,105,0.4)] flex items-center justify-center gap-2 border border-emerald-400/50"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onOpen();
+                            }}
+                            className="w-full py-4 px-6 rounded-2xl font-khmer-moul text-white bg-gradient-to-r from-emerald-700 via-teal-700 to-emerald-700 hover:from-emerald-600 hover:to-teal-600 active:scale-95 transition-all text-xs sm:text-sm tracking-wider shadow-[0_4px_25px_rgba(5,150,105,0.4)] flex items-center justify-center gap-2 border border-emerald-400/50 animate-pulse"
                         >
                             <span>✨ សូមចុចបើកធៀប</span>
                         </button>
+
+                        <p className="text-[10px] text-emerald-200/70 font-kantumruy tracking-wider">
+                            (ចុចត្រង់ណាក៏បាន ឬ អូសឡើងលើដើម្បីបើក)
+                        </p>
                     </motion.div>
                 </motion.div>
             )}

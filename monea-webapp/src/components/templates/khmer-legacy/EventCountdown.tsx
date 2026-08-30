@@ -74,21 +74,21 @@ export function EventCountdown({
                             </p>
                         </div>
 
-                        {/* Right: Landscape Photo */}
+                        {/* Right: Landscape Photo (Slot 1: Countdown) */}
                         <div className="w-full aspect-[4/3] sm:aspect-[16/11] bg-white p-2 shadow-[0_15px_40px_rgba(212,175,55,0.1)] border border-[#D4AF37]/25 relative overflow-hidden rounded-2xl sm:rounded-3xl group">
-                            {galleryImages[0] ? (
+                            {(galleryImages[1] || galleryImages[0]) ? (
                                 <img 
-                                    src={galleryImages[0]} 
+                                    src={galleryImages[1] || galleryImages[0]} 
                                     className={`w-full h-full object-cover rounded-xl sm:rounded-2xl transition-all duration-1000 ${hubPan.isDragging ? 'cursor-grabbing scale-105' : 'cursor-grab hover:scale-105'}`} 
                                     style={{ 
-                                        objectPosition: `${hubPan.localX} ${hubPan.localY}`,
+                                        objectPosition: `${hubPan.localX || '50%'} ${hubPan.localY || '50%'}`,
                                         userSelect: 'none',
                                         touchAction: 'none'
                                     }}
                                     onMouseDown={hubPan.onStart}
                                     onTouchStart={hubPan.onStart}
                                     draggable={false}
-                                    alt="Wedding Hub" 
+                                    alt="Wedding Countdown" 
                                 />
                             ) : (
                                 <div className="w-full h-full bg-amber-50 rounded-xl sm:rounded-2xl flex items-center justify-center">

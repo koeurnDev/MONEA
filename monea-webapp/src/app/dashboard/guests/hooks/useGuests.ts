@@ -28,8 +28,10 @@ export function useGuests() {
     const [editingGuest, setEditingGuest] = useState<any>(null);
     const [deleteGuest, setDeleteGuest] = useState<{ id: string, name: string } | null>(null);
 
-    async function loadData() {
-        setLoading(true);
+    async function loadData(options?: { silent?: boolean }) {
+        if (!options?.silent) {
+            setLoading(true);
+        }
         try {
             const [guestsRes, weddingRes] = await Promise.all([
                 moneaClient.get<any>(`/api/guests?limit=${LIMIT}&offset=0`),
@@ -55,9 +57,34 @@ export function useGuests() {
         } catch (e) {
             console.error("Failed to load data", e);
         } finally {
-            setLoading(false);
+            if (!options?.silent) {
+                setLoading(false);
+            }
         }
     }
+
+    const addGuestOptimistic = (guestData: any) => {
+        const tempId = `temp-${Date.now()}`;
+        const tempGuest = {
+            id: tempId,
+            name: guestData.name,
+            group: guestData.source || guestData.group || "None",
+            source: guestData.source || "GIFT_ENTRY",
+            guestCode: `G${String(guests.length + 1).padStart(3, "0")}`,
+            sequenceNumber: guests.length + 1,
+            hasArrived: false,
+            createdAt: new Date().toISOString(),
+            ...guestData
+        };
+        setGuests(prev => [tempGuest, ...prev]);
+        setFilteredGuests(prev => [tempGuest, ...prev]);
+        return tempId;
+    };
+
+    const updateGuestOptimistic = (guestId: string, updatedFields: any) => {
+        setGuests(prev => prev.map(g => g.id === guestId ? { ...g, ...updatedFields } : g));
+        setFilteredGuests(prev => prev.map(g => g.id === guestId ? { ...g, ...updatedFields } : g));
+    };
 
     async function fetchMoreGuests() {
         if (!pagination?.hasMore || loadingMore) return;
@@ -314,6 +341,8 @@ export function useGuests() {
         deleteGuest,
         setDeleteGuest,
         loadData,
+        addGuestOptimistic,
+        updateGuestOptimistic,
         exportCSV,
         copyLink,
         handlePrint,

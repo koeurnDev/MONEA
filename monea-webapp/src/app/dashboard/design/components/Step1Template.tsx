@@ -105,9 +105,9 @@ const Step1Template: React.FC<Step1TemplateProps> = ({ wedding, updateEventType,
                                         : "border-slate-200/70 dark:border-white/10 bg-white dark:bg-card hover:bg-slate-50/50 hover:border-slate-400/50 hover:shadow-md hover:-translate-y-0.5"
                                 )}
                             >
-                                <div className="flex items-center gap-4 sm:gap-6">
-                                    {/* Template Thumbnail Image */}
-                                    <div className="w-24 sm:w-28 md:w-24 aspect-[2/3] bg-slate-100 rounded-2xl overflow-hidden relative shadow-md group-hover:scale-105 transition-transform duration-500 shrink-0 border border-slate-200/50">
+                                <div className="flex items-stretch gap-4 sm:gap-5">
+                                    {/* Template Thumbnail Image — Larger & taller */}
+                                    <div className="w-28 sm:w-32 md:w-28 aspect-[2/3] bg-slate-100 rounded-2xl overflow-hidden relative shadow-md group-hover:scale-[1.03] transition-transform duration-500 shrink-0 border border-slate-200/50">
                                         {tmpl.image ? (
                                             <img
                                                 src={tmpl.image}
@@ -120,10 +120,23 @@ const Step1Template: React.FC<Step1TemplateProps> = ({ wedding, updateEventType,
                                                 <Palette size={28} />
                                             </div>
                                         )}
+                                        {/* Selected overlay badge on the image */}
+                                        {isSelected && (
+                                            <div className="absolute inset-0 bg-slate-900/30 rounded-2xl flex items-center justify-center">
+                                                <m.div
+                                                    initial={{ scale: 0 }}
+                                                    animate={{ scale: 1 }}
+                                                    className="bg-white rounded-full p-2 shadow-lg"
+                                                >
+                                                    <Check size={18} strokeWidth={3.5} className="text-slate-900" />
+                                                </m.div>
+                                            </div>
+                                        )}
                                     </div>
 
-                                    {/* Template Code & Badges */}
-                                    <div className="flex-1">
+                                    {/* Template Info */}
+                                    <div className="flex-1 flex flex-col justify-between py-0.5">
+                                        {/* Top: Code & Badges */}
                                         <div className="flex items-center gap-2.5 flex-wrap">
                                             <span className={clsx(
                                                 "px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-black tracking-wider font-mono shadow-sm transition-colors",
@@ -144,18 +157,25 @@ const Step1Template: React.FC<Step1TemplateProps> = ({ wedding, updateEventType,
                                                 </span>
                                             )}
                                         </div>
-                                    </div>
 
-                                    {/* Selected Checkmark */}
-                                    {isSelected && (
-                                        <m.div 
-                                            initial={{ scale: 0 }}
-                                            animate={{ scale: 1 }}
-                                            className="bg-slate-900 text-white dark:bg-white dark:text-slate-900 rounded-full p-2 shadow-md shadow-slate-900/20 mr-2 shrink-0"
-                                        >
-                                            <Check size={16} strokeWidth={3.5} />
-                                        </m.div>
-                                    )}
+                                        {/* Bottom: Category pill + Click hint */}
+                                        <div className="mt-2 space-y-1.5">
+                                            <p className="text-[11px] font-bold text-muted-foreground font-kantumruy uppercase tracking-wider">
+                                                {tmpl.categories.includes('anniversary') ? t("wizard.steps.1.anniversary") : t("wizard.steps.1.wedding")}
+                                            </p>
+                                            {!tmpl.comingSoon && (
+                                                <p className={clsx(
+                                                    "text-[11px] font-semibold font-kantumruy transition-colors",
+                                                    isSelected ? "text-slate-900 dark:text-white" : "text-slate-400 dark:text-white/30 group-hover:text-slate-700 dark:group-hover:text-white/70"
+                                                )}>
+                                                    {isSelected 
+                                                        ? (t("wizard.steps.1.selectedLabel", { defaultValue: "✓ ជ្រើសហើយ" }))
+                                                        : (t("wizard.steps.1.clickToSelect", { defaultValue: "ចុចដើម្បីជ្រើស" }))
+                                                    }
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
                             </m.div>
                         );

@@ -15,8 +15,8 @@ export function LocationMap({ wedding, galleryImages, mapPan }: LocationMapProps
     const { t } = useTranslation();
     const locationQr = wedding.themeSettings?.customLabels?.locationQrUrl || wedding.themeSettings?.giftRegistry?.find((r: GiftRegistryItem) => r.type === 'CASH')?.qrCodeUrl;
 
-    // Use a portrait image from gallery (e.g. galleryImages[1] or galleryImages[5])
-    const portraitImage = galleryImages[1] || galleryImages[5] || galleryImages[0];
+    // Use Slot 2 (Location Photo) with fallbacks
+    const portraitImage = galleryImages[2] || galleryImages[1] || galleryImages[0] || "/assets/khmer-legacy/621811942_905392918712506_8600818650624857202_n.jpg";
 
     return (
         <section id="location" className="py-10 md:py-16 px-4 sm:px-8 md:px-12 bg-white relative overflow-hidden font-kantumruy">

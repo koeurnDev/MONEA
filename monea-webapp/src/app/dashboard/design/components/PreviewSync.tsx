@@ -15,6 +15,20 @@ export function PreviewSync({ wedding, iframeRef, currentStep, enableScrollSync 
     // Debounce to prevent frequent updates while typing
     const debouncedWedding = useDebounce(wedding, 300);
 
+    // Track previous templateId to detect template switches
+    const prevTemplateIdRef = useRef<string | null>(null);
+
+    // INSTANT sync when templateId changes (no debounce)
+    useEffect(() => {
+        const newTemplateId = wedding?.templateId || null;
+        if (newTemplateId && newTemplateId !== prevTemplateIdRef.current) {
+            prevTemplateIdRef.current = newTemplateId;
+            if (iframeRef.current?.contentWindow && wedding) {
+                iframeRef.current.contentWindow.postMessage({ type: "UPDATE_PREVIEW", payload: wedding }, "*");
+            }
+        }
+    }, [wedding?.templateId, wedding, iframeRef]);
+
     // 1. Send data when debounced wedding changes
     useEffect(() => {
         if (iframeRef.current && iframeRef.current.contentWindow && debouncedWedding) {
