@@ -12,15 +12,20 @@ export async function cloudinarySign(
     paramsToSign: Record<string, any>,
     apiSecret: string,
 ): Promise<string> {
-    // Build sorted param string (Cloudinary spec)
-    const str = Object.keys(paramsToSign)
-        .sort()
-        .map(k => `${k}=${Array.isArray(paramsToSign[k]) ? paramsToSign[k].join(",") : paramsToSign[k]}`)
+    const normalizedParams = Object.entries(paramsToSign).map(([key, value]) => [
+        key,
+        Array.isArray(value) ? value.join(',') : value,
+    ] as [string, unknown]);
+    const canonicalString = normalizedParams
+        .filter(([, value]) => value !== undefined && value !== null && value !== "")
+        .sort(([leftKey], [rightKey]) => leftKey.localeCompare(rightKey))
+        .map(([key, value]) => {
+            return `${key}=${value}`.replace(/&/g, "%26");
+        })
         .join("&") + apiSecret;
 
-    const enc     = new TextEncoder();
-    const keyData = enc.encode(apiSecret);
-    const msgData = enc.encode(str.slice(0, str.length - apiSecret.length) + apiSecret);
+    const enc = new TextEncoder();
+    const msgData = enc.encode(canonicalString);
 
     // Use SHA-1 (Cloudinary requires SHA-1 for upload signatures)
     const hashBuffer = await crypto.subtle.digest("SHA-1", msgData);
@@ -40,17 +45,20 @@ export async function cloudinaryDelete(
     const cloudName = 
         (typeof process !== 'undefined' && (process.env?.CLOUDINARY_CLOUD_NAME || process.env?.VITE_CLOUDINARY_CLOUD_NAME || process.env?.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME)) ||
         (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_CLOUDINARY_CLOUD_NAME) ||
-        "dilx4i5s4";
+        "";
 
     const apiKey = 
         (typeof process !== 'undefined' && (process.env?.CLOUDINARY_API_KEY || process.env?.VITE_CLOUDINARY_API_KEY || process.env?.NEXT_PUBLIC_CLOUDINARY_API_KEY)) ||
         (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_CLOUDINARY_API_KEY) ||
-        "678179776217443";
+        "";
 
     const apiSecret = 
         (typeof process !== 'undefined' && (process.env?.CLOUDINARY_API_SECRET || process.env?.CLOUDINARY_SECRET)) ||
-        (typeof import.meta !== 'undefined' && (import.meta as any).env?.CLOUDINARY_API_SECRET) ||
-        "FC0GYeRsfbJFCLw4g6_ExOfXdVs";
+        "";
+
+    if (!cloudName || !apiKey || !apiSecret) {
+        throw new Error("Cloudinary server configuration is missing");
+    }
 
     const timestamp    = Math.floor(Date.now() / 1000).toString();
     const paramsToSign = { public_id: publicId, timestamp };

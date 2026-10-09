@@ -35,7 +35,8 @@ export function downloadIcsFile({
     location,
     startDate,
     endDate,
-    fileName = "wedding-invitation.ics"
+    fileName = "wedding-invitation.ics",
+    allDay = false
 }: {
     title: string;
     description: string;
@@ -43,9 +44,16 @@ export function downloadIcsFile({
     startDate: Date;
     endDate?: Date;
     fileName?: string;
+    allDay?: boolean;
 }) {
-    const end = endDate || new Date(startDate.getTime() + 4 * 60 * 60 * 1000);
+    const end = endDate || new Date(startDate.getTime() + (allDay ? 24 * 60 * 60 * 1000 : 4 * 60 * 60 * 1000));
     const formatTime = (d: Date) => d.toISOString().replace(/-|:|\.\d+/g, "");
+    const formatDate = (d: Date) => d.toISOString().slice(0, 10).replace(/-/g, "");
+    const escapeText = (value: string) => value
+        .replace(/\\/g, "\\\\")
+        .replace(/\r?\n/g, "\\n")
+        .replace(/,/g, "\\,")
+        .replace(/;/g, "\\;");
 
     const icsContent = [
         "BEGIN:VCALENDAR",
@@ -56,11 +64,11 @@ export function downloadIcsFile({
         "BEGIN:VEVENT",
         `UID:${Date.now()}@monea.com`,
         `DTSTAMP:${formatTime(new Date())}`,
-        `DTSTART:${formatTime(startDate)}`,
-        `DTEND:${formatTime(end)}`,
-        `SUMMARY:${title.replace(/\n/g, "\\n")}`,
-        `DESCRIPTION:${description.replace(/\n/g, "\\n")}`,
-        `LOCATION:${location.replace(/\n/g, "\\n")}`,
+        `${allDay ? "DTSTART;VALUE=DATE" : "DTSTART"}:${allDay ? formatDate(startDate) : formatTime(startDate)}`,
+        `${allDay ? "DTEND;VALUE=DATE" : "DTEND"}:${allDay ? formatDate(end) : formatTime(end)}`,
+        `SUMMARY:${escapeText(title)}`,
+        `DESCRIPTION:${escapeText(description)}`,
+        `LOCATION:${escapeText(location)}`,
         "STATUS:CONFIRMED",
         "END:VEVENT",
         "END:VCALENDAR"

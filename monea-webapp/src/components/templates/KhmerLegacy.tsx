@@ -1,7 +1,8 @@
 import * as React from "react";
 import { AnimatePresence, m } from 'framer-motion';
-import { WeddingData } from "./types";
+import type { TemplateProps } from "./types";
 import { useTranslation } from "@/i18n/LanguageProvider";
+import { isSectionVisible } from "./shared/template-settings";
 
 // Extracted Hook
 import { useKhmerLegacy } from './khmer-legacy/useKhmerLegacy';
@@ -22,8 +23,10 @@ import GiftSection from "./khmer-legacy/GiftSection";
 import { ThankYouSection } from "./khmer-legacy/ThankYouSection";
 import { FooterSection } from "./khmer-legacy/FooterSection";
 import { CelebrationNavigator } from "./khmer-legacy/CelebrationNavigator";
+import { getTemplatePaletteStyles } from "@/lib/template-color-palette";
+import { GuestbookSection } from "./shared/GuestbookSection";
 
-export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingData; guestName?: string }) {
+export default function KhmerLegacy({ wedding, guestName, config }: TemplateProps) {
     const { t } = useTranslation();
     const {
         revealed,
@@ -70,6 +73,7 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
 
     const handleOpenEnvelope = () => {
         setRevealed(true);
+        window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
         setIsPlaying(true);
         if (audioRef.current && musicUrl) {
             audioRef.current.play().catch((err) => {
@@ -80,11 +84,11 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
 
     return (
         <div 
-            style={{ "--primary": primaryColor } as React.CSSProperties}
-            className="min-h-screen bg-[#FAF9F6] text-[#333] overflow-x-hidden selection:bg-[#E2D1B3] relative"
+            style={getTemplatePaletteStyles(wedding.themeSettings, primaryColor)}
+            className="khmer-legacy-template monea-full-palette min-h-screen bg-[#FAF9F6] text-[#333] overflow-x-hidden selection:bg-[#E2D1B3] relative"
         >
             <style>{`
-                :root {
+                .khmer-legacy-template {
                     --color-cream: #FFFFFF;
                     --color-ivory: #F9F9F9;
                     --color-gold-deep: #805C00;
@@ -154,94 +158,132 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                         exit="exit"
                         onClick={handleOpenEnvelope}
                         onTouchEnd={handleOpenEnvelope}
-                        className="fixed inset-0 z-[100] flex flex-col justify-between items-center p-6 py-10 text-center select-none overflow-hidden bg-[#0A1226] cursor-pointer"
+                        className={`fixed inset-0 z-[100] w-full h-[100dvh] overflow-hidden bg-[#0A1226] text-center select-none cursor-pointer ${isMobile ? 'px-4 py-4' : 'p-6 py-10'}`}
                         style={{ isolation: 'isolate' }}
                     >
-                        {/* Full Background (Pre-Wedding Photo or Botanical Garden Arch) */}
-                        <div className="absolute inset-0 z-0 overflow-hidden">
-                            <img
-                                src={wedding.themeSettings?.coverImageUrl || heroImage || "/assets/khmer-legacy/621811254_905398285378636_5240747682765358044_n.jpg"} 
-                                className="w-full h-full object-cover transform scale-100 filter brightness-[0.88] transition-all duration-500"
-                                style={{
-                                    objectPosition: `${heroPan.localX || '50%'} ${heroPan.localY || '20%'}`,
-                                }}
-                                alt="Pre-wedding Cover"
-                            />
-                            {/* Soft Vignette & Radial Glow */}
-                            <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-black/80" />
-                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(212,175,55,0.15)_0%,_transparent_70%)] pointer-events-none" />
-                        </div>
-                        
-                        {/* Top Area: Title & Couple Names in Royal Gold */}
-                        <m.div 
-                            variants={containerVariants}
-                            initial="hidden"
-                            animate="visible"
-                            className="relative z-10 w-full max-w-lg mx-auto space-y-2.5 pt-6 sm:pt-10"
-                        >
-                            {/* Traditional Title with gold wings */}
-                            <div className="flex items-center justify-center gap-2">
-                                <span className="w-6 sm:w-8 h-[1px] bg-gradient-to-r from-transparent to-[#D4AF37]" />
-                                <h1 className="font-khmer-moul text-xs sm:text-sm md:text-base text-gold-gradient text-gold-embossed drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] tracking-wider">
-                                    {wedding.themeSettings?.customLabels?.invitationTitle || 
-                                     (wedding.eventType === 'anniversary' 
-                                        ? "សិរីមង្គលពិធីភ្ជាប់ពាក្យ" 
-                                        : "សិរីមង្គលអាពាហ៍ពិពាហ៍")}
-                                </h1>
-                                <span className="w-6 sm:w-8 h-[1px] bg-gradient-to-l from-transparent to-[#D4AF37]" />
+                        <div className={`relative mx-auto flex h-full w-full max-w-[420px] flex-col items-center justify-between overflow-hidden rounded-[2rem] border border-white/10 bg-black/15 shadow-[0_25px_80px_rgba(0,0,0,0.45)] backdrop-blur-[2px] ${isMobile ? 'px-4 pb-4 pt-5' : 'px-5 pb-6 pt-7'}`}>
+                            {/* Full Background (Pre-Wedding Photo or Botanical Garden Arch) */}
+                            <div className="absolute inset-0 z-0 overflow-hidden rounded-[2rem]">
+                                {heroImage && (
+                                    <>
+                                        <img
+                                            src={heroImage}
+                                            className="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-70"
+                                            style={{
+                                                objectPosition: `${heroPan.localX || '50%'} ${heroPan.localY || '20%'}`,
+                                            }}
+                                            alt=""
+                                            aria-hidden="true"
+                                        />
+                                        <img
+                                            src={heroImage}
+                                            className="absolute inset-0 w-full h-full object-cover brightness-100 transition-all duration-500"
+                                            style={{
+                                                objectPosition: `${heroPan.localX || '50%'} ${heroPan.localY || '50%'}`,
+                                            }}
+                                            alt="Pre-wedding Cover"
+                                        />
+                                    </>
+                                )}
+                                <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-black/55" />
+                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(212,175,55,0.15)_0%,_transparent_70%)] pointer-events-none" />
                             </div>
-
-                            {/* Couple Names */}
-                            <div className="space-y-0.5 pt-1">
-                                <h2 className="font-khmer-moul text-2xl sm:text-3xl md:text-4xl text-gold-gradient text-gold-embossed drop-shadow-[0_4px_18px_rgba(0,0,0,0.95)] tracking-wide">
-                                    {wedding.groomName || "សុវណ្ណរាជ មាន"}
-                                </h2>
-                                <p className="text-xs text-[#D4AF37] font-khmer-moul drop-shadow-md py-0.5">និង</p>
-                                <h2 className="font-khmer-moul text-2xl sm:text-3xl md:text-4xl text-gold-gradient text-gold-embossed drop-shadow-[0_4px_18px_rgba(0,0,0,0.95)] tracking-wide">
-                                    {wedding.brideName || "មាស ចាន់មានណា"}
-                                </h2>
-                            </div>
-                        </m.div>
-
-                        {/* Middle Area: KEPT OPEN & CLEAR for unobstructed photo viewing */}
-                        <div className="flex-1" />
-
-                        {/* Bottom Area: Guest Pill + Royal Gold Open Envelope Button */}
-                        <m.div
-                            variants={containerVariants}
-                            initial="hidden"
-                            animate="visible"
-                            className="relative z-10 w-full max-w-xs space-y-3 pb-4 sm:pb-6"
-                        >
-                            {/* Clean One-Line Guest Pill in Khmer Moul */}
-                            <div className="text-[11px] sm:text-xs text-amber-100 bg-black/50 backdrop-blur-md border border-[#D4AF37]/60 px-4 py-2.5 rounded-2xl font-khmer-moul shadow-lg drop-shadow-md">
-                                <span className="text-amber-300/90 mr-1.5">សូមគោរពអញ្ជើញ៖</span>
-                                <span className="text-amber-200">{guestName || "ឯកឧត្តម លោកជំទាវ លោក លោកស្រី"}</span>
-                            </div>
-                                
-                            {/* Royal Gold Open Button with Pulse Glow */}
-                            <m.button
-                                whileHover={{ scale: 1.03 }}
-                                whileTap={{ scale: 0.97 }}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleOpenEnvelope();
-                                }}
-                                className="w-full py-3.5 px-6 rounded-2xl font-khmer-moul text-amber-200 bg-[#0A1226]/95 hover:bg-[#14234b] active:scale-95 transition-all text-xs sm:text-sm tracking-wider shadow-[0_4px_25px_rgba(212,175,55,0.45)] flex items-center justify-center gap-2 border-2 border-[#D4AF37] cursor-pointer pointer-events-auto animate-pulse"
+                            
+                            {/* Top Area: Title & Couple Names in Royal Gold */}
+                            <m.div 
+                                variants={containerVariants}
+                                initial="hidden"
+                                animate="visible"
+                                className="relative z-10 w-full max-w-lg mx-auto space-y-2.5 pt-2"
                             >
-                                <span>✨ សូមចុចបើកធៀប</span>
-                            </m.button>
+                                <div className="flex items-center justify-center gap-2">
+                                    <span className="w-6 sm:w-8 h-[1px] bg-gradient-to-r from-transparent to-[#D4AF37]" />
+                                    <h1 className="font-khmer-moul text-[11px] sm:text-sm md:text-base text-gold-gradient text-gold-embossed drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] tracking-wider">
+                                        {wedding.themeSettings?.customLabels?.invitationTitle || 
+                                         (wedding.eventType === 'anniversary' 
+                                            ? "សិរីមង្គលពិធីភ្ជាប់ពាក្យ" 
+                                            : "សិរីមង្គលអាពាហ៍ពិពាហ៍")}
+                                    </h1>
+                                    <span className="w-6 sm:w-8 h-[1px] bg-gradient-to-l from-transparent to-[#D4AF37]" />
+                                </div>
 
-                            <p className="text-[10px] text-amber-300/70 font-kantumruy tracking-wider">
-                                (ចុចត្រង់ណាក៏បាន ឬ អូសឡើងលើដើម្បីបើក)
-                            </p>
-                        </m.div>
+                                <div className="space-y-0.5 pt-1">
+                                    {wedding.themeSettings?.customTypographyUrl && wedding.themeSettings.customTypographyUrl !== "null" ? (
+                                        <div 
+                                            className="flex justify-center py-2 relative" 
+                                            style={{ 
+                                                transform: `scale(${(wedding.themeSettings.customTypographyScale || 100) / 100}) translateY(${wedding.themeSettings.customTypographyY || 0}px)`, 
+                                                transformOrigin: 'center' 
+                                            }}
+                                        >
+                                            <img 
+                                                src={wedding.themeSettings.customTypographyUrl} 
+                                                alt={`${wedding.groomName} and ${wedding.brideName}`} 
+                                                className="h-14 w-auto object-contain sm:h-20 md:h-24"
+                                                style={{ filter: `drop-shadow(${wedding.themeSettings.customTypographyDropShadow || '0px 2px 4px rgba(0,0,0,0.5)'})` }}
+                                            />
+                                        </div>
+                                    ) : (
+                                        <>
+                                            {wedding.groomName && <h2 className="font-khmer-moul text-[32px] leading-none sm:text-3xl md:text-4xl text-gold-gradient text-gold-embossed drop-shadow-[0_4px_18px_rgba(0,0,0,0.95)] tracking-wide">
+                                                {wedding.groomName}
+                                            </h2>}
+                                            {wedding.groomName && wedding.brideName && <p className="text-xs text-[#D4AF37] font-khmer-moul drop-shadow-md py-0.5">និង</p>}
+                                            {wedding.brideName && <h2 className="font-khmer-moul text-[32px] leading-none sm:text-3xl md:text-4xl text-gold-gradient text-gold-embossed drop-shadow-[0_4px_18px_rgba(0,0,0,0.95)] tracking-wide">
+                                                {wedding.brideName}
+                                            </h2>}
+                                        </>
+                                    )}
+                                </div>
+                            </m.div>
+
+                            <div className="relative z-10 flex min-h-[90px] w-full flex-1 items-center justify-center">
+                                <div className="h-16 w-full max-w-[180px] rounded-full bg-black/10" aria-hidden="true" />
+                            </div>
+
+                            <m.div
+                                variants={containerVariants}
+                                initial="hidden"
+                                animate="visible"
+                                className="relative z-10 w-full max-w-xs space-y-3 pb-1"
+                            >
+                                <div className="text-center rounded-2xl border border-[#D4AF37]/50 bg-black/45 px-4 py-3 backdrop-blur-md shadow-[0_12px_22px_rgba(0,0,0,0.18)]">
+                                    <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.28em] text-amber-200/75 font-kantumruy mb-1.5">
+                                        Welcome Invitation
+                                    </p>
+                                    <p className="font-khmer-moul text-sm sm:text-base text-amber-100 leading-relaxed">
+                                        សូមស្វាគមន៍
+                                    </p>
+                                    <p className="mt-1 font-khmer-moul text-[10px] sm:text-xs text-amber-200/90 leading-relaxed">
+                                        <span className="text-amber-300/90 mr-1.5">សូមគោរពអញ្ជើញ៖</span>
+                                        <span>{guestName || "ឯកឧត្តម លោកជំទាវ លោក លោកស្រី"}</span>
+                                    </p>
+                                </div>
+                                    
+                                <m.button
+                                    whileHover={{ scale: 1.03 }}
+                                    whileTap={{ scale: 0.97 }}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleOpenEnvelope();
+                                    }}
+                                    className="w-full py-3.5 px-6 rounded-2xl font-khmer-moul text-amber-200 bg-[#0A1226]/95 hover:bg-[#14234b] active:scale-95 transition-all text-xs sm:text-sm tracking-wider shadow-[0_4px_25px_rgba(212,175,55,0.45)] flex items-center justify-center gap-2 border-2 border-[#D4AF37] cursor-pointer pointer-events-auto animate-pulse"
+                                >
+                                    <span>✨ សូមចុចបើកធៀប</span>
+                                </m.button>
+
+                                <p className="text-[10px] text-amber-300/70 font-kantumruy tracking-wider">
+                                    (ចុចត្រង់ណាក៏បាន ឬ អូសឡើងលើដើម្បីបើក)
+                                </p>
+                            </m.div>
+                        </div>
                     </m.div>
                 )}
             </AnimatePresence>
 
             {/* MAIN WEDDING INVITATION CONTENT */}
-            <div className="max-w-[480px] md:max-w-none mx-auto bg-white min-h-screen relative font-serif-elegant">
+            {revealed && (
+            <div className="w-full bg-white min-h-screen relative font-serif-elegant overflow-x-hidden">
                 <div className="relative z-10">
                     
                     {/* ១. ផ្ទាំងទំព័រមុខ Hero Section */}
@@ -282,7 +324,8 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                     </m.div>
 
                     {/* ៤. ដំណើររឿងរ៉ាវនៃក្តីស្រឡាញ់ (Love Story - If Configured) */}
-                    {(wedding.themeSettings?.groomStory || wedding.themeSettings?.brideStory || wedding.themeSettings?.story?.kh) && (
+                    {isSectionVisible(config, "story") &&
+                    (wedding.themeSettings?.groomStory || wedding.themeSettings?.brideStory || wedding.themeSettings?.story?.kh || wedding.themeSettings?.loveStory || wedding.themeSettings?.storyImages?.length) && (
                         <m.div
                             initial={{ opacity: 0, y: 30 }}
                             whileInView={{ opacity: 1, y: 0 }}
@@ -294,14 +337,14 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                     )}
 
                     {/* ៥. កាលវិភាគពិធីសិរីមង្គល (Wedding Schedule / Itinerary) */}
-                    {(wedding.themeSettings?.visibility as any)?.showTimeline !== false && wedding.activities && wedding.activities.length > 0 && (
+                    {isSectionVisible(config, "timeline") && wedding.activities.length > 0 && (
                         <m.div
                             initial={{ opacity: 0, y: 30 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.8 }}
                         >
-                            <KhmerSchedule wedding={wedding} galleryImages={galleryImages} />
+                            <KhmerSchedule wedding={wedding} galleryImages={galleryImages} customTitle={config.labels.scheduleTitle} />
                         </m.div>
                     )}
 
@@ -322,7 +365,7 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                     </m.div>
 
                     {/* ៧. កម្រងរូបភាពអនុស្សាវរីយ៍ (Pre-Wedding Dynamic Photo Gallery) */}
-                    <m.div
+                    {isSectionVisible(config, "gallery") && <m.div
                         initial={{ opacity: 0 }}
                         whileInView={{ opacity: 1 }}
                         viewport={{ once: true }}
@@ -340,7 +383,7 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                             preWeddingPan5={preWeddingPan5}
                             preWeddingPan6={preWeddingPan6}
                         />
-                    </m.div>
+                    </m.div>}
 
                     {/* ៨. វីដេអូអនុស្សាវរីយ៍ (Video Section - If provided) */}
                     {wedding.themeSettings?.videoUrl && (
@@ -367,7 +410,7 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                     </m.div>
 
                     {/* ១១. ចូលរួមជូនពរ & ចំណងដៃ KHQR (Gift Section - If enabled) */}
-                    {(wedding.themeSettings?.visibility as any)?.showGift !== false && (wedding.themeSettings?.bankAccounts?.length || wedding.themeSettings?.giftRegistry?.length) && (
+                    {isSectionVisible(config, "gift") && (wedding.themeSettings?.bankAccounts?.length || wedding.themeSettings?.giftRegistry?.length) && (
                         <m.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             whileInView={{ opacity: 1, scale: 1 }}
@@ -377,6 +420,8 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                             <GiftSection wedding={wedding} />
                         </m.div>
                     )}
+
+                    {isSectionVisible(config, "guestbook") && <GuestbookSection wedding={wedding} />}
 
                     {/* ១២. សេចក្តីថ្លែងអំណរគុណ (Thank You Section) */}
                     <m.div
@@ -392,9 +437,10 @@ export default function KhmerLegacy({ wedding, guestName }: { wedding: WeddingDa
                     <FooterSection wedding={wedding} />
                 </div>
             </div>
+            )}
 
             {/* Floating Mobile Bottom Navigation Bar (Appears on Scroll) */}
-            {revealed && <CelebrationNavigator wedding={wedding} />}
+            {revealed && <CelebrationNavigator />}
         </div>
     );
 }

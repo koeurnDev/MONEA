@@ -63,14 +63,6 @@ async function request<T>(
         headers.set("Content-Type", "application/json");
     }
 
-    // Attach Bearer token from localStorage if available
-    if (typeof window !== 'undefined') {
-        const storedToken = localStorage.getItem('auth_token');
-        if (storedToken && !headers.has("Authorization")) {
-            headers.set("Authorization", `Bearer ${storedToken}`);
-        }
-    }
-
     // Attach CSRF token if mutable (excluding csrf endpoint itself)
     if (isMutable && !path.includes("/api/auth/csrf")) {
         const token = await getCsrfToken();

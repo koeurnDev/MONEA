@@ -110,12 +110,12 @@ export default function MasterUsersPage() {
                             </Button>
                         </Link>
                         <div>
-                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-teal-800 dark:text-teal-300">
                                 <Users size={13} />
                                 <span>Platform Account Control</span>
                             </div>
                             <h1 className="text-lg sm:text-xl font-bold text-foreground">
-                                {isKm ? "គ្រប់គ្រងគណនីអ្នកប្រើប្រាស់ (User Directory)" : "User Directory & Account Roles"}
+                                {isKm ? "គ្រប់គ្រងគណនីអ្នកប្រើប្រាស់ " : "User Directory & Account Roles"}
                             </h1>
                         </div>
                     </div>
@@ -157,7 +157,7 @@ export default function MasterUsersPage() {
                 <div className="space-y-3">
                     {loading && users.length === 0 ? (
                         <div className="py-24 text-center flex flex-col items-center justify-center space-y-2">
-                            <Loader2 className="w-8 h-8 animate-spin text-rose-600" />
+                            <Loader2 className="w-8 h-8 animate-spin text-teal-700 dark:text-teal-300" />
                             <span className="text-xs text-muted-foreground">កំពុងទាញយកបញ្ជីគណនី...</span>
                         </div>
                     ) : users.length === 0 ? (
@@ -182,7 +182,7 @@ export default function MasterUsersPage() {
                                                 <div className={cn(
                                                     "w-12 h-12 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 border",
                                                     isSuperAdmin 
-                                                        ? "bg-rose-500/10 text-rose-600 border-rose-500/20" 
+                                                        ? "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20"
                                                         : "bg-muted text-foreground border-border/60"
                                                 )}>
                                                     {isSuperAdmin ? <Crown size={20} /> : displayName.charAt(0).toUpperCase()}
@@ -196,7 +196,7 @@ export default function MasterUsersPage() {
                                                         <span className={cn(
                                                             "text-[9px] font-black uppercase px-2 py-0.5 rounded-md border",
                                                             isSuperAdmin 
-                                                                ? "bg-rose-500/10 text-rose-600 border-rose-500/20" 
+                                                                ? "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20"
                                                                 : "bg-muted text-muted-foreground border-border/60"
                                                         )}>
                                                             {isSuperAdmin ? "👑 Super Admin" : "💒 គូស្នេហ៍ / User"}
@@ -212,7 +212,7 @@ export default function MasterUsersPage() {
                                                         </span>
                                                         <span>•</span>
                                                         <span className="flex items-center gap-1">
-                                                            <Globe size={12} className="text-rose-500" />
+                                                            <Globe size={12} className="text-teal-700 dark:text-teal-300" />
                                                             <span>{u._count?.weddings || 0} កម្មវិធីមង្គលការ</span>
                                                         </span>
                                                     </div>
@@ -270,9 +270,9 @@ export default function MasterUsersPage() {
                                                             }
                                                         }}
                                                         disabled={processing === u.id}
-                                                        className="h-9 px-3 rounded-xl text-xs font-bold border-border hover:bg-muted text-foreground"
+                                                        className="h-9 px-3 rounded-xl text-xs font-bold border-teal-700 bg-teal-700 text-white shadow-sm hover:border-teal-800 hover:bg-teal-800 focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2"
                                                     >
-                                                        <Crown size={13} className="mr-1 text-amber-500" />
+                                                        <Crown size={13} className="mr-1 text-amber-300" />
                                                         <span>ដំឡើងជា Super Admin</span>
                                                     </Button>
                                                 )}

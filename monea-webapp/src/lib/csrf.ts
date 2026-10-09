@@ -1,11 +1,29 @@
 import { SignJWT, jwtVerify } from "jose";
 
-const CSRF_SECRET = process.env.CSRF_SECRET || "monea-default-csrf-secret-change-me";
-const ENCODED_SECRET = new TextEncoder().encode(CSRF_SECRET);
+/**
+ * Resolves the CSRF signing secret.
+ *
+ * SECURITY (fail-closed): the previous literal fallback
+ * "monea-default-csrf-secret-change-me" is published in this repository, so
+ * anyone could mint valid tokens whenever CSRF_SECRET was unset. Refuse to
+ * operate in production without a real secret.
+ */
+function resolveCsrfSecret(): string {
+    const secret = process.env.CSRF_SECRET;
 
-if (process.env.NODE_ENV === "production" && CSRF_SECRET === "monea-default-csrf-secret-change-me") {
-    console.error("[CRITICAL] CSRF_SECRET is missing or using default in production!");
+    if (!secret || secret === "monea-default-csrf-secret-change-me" || secret === "default-csrf-secret") {
+        const isProduction =
+            process.env.NODE_ENV === "production" || process.env.ENVIRONMENT === "production";
+        if (isProduction) {
+            throw new Error("[CRITICAL] CSRF_SECRET is not configured. Refusing to issue/validate CSRF tokens.");
+        }
+        return "dev-only-csrf-secret-not-for-production";
+    }
+
+    return secret;
 }
+
+const ENCODED_SECRET = new TextEncoder().encode(resolveCsrfSecret());
 
 /**
  * Generates a CSRF token tied to a specific session/fingerprint.

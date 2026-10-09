@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 import { WeddingData } from '../types';
+import { getWeddingHeroImage } from "../shared/weddingPhotos";
 
 interface EntranceEnvelopeProps {
     wedding: WeddingData;
@@ -21,7 +22,7 @@ export const EntranceEnvelope: React.FC<EntranceEnvelopeProps> = ({
     const isEngagement = wedding.eventType === 'anniversary';
     const groomName = wedding.groomName || "កូនកំលោះ";
     const brideName = wedding.brideName || "កូនក្រមុំ";
-    const heroImage = wedding.themeSettings?.heroImage || wedding.galleryItems?.[0]?.url || '/assets/blossom-romance/blossom-arch-bg.jpg';
+    const heroImage = getWeddingHeroImage(wedding, '/assets/blossom-romance/blossom-arch-bg.jpg');
 
     return (
         <AnimatePresence>
@@ -38,9 +39,19 @@ export const EntranceEnvelope: React.FC<EntranceEnvelopeProps> = ({
                     {/* Full-bleed Pre-Wedding Photo Background */}
                     <div className="absolute inset-0 z-0 overflow-hidden">
                         <img
-                            src={heroImage} 
-                            className="w-full h-full object-cover transform scale-100 filter brightness-[0.92] transition-transform duration-1000"
+                            src={heroImage}
+                            className="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-70"
                             style={{ objectPosition: 'center 20%' }}
+                            alt=""
+                            aria-hidden="true"
+                        />
+                        <img
+                            src={heroImage}
+                            className="relative w-full h-full object-cover filter brightness-[0.92] transition-transform duration-1000"
+                            style={{ objectPosition: 'center 20%' }}
+                            loading="eager"
+                            fetchPriority="high"
+                            decoding="async"
                             alt="Pre-wedding Cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/85" />
@@ -68,11 +79,11 @@ export const EntranceEnvelope: React.FC<EntranceEnvelopeProps> = ({
                     >
                         {/* Couple Names */}
                         <div className="space-y-1">
-                            <h2 className="font-khmer-moul text-2xl sm:text-3xl text-white drop-shadow-[0_3px_12px_rgba(0,0,0,0.9)] tracking-wide">
+                            <h2 className="m05-font-name font-khmer-moul text-2xl sm:text-3xl text-white drop-shadow-[0_3px_12px_rgba(0,0,0,0.9)] tracking-wide">
                                 {groomName}
                             </h2>
                             <p className="text-xs text-rose-300 font-bold font-kantumruy drop-shadow-md">&</p>
-                            <h2 className="font-khmer-moul text-2xl sm:text-3xl text-white drop-shadow-[0_3px_12px_rgba(0,0,0,0.9)] tracking-wide">
+                            <h2 className="m05-font-name font-khmer-moul text-2xl sm:text-3xl text-white drop-shadow-[0_3px_12px_rgba(0,0,0,0.9)] tracking-wide">
                                 {brideName}
                             </h2>
                         </div>

@@ -41,11 +41,7 @@ router.post('/', async (c) => {
         c.header('Content-Type', 'application/json; charset=utf-8');
         c.header('Cache-Control', 'no-store, no-cache, must-revalidate');
         
-        // Return the token so the frontend can store it in localStorage
-        // This allows the Authorization: Bearer header to work for cross-origin requests
-        const response = { ok: true, success: true, token };
-        console.log('[Session] Returning response:', JSON.stringify(response).substring(0, 100));
-        return c.json(response);
+        return c.json({ ok: true, success: true });
     } catch (error: any) {
         console.error('[Session Exception]:', error?.message || error);
         return c.json({ success: false, error: 'Invalid exchange session' }, 401);

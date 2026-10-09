@@ -64,8 +64,9 @@ analyticsRouter.post('/track', async (c) => {
             try {
                 // Use raw SQL for increment operation
                 await queryRaw(
-                    'UPDATE "Guest" SET views = views + 1 WHERE id = $1',
-                    guestId
+                    'UPDATE "Guest" SET views = views + 1 WHERE id = $1 AND "weddingId" = $2',
+                    guestId,
+                    weddingId
                 );
             } catch (e: any) {
                 console.warn("[Analytics Track] Failed to increment guest view:", e?.message || e);
@@ -106,14 +107,11 @@ analyticsRouter.get('/summary', async (c) => {
         const sourceStatsQuery = `
             SELECT 
                 COALESCE(g.source, g."group", 'មិនបានបញ្ជាក់') as source,
-                COUNT(DISTINCT g.id) as guests,
-                COALESCE(SUM(CASE WHEN gi.currency = 'USD' THEN gi.amount ELSE 0 END), 0) as usd,
-                COALESCE(SUM(CASE WHEN gi.currency = 'KHR' THEN gi.amount ELSE 0 END), 0) as khr
+                COUNT(*) as guests
             FROM "Guest" g
-            LEFT JOIN "Gift" gi ON gi."guestId" = g.id AND gi."weddingId" = $1
             WHERE g."weddingId" = $1
             GROUP BY COALESCE(g.source, g."group", 'មិនបានបញ្ជាក់')
-            ORDER BY COUNT(DISTINCT g.id) DESC
+            ORDER BY COUNT(*) DESC
             LIMIT 5
         `;
 

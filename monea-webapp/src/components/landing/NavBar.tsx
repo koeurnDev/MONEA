@@ -1,13 +1,12 @@
 import * as React from "react";
 import { Link } from 'react-router-dom';
 import { cn } from "@/lib/utils";
-import { Sparkles, ArrowRight } from "lucide-react";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { LanguageToggle } from "@/components/LanguageToggle";
+import { Star, Menu, X } from "lucide-react";
 import { AUTH_URLS } from "@/lib/constants";
 
 export function NavBar() {
     const [isScrolled, setIsScrolled] = React.useState(false);
+    const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
     React.useEffect(() => {
         const handleScroll = () => {
@@ -19,7 +18,7 @@ export function NavBar() {
 
     return (
         <header className="fixed top-3 sm:top-4 inset-x-0 z-50 px-4 sm:px-6 transition-all duration-300 pointer-events-none">
-            <div className="max-w-4xl mx-auto flex items-center justify-between pointer-events-auto">
+            <div className="relative max-w-4xl mx-auto flex items-center justify-between pointer-events-auto">
                 <div className={cn(
                     "w-full flex items-center justify-between rounded-full transition-all duration-300 px-4 sm:px-6 py-2.5",
                     "bg-white/90 dark:bg-[#121216]/90 backdrop-blur-xl border border-border/80 shadow-md shadow-slate-900/5 dark:shadow-black/40",
@@ -30,9 +29,9 @@ export function NavBar() {
                         to="/" 
                         className="flex items-center gap-2.5 group shrink-0"
                     >
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-rose-600 via-pink-500 to-amber-400 p-[1.5px] shadow-xs group-hover:scale-105 transition-transform">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-teal-700 via-teal-500 to-amber-400 p-[1.5px] shadow-xs group-hover:scale-105 transition-transform">
                             <div className="w-full h-full rounded-full bg-white dark:bg-[#121216] flex items-center justify-center">
-                                <Sparkles size={14} className="text-rose-600 dark:text-rose-400" />
+                                <Star size={14} strokeWidth={1.9} className="text-teal-800 dark:text-teal-300 origin-center animate-[spin_6s_linear_infinite]" />
                             </div>
                         </div>
                         <span className="font-outfit font-black text-sm tracking-[0.2em] text-foreground uppercase select-none">
@@ -40,27 +39,50 @@ export function NavBar() {
                         </span>
                     </Link>
 
-                    {/* Right Controls */}
-                    <div className="flex items-center gap-2 sm:gap-3 shrink-0 font-kantumruy">
-                        <LanguageToggle className="h-8 w-8 rounded-full bg-muted/60 hover:bg-muted border-none text-foreground" />
-                        <ThemeToggle className="h-8 w-8 rounded-full bg-muted/60 hover:bg-muted border-none text-foreground" />
-
-                        <Link
-                            to={AUTH_URLS.SIGN_IN}
-                            className="hidden xs:inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-all"
-                        >
-                            ចូលប្រើប្រាស់
+                    <nav className="hidden items-center gap-3 font-kantumruy text-xs font-bold text-muted-foreground sm:flex">
+                        <Link to="/" className="transition-colors hover:text-teal-800 dark:hover:text-teal-300">
+                            ទំព័រដើម
                         </Link>
+                        <a href="/#how-it-works" className="transition-colors hover:text-teal-800 dark:hover:text-teal-300">
+                            របៀបប្រើប្រាស់
+                        </a>
+                        <Link to="/contact" className="transition-colors hover:text-teal-800 dark:hover:text-teal-300">
+                            ទំនាក់ទំនង និងជំនួយ
+                        </Link>
+                    </nav>
 
+                    <div className="flex items-center gap-2 shrink-0 font-kantumruy">
                         <Link
                             to={AUTH_URLS.SIGN_UP}
-                            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-700 hover:to-amber-700 text-white font-bold text-xs shadow-xs active:scale-95 transition-all"
+                            className="inline-flex min-h-9 items-center justify-center rounded-full bg-gradient-to-r from-teal-700 to-teal-600 px-4 text-[11px] font-bold text-white shadow-sm transition hover:from-teal-800 hover:to-teal-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 sm:px-5 sm:text-xs"
                         >
-                            <span>ចាប់ផ្តើម</span>
-                            <ArrowRight size={13} />
+                            ចុះឈ្មោះ
                         </Link>
+                        <button
+                            type="button"
+                            onClick={() => setIsMenuOpen((open) => !open)}
+                            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border/80 text-foreground transition-colors hover:bg-muted sm:hidden"
+                            aria-label={isMenuOpen ? "បិទម៉ឺនុយ" : "បើកម៉ឺនុយ"}
+                            aria-expanded={isMenuOpen}
+                        >
+                            {isMenuOpen ? <X size={17} /> : <Menu size={17} />}
+                        </button>
                     </div>
                 </div>
+
+                {isMenuOpen && (
+                    <nav className="absolute left-0 right-0 top-[calc(100%+0.5rem)] rounded-2xl border border-border/80 bg-white/95 p-2 shadow-xl backdrop-blur-xl dark:bg-[#121216]/95 sm:hidden">
+                        <Link to="/" onClick={() => setIsMenuOpen(false)} className="block rounded-xl px-4 py-3 text-sm font-bold text-foreground hover:bg-muted">
+                            ទំព័រដើម
+                        </Link>
+                        <a href="/#how-it-works" onClick={() => setIsMenuOpen(false)} className="block rounded-xl px-4 py-3 text-sm font-bold text-foreground hover:bg-muted">
+                            របៀបប្រើប្រាស់
+                        </a>
+                        <Link to="/contact" onClick={() => setIsMenuOpen(false)} className="block rounded-xl px-4 py-3 text-sm font-bold text-foreground hover:bg-muted">
+                            ទំនាក់ទំនង និងជំនួយ
+                        </Link>
+                    </nav>
+                )}
             </div>
         </header>
     );

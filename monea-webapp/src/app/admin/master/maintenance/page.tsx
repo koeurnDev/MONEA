@@ -58,6 +58,7 @@ export default function MasterMaintenancePage() {
     const [mediaSearch, setMediaSearch] = useState("");
     const [previewImage, setPreviewImage] = useState<string | null>(null);
     const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
+    const [deletingAsset, setDeletingAsset] = useState<string | null>(null);
 
     // Backup & Restore State
     const [downloadingBackup, setDownloadingBackup] = useState(false);
@@ -102,6 +103,36 @@ export default function MasterMaintenancePage() {
         setCopiedUrl(url);
         setTimeout(() => setCopiedUrl(null), 2000);
         showToast({ title: isKm ? "បានចម្លង Link រួចរាល់!" : "Link Copied!", type: "success" });
+    };
+
+    const handleDeleteAsset = async (asset: any) => {
+        const id = asset?.public_id || asset?.fileId || asset;
+        if (!id) return;
+        const confirmed = window.confirm(isKm ? "តើអ្នកចង់លុបរូបនេះពិតជា?" : "Delete this asset permanently?");
+        if (!confirmed) return;
+        setDeletingAsset(id);
+        try {
+            let res;
+            const imgUrl = asset?.secure_url || asset?.url || "";
+            if (imgUrl.includes("imagekit.io") || asset?.fileId) {
+                res = await moneaClient.post('/api/imagekit/delete', { fileId: asset?.fileId || id });
+            } else {
+                // Cloudinary
+                res = await moneaClient.post('/api/cloudinary/delete', { public_id: id });
+            }
+
+            if (res?.data) {
+                setMediaAssets((prev) => prev.filter((a) => (a.public_id || a.fileId || a) !== id));
+                showToast({ title: isKm ? "លុបរូបភាពរួចរាល់" : "Asset deleted", type: "success" });
+            } else {
+                showToast({ title: isKm ? "បរាជ័យក្នុងការលុប" : "Delete failed", description: res?.error || "Server error", type: "error" });
+            }
+        } catch (e) {
+            console.error("Delete asset error:", e);
+            showToast({ title: isKm ? "បរាជ័យក្នុងការលុប" : "Delete failed", description: (e as any)?.message || String(e), type: "error" });
+        } finally {
+            setDeletingAsset(null);
+        }
     };
 
     const formatHealthStatus = (status: string) => {
@@ -298,7 +329,7 @@ export default function MasterMaintenancePage() {
                             </Button>
                         </Link>
                         <div>
-                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-teal-800 dark:text-teal-300">
                                 <HeartPulse size={13} />
                                 <span>{isKm ? "សុខភាព និងការថែទាំប្រព័ន្ធ" : "Health & Maintenance"}</span>
                             </div>
@@ -325,7 +356,7 @@ export default function MasterMaintenancePage() {
             <main className="max-w-[1400px] mx-auto p-4 sm:p-8 space-y-6">
                 {loading && !stats ? (
                     <div className="py-24 flex flex-col items-center justify-center space-y-3">
-                        <Loader2 className="w-8 h-8 animate-spin text-rose-600" />
+                        <Loader2 className="w-8 h-8 animate-spin text-teal-700 dark:text-teal-300" />
                         <p className="text-xs font-bold text-muted-foreground">{isKm ? "កំពុងទាញយកទិន្នន័យសុខភាពប្រព័ន្ធ..." : "Running diagnostics..."}</p>
                     </div>
                 ) : (
@@ -573,7 +604,7 @@ export default function MasterMaintenancePage() {
                             <Card className="bg-card border border-border/80 rounded-2xl shadow-xs overflow-hidden">
                                 <CardHeader className="p-6 pb-4 border-b border-border/50 flex flex-row items-center justify-between">
                                     <CardTitle className="text-base font-bold text-foreground flex items-center gap-2">
-                                        <Layers size={18} className="text-rose-500" />
+                                        <Layers size={18} className="text-teal-700 dark:text-teal-300" />
                                         <span>{isKm ? "ការបែងចែកទិន្នន័យ" : "Data Distribution"}</span>
                                     </CardTitle>
                                     <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground">
@@ -583,7 +614,7 @@ export default function MasterMaintenancePage() {
                                 <CardContent className="p-6 space-y-3">
                                     {[
                                         { label: isKm ? "ចំនួនអ្នកប្រើប្រាស់សរុប" : "Total Users", value: stats?.users || 0, icon: Users, color: "text-blue-500" },
-                                        { label: isKm ? "កម្មវិធីមង្គលការសកម្ម" : "Active Weddings", value: stats?.weddings || 0, icon: HeartPulse, color: "text-rose-500" },
+                                        { label: isKm ? "កម្មវិធីមង្គលការសកម្ម" : "Active Weddings", value: stats?.weddings || 0, icon: HeartPulse, color: "text-teal-700 dark:text-teal-300" },
                                         { label: isKm ? "ចំនួនភ្ញៀវកិត្តិយសសរុប" : "Guest Profiles", value: stats?.guests || 0, icon: Users, color: "text-emerald-500" },
                                         { label: isKm ? "កំណត់ត្រាប្រព័ន្ធ" : "System Logs", value: stats?.logs || 0, icon: FileText, color: "text-amber-500" },
                                     ].map((item, i) => (
@@ -912,6 +943,14 @@ export default function MasterMaintenancePage() {
                                                     >
                                                         <ExternalLink size={12} />
                                                     </a>
+                                                    <button
+                                                        onClick={() => handleDeleteAsset(asset)}
+                                                        disabled={deletingAsset === (asset.public_id || asset.fileId || imgUrl)}
+                                                        className="p-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors"
+                                                        title="លុប"
+                                                    >
+                                                        {deletingAsset === (asset.public_id || asset.fileId || imgUrl) ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>

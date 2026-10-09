@@ -63,8 +63,8 @@ export default function GovernancePage() {
 
             {/* TOP HEADER BANNER */}
             <div className="bg-slate-950 text-white">
-                <div className="max-w-7xl mx-auto px-8 py-6 flex items-center justify-between">
-                    <div className="flex items-center gap-5">
+                <div className="max-w-7xl mx-auto flex flex-col gap-4 px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8 sm:py-6">
+                    <div className="flex min-w-0 items-center gap-3 sm:gap-5">
                         <Link to="/admin/master/settings">
                             <Button variant="ghost" size="icon" className="rounded-full h-10 w-10 border border-white/10 text-white hover:bg-white/10">
                                 <ArrowLeft size={18} />
@@ -75,12 +75,12 @@ export default function GovernancePage() {
                                 <div className="w-8 h-8 rounded-xl bg-red-500 flex items-center justify-center">
                                     <ShieldAlert size={16} className="text-white" />
                                 </div>
-                                <h1 className="text-xl font-black tracking-tight">ការគ្រប់គ្រងប្រព័ន្ធ (Governance)</h1>
+                                <h1 className="text-lg font-black tracking-tight sm:text-xl">ការគ្រប់គ្រងប្រព័ន្ធ (Governance)</h1>
                             </div>
                             <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1 pl-11">Version Control · Audit Layer · Template Oversight</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-3">
                         <div className="flex items-center gap-2 text-xs text-emerald-400 font-black uppercase tracking-widest">
                             <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                             System Operational
@@ -100,7 +100,7 @@ export default function GovernancePage() {
                             <button
                                 onClick={() => fetchData(false)}
                                 disabled={refreshing}
-                                className="ml-1 w-5 h-5 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors disabled:opacity-50"
+                                className="ml-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 transition-colors hover:bg-white/20 disabled:opacity-50"
                                 title="Refresh now"
                             >
                                 <RefreshCw size={11} className={`text-white ${refreshing ? "animate-spin" : ""}`} />
@@ -113,7 +113,7 @@ export default function GovernancePage() {
             </div>
 
             {/* STAT CARDS */}
-            <div className="max-w-7xl mx-auto px-8 -mt-2 py-8">
+            <div className="mx-auto max-w-7xl px-4 -mt-2 py-6 sm:px-8 sm:py-8">
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
                     {stats.map((s, i) => (
                         <div key={i} className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 flex items-center gap-4">
@@ -227,7 +227,7 @@ export default function GovernancePage() {
                     <div className="lg:col-span-2 space-y-6">
 
                         {/* Tabs */}
-                        <div className="flex gap-1 p-1 bg-white rounded-2xl border border-slate-100 shadow-sm w-fit">
+                        <div className="flex w-full gap-1 overflow-x-auto rounded-2xl border border-slate-100 bg-white p-1 shadow-sm scrollbar-none lg:w-fit">
                             {[
                                 { id: "system", label: "System Versions", icon: Server },
                                 { id: "templates", label: "Template Snapshots", icon: Layers },
@@ -236,7 +236,7 @@ export default function GovernancePage() {
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id as any)}
-                                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === tab.id
+                                    className={`flex min-h-11 shrink-0 items-center gap-2 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all sm:px-4 sm:text-xs ${activeTab === tab.id
                                         ? "bg-slate-900 text-white shadow-sm"
                                         : "text-slate-400 hover:text-slate-700"
                                         }`}

@@ -9,22 +9,20 @@ export const weddingSchema = z
     groomName: z
       .string()
       .trim()
-      .max(100, "ឈ្មោះកូនកំលោះមិនអាចលើសពី ១០០ តួអក្សរឡើយ")
-      .optional()
-      .nullable(),
+      .min(2, "សូមបញ្ចូលឈ្មោះកូនកំលោះ")
+      .max(100, "ឈ្មោះកូនកំលោះមិនអាចលើសពី ១០០ តួអក្សរឡើយ"),
 
     brideName: z
       .string()
       .trim()
-      .max(100, "ឈ្មោះកូនក្រមុំមិនអាចលើសពី ១០០ តួអក្សរឡើយ")
-      .optional()
-      .nullable(),
+      .min(2, "សូមបញ្ចូលឈ្មោះកូនក្រមុំ")
+      .max(100, "ឈ្មោះកូនក្រមុំមិនអាចលើសពី ១០០ តួអក្សរឡើយ"),
 
-    // Coerces ISO string/Date input safely
-    date: z.coerce
-      .date({ message: "ទម្រង់កាលបរិច្ឆេទមិនត្រឹមត្រូវ" })
-      .optional()
-      .nullable(),
+    // Coerces ISO string/Date input safely while rejecting missing dates.
+    date: z.preprocess(
+      (value) => value === null ? undefined : value,
+      z.coerce.date({ message: "សូមជ្រើសរើសកាលបរិច្ឆេទត្រឹមត្រូវ" })
+    ),
 
     location: z
       .string()
@@ -75,20 +73,16 @@ export const weddingSchema = z
       )
       .optional()
       .nullable(),
-  })
-  .refine(
-    (data) => (data.groomName && data.groomName.length > 0) || (data.brideName && data.brideName.length > 0),
-    {
-      message: "ត្រូវបញ្ចូលឈ្មោះកូនកំលោះ ឬ កូនក្រមុំយ៉ាងតិចមួយ",
-      path: ["groomName"],
-    }
-  );
+  });
 
 /**
  * Partial Schema for Updating Wedding Records
  */
 export const weddingUpdateSchema = weddingSchema.partial().extend({
   weddingId: z.string().trim().min(1, "Wedding ID ត្រូវបានតម្រូវ"),
+  groomName: z.string().trim().max(100, "ឈ្មោះកូនកំលោះមិនអាចលើសពី ១០០ តួអក្សរឡើយ").optional().nullable(),
+  brideName: z.string().trim().max(100, "ឈ្មោះកូនក្រមុំមិនអាចលើសពី ១០០ តួអក្សរឡើយ").optional().nullable(),
+  date: z.coerce.date({ message: "ទម្រង់កាលបរិច្ឆេទមិនត្រឹមត្រូវ" }).optional().nullable(),
 });
 
 // Derived TypeScript Types

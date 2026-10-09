@@ -4,17 +4,36 @@ import { GuestbookForm } from "./GuestbookForm";
 import { HydratedDate } from "@/components/shared/HydratedDate";
 import { useParams } from "react-router-dom";
 import useSWR from "swr";
+import { RefreshCw } from "lucide-react";
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+type GuestbookEntry = {
+    id: string;
+    guestName: string;
+    message: string;
+    createdAt: string;
+};
+
+const fetcher = async (url: string): Promise<GuestbookEntry[]> => {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Guestbook request failed with status ${response.status}`);
+    const data = await response.json();
+    if (!Array.isArray(data)) throw new Error("Guestbook response was invalid");
+    return data as GuestbookEntry[];
+};
 
 export default function GuestbookPage() {
     const { id } = useParams();
-    const { data: messagesResponse, error, isLoading } = useSWR(id ? `/api/guestbook?weddingId=${id}` : null, fetcher);
+    const { data: messages = [], error, isLoading, mutate } = useSWR(
+        id ? `/api/guestbook?weddingId=${encodeURIComponent(id)}` : null,
+        fetcher
+    );
 
-    if (isLoading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin" /></div>;
-    if (error) return <div>Failed to load guestbook</div>;
-
-    const messages = messagesResponse?.data || [];
+    if (isLoading) return (
+        <div className="min-h-screen flex items-center justify-center gap-3 text-muted-foreground">
+            <Loader2 className="animate-spin" />
+            <span>កំពុងផ្ទុកពាក្យជូនពរ...</span>
+        </div>
+    );
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-orange-50 dark:from-gray-900 dark:via-black dark:to-gray-800 p-6 pb-28 font-siemreap">
@@ -31,7 +50,14 @@ export default function GuestbookPage() {
                 </div>
 
                 {/* Form Section */}
-                {id && <GuestbookForm weddingId={id} />}
+                {id && (
+                    <GuestbookForm
+                        weddingId={id}
+                        onSuccess={(entry) => {
+                            void mutate((current = []) => [entry, ...current], { revalidate: false });
+                        }}
+                    />
+                )}
 
                 {/* Messages List */}
                 <div className="space-y-4">
@@ -42,6 +68,24 @@ export default function GuestbookPage() {
                         </h2>
                     </div>
 
+                    {error ? (
+                        <div className="rounded-2xl border border-rose-200 bg-white/80 p-6 text-center dark:border-rose-900/50 dark:bg-white/5">
+                            <p className="text-sm font-bold text-rose-700 dark:text-rose-300">
+                                មិនអាចផ្ទុកពាក្យជូនពរបានទេ
+                            </p>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                                សូមពិនិត្យការភ្ជាប់អ៊ីនធឺណិត ហើយព្យាយាមម្តងទៀត។
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() => void mutate()}
+                                className="mt-4 inline-flex h-10 items-center gap-2 rounded-xl bg-rose-600 px-4 text-xs font-bold text-white hover:bg-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2"
+                            >
+                                <RefreshCw className="h-4 w-4" />
+                                ព្យាយាមម្តងទៀត
+                            </button>
+                        </div>
+                    ) : (
                     <div className="grid gap-4">
                         {messages.map((msg: any) => (
                             <GlassCard key={msg.id} className="p-5 hover:scale-[1.02] transition-transform">
@@ -64,8 +108,9 @@ export default function GuestbookPage() {
                             </GlassCard>
                         ))}
                     </div>
+                    )}
 
-                    {messages.length === 0 && (
+                    {!error && messages.length === 0 && (
                         <div className="text-center py-16">
                             <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 dark:bg-gray-800">
                                 <MessageSquare className="w-8 h-8 text-gray-300" />

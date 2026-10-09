@@ -1,5 +1,5 @@
 import { useState, Suspense } from "react";
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,7 +30,7 @@ function SupportForm() {
         try {
             const res = await fetch("/api/support/ticket", {
                 method: "POST",
-                body: JSON.stringify({ subject, message, priority, weddingId }),
+                body: JSON.stringify({ subject: subject.trim(), message: message.trim(), priority, weddingId }),
                 headers: { "Content-Type": "application/json" }
             });
 
@@ -66,10 +66,12 @@ function SupportForm() {
             </p>
 
             <Button
-                onClick={() => setSubmitted(false)}
-                className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl px-8 h-11 font-bold text-xs transition-all"
+                asChild
+                className="h-11 rounded-xl bg-slate-900 px-8 text-sm font-bold text-white transition-all dark:bg-white dark:text-slate-900"
             >
-                {t("support.form.success.back", { defaultValue: "ផ្ញើសារថ្មីទៀត" })}
+                <Link to="/dashboard">
+                    {t("support.form.success.back", { defaultValue: "ត្រឡប់ទៅ Dashboard" })}
+                </Link>
             </Button>
         </motion.div>
     );
@@ -84,7 +86,7 @@ function SupportForm() {
                 className="lg:col-span-7"
             >
                 <Card className="shadow-sm border border-slate-200/80 dark:border-white/10 rounded-3xl overflow-hidden bg-white dark:bg-[#141419]">
-                    <div className="p-6 sm:p-8">
+                    <div className="p-4 sm:p-8">
                         <div className="mb-6 space-y-1">
                             <h3 className="text-lg sm:text-xl font-bold font-kantumruy text-foreground">
                                 {t("support.form.title", { defaultValue: "ផ្ញើសំណើសុំជំនួយ" })}
@@ -94,14 +96,16 @@ function SupportForm() {
                             </p>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-5">
+                        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
                             <AnimatePresence mode="wait">
                                 {error && (
                                     <motion.div
                                         initial={{ opacity: 0, height: 0 }}
                                         animate={{ opacity: 1, height: 'auto' }}
                                         exit={{ opacity: 0, height: 0 }}
-                                        className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 text-xs font-bold font-kantumruy flex gap-2.5 items-center"
+                                        className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 text-sm font-bold font-kantumruy flex gap-2.5 items-center"
+                                        role="alert"
+                                        aria-live="assertive"
                                     >
                                         <AlertCircle size={16} />
                                         <span>{error}</span>
@@ -110,23 +114,24 @@ function SupportForm() {
                             </AnimatePresence>
 
                             <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-foreground font-kantumruy">
+                                <label htmlFor="support-subject" className="text-sm font-bold text-foreground font-kantumruy">
                                     {t("support.form.subject", { defaultValue: "ប្រធានបទ / ប្រភេទបញ្ហា" })}
                                 </label>
                                 <Input
+                                    id="support-subject"
                                     placeholder={t("support.form.subjectPlaceholder", { defaultValue: "តើអ្នកត្រូវការជំនួយលើផ្នែកអ្វីខ្លះ?" })}
                                     value={subject}
                                     onChange={e => setSubject(e.target.value)}
-                                    className="h-11 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 font-kantumruy text-sm text-foreground focus-visible:ring-rose-500 px-4"
+                                    className="h-11 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 font-kantumruy text-sm text-foreground focus-visible:ring-teal-500 px-4"
                                     required
                                 />
                             </div>
 
-                            <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-foreground font-kantumruy">
+                            <fieldset className="space-y-1.5">
+                                <legend className="text-sm font-bold text-foreground font-kantumruy">
                                     {t("support.form.priority", { defaultValue: "កម្រិតអាទិភាព" })}
-                                </label>
-                                <div className="grid grid-cols-2 gap-3">
+                                </legend>
+                                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3" role="group" aria-label={t("support.form.priority", { defaultValue: "កម្រិតអាទិភាព" })}>
                                     {[
                                         { id: 'NORMAL', label: t("support.form.priorityNormal", { defaultValue: "ធម្មតា" }), icon: Zap, activeColor: 'text-slate-800 dark:text-white', activeBg: 'bg-slate-100 dark:bg-white/10 border-slate-300 dark:border-white/20' },
                                         { id: 'HIGH', label: t("support.form.priorityHigh", { defaultValue: "អាទិភាពខ្ពស់ (បន្ទាន់)" }), icon: Sparkles, activeColor: 'text-amber-700 dark:text-amber-300', activeBg: 'bg-amber-500/10 border-amber-500/30' }
@@ -135,8 +140,9 @@ function SupportForm() {
                                             key={p.id}
                                             type="button"
                                             onClick={() => setPriority(p.id)}
+                                            aria-pressed={priority === p.id}
                                             className={cn(
-                                                "h-11 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all border",
+                                                "min-h-11 rounded-xl px-3 py-2 font-bold text-sm tracking-wide flex items-center justify-center gap-2 transition-all border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2",
                                                 priority === p.id
                                                     ? `${p.activeBg} ${p.activeColor} shadow-sm font-black`
                                                     : 'bg-slate-50/50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-muted-foreground hover:bg-slate-100'
@@ -147,24 +153,26 @@ function SupportForm() {
                                         </button>
                                     ))}
                                 </div>
-                            </div>
+                            </fieldset>
 
                             <div className="space-y-1.5">
-                                <label className="text-xs font-bold text-foreground font-kantumruy">
+                                <label htmlFor="support-message" className="text-sm font-bold text-foreground font-kantumruy">
                                     {t("support.form.message", { defaultValue: "សារពិពណ៌នាបញ្ហា" })}
                                 </label>
                                 <Textarea
+                                    id="support-message"
                                     placeholder={t("support.form.messagePlaceholder", { defaultValue: "សូមរៀបរាប់លម្អិតអំពីបញ្ហា ឬសំណួររបស់អ្នកឱ្យបានច្បាស់លាស់..." })}
                                     value={message}
                                     onChange={e => setMessage(e.target.value)}
-                                    className="min-h-[140px] rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 p-3.5 font-kantumruy text-sm text-foreground focus-visible:ring-rose-500 leading-relaxed"
+                                    className="min-h-[120px] sm:min-h-[140px] rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 p-3.5 font-kantumruy text-sm text-foreground focus-visible:ring-teal-500 leading-relaxed"
                                     required
                                 />
                             </div>
 
                             <Button
-                                className="h-11 w-full bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold font-kantumruy text-xs shadow-md shadow-rose-600/20 transition-all active:scale-98 flex items-center justify-center gap-2"
-                                disabled={loading}
+                                className="h-11 w-full bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-bold font-kantumruy text-xs shadow-md shadow-teal-600/20 transition-all active:scale-98 flex items-center justify-center gap-2"
+                                type="submit"
+                                disabled={loading || !subject.trim() || !message.trim()}
                             >
                                 {loading ? <Loader2 className="animate-spin h-4 w-4" /> : <><Send size={15} /> <span>{t("support.form.submit", { defaultValue: "ផ្ញើសារឥឡូវនេះ" })}</span></>}
                             </Button>
@@ -245,12 +253,12 @@ export default function SupportPage() {
             <PageHeader 
                 title={t("dashboard.user.helpSupport", { defaultValue: "ជំនួយ និងការគាំទ្រ" })} 
                 icon={LifeBuoy}
-                iconColor="text-rose-500"
+                iconColor="text-teal-500"
             />
 
             <Suspense fallback={
                 <div className="min-h-[300px] flex items-center justify-center">
-                    <Loader2 className="animate-spin text-rose-500" size={32} />
+                    <Loader2 className="animate-spin text-teal-500" size={32} />
                 </div>
             }>
                 <SupportForm />

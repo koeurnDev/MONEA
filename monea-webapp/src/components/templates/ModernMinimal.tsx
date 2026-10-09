@@ -1,7 +1,7 @@
 import * as React from "react";
 // next/dynamic replaced with React.lazy;
 import { m, AnimatePresence } from 'framer-motion';
-import { WeddingData } from "./types";
+import type { TemplateProps } from "./types";
 import { useTranslation } from "@/i18n/LanguageProvider";
 
 // Static Imports for Fast Load and SSR
@@ -13,6 +13,7 @@ import { LetterSection } from './modern-minimal/LetterSection';
 import { LocationSection } from './modern-minimal/LocationSection';
 import { GiftSection } from './modern-minimal/GiftSection';
 import { ThankYouSection } from './modern-minimal/ThankYouSection';
+import { getTemplatePaletteStyles } from "@/lib/template-color-palette";
 import { LoveStorySection } from './modern-minimal/LoveStorySection';
 import { VideoSection } from './modern-minimal/VideoSection';
 
@@ -20,8 +21,11 @@ import { EntranceEnvelope } from './modern-minimal/EntranceEnvelope';
 import { ParallaxDivider } from './modern-minimal/ParallaxDivider';
 
 import { BackgroundMusic } from './modern-minimal/BackgroundMusic';
+import { getWeddingHeroImage, getWeddingPhotos } from "./shared/weddingPhotos";
+import { isSectionVisible } from "./shared/template-settings";
+import { GuestbookSection } from "./shared/GuestbookSection";
 
-export default function ModernMinimal({ wedding, guestName }: { wedding: WeddingData; guestName?: string }) {
+export default function ModernMinimal({ wedding, guestName, config }: TemplateProps) {
     const { t } = useTranslation();
     const [revealed, setRevealed] = React.useState(false);
     const [isPlaying, setIsPlaying] = React.useState(false);
@@ -35,12 +39,14 @@ export default function ModernMinimal({ wedding, guestName }: { wedding: Wedding
     }, []);
 
     const primaryColor = wedding.themeSettings?.primaryColor || "#0A1226";
-
+    const galleryPhotos = getWeddingPhotos(wedding);
+    const heroImage = getWeddingHeroImage(wedding, '/images/bg_tunnel.webp');
     return (
         <div 
-            style={{ "--primary": primaryColor } as React.CSSProperties}
-            className="relative bg-white min-h-screen font-inter text-slate-900 selection:bg-[var(--primary)] selection:text-white"
+            style={getTemplatePaletteStyles(wedding.themeSettings, "#0A1226")}
+            className="monea-full-palette modern-minimal-invitation m05-type-system relative min-h-screen bg-[#f8f8ec] font-inter text-slate-900 selection:bg-[var(--primary)] selection:text-white"
         >
+            <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_top,_rgba(147,197,253,0.18),_transparent_35%),radial-gradient(circle_at_bottom,_rgba(59,130,246,0.10),_transparent_38%)]" />
             {!revealed && (
                 <EntranceEnvelope 
                     wedding={wedding} 
@@ -56,41 +62,49 @@ export default function ModernMinimal({ wedding, guestName }: { wedding: Wedding
                 />
             )}
 
-            <m.main
-                initial={{ opacity: 0 }}
-                animate={{ opacity: revealed ? 1 : 0 }}
-                transition={{ duration: 1.5 }}
-                className="relative z-10"
+            {revealed && <main
+                className="relative z-10 w-full overflow-x-hidden"
             >
                 <HeroSection wedding={wedding} />
                 <CountdownSection wedding={wedding} />
                 
-                <LetterSection wedding={wedding} />
-                <LoveStorySection wedding={wedding} />
+                <LetterSection wedding={wedding} guestName={guestName} />
+                {isSectionVisible(config, "story") && <LoveStorySection wedding={wedding} />}
 
                 <ParallaxDivider 
-                    imageUrl={wedding.galleryItems?.[0]?.url || wedding.themeSettings?.heroImage || '/assets/khmer-legacy/621811254_905398285378636_5240747682765358044_n.jpg'} 
+                    imageUrl={galleryPhotos[0]?.url || heroImage}
                     text="FOREVER & ALWAYS"
                 />
 
-                <ScheduleSection wedding={wedding} />
+                {isSectionVisible(config, "timeline") && <ScheduleSection wedding={wedding} title={config.labels.scheduleTitle} />}
 
                 <ParallaxDivider 
-                    imageUrl={wedding.galleryItems?.[1]?.url || wedding.themeSettings?.heroImage || '/assets/khmer-legacy/621811002_905396558712142_5126771807004187076_n.jpg'} 
+                    imageUrl={galleryPhotos[1]?.url || heroImage}
                     text="THE BEGINNING"
                 />
 
-                <LocationSection wedding={wedding} />
+                {isSectionVisible(config, "map") && <LocationSection wedding={wedding} />}
                 <VideoSection wedding={wedding} />
-                <GallerySection wedding={wedding} />
+                {isSectionVisible(config, "gallery") && <GallerySection wedding={wedding} />}
                 
-                <GiftSection wedding={wedding} />
+                {isSectionVisible(config, "gift") && <GiftSection wedding={wedding} />}
+                {isSectionVisible(config, "guestbook") && <GuestbookSection wedding={wedding} tone="dark" />}
                 <ThankYouSection wedding={wedding} />
 
-                <footer className="py-24 text-center border-t border-slate-100 bg-slate-900">
-                    <p className="text-xs uppercase tracking-[0.4em] font-bold text-slate-500">Powered by MONEA</p>
+                <footer className="border-t border-slate-800 bg-[#0A1226] px-6 py-14 text-center sm:py-16">
+                    <div className="mx-auto flex max-w-xs flex-col items-center gap-4">
+                        <div className="flex items-center gap-3" aria-hidden="true">
+                            <span className="h-px w-10 bg-gradient-to-r from-transparent to-[#C8A96B]/70" />
+                            <span className="flex h-9 w-9 items-center justify-center rounded-full border border-[#C8A96B]/60 font-serif-elegant text-sm text-[#DCC28A]">
+                                M
+                            </span>
+                            <span className="h-px w-10 bg-gradient-to-l from-transparent to-[#C8A96B]/70" />
+                        </div>
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-slate-400">Powered by MONEA</p>
+                        <p className="text-[11px] text-slate-500">Made for your forever</p>
+                    </div>
                 </footer>
-            </m.main>
+            </main>}
 
             {/* Audio Element */}
             {wedding.themeSettings?.musicUrl && (
@@ -98,7 +112,7 @@ export default function ModernMinimal({ wedding, guestName }: { wedding: Wedding
                     ref={audioRef} 
                     src={wedding.themeSettings.musicUrl} 
                     loop 
-                    preload="auto"
+                    preload="none"
                 />
             )}
 

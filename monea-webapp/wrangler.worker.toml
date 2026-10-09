@@ -1,5 +1,6 @@
-# Cloudflare Worker API Configuration for MONEA
-name = "monea-api"
+# Legacy embedded API Worker config. Use ../monea-api-worker/wrangler.toml for
+# development and deployment; this config must not target the production Worker.
+name = "monea-api-webapp-legacy"
 main = "monea-worker/worker.ts"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
@@ -11,4 +12,3 @@ NODE_ENV = "production"
 [alias]
 "@" = "./src"
 "@/server" = "./monea-worker"
-

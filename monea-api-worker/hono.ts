@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { compress } from 'hono/compress';
+import { prisma } from './lib/prisma';
 import dashboardRouter from './routers/dashboard';
 import dashboardCombinedRouter from './routers/dashboard-combined';
 import guestbookRouter from './routers/guestbook';
@@ -28,77 +28,65 @@ import pingRouter from './routers/ping';
 import sentryTunnelRouter from './routers/sentryTunnel';
 import cronRouter from './routers/cron';
 import { cors } from 'hono/cors';
+import { HTTPException } from 'hono/http-exception';
+import { csrfProtection } from './lib/csrf';
 
 // Export the root hono app
 const app = new Hono().basePath('/api');
+const workerStartedAt = Date.now();
 
-// Disable compression globally to prevent encoding issues with cross-origin requests
-// Browser will handle gzip/br decompression automatically if needed
-// app.use('*', compress());  // DISABLED - causing response decoding issues
+const allowedOrigin = (origin: string | undefined) => {
+  if (!origin) return 'https://monea-webapp.pages.dev';
 
-// Global middleware to serialize Date objects in JSON responses
-app.use('*', async (c, next) => {
-  // Store original json method
-  const originalJson = c.json.bind(c);
-  
-  // Override json method to serialize Date objects
-  c.json = function(data: any, status?: number, headers?: any) {
-    // Recursively convert Date objects to ISO strings
-    const serializeData = (obj: any): any => {
-      if (obj === null || obj === undefined) return obj;
-      if (obj instanceof Date) {
-        console.log('[Date Serializer] Converting Date to ISO string:', obj.toISOString());
-        return obj.toISOString();
-      }
-      if (Array.isArray(obj)) return obj.map(serializeData);
-      if (typeof obj === 'object' && obj.constructor === Object) {
-        const serialized: any = {};
-        for (const [key, value] of Object.entries(obj)) {
-          serialized[key] = serializeData(value);
-        }
-        return serialized;
-      }
-      return obj;
-    };
-    
-    const serializedData = serializeData(data);
-    return originalJson(serializedData, status as any, headers);
-  } as any;
-  
-  await next();
-});
+  const allowedOrigins = [
+    'https://monea-webapp.pages.dev',
+    'https://monea.app',
+    'https://www.monea.app',
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:3001',
+  ];
+
+  if (allowedOrigins.includes(origin)) return origin;
+  if (/^https:\/\/[a-z0-9-]+\.monea-webapp\.pages\.dev$/.test(origin)) return origin;
+  if (/^https:\/\/(.*\.)?monea\.app$/.test(origin)) return origin;
+  if (/^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin)) return origin;
+
+  return undefined;
+};
+
+// Compression is deliberately NOT done in the Worker.
+//
+// History: a hand-rolled gzip middleware used to live here (and before it, hono's
+// `compress()`), because "responses were not decodable". The real cause was the
+// opposite: the Worker compressed and Cloudflare's edge compressed the Worker's
+// already-encoded body again, while only one `Content-Encoding: gzip` header was
+// advertised. Measured against the live Worker (2026-09-22):
+//
+//   client accepts gzip -> Content-Encoding: gzip, body needed *two* gunzips
+//                          => every client decodes one layer and gets gzip bytes
+//   client sends identity -> no Content-Encoding, body still gzipped once
+//                          => undecodable as well
+//
+// Cloudflare already negotiates and compresses correctly on its own - e.g.
+// `GET /api/public-stats` (never touched by Worker code) is served as `br` and
+// decodes in a single layer - so the Worker now returns uncompressed JSON and
+// lets the edge do the encoding, exactly as it does for HTML/CSS/JS assets.
+
+// NOTE: the previous "serialize Date objects in JSON responses" middleware was removed.
+// It deep-cloned every response object and called c.json() recursively, but it was
+// redundant: hono's c.json() uses JSON.stringify, which already serializes Date via
+// Date.prototype.toJSON() into the same ISO-8601 string.
 
 // Configure CORS for cross-origin requests (optimized for performance)
 app.use('*', cors({
-  origin: (origin, c) => {
-    if (!origin) return 'https://monea-webapp.pages.dev';
-    
-    const allowedOrigins = [
-      'https://monea-webapp.pages.dev',
-      'https://monea.app',
-      'https://www.monea.app',
-      'http://localhost:5173',
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'http://127.0.0.1:5173',
-      'http://127.0.0.1:3000',
-      'http://127.0.0.1:3001',
-    ];
-    
-    // Quick exact match check
-    if (allowedOrigins.includes(origin)) return origin;
-    
-    // Pattern match for preview deployments (supports hyphens and custom branches)
-    if (origin.match(/^https:\/\/[a-z0-9-]+\.monea-webapp\.pages\.dev$/)) return origin;
-    if (origin.match(/^https:\/\/(.*\.)?monea\.app$/)) return origin;
-    if (origin.match(/^http:\/\/localhost:\d+$/)) return origin;
-    if (origin.match(/^http:\/\/127\.0\.0\.1:\d+$/)) return origin;
-    
-    return null; // Reject origin
-  },
+  origin: (origin) => allowedOrigin(origin) || 'https://monea-webapp.pages.dev',
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'],
   allowHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'X-Client-Fingerprint', 'Cache-Control', 'Pragma', 'sentry-trace', 'baggage', 'Priority'],
-  exposeHeaders: ['Content-Length', 'Cache-Control', 'X-CSRF-Token', 'sentry-trace', 'baggage'],
+  exposeHeaders: ['Content-Length', 'Cache-Control', 'X-CSRF-Token', 'Server-Timing', 'sentry-trace', 'baggage'],
   maxAge: 86400,
   credentials: true,
 }));
@@ -114,11 +102,48 @@ app.use('*', async (c, next) => {
   await next();
 });
 
+// CSRF enforcement for state-changing, cookie-authenticated requests.
+// Registered after the process.env polyfill so CSRF_SECRET is resolvable.
+// Staged rollout / emergency valve: CSRF_ENFORCEMENT=monitor logs instead of blocking.
+app.use('*', csrfProtection());
+
+app.use('*', async (c, next) => {
+  const startedAt = performance.now();
+  await next();
+  const existing = c.res.headers.get('Server-Timing');
+  const workerTiming = `worker;dur=${(performance.now() - startedAt).toFixed(1)}`;
+  c.header('Server-Timing', existing ? `${existing}, ${workerTiming}` : workerTiming);
+});
+
 // Basic health check endpoint with aggressive caching
 app.get('/health', (c) => {
   c.header('Cache-Control', 'public, max-age=300, s-maxage=300, stale-while-revalidate=600');
   c.header('CDN-Cache-Control', 'max-age=300');
   return c.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+app.get('/healthz', async (c) => {
+  c.header('Cache-Control', 'no-store');
+  c.header('CDN-Cache-Control', 'no-store');
+
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    return c.json({
+      status: 'ok',
+      database: 'ok',
+      uptime: Math.floor((Date.now() - workerStartedAt) / 1000),
+    });
+  } catch (error) {
+    console.error(
+      '[Health Check] Database connectivity check failed:',
+      error instanceof Error ? error.name : typeof error,
+    );
+    return c.json({
+      status: 'error',
+      database: 'unavailable',
+      uptime: Math.floor((Date.now() - workerStartedAt) / 1000),
+    }, 503);
+  }
 });
 
 // Test endpoint with edge caching
@@ -129,17 +154,6 @@ app.get('/ping', (c) => {
     message: 'pong',
     timestamp: new Date().toISOString(),
     edge: 'optimized'
-  });
-});
-
-// Debug endpoint to check cookies and headers
-app.get('/debug/headers', (c) => {
-  const headers = Object.fromEntries(c.req.raw.headers.entries());
-  return c.json({ 
-    headers,
-    cookies: c.req.header('cookie'),
-    origin: c.req.header('origin'),
-    timestamp: new Date().toISOString()
   });
 });
 
@@ -175,20 +189,24 @@ app.route('/cron', cronRouter);
 
 // Global Error Handler - simplified for better performance  
 app.onError((err, c) => {
-  console.error(`[Error] ${c.req.method} ${c.req.url}:`, err?.message || err);
-  
-  // Set CORS headers for error responses
-  const origin = c.req.header('origin');
+  const requestId = crypto.randomUUID();
+  const status = err instanceof HTTPException ? err.status : 500;
+  const message = err instanceof HTTPException ? err.message : 'Internal Server Error';
+
+  console.error(`[Error] ${requestId} ${c.req.method} ${c.req.url}:`, err);
+
+  const origin = allowedOrigin(c.req.header('origin'));
   if (origin) c.header('Access-Control-Allow-Origin', origin);
   c.header('Access-Control-Allow-Credentials', 'true');
-  c.header('Connection', 'keep-alive');
+  c.header('Cache-Control', 'no-store');
+  c.header('X-Request-ID', requestId);
 
-  return c.json({ 
-    success: false, 
-    error: "Internal Server Error", 
-    details: err?.message || "Unknown error",
-    timestamp: new Date().toISOString()
-  }, 500);
+  return c.json({
+    success: false,
+    error: message,
+    requestId,
+    timestamp: new Date().toISOString(),
+  }, status as any);
 });
 
 // Export type for RPC client if needed on frontend

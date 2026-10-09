@@ -1,4 +1,4 @@
-﻿import * as React from "react";
+import * as React from "react";
 // next/image replaced with <img>;
 import { WeddingData } from "../types";
 import { RevealSection, CinematicPlaceholder } from '../shared/CinematicComponents';
@@ -17,6 +17,12 @@ export function EnglishInvitation({
 }) {
     const { t } = useTranslation();
     const [mounted, setMounted] = React.useState(false);
+    const parents = wedding.themeSettings?.parents;
+    const groomFather = (parents?.groomFather ?? wedding.groomFather)?.trim();
+    const groomMother = (parents?.groomMother ?? wedding.groomMother)?.trim();
+    const brideFather = (parents?.brideFather ?? wedding.brideFather)?.trim();
+    const brideMother = (parents?.brideMother ?? wedding.brideMother)?.trim();
+    const hasParents = Boolean(groomFather || groomMother || brideFather || brideMother);
 
     React.useEffect(() => {
         setMounted(true);
@@ -38,18 +44,24 @@ export function EnglishInvitation({
                         </div>
 
                         {/* Parents Section */}
-                        <RevealSection>
-                            <div className="grid grid-cols-2 gap-8 md:gap-16 w-full font-gisha text-gray-700 font-bold tracking-wide text-[14px] md:text-[18px]">
-                                <div className="space-y-1 flex flex-col items-center md:items-start">
-                                    <p>{t("common.mr")} {wedding.themeSettings?.parents?.groomFather || ""}</p>
-                                    <p>& {t("common.mrs")} {wedding.themeSettings?.parents?.groomMother || ""}</p>
+                        {hasParents && (
+                            <RevealSection>
+                                <div className="grid grid-cols-2 gap-8 md:gap-16 w-full font-gisha text-gray-700 font-bold tracking-wide text-[14px] md:text-[18px]">
+                                    {(groomFather || groomMother) && (
+                                        <div className="space-y-1 flex flex-col items-center md:items-start">
+                                            {groomFather && <p>{t("common.mr")} {groomFather}</p>}
+                                            {groomMother && <p>{t("common.mrs")} {groomMother}</p>}
+                                        </div>
+                                    )}
+                                    {(brideFather || brideMother) && (
+                                        <div className={`space-y-1 flex flex-col items-center md:items-start ${!groomFather && !groomMother ? "col-start-2" : ""}`}>
+                                            {brideFather && <p>{t("common.mr")} {brideFather}</p>}
+                                            {brideMother && <p>{t("common.mrs")} {brideMother}</p>}
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="space-y-1 flex flex-col items-center md:items-start">
-                                    <p>{t("common.mr")} {wedding.themeSettings?.parents?.brideFather || ""}</p>
-                                    <p>& {t("common.mrs")} {wedding.themeSettings?.parents?.brideMother || ""}</p>
-                                </div>
-                            </div>
-                        </RevealSection>
+                            </RevealSection>
+                        )}
 
                         <RevealSection delay={0.1}>
                             <div className="space-y-4 md:space-y-6 flex flex-col items-center md:items-start">
@@ -60,29 +72,42 @@ export function EnglishInvitation({
                         </RevealSection>
 
                         <RevealSection delay={0.2}>
-                            <div className="grid grid-cols-2 gap-8 md:gap-16 pt-8 w-full">
-                                <div className="space-y-4 flex flex-col items-center md:items-start">
-                                    <p className="font-clarendon text-[11px] md:text-sm tracking-[0.4em] text-gold/50 uppercase font-black">{t("template.khmerLegacy.groomLabelEn")}</p>
-                                    <h2
-                                        style={{ color: smartColors.primary, textShadow: '0 4px 20px rgba(0,0,0,0.05)' }}
-                                        className="font-gisha text-4xl xs:text-5xl md:text-7xl font-black tracking-tight leading-tight"
-                                    >
-                                        {wedding.groomName}
-                                    </h2>
-                                    <div className="h-[2px] bg-gradient-to-r from-transparent via-gold/40 to-transparent w-full" />
+                            {wedding.themeSettings?.customMonogramUrl ? (
+                                <div className="flex justify-center items-center pt-10 pb-6 w-full">
+                                    <img 
+                                        src={wedding.themeSettings.customMonogramUrl} 
+                                        alt={`${wedding.groomName} and ${wedding.brideName}`} 
+                                        className="h-20 sm:h-24 md:h-32 w-auto object-contain"
+                                        style={{ 
+                                            transform: `scale(${(wedding.themeSettings.customMonogramScale || 100) / 100}) translateY(${wedding.themeSettings.customMonogramY || 0}px)`,
+                                            filter: `drop-shadow(${wedding.themeSettings.customMonogramDropShadow || '0px 2px 4px rgba(0,0,0,0.5)'})` 
+                                        }}
+                                    />
                                 </div>
-                                
-                                <div className="space-y-4 flex flex-col items-center md:items-start">
-                                    <p className="font-clarendon text-[11px] md:text-sm tracking-[0.4em] text-gold/50 uppercase font-black">{t("template.khmerLegacy.brideLabelEn")}</p>
-                                    <h2
-                                        style={{ color: smartColors.primary, textShadow: '0 4px 20px rgba(0,0,0,0.05)' }}
-                                        className="font-gisha text-4xl xs:text-5xl md:text-7xl font-black tracking-tight leading-tight"
-                                    >
-                                        {wedding.brideName}
-                                    </h2>
-                                    <div className="h-[2px] bg-gradient-to-r from-transparent via-gold/40 to-transparent w-full" />
+                            ) : (
+                                <div className="grid grid-cols-2 gap-8 md:gap-16 pt-8 w-full">
+                                    <div className="space-y-4 flex flex-col items-center md:items-start">
+                                        <p className="font-clarendon text-[11px] md:text-sm tracking-[0.4em] text-gold/50 uppercase font-black">{t("template.khmerLegacy.groomLabelEn")}</p>
+                                        <h2
+                                            style={{ color: smartColors.primary, textShadow: '0 4px 20px rgba(0,0,0,0.05)' }}
+                                            className="font-gisha text-4xl xs:text-5xl md:text-7xl font-black tracking-tight leading-tight"
+                                        >
+                                            {wedding.groomName}
+                                        </h2>
+                                        <div className="h-[2px] bg-gradient-to-r from-transparent via-gold/40 to-transparent w-full" />
+                                    </div>
+                                    
+                                    <div className="space-y-4 flex flex-col items-center md:items-start">
+                                        <p className="font-clarendon text-[11px] md:text-sm tracking-[0.4em] text-gold/50 uppercase font-black">{t("template.khmerLegacy.brideLabelEn")}</p>
+                                        <h2
+                                            style={{ color: smartColors.primary, textShadow: '0 4px 20px rgba(0,0,0,0.05)' }}
+                                            className="font-gisha text-4xl xs:text-5xl md:text-7xl font-black tracking-tight leading-tight"
+                                        >
+                                            {wedding.brideName}
+                                        </h2>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </RevealSection>
 
                         <RevealSection delay={0.3}>

@@ -1,0 +1,37 @@
+# --- Secrets: never commit environment files or local deploy state ---
+.env
+.env.*
+!.env.example
+.dev.vars
+cloudflare-env.json
+setup-cloudflare-env.ps1
+deploy-env.ps1
+setup-env-cloudflare.sh
+
+# --- Database dumps / backups (contain PII, password hashes, 2FA seeds) ---
+backups/
+*.sql.backup
+*.dump
+*.pgdump
+
+# --- Dependencies & build output ---
+node_modules/
+dist/
+build/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+
+# --- Local tooling state ---
+.wrangler/
+.vercel/
+.DS_Store
+
+# --- Local build/perf measurement logs ---
+build-perf-*.log
+
+# --- Local performance measurement output ---
+perf/
+monea-webapp/perf/
+

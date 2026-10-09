@@ -56,6 +56,35 @@ function safeBtoa(str: string): string {
   return Buffer.from(str).toString("base64");
 }
 
+export async function imagekitGetFilePath(
+  fileId: string,
+  privateKeyOverride?: string,
+  env?: any
+): Promise<string | null> {
+  if (!fileId) return null;
+
+  const privateKey =
+    privateKeyOverride ||
+    getEnvVar("IMAGEKIT_PRIVATE_KEY", env) ||
+    getEnvVar("VITE_IMAGEKIT_PRIVATE_KEY", env);
+
+  if (!privateKey) {
+    throw new Error("[ImageKit Edge] Private key is required to verify asset ownership.");
+  }
+
+  const authHeader = `Basic ${safeBtoa(`${privateKey}:`)}`;
+  const res = await fetch(`https://api.imagekit.io/v1/files/${encodeURIComponent(fileId)}`, {
+    headers: { Authorization: authHeader },
+  });
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    throw new Error(`[ImageKit Edge] File lookup failed with HTTP ${res.status}.`);
+  }
+
+  const data = await res.json() as { filePath?: unknown };
+  return typeof data.filePath === "string" ? data.filePath : null;
+}
+
 /**
  * Deletes an asset from ImageKit via REST API on Edge Network.
  */
@@ -78,7 +107,7 @@ export async function imagekitDelete(
 
   try {
     const authHeader = `Basic ${safeBtoa(`${privateKey}:`)}`;
-    const res = await fetch(`https://api.imagekit.io/v1/files/${fileId}`, {
+    const res = await fetch(`https://api.imagekit.io/v1/files/${encodeURIComponent(fileId)}`, {
       method: "DELETE",
       headers: {
         Authorization: authHeader,

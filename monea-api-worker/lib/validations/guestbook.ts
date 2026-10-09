@@ -18,6 +18,11 @@ export const guestbookSchema = z.object({
     .trim()
     .min(1, "Wedding ID is required"),
 
+  turnstileToken: z
+    .string()
+    .min(1, "CAPTCHA verification is required")
+    .max(2048, "Invalid CAPTCHA token"),
+
   // Honeypot field for bot protection (should be left empty by real users)
   website: z
     .string()

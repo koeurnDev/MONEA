@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { getDb } from "@/lib/drizzle"
-import { weddings, activities, galleryItems, guests, invitationAnalytics } from "@/drizzle/schema"
-import { eq, desc, and } from "drizzle-orm"
+import { weddings, activities, galleryItems, guests, invitationAnalytics, systemConfig } from "@/drizzle/schema"
+import { eq, and } from "drizzle-orm"
 import { getServerUser } from "@/lib/auth"
 import { sanitizeObject, sanitize } from "@/lib/sanitize"
 import { encrypt, decrypt } from "@/lib/encryption"
@@ -9,10 +9,25 @@ import { ROLES } from "@/lib/constants"
 import { weddingSchema, weddingUpdateSchema } from "@/lib/validations/wedding"
 import { isEditingLocked } from "@/lib/permissions"
 import { cloudinaryDelete } from "@/lib/cloudinary-edge"
-import { publicLimiter, getIP } from "@/lib/ratelimit"
-import { getUserWeddingFull, getWeddingByIdFull, generateId } from "@/lib/drizzle-helpers"
+import { imagekitDelete } from "@/lib/imagekit-edge"
+import { publicLimiter, publicWeddingSeoLimiter, getIP } from "@/lib/ratelimit"
+import {
+    getUserWedding,
+    getUserWeddingFull,
+    getWeddingById,
+    getWeddingByIdFull,
+    generateId,
+} from "@/lib/drizzle-helpers"
 import { queryRaw } from "@/lib/prisma"
+import { generateWeddingCode } from "@/lib/wedding-code"
 import { z } from "zod"
+import {
+    isTemplateCompatible,
+    isTemplateEnabled,
+    isTemplateId,
+    normalizeTemplateAvailability,
+    normalizeTemplateMetadata,
+} from "@/lib/template-availability"
 
 const weddingRouter = new Hono()
 
@@ -236,9 +251,22 @@ weddingRouter.post('/rsvp', async (c) => {
             return c.json({ error: "Missing CAPTCHA response" }, 400);
         }
 
-        const turnstileSecret = process.env.TURNSTILE_SECRET_KEY || '1x0000000000000000000000000000000AA';
+        const turnstileSecret = process.env.TURNSTILE_SECRET_KEY || process.env.TURNSTILE_SECRET;
+        const isDevEnvironment =
+            process.env.NODE_ENV === 'development' || process.env.ENVIRONMENT === 'development';
+        const usingTestSecret =
+            !turnstileSecret || turnstileSecret === '1x0000000000000000000000000000000AA';
+
+        // Fail closed outside development: never send Cloudflare's always-pass test secret.
+        if (usingTestSecret && !isDevEnvironment) {
+            console.error(
+                '[Turnstile] RSVP blocked: CAPTCHA secret is missing or set to the always-pass test key.'
+            );
+            return c.json({ error: "CAPTCHA verification is unavailable. Please try again later." }, 503);
+        }
+
         const formData = new FormData();
-        formData.append('secret', turnstileSecret);
+        formData.append('secret', turnstileSecret || '1x0000000000000000000000000000000AA');
         formData.append('response', cfTurnstileResponse);
         formData.append('remoteip', ip);
 
@@ -334,10 +362,10 @@ weddingRouter.get('/', async (c) => {
             const staffWeddingId = (user as any).weddingId;
             wedding = full 
                 ? await getWeddingByIdFull(staffWeddingId, c.env)
-                : await getDb(c.env).select().from(weddings).where(eq(weddings.id, staffWeddingId)).limit(1).then(r => r[0]);
+                : await getWeddingById(staffWeddingId, c.env);
         } else if (id) {
             // ✅ SECURITY: Verify ownership before fetching full data
-            const tempWedding = await getDb(c.env).select().from(weddings).where(eq(weddings.id, id)).limit(1).then(r => r[0]);
+            const tempWedding = await getWeddingById(id, c.env);
             
             if (!tempWedding) {
                 return c.json({ error: "Wedding not found" }, 404);
@@ -352,7 +380,7 @@ weddingRouter.get('/', async (c) => {
         } else {
             wedding = full 
                 ? await getUserWeddingFull(user.userId, c.env)
-                : await getDb(c.env).select().from(weddings).where(eq(weddings.userId, user.userId)).orderBy(desc(weddings.createdAt)).limit(1).then(r => r[0]);
+                : await getUserWedding(user.userId, c.env);
         }
 
         if (!wedding) {
@@ -424,9 +452,10 @@ weddingRouter.post('/', async (c) => {
         const newWedding = await getDb(c.env).insert(weddings).values({
             id: generateId(),
             userId: user.userId,
-            groomName: groomName || "Groom",
-            brideName: brideName || "Bride",
-            date: date ? new Date(date) : new Date(),
+            weddingCode: generateWeddingCode(),
+            groomName,
+            brideName,
+            date,
             location: location || "",
             status: "ACTIVE",
             eventType: eventType || "wedding",
@@ -482,11 +511,8 @@ weddingRouter.put('/', async (c) => {
         if (user.role === "STAFF") {
             wedding = await getWeddingByIdFull((user as any).weddingId, c.env);
         } else if (weddingId) {
-            const tempWedding = await getDb(c.env).select().from(weddings)
-                .where(and(eq(weddings.id, weddingId), eq(weddings.userId, user.userId)))
-                .limit(1)
-                .then(r => r[0]);
-            if (tempWedding) {
+            const tempWedding = await getWeddingById(weddingId, c.env);
+            if (tempWedding?.userId === user.userId) {
                 wedding = await getWeddingByIdFull(weddingId, c.env);
             }
         }
@@ -494,6 +520,29 @@ weddingRouter.put('/', async (c) => {
         // Fallback: If weddingId wasn't provided or didn't match, find the user's latest wedding
         if (!wedding && user.userId) {
             wedding = await getUserWeddingFull(user.userId, c.env);
+        }
+
+        const currentTemplateId = wedding?.templateId;
+        const requestedTemplateId = templateId || (!wedding ? "khmer-legacy" : undefined);
+        const effectiveEventType = eventType || wedding?.eventType || "wedding";
+        if (requestedTemplateId && requestedTemplateId !== currentTemplateId) {
+            if (!isTemplateId(requestedTemplateId)) {
+                return c.json({ error: "Unknown template" }, 400);
+            }
+            const config = await getDb(c.env).select({
+                templateAvailability: systemConfig.templateAvailability,
+                templateMetadata: systemConfig.templateMetadata,
+            })
+                .from(systemConfig)
+                .where(eq(systemConfig.id, "GLOBAL"))
+                .limit(1)
+                .then((rows: any) => rows[0]);
+            if (!isTemplateEnabled(normalizeTemplateAvailability(config?.templateAvailability), requestedTemplateId)) {
+                return c.json({ error: "This template is currently unavailable for new selections" }, 403);
+            }
+            if (!isTemplateCompatible(normalizeTemplateMetadata(config?.templateMetadata), requestedTemplateId, effectiveEventType)) {
+                return c.json({ error: "This template does not support the selected event type" }, 400);
+            }
         }
 
         let currentTheme = {};
@@ -508,8 +557,7 @@ weddingRouter.put('/', async (c) => {
         }
 
         const mergedTheme = sanitizedBody.themeSettings !== undefined ? {
-            ...(sanitizedBody.themeSettings || {}),
-            ...(sanitizedBody.galleryItems ? { galleryItems: sanitizedBody.galleryItems } : {})
+            ...(sanitizedBody.themeSettings || {})
         } : currentTheme;
 
         // If user still has no wedding in database, CREATE one automatically
@@ -517,6 +565,7 @@ weddingRouter.put('/', async (c) => {
             const newWedding = await getDb(c.env).insert(weddings).values({
                 id: generateId(),
                 userId: user.userId,
+                weddingCode: generateWeddingCode(),
                 groomName: groomName || "Groom",
                 brideName: brideName || "Bride",
                 date: date ? new Date(date) : new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
@@ -540,7 +589,7 @@ weddingRouter.put('/', async (c) => {
         }
 
         const isPremium = wedding.packageType === "PREMIUM";
-        
+
         if (templateId && templateId.toLowerCase().includes("premium") && !isPremium) {
             return c.json({ error: "The selected template requires a Premium package." }, 403);
         }
@@ -588,10 +637,16 @@ weddingRouter.put('/', async (c) => {
             
             for (const item of deletedGalleryItems) {
                 try {
-                    await cloudinaryDelete(item.publicId, item.type === 'VIDEO' ? 'video' : 'image');
-                    console.log(`[Cloudinary] Deleted orphaned gallery item: ${item.publicId}`);
+                    if (item.url?.includes("imagekit.io")) {
+                        const deleted = await imagekitDelete(item.publicId, undefined, c.env);
+                        if (!deleted) throw new Error("ImageKit delete request failed");
+                        console.log(`[ImageKit] Deleted orphaned gallery item: ${item.publicId}`);
+                    } else {
+                        await cloudinaryDelete(item.publicId, item.type === 'VIDEO' ? 'video' : 'image', c.env);
+                        console.log(`[Cloudinary] Deleted orphaned gallery item: ${item.publicId}`);
+                    }
                 } catch (e: any) {
-                    console.error(`[Cloudinary] Failed to delete orphaned gallery item ${item.publicId}:`, e.message);
+                    console.error(`[Gallery] Failed to delete orphaned gallery item ${item.publicId}:`, e.message);
                 }
             }
 
@@ -673,6 +728,57 @@ weddingRouter.put('/', async (c) => {
 });
 
 // Public endpoint for wedding lookup (for static export)
+weddingRouter.get('/:id/seo', async (c) => {
+    const ip = getIP(c.req.raw as any);
+    const { success } = await publicWeddingSeoLimiter.limit(ip);
+    if (!success) {
+        c.header("Retry-After", "60");
+        return c.json({ error: "Too many requests. Please slow down." }, 429);
+    }
+
+    const weddingId = c.req.param("id");
+    if (!/^[\w-]{1,128}$/.test(weddingId)) {
+        return c.json({ error: "Wedding not found" }, 404);
+    }
+
+    try {
+        const db = getDb(c.env);
+        const wedding = await db.select({
+            id: weddings.id,
+            groomName: weddings.groomName,
+            brideName: weddings.brideName,
+            date: weddings.date,
+            themeSettings: weddings.themeSettings,
+        })
+            .from(weddings)
+            .where(eq(weddings.id, weddingId))
+            .limit(1)
+            .then(rows => rows[0]);
+
+        if (!wedding) {
+            return c.json({ error: "Wedding not found" }, 404);
+        }
+
+        let themeSettings: Record<string, unknown> = {};
+        if (wedding.themeSettings && typeof wedding.themeSettings === "object") {
+            themeSettings = wedding.themeSettings as Record<string, unknown>;
+        }
+
+        c.header("Cache-Control", "public, max-age=0, s-maxage=60, stale-while-revalidate=300");
+        return c.json({
+            id: wedding.id,
+            groomName: wedding.groomName,
+            brideName: wedding.brideName,
+            date: wedding.date,
+            heroImage: typeof themeSettings.heroImage === "string" ? themeSettings.heroImage : null,
+            coverImageUrl: typeof themeSettings.coverImageUrl === "string" ? themeSettings.coverImageUrl : null,
+        });
+    } catch (error) {
+        console.error("[Wedding SEO GET]", error);
+        return c.json({ error: "Internal server error" }, 500);
+    }
+});
+
 weddingRouter.get('/:id', async (c) => {
     try {
         const weddingId = c.req.param("id");
@@ -683,8 +789,8 @@ weddingRouter.get('/:id', async (c) => {
             return c.json({ error: "Wedding not found" }, 404);
         }
 
-        // Enable edge caching for 60 seconds (Cloudflare will serve from cache to prevent DB overload)
-        c.header('Cache-Control', 'public, max-age=60, s-maxage=60, stale-while-revalidate=120');
+        // Enable short edge caching (10 seconds) to prevent DB overload but allow quick updates
+        c.header('Cache-Control', 'public, max-age=10, s-maxage=10, stale-while-revalidate=60');
 
         let parsedThemeSettings: any = wedding.themeSettings;
         if (typeof parsedThemeSettings === 'string') {
@@ -696,9 +802,7 @@ weddingRouter.get('/:id', async (c) => {
         }
 
         let galleryItemsList: any[] = wedding.galleryItems || [];
-        if (parsedThemeSettings?.galleryItems && Array.isArray(parsedThemeSettings.galleryItems)) {
-            galleryItemsList = parsedThemeSettings.galleryItems;
-        } else if (galleryItemsList && Array.isArray(galleryItemsList)) {
+        if (galleryItemsList && Array.isArray(galleryItemsList)) {
             const reconstructed: any[] = [];
             galleryItemsList.forEach((item: any, idx: number) => {
                 if (item.caption?.startsWith("slot:")) {

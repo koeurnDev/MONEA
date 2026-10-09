@@ -14,6 +14,15 @@ export default function AuthCallbackPage() {
     const handleCallback = async () => {
       try {
         const code = searchParams.get("code");
+        const hasLegacyToken = searchParams.has("token");
+        window.history.replaceState(null, "", window.location.pathname);
+
+        if (hasLegacyToken) {
+          setError("Invalid authentication session");
+          setStatus("error");
+          setTimeout(() => navigate("/sign-in"), 2000);
+          return;
+        }
         
         if (!code) {
           setError("No authorization code received");
@@ -26,8 +35,6 @@ export default function AuthCallbackPage() {
 
         // Exchange the temporary code for a session
         const response = await moneaClient.post("/api/auth/session", { code });
-
-        console.log("[Auth Callback] Response:", response);
 
         if (response && !response.error) {
           console.log("[Auth Callback] Session created successfully");

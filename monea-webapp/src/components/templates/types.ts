@@ -15,6 +15,45 @@ export interface GiftRegistryItem {
     qrCodeUrl?: string;
 }
 
+export type TemplateSection =
+    | "hero"
+    | "gallery"
+    | "story"
+    | "timeline"
+    | "guestbook"
+    | "map"
+    | "gift"
+    | "eventInfo"
+    | "contact";
+
+export type VisibilityKey =
+    | "showHero"
+    | "showGallery"
+    | "showStory"
+    | "showTimeline"
+    | "showGuestbook"
+    | "showMap"
+    | "showGift"
+    | "showEventInfo"
+    | "showContact";
+
+export type SectionVisibility = Partial<Record<VisibilityKey, boolean>>;
+
+export interface TemplateLabels {
+    scheduleTitle?: string;
+    storyTitle?: string;
+    [label: string]: string | undefined;
+}
+
+export interface LegacyTemplateLabels extends TemplateLabels {
+    schedule_title?: string;
+}
+
+export interface ResolvedTemplateConfig {
+    visibility: SectionVisibility;
+    labels: TemplateLabels;
+}
+
 export interface WeddingData {
     id: string;
     groomName: string;
@@ -35,10 +74,30 @@ export interface WeddingData {
     activities: { time: string; description: string | null; title: string, icon?: string | null, publicId?: string | null, order?: number }[];
     themeSettings?: {
         primaryColor?: string;
+        colorPalettePreset?: string;
         coverImageUrl?: string;
         loveStory?: string;
         nameFont?: string;
         nameSeparator?: string;
+        m05TitleFont?: string;
+        m05NameFont?: string;
+        m05ColorPreset?: string;
+        m05EnvelopeColor?: string;
+        m05SealColor?: string;
+        m05SurfaceColor?: string;
+        m05HighlightColor?: string;
+        m05FoilShadeColor?: string;
+        m05PhotoTint?: number;
+        customTypographyUrl?: string;
+        customTypographyPublicId?: string;
+        customTypographyScale?: number;
+        customTypographyY?: number;
+        customTypographyDropShadow?: string;
+        customMonogramUrl?: string;
+        customMonogramPublicId?: string;
+        customMonogramScale?: number;
+        customMonogramY?: number;
+        customMonogramDropShadow?: string;
         musicUrl?: string;
         musicUrlPublicId?: string;
         mapLink?: string;
@@ -89,6 +148,7 @@ export interface WeddingData {
         galleryStyle?: 'masonry' | 'slider' | 'polaroid';
         facebookUrl?: string;
         telegramUrl?: string;
+        phoneNumber?: string;
         paymentQrUrl?: string;
         lunarDate?: string;
         acknowledgment?: string;
@@ -104,19 +164,17 @@ export interface WeddingData {
             en?: string;
             [key: string]: string | undefined;
         };
-        customLabels?: Record<string, string>;
+        customLabels?: LegacyTemplateLabels;
         storyImages?: string[];
+        storyImageCaptions?: string[];
+        storyImagePublicId?: string;
+        storyImagePublicIds?: string[];
         welcomeMessage?: string;
         invitationText?: string;
-        visibility?: {
-            showHero?: boolean;
-            showGallery?: boolean;
-            showStory?: boolean;
-            showTimeline?: boolean;
-            showGuestbook?: boolean;
-            showEventInfo?: boolean;
-            showContact?: boolean;
-        };
+        visibility?: SectionVisibility & { showSchedule?: boolean };
+        hiddenPhotoSlots?: number[];
+        hiddenGalleryPhotoKeys?: string[];
+        galleryItems?: { url: string; publicId?: string; type: string }[];
         fontStyle?: string;
         shareImage?: string;
         parents?: {
@@ -144,5 +202,6 @@ export interface WeddingData {
 
 export interface TemplateProps {
     wedding: WeddingData;
+    config: ResolvedTemplateConfig;
     guestName?: string;
 }

@@ -25,16 +25,6 @@ interface TemplateCard {
 
 const TEMPLATES: TemplateCard[] = [
     {
-        id: "khmer-legacy",
-        title: "Khmer Legacy",
-        khmerTitle: "មរតកខ្មែរ",
-        description: "រចនាប័ទ្មក្បូរក្បាច់បុរាណខ្មែរ ពណ៌មាសប្រណិត ស័ក្តិសមបំផុតសម្រាប់ពិធីមង្គលការបែបប្រពៃណីខ្មែរ។",
-        palette: ["#D4AF37", "#8C1D2F", "#1A150E"],
-        tag: "ពេញនិយមបំផុត",
-        image: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=600&auto=format&fit=crop",
-        popular: true
-    },
-    {
         id: "blossom-romance",
         title: "Blossom Romance",
         khmerTitle: "មង្គលសិរីផ្កា",

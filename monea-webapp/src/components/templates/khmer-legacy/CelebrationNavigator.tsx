@@ -1,16 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
-import { Calendar, MapPin, MessageSquare, Send, Home } from 'lucide-react';
-import { WeddingData } from '../types';
+import { MapPin, MessageSquare, Send, Home } from 'lucide-react';
 
-import { useTranslation } from '@/i18n/LanguageProvider';
-
-interface CelebrationNavigatorProps {
-    wedding: WeddingData;
-}
-
-export function CelebrationNavigator({ wedding }: CelebrationNavigatorProps) {
-    const { t } = useTranslation();
+export function CelebrationNavigator() {
     const [scrolled, setScrolled] = useState(false);
     const [activeSection, setActiveSection] = useState('hero');
 
@@ -40,10 +32,6 @@ export function CelebrationNavigator({ wedding }: CelebrationNavigatorProps) {
         { id: 'location', icon: MapPin, label: "ទីតាំង" },
         { id: 'gift-section', icon: MessageSquare, label: "ចងដៃ" },
     ];
-
-    if ((wedding.themeSettings?.visibility as any)?.showGuestbook !== false) {
-        navItems.push({ id: 'guestbook', icon: MessageSquare, label: t("common.guestbook") });
-    }
 
     const scrollTo = (id: string) => {
         const element = document.getElementById(id);

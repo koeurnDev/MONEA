@@ -16,6 +16,14 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
 
     const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
+    const toKhmerNumber = (value: number) => {
+        const digits = ["០", "១", "២", "៣", "៤", "៥", "៦", "៧", "៨", "៩"];
+        return String(value)
+            .split("")
+            .map((digit) => digits[Number(digit)] ?? digit)
+            .join("");
+    };
+
     useEffect(() => {
         const calculateTime = () => {
             const difference = +eventDate - +new Date();
@@ -31,109 +39,105 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
         calculateTime();
         const timer = setInterval(calculateTime, 1000);
         return () => clearInterval(timer);
-    }, [wedding.date]);
+    }, [eventDate]);
 
     const formatKhmerDate = (date: Date) => {
         const monthsKh = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
         const day = date.getDate();
         const month = monthsKh[date.getMonth()];
         const year = date.getFullYear();
-        return `ថ្ងៃទី ${day} ខែ ${month} ឆ្នាំ ${year}`;
+        return `ថ្ងៃ ${day} ខែ ${month} ឆ្នាំ ${year}`;
     };
 
     return (
-        <section className="relative w-full min-h-[640px] bg-[#610C17] text-white flex flex-col items-center justify-center p-6 text-center overflow-hidden">
-            {/* Background Crimson & Gold Image */}
-            <div 
-                className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-95"
-                style={{ backgroundImage: `url('/assets/fortune-harmony/fortune-crimson-bg.jpg')` }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
+        <section className="relative w-full min-h-[730px] overflow-visible bg-transparent">
+            <div className="relative z-10 mx-auto flex min-h-[730px] max-w-5xl items-center justify-center px-3 pt-24 pb-32 sm:px-5">
+                <div className="w-full max-w-[760px] px-4 sm:px-8">
+                    <div className="text-center">
+                        <motion.div
+                            initial={{ opacity: 0, y: 15 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6 }}
+                            className="mb-4"
+                        >
+                            <span className="block font-khmer-moul text-[26px] tracking-[0.08em] text-[#4b5648] sm:text-[30px]">
+                                {isEngagement ? "សិរីមង្គលពិធីភ្ជាប់ពាក្យ" : "សិរីមង្គលអាពាហ៍ពិពាហ៍"}
+                            </span>
+                        </motion.div>
 
-            <div className="relative z-10 max-w-lg mx-auto flex flex-col items-center space-y-6 pt-16 pb-12">
-                {/* Header Tag */}
-                <motion.div
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
-                    className="space-y-1"
-                >
-                    <span className="text-xl sm:text-2xl font-khmer-moul text-amber-300 tracking-wider drop-shadow-md block">
-                        {isEngagement ? "សិរីមង្គលពិធីភ្ជាប់ពាក្យ" : "សិរីមង្គលអាពាហ៍ពិពាហ៍"}
-                    </span>
-                    <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto mt-1" />
-                </motion.div>
+                        <motion.div
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.7, delay: 0.2 }}
+                            className="mb-4 flex items-center justify-center gap-4 text-[#7a8f65]"
+                            style={{ fontFamily: 'serif' }}
+                        >
+                            <span className="h-px w-10 bg-[#8ea07a]" />
+                            <span className="text-[26px] leading-none tracking-[0.2em]">◆</span>
+                            <span className="h-px w-10 bg-[#8ea07a]" />
+                        </motion.div>
 
-                {/* Double Happiness Gold Crest */}
-                <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 0.7, delay: 0.2 }}
-                    className="w-20 h-20 rounded-full border-2 border-amber-400 bg-black/40 backdrop-blur-md shadow-2xl shadow-amber-500/20 flex items-center justify-center text-amber-300 text-3xl font-bold font-serif"
-                >
-                    囍
-                </motion.div>
+                        <motion.div
+                            initial={{ opacity: 0, y: 15 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6, delay: 0.3 }}
+                            className="space-y-3"
+                        >
+                            <h1 className="m05-font-name text-[37px] tracking-[0.04em] text-[#2d352b] sm:text-[52px]">
+                                {groomName}
+                            </h1>
 
-                {/* Couple Names */}
-                <motion.div
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.3 }}
-                    className="space-y-2 py-2"
-                >
-                    <h1 className="text-3xl sm:text-4xl font-khmer-moul text-amber-100 drop-shadow-lg">
-                        {groomName}
-                    </h1>
-                    <div className="flex items-center justify-center gap-3">
-                        <span className="h-px w-10 bg-amber-400/50" />
-                        <Heart size={16} className="text-amber-400 fill-amber-400" />
-                        <span className="h-px w-10 bg-amber-400/50" />
+                            <div className="flex items-center justify-center gap-4 text-[#5b6a53]">
+                                <span className="h-px w-11 bg-[#8ea07a]" />
+                                <Heart size={16} className="fill-[#5b6a53] text-[#5b6a53]" />
+                                <span className="h-px w-11 bg-[#8ea07a]" />
+                            </div>
+
+                            <h1 className="m05-font-name text-[37px] tracking-[0.04em] text-[#2d352b] sm:text-[52px]">
+                                {brideName}
+                            </h1>
+                        </motion.div>
+
+                        <motion.div
+                            initial={{ opacity: 0, y: 15 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6, delay: 0.4 }}
+                            className="mt-6"
+                        >
+                            <p className="text-[16px] tracking-[0.06em] text-[#4d5649] sm:text-[18px]" style={{ fontFamily: 'serif' }}>
+                                {formatKhmerDate(eventDate)}
+                            </p>
+                            {wedding.themeSettings?.lunarDate && (
+                                <p className="mt-2 text-[12px] tracking-[0.1em] text-[#586551]" style={{ fontFamily: 'serif' }}>
+                                    {wedding.themeSettings.lunarDate}
+                                </p>
+                            )}
+                        </motion.div>
+
+                        <motion.div
+                            initial={{ opacity: 0, y: 15 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6, delay: 0.5 }}
+                            className="mx-auto mt-8 grid w-full max-w-[340px] grid-cols-4 gap-2.5"
+                        >
+                            {[
+                                { label: "ថ្ងៃ", value: timeLeft.days },
+                                { label: "ម៉ោង", value: timeLeft.hours },
+                                { label: "នាទី", value: timeLeft.minutes },
+                                { label: "វិនាទី", value: timeLeft.seconds },
+                            ].map((item, idx) => (
+                                <div key={idx} className="flex flex-col items-center justify-center p-2 text-center">
+                                    <span className="block text-[28px] font-bold leading-none text-[#455444]" style={{ fontFamily: 'serif' }}>
+                                        {toKhmerNumber(item.value).padStart(2, '០')}
+                                    </span>
+                                    <span className="mt-1.5 block text-[11px] tracking-[0.12em] text-[#556156]" style={{ fontFamily: 'serif' }}>
+                                        {item.label}
+                                    </span>
+                                </div>
+                            ))}
+                        </motion.div>
                     </div>
-                    <h1 className="text-3xl sm:text-4xl font-khmer-moul text-amber-100 drop-shadow-lg">
-                        {brideName}
-                    </h1>
-                </motion.div>
-
-                {/* Date Display */}
-                <motion.div
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.4 }}
-                    className="space-y-1.5"
-                >
-                    <p className="text-sm sm:text-base font-bold font-kantumruy text-amber-200 bg-black/50 backdrop-blur-md px-5 py-2 rounded-full border border-amber-400/40 shadow-md inline-block">
-                        📅 {formatKhmerDate(eventDate)}
-                    </p>
-                    {wedding.themeSettings?.lunarDate && (
-                        <p className="text-xs text-amber-300/80 font-kantumruy">
-                            {wedding.themeSettings.lunarDate}
-                        </p>
-                    )}
-                </motion.div>
-
-                {/* Live Countdown Timer */}
-                <motion.div
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.5 }}
-                    className="grid grid-cols-4 gap-2.5 w-full max-w-xs pt-2"
-                >
-                    {[
-                        { label: "ថ្ងៃ", value: timeLeft.days },
-                        { label: "ម៉ោង", value: timeLeft.hours },
-                        { label: "នាទី", value: timeLeft.minutes },
-                        { label: "វិនាទី", value: timeLeft.seconds },
-                    ].map((item, idx) => (
-                        <div key={idx} className="bg-black/50 backdrop-blur-md border border-amber-400/40 rounded-2xl p-2.5 shadow-md text-center">
-                            <span className="text-lg sm:text-xl font-bold font-mono text-amber-300 block">
-                                {item.value < 10 ? `0${item.value}` : item.value}
-                            </span>
-                            <span className="text-[10px] font-kantumruy text-amber-200/80 block">
-                                {item.label}
-                            </span>
-                        </div>
-                    ))}
-                </motion.div>
+                </div>
             </div>
         </section>
     );

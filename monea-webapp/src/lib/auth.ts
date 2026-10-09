@@ -13,7 +13,26 @@ export const requestStorage = {
 };
 
 
-export const getSecretStr = () => process.env.JWT_SECRET || (process.env.NODE_ENV === "development" ? "monea-dev-secret-do-not-use-in-prod-1234567890" : "");
+/**
+ * Returns the JWT signing secret.
+ *
+ * SECURITY (fail-closed): outside development a missing JWT_SECRET is a hard
+ * error instead of an empty signing key. Keep in sync with
+ * monea-api-worker/lib/auth.ts.
+ */
+export const getSecretStr = () => {
+  const configured = process.env.JWT_SECRET;
+  if (configured) return configured;
+
+  const isProduction =
+    process.env.NODE_ENV === "production" || process.env.ENVIRONMENT === "production";
+
+  if (isProduction) {
+    throw new Error("[CRITICAL] JWT_SECRET is not configured. Refusing to sign or verify tokens.");
+  }
+
+  return "monea-dev-secret-do-not-use-in-prod-1234567890";
+};
 export const getSecret = () => new TextEncoder().encode(getSecretStr());
 
 /**

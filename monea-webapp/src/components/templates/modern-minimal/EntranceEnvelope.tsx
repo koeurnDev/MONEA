@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Heart } from 'lucide-react';
 import { WeddingData } from "../types";
 import { useTranslation } from "@/i18n/LanguageProvider";
+import { getWeddingHeroImage } from "../shared/weddingPhotos";
 
 interface EntranceEnvelopeProps {
     wedding: WeddingData;
@@ -15,7 +16,7 @@ interface EntranceEnvelopeProps {
 export const EntranceEnvelope = ({ wedding, guestName, onReveal, onStartOpen, audioRef }: EntranceEnvelopeProps) => {
     const [isOpen, setIsOpen] = useState(false);
     const { t } = useTranslation();
-    const heroImage = wedding.themeSettings?.heroImage || wedding.galleryItems?.[0]?.url || '/images/bg_tunnel.webp';
+    const heroImage = getWeddingHeroImage(wedding, '/images/bg_tunnel.webp');
     const isEngagement = wedding.eventType === 'anniversary';
 
     const handleOpen = () => {
@@ -42,16 +43,29 @@ export const EntranceEnvelope = ({ wedding, guestName, onReveal, onStartOpen, au
                     exit={{ opacity: 0, scale: 1.05, filter: 'blur(10px)' }}
                     transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
                     onClick={handleOpen}
-                    onTouchEnd={handleOpen}
                     className="fixed inset-0 z-[100] flex flex-col justify-between items-center p-6 py-10 text-center select-none overflow-hidden bg-[#0A0D14] cursor-pointer"
-                    style={{ isolation: 'isolate' }}
+                    style={{
+                        isolation: 'isolate',
+                        paddingTop: 'max(2.5rem, env(safe-area-inset-top))',
+                        paddingBottom: 'max(2.5rem, env(safe-area-inset-bottom))',
+                    }}
                 >
                     {/* Full-bleed Pre-Wedding Photo Background */}
                     <div className="absolute inset-0 z-0 overflow-hidden">
                         <img
-                            src={heroImage} 
-                            className="w-full h-full object-cover transform scale-100 filter brightness-[0.92] transition-transform duration-1000"
+                            src={heroImage}
+                            className="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-70"
                             style={{ objectPosition: 'center 20%' }}
+                            alt=""
+                            aria-hidden="true"
+                        />
+                        <img
+                            src={heroImage}
+                            className="relative w-full h-full object-cover filter brightness-[0.92] transition-transform duration-1000"
+                            style={{ objectPosition: 'center 20%' }}
+                            loading="eager"
+                            fetchPriority="high"
+                            decoding="async"
                             alt="Pre-wedding Cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/85" />
@@ -59,7 +73,7 @@ export const EntranceEnvelope = ({ wedding, guestName, onReveal, onStartOpen, au
                     
                     {/* Top: Minimalist Header */}
                     <m.div 
-                        initial={{ opacity: 0, y: -10 }}
+                        initial={{ opacity: 1, y: 0 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="relative z-10 pt-2"
                     >
@@ -73,19 +87,18 @@ export const EntranceEnvelope = ({ wedding, guestName, onReveal, onStartOpen, au
 
                     {/* Bottom: Names + Clean Guest Pill + Sleek Button */}
                     <m.div
-                        initial={{ opacity: 0, y: 15 }}
+                        initial={{ opacity: 1, y: 0 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="relative z-10 w-full max-w-xs space-y-4 pb-2"
                     >
-                        {/* Couple Names */}
-                        <div className="space-y-1">
-                            <h2 className="font-kantumruy font-black text-2xl sm:text-3xl text-white drop-shadow-[0_3px_12px_rgba(0,0,0,0.9)] tracking-tight">
-                                {wedding.groomName || "សុវណ្ណរាជ មាន"}
-                            </h2>
-                            <p className="text-xs text-white/60 font-serif italic">&</p>
-                            <h2 className="font-kantumruy font-black text-2xl sm:text-3xl text-white drop-shadow-[0_3px_12px_rgba(0,0,0,0.9)] tracking-tight">
-                                {wedding.brideName || "មាស ចាន់មានណា"}
-                            </h2>
+                        <div className="flex max-w-full flex-col items-center gap-1.5 text-white drop-shadow-[0_3px_12px_rgba(0,0,0,0.9)]">
+                            <p className="m05-font-name max-w-full break-words text-2xl sm:text-3xl">
+                                {wedding.groomName}
+                            </p>
+                            <Heart size={16} className="fill-rose-200 text-rose-200" aria-hidden="true" />
+                            <p className="m05-font-name max-w-full break-words text-2xl sm:text-3xl">
+                                {wedding.brideName}
+                            </p>
                         </div>
 
                         {/* Clean One-Line Guest Pill */}

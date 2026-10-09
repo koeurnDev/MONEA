@@ -1,6 +1,7 @@
 import React from 'react';
 import { MapPin, Navigation } from 'lucide-react';
 import { WeddingData } from '../types';
+import { getDirectMapUrl, getMapEmbedUrl } from '../shared/mapUtils';
 
 interface LocationSectionProps {
     wedding: WeddingData;
@@ -8,37 +9,31 @@ interface LocationSectionProps {
 }
 
 export const LocationSection: React.FC<LocationSectionProps> = ({ wedding, primaryColor }) => {
-    const location = wedding.location || "រាជធានីភ្នំពេញ";
+    const location = wedding.location?.trim() || "";
+    const mapLink = wedding.themeSettings?.mapLink?.trim() || wedding.mapUrl?.trim() || "";
+    const mapLocation = mapLink || location;
+    if (!mapLocation) return null;
 
-    const getMapEmbedUrl = (loc?: string) => {
-        if (!loc) return null;
-        if (loc.includes("google.com/maps/embed")) return loc;
-        return `https://maps.google.com/maps?q=${encodeURIComponent(loc)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
-    };
-
-    const getDirectMapUrl = (loc?: string) => {
-        if (!loc) return "https://maps.google.com";
-        if (loc.startsWith("http")) return loc;
-        return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc)}`;
-    };
-
-    const embedUrl = getMapEmbedUrl(location);
-    const directUrl = getDirectMapUrl(location);
+    const canEmbedMap = !mapLocation.startsWith("http")
+        || mapLocation.includes("google.com/maps/embed")
+        || (mapLocation.includes("google.com") && mapLocation.includes("q="));
+    const embedUrl = canEmbedMap ? getMapEmbedUrl(mapLocation, location) : null;
+    const directUrl = getDirectMapUrl(mapLocation, location);
 
     return (
-        <section className="py-12 px-4 sm:px-6 bg-[#4A0A12] text-white font-kantumruy relative overflow-hidden text-center">
+        <section className="py-12 px-4 sm:px-6 bg-transparent text-[#2d352b] font-kantumruy relative overflow-hidden text-center">
             <div className="max-w-md mx-auto space-y-6 relative z-10">
                 <div className="space-y-1">
-                    <span className="text-xl sm:text-2xl font-khmer-moul text-amber-300 block">
+                    <span className="text-xl sm:text-2xl font-khmer-moul text-[#4d5649] block">
                         ទីតាំងប្រារព្ធពិធី
                     </span>
-                    <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto" />
+                    <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-[#8ea07a] to-transparent mx-auto" />
                 </div>
 
-                <div className="bg-[#6B0E1B] border border-amber-400/40 rounded-3xl p-5 shadow-md space-y-4">
-                    <div className="flex items-center justify-center gap-2 text-amber-300 font-bold text-sm">
+                <div className="bg-[#fffdf8]/85 border border-[#d9d1bf] rounded-3xl p-5 shadow-md space-y-4 relative z-10">
+                    <div className="flex items-center justify-center gap-2 text-[#4d5649] font-bold text-sm">
                         <MapPin size={18} />
-                        <span>{location}</span>
+                        <span>{location || mapLink}</span>
                     </div>
 
                     {embedUrl && (

@@ -1,7 +1,9 @@
 import * as React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, PartyPopper, CalendarCheck, TrendingUp, Sparkles, Activity, ShieldCheck, Database, Clock, ArrowUpRight, CheckCircle2 } from "lucide-react";
+import {
+    Users, PartyPopper, CalendarCheck, TrendingUp, Activity,
+    ArrowRight, Zap, Settings, Megaphone, Shield, ChevronRight
+} from "lucide-react";
 import { m } from 'framer-motion';
 import { cn } from "@/lib/utils";
 import { Link } from 'react-router-dom';
@@ -25,266 +27,326 @@ interface AdminDashboardClientProps {
     userRole: string | null;
 }
 
+const STAT_CONFIGS = [
+    {
+        key: 'totalUsers',
+        icon: Users,
+        gradient: "from-blue-500 to-indigo-600",
+        glow: "shadow-blue-500/25",
+        bg: "bg-blue-500/10",
+        iconColor: "text-blue-400",
+        border: "border-blue-500/20",
+    },
+    {
+        key: 'totalProjects',
+        icon: PartyPopper,
+        gradient: "from-violet-500 to-purple-600",
+        glow: "shadow-violet-500/25",
+        bg: "bg-violet-500/10",
+        iconColor: "text-violet-400",
+        border: "border-violet-500/20",
+    },
+    {
+        key: 'activeProjects',
+        icon: CalendarCheck,
+        gradient: "from-emerald-500 to-teal-600",
+        glow: "shadow-emerald-500/25",
+        bg: "bg-emerald-500/10",
+        iconColor: "text-emerald-400",
+        border: "border-emerald-500/20",
+    },
+    {
+        key: 'totalRevenue',
+        icon: TrendingUp,
+        gradient: "from-amber-500 to-orange-500",
+        glow: "shadow-amber-500/25",
+        bg: "bg-amber-500/10",
+        iconColor: "text-amber-400",
+        border: "border-amber-500/20",
+    },
+];
+
 export default function AdminDashboardClient({ initialStats, initialLogs, userRole }: AdminDashboardClientProps) {
     const { t } = useTranslation();
 
-    const cards = [
+    const stats = [
         {
-            title: t('admin.overview.stats.activeHirers'),
+            label: t('admin.overview.stats.activeHirers'),
             value: initialStats?.totalUsers ?? 0,
-            trend: "+12%",
-            desc: t('account.profile.description'),
-            icon: Users,
+            ...STAT_CONFIGS[0],
         },
         {
-            title: t('admin.overview.stats.totalProjects'),
+            label: t('admin.overview.stats.totalProjects'),
             value: initialStats?.totalProjects ?? (initialStats as any)?.totalWeddings ?? 0,
-            trend: "+5.4%",
-            desc: t('admin.overview.recentWeddings.subtitle'),
-            icon: PartyPopper,
+            ...STAT_CONFIGS[1],
         },
         {
-            title: t('admin.overview.stats.activeProjects'),
+            label: t('admin.overview.stats.activeProjects'),
             value: initialStats?.activeProjects ?? (initialStats as any)?.activeWeddings ?? 0,
-            trend: "Active",
-            desc: t('admin.overview.stats.activeHirers'),
-            icon: CalendarCheck,
+            ...STAT_CONFIGS[2],
         },
         {
-            title: t('admin.overview.stats.totalRevenue'),
-            value: initialStats?.financialOverview?.USD ?? 0,
-            trend: "USD",
-            desc: t('admin.overview.actions.revenueGrowth'),
-            icon: TrendingUp,
+            label: t('admin.overview.stats.totalRevenue'),
+            value: `$${(initialStats?.financialOverview?.USD ?? 0).toLocaleString()}`,
+            ...STAT_CONFIGS[3],
         }
+    ];
+
+    const quickLinks = [
+        { to: "/admin/users", icon: Users, label: "អ្នកប្រើ", color: "text-blue-400", bg: "bg-blue-500/10 hover:bg-blue-500/20 border-blue-500/20 hover:border-blue-500/40" },
+        { to: "/admin/weddings", icon: PartyPopper, label: "មង្គលការ", color: "text-violet-400", bg: "bg-violet-500/10 hover:bg-violet-500/20 border-violet-500/20 hover:border-violet-500/40" },
+        { to: "/admin/master/payments", icon: TrendingUp, label: "ការទូទាត់", color: "text-amber-400", bg: "bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/20 hover:border-amber-500/40" },
+        { to: "/admin/master/broadcast", icon: Megaphone, label: "ប្រកាស", color: "text-teal-400", bg: "bg-teal-500/10 hover:bg-teal-500/20 border-teal-500/20 hover:border-teal-500/40" },
+        { to: "/admin/master/audit", icon: Activity, label: "សវនកម្ម", color: "text-teal-400", bg: "bg-teal-500/10 hover:bg-teal-500/20 border-teal-500/20 hover:border-teal-500/40" },
+        ...(userRole === "PLATFORM_OWNER" ? [
+            { to: "/admin/master/settings", icon: Settings, label: "កំណត់", color: "text-slate-400", bg: "bg-slate-500/10 hover:bg-slate-500/20 border-slate-500/20 hover:border-slate-500/40" },
+        ] : []),
     ];
 
     return (
         <ErrorBoundary name="Admin Dashboard">
-            <m.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="max-w-7xl mx-auto space-y-8 pb-20"
-            >
-                {/* Minimalist Welcome Banner */}
-                <m.div 
-                    initial={{ opacity: 0, y: 10 }}
+            <div className="mx-auto max-w-screen-2xl space-y-7">
+
+                {/* Hero Banner */}
+                <m.div
+                    initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="p-8 md:p-12 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm"
+                    transition={{ duration: 0.4 }}
+                    className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-teal-700 via-teal-600 to-cyan-600 p-6 text-white shadow-xl shadow-teal-900/20"
                 >
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
-                        <div className="space-y-3">
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-500">
-                                <Sparkles size={14} />
-                                MONEA Intelligence v2.1
-                            </div>
-                            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900 dark:text-white">
-                                {t('dashboard.welcome', { name: '' })} <span className="text-slate-500 font-normal">{t('admin.header.role')}</span>
-                            </h2>
-                            <p className="text-slate-500 max-w-md font-medium text-sm">
-                                {t('dashboard.adminSubtitle')}
+                    {/* Decorative blobs */}
+                    <div className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-white/10 blur-2xl" />
+                    <div className="pointer-events-none absolute -bottom-8 right-24 h-32 w-32 rounded-full bg-orange-300/20 blur-xl" />
+                    <div className="pointer-events-none absolute left-1/3 top-0 h-24 w-24 rounded-full bg-teal-300/20 blur-xl" />
+
+                    <div className="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                        <div>
+                            <p className="text-xs font-bold uppercase tracking-[0.25em] text-teal-100/80">
+                                Admin Overview
+                            </p>
+                            <h1 className="mt-1.5 text-2xl font-black tracking-tight md:text-3xl font-kantumruy">
+                                ទិដ្ឋភាពទូទៅ
+                            </h1>
+                            <p className="mt-1 text-sm text-white/70 font-kantumruy">
+                                ស្វាគមន៍ការត្រឡប់មកវិញ! ប្រព័ន្ធដំណើរការបានល្អ ✨
                             </p>
                         </div>
-                        
-                        <div className="flex gap-4">
-                            <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5 rounded-xl text-center min-w-[120px]">
-                                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Status</div>
-                                <div className="text-xl font-bold text-slate-900 dark:text-white flex items-center justify-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-green-500" />
-                                    LIVE
-                                </div>
-                            </div>
-                            <div className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5 rounded-xl text-center min-w-[120px]">
-                                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Safety</div>
-                                <div className="text-xl font-bold text-slate-900 dark:text-white">99.9%</div>
-                            </div>
+                        <div className="flex items-center gap-2 self-start rounded-full bg-white/15 px-4 py-2 backdrop-blur-sm border border-white/20">
+                            <span className="relative flex h-2.5 w-2.5">
+                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-300 opacity-75" />
+                                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
+                            </span>
+                            <span className="text-sm font-semibold text-white/90 font-kantumruy">ប្រព័ន្ធដំណើរការល្អ</span>
                         </div>
                     </div>
                 </m.div>
 
-                {/* Main Stats Grid */}
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                    {cards.map((card, idx) => (
+                {/* Stat Cards */}
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    {stats.map((stat, idx) => (
                         <m.div
                             key={idx}
-                            initial={{ opacity: 0, y: 10 }}
+                            initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: idx * 0.05 + 0.1, duration: 0.4 }}
+                            transition={{ delay: idx * 0.08, duration: 0.4 }}
+                            className="group"
                         >
-                            <Card className="bg-white dark:bg-slate-900 shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl border border-slate-200 dark:border-slate-800">
-                                <CardHeader className="flex flex-row items-center justify-between pb-2 pt-6 px-6">
-                                    <CardTitle className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{card.title}</CardTitle>
-                                    <div className="p-2 bg-slate-50 dark:bg-slate-800 rounded-lg text-slate-400">
-                                        <card.icon size={16} />
+                            <div className={cn(
+                                "relative overflow-hidden rounded-2xl border p-5 transition-all duration-300",
+                                "bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm",
+                                "hover:shadow-lg hover:-translate-y-0.5",
+                                stat.border,
+                                stat.glow,
+                                "hover:shadow-md"
+                            )}>
+                                {/* Gradient top bar */}
+                                <div className={cn("absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r opacity-60", stat.gradient)} />
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="min-w-0">
+                                        <p className="text-xs font-medium text-slate-500 dark:text-slate-400 font-kantumruy">{stat.label}</p>
+                                        <p className="mt-2.5 text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+                                            {typeof stat.value === 'number' ? stat.value.toLocaleString() : stat.value}
+                                        </p>
                                     </div>
-                                </CardHeader>
-                                <CardContent className="px-6 pb-6">
-                                    <div className="flex items-center justify-between mt-2">
-                                        <div className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight tabular-nums">
-                                            {card.value.toLocaleString()}
-                                        </div>
-                                        <div className="text-[10px] font-bold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md uppercase tracking-wider">
-                                            {card.trend}
-                                        </div>
+                                    <div className={cn(
+                                        "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border transition-all group-hover:scale-110",
+                                        stat.bg,
+                                        stat.border
+                                    )}>
+                                        <stat.icon className={cn("h-5 w-5", stat.iconColor)} />
                                     </div>
-                                    <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-4 flex items-center gap-1.5">
-                                        <ArrowUpRight size={12} className="text-slate-400" />
-                                        {card.desc}
-                                    </p>
-                                </CardContent>
-                            </Card>
+                                </div>
+                            </div>
                         </m.div>
                     ))}
                 </div>
 
-                <div className="grid gap-6 lg:grid-cols-12">
-                    <m.div 
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                        className="lg:col-span-8 space-y-6"
+                {/* Bottom Grid */}
+                <div className="grid gap-5 xl:grid-cols-[1.6fr_1fr]">
+
+                    {/* Activity Feed */}
+                    <m.div
+                        initial={{ opacity: 0, x: -16 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.35, duration: 0.4 }}
+                        className="rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm overflow-hidden"
                     >
-                        <Card className="bg-white dark:bg-slate-900 shadow-sm rounded-2xl border border-slate-200 dark:border-slate-800">
-                            <CardHeader className="border-b border-slate-100 dark:border-slate-800 py-6 px-8 flex flex-row items-center justify-between">
-                                <div className="space-y-1">
-                                    <div className="flex items-center gap-2">
-                                        <Clock className="w-4 h-4 text-slate-400" />
-                                        <CardTitle className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">សកម្មភាពចុងក្រោយ</CardTitle>
+                        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-5 py-4">
+                            <div className="flex items-center gap-2.5">
+                                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800">
+                                    <Activity className="h-3.5 w-3.5 text-slate-600 dark:text-slate-400" />
+                                </div>
+                                <h2 className="text-sm font-bold text-slate-900 dark:text-white font-kantumruy">
+                                    សកម្មភាពថ្មីៗ
+                                </h2>
+                            </div>
+                            <Link to="/admin/logs">
+                                <Button variant="ghost" size="sm" className="h-8 gap-1 text-xs text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
+                                    ទាំងអស់ <ArrowRight className="h-3 w-3" />
+                                </Button>
+                            </Link>
+                        </div>
+                        <div className="divide-y divide-slate-50 dark:divide-slate-800/70">
+                            {(initialLogs || []).slice(0, 6).map((log, i) => (
+                                <m.div
+                                    key={log.id || i}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ delay: 0.4 + i * 0.05 }}
+                                    className="flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-800/40"
+                                >
+                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                                        <Zap className="h-3.5 w-3.5" />
                                     </div>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-200">
+                                            {log.actorName || log.actorEmail || "System"}
+                                        </p>
+                                        <p className="mt-0.5 text-[11px] text-slate-400 font-kantumruy">
+                                            {log.action || "Updated account"}
+                                        </p>
+                                    </div>
+                                    <span className="shrink-0 rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-medium text-slate-500 dark:text-slate-400 tabular-nums">
+                                        {log.createdAt ? new Date(log.createdAt).toLocaleTimeString('km-KH', {
+                                            hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Phnom_Penh'
+                                        }) : ''}
+                                    </span>
+                                </m.div>
+                            ))}
+                            {(!initialLogs || initialLogs.length === 0) && (
+                                <div className="flex flex-col items-center justify-center py-14 gap-3">
+                                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+                                        <Activity className="h-6 w-6 text-slate-300 dark:text-slate-600" />
+                                    </div>
+                                    <p className="text-sm text-slate-400 font-kantumruy">មិនមានសកម្មភាពថ្មី</p>
                                 </div>
-                                <Link to="/admin/logs">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="rounded-lg text-xs font-semibold text-slate-600 border-slate-200"
-                                    >
-                                        {t('admin.overview.recentWeddings.viewAll')}
-                                    </Button>
-                                </Link>
-                            </CardHeader>
-                            <CardContent className="p-0">
-                                <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                                    {(initialLogs || []).map((log, i) => (
-                                        <div key={log.id || i} className="flex items-center justify-between p-5 px-8 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500">
-                                                    {log.action === 'CREATE' ? <ArrowUpRight size={16} /> :
-                                                        log.action === 'GIFT' ? <Sparkles size={16} /> :
-                                                            <CheckCircle2 size={16} />}
-                                                </div>
-                                                <div className="flex flex-col gap-1">
-                                                    <span className="text-sm font-semibold text-slate-900 dark:text-white">{log.actorName}</span>
-                                                    <span className="text-xs text-slate-500">{log.description}</span>
-                                                </div>
-                                            </div>
-                                            <div className="text-[11px] font-medium text-slate-400 uppercase tracking-wider">
-                                                {log.createdAt ? new Date(log.createdAt).toLocaleTimeString('km-KH', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Phnom_Penh' }) : ''}
-                                            </div>
-                                        </div>
-                                    ))}
-                                    {(!initialLogs || initialLogs.length === 0) && (
-                                        <div className="p-16 text-center space-y-3">
-                                            <Activity className="text-slate-300 mx-auto" size={24} />
-                                            <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">{t('admin.settings.support.noTickets')}</p>
-                                        </div>
-                                    )}
-                                </div>
-                            </CardContent>
-                        </Card>
+                            )}
+                        </div>
                     </m.div>
 
-                    <m.div 
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.4 }}
-                        className="lg:col-span-4 space-y-6"
-                    >
-                        <Card className="bg-white dark:bg-slate-900 shadow-sm rounded-2xl border border-slate-200 dark:border-slate-800">
-                            <CardHeader className="border-b border-slate-100 dark:border-slate-800 py-6 px-8 flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <ShieldCheck className="w-4 h-4 text-slate-400" />
-                                    <CardTitle className="text-lg font-bold text-slate-900 dark:text-white">{t('admin.overview.stats.securityAudit')}</CardTitle>
-                                </div>
-                                <div className="w-2 h-2 rounded-full bg-slate-300" />
-                            </CardHeader>
-                            <CardContent className="p-8 space-y-6">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="p-5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                                        <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">{t('admin.overview.stats.failures')}</div>
-                                        <div className="text-2xl font-bold text-slate-900 dark:text-white tabular-nums">24</div>
-                                    </div>
-                                    <div className="p-5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                                        <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">{t('admin.overview.stats.blocked')}</div>
-                                        <div className="text-2xl font-bold text-slate-900 dark:text-white tabular-nums">0</div>
-                                    </div>
-                                </div>
+                    {/* Right Column */}
+                    <div className="space-y-5">
 
-                                <div className="space-y-3">
-                                    <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">{t('admin.overview.actions.auditExplorer')}</h4>
-                                    {[
-                                        { ip: "103.243.24.12", attempts: 8, severity: "High" },
-                                        { ip: "202.1.23.45", attempts: 3, severity: "Medium" }
-                                    ].map((item, i) => (
-                                        <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-                                            <div className="flex flex-col gap-1">
-                                                <span className="text-xs font-mono font-medium text-slate-700 dark:text-slate-300">{item.ip}</span>
-                                                <span className="text-[9px] text-slate-500 font-semibold uppercase tracking-widest">{item.attempts} Attempts</span>
+                        {/* Quick Access */}
+                        <m.div
+                            initial={{ opacity: 0, x: 16 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.4, duration: 0.4 }}
+                            className="rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm overflow-hidden"
+                        >
+                            <div className="flex items-center gap-2.5 border-b border-slate-100 dark:border-slate-800 px-5 py-4">
+                                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800">
+                                    <Zap className="h-3.5 w-3.5 text-slate-600 dark:text-slate-400" />
+                                </div>
+                                <h2 className="text-sm font-bold text-slate-900 dark:text-white font-kantumruy">
+                                    ការចូលប្រើរហ័ស
+                                </h2>
+                            </div>
+                            <div className="grid grid-cols-3 gap-2 p-4">
+                                {quickLinks.map((link) => (
+                                    <Link key={link.to} to={link.to} className="group">
+                                        <div className={cn(
+                                            "flex flex-col items-center gap-2 rounded-xl border p-3 transition-all duration-200",
+                                            link.bg
+                                        )}>
+                                            <div className={cn("flex h-9 w-9 items-center justify-center rounded-xl bg-white/60 dark:bg-slate-900/60 transition-transform group-hover:scale-110", link.color)}>
+                                                <link.icon className="h-4 w-4" />
                                             </div>
-                                            <span className="text-[9px] font-bold uppercase px-2 py-1 rounded bg-slate-200 text-slate-600">
-                                                {item.severity}
-                                            </span>
+                                            <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 font-kantumruy text-center leading-tight">{link.label}</span>
                                         </div>
-                                    ))}
-                                </div>
-
-                                {userRole === "PLATFORM_OWNER" && (
-                                    <Link to="/admin/master/security">
-                                        <Button variant="outline" className="w-full mt-2 rounded-lg text-xs font-semibold text-slate-600 border-slate-200">
-                                            {t('admin.overview.actions.auditExplorer')}
-                                        </Button>
                                     </Link>
-                                )}
-                            </CardContent>
-                        </Card>
+                                ))}
+                            </div>
+                        </m.div>
 
-                        {/* System Health Block */}
-                        <Card className="bg-white dark:bg-slate-900 shadow-sm rounded-2xl border border-slate-200 dark:border-slate-800 text-slate-900">
-                            <CardHeader className="py-6 px-8 border-b border-slate-100 dark:border-slate-800">
-                                <div className="flex items-center gap-2">
-                                    <Activity size={16} className="text-slate-400" />
-                                    <h3 className="text-lg font-bold tracking-tight">{t('admin.overview.systemHealth.title')}</h3>
+                        {/* System Status */}
+                        <m.div
+                            initial={{ opacity: 0, x: 16 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.48, duration: 0.4 }}
+                            className="rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm overflow-hidden"
+                        >
+                            <div className="flex items-center gap-2.5 border-b border-slate-100 dark:border-slate-800 px-5 py-4">
+                                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800">
+                                    <Shield className="h-3.5 w-3.5 text-slate-600 dark:text-slate-400" />
                                 </div>
-                            </CardHeader>
-                            <CardContent className="p-8 space-y-5">
+                                <h2 className="text-sm font-bold text-slate-900 dark:text-white font-kantumruy">
+                                    ស្ថានភាពប្រព័ន្ធ
+                                </h2>
+                            </div>
+                            <div className="space-y-2.5 p-4">
                                 {[
-                                    { label: "Server", value: "Online", progress: 98, icon: <Activity size={14} /> },
-                                    { label: "Database", value: "Healthy", progress: 100, icon: <Database size={14} /> },
-                                ].map((item, i) => (
-                                    <div key={i} className="space-y-2.5">
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-xs font-semibold text-slate-600 flex items-center gap-2">
-                                                <span className="text-slate-400">{item.icon}</span>
-                                                {item.label}
+                                    { label: "API", sublabel: "ដំណើរការ", status: "OK", color: "emerald" },
+                                    { label: "Database", sublabel: "ល្អ", status: "Stable", color: "sky" },
+                                ].map((item) => (
+                                    <div
+                                        key={item.label}
+                                        className={cn(
+                                            "flex items-center justify-between rounded-xl px-4 py-3",
+                                            item.color === "emerald"
+                                                ? "bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/30"
+                                                : "bg-sky-50 dark:bg-sky-950/30 border border-sky-100 dark:border-sky-900/30"
+                                        )}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <span className={cn(
+                                                "relative flex h-2 w-2",
+                                            )}>
+                                                <span className={cn(
+                                                    "absolute inline-flex h-full w-full animate-ping rounded-full opacity-60",
+                                                    item.color === "emerald" ? "bg-emerald-400" : "bg-sky-400"
+                                                )} />
+                                                <span className={cn(
+                                                    "relative inline-flex h-2 w-2 rounded-full",
+                                                    item.color === "emerald" ? "bg-emerald-500" : "bg-sky-500"
+                                                )} />
                                             </span>
-                                            <span className="text-[10px] font-bold tracking-widest uppercase text-slate-500">
-                                                {item.value}
-                                            </span>
+                                            <div>
+                                                <p className={cn(
+                                                    "text-xs font-medium",
+                                                    item.color === "emerald" ? "text-emerald-600 dark:text-emerald-400" : "text-sky-600 dark:text-sky-400"
+                                                )}>{item.label}</p>
+                                                <p className={cn(
+                                                    "text-sm font-bold font-kantumruy",
+                                                    item.color === "emerald" ? "text-emerald-800 dark:text-emerald-200" : "text-sky-800 dark:text-sky-200"
+                                                )}>{item.sublabel}</p>
+                                            </div>
                                         </div>
-                                        <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                            <m.div 
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${item.progress}%` }}
-                                                transition={{ delay: 0.5 + (i * 0.1), duration: 1 }}
-                                                className="h-full bg-slate-300"
-                                            />
-                                        </div>
+                                        <span className={cn(
+                                            "rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider",
+                                            item.color === "emerald"
+                                                ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                                                : "bg-sky-500/15 text-sky-700 dark:text-sky-300"
+                                        )}>
+                                            {item.status}
+                                        </span>
                                     </div>
                                 ))}
-                            </CardContent>
-                        </Card>
-                    </m.div>
+                            </div>
+                        </m.div>
+                    </div>
                 </div>
-            </m.div>
+            </div>
         </ErrorBoundary>
     );
 }

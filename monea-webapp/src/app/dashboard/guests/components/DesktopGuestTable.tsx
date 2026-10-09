@@ -1,18 +1,21 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TableSkeleton } from "../../_components/SkeletonComponents";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2, Plus, Users } from "lucide-react";
+import { Edit, Trash2, Plus, Users, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/i18n/LanguageProvider";
 
 interface DesktopGuestTableProps {
     loading: boolean;
     guests: any[];
+    searchActive: boolean;
+    onClearSearch: () => void;
     visibleCount: number;
     setVisibleCount: (v: any) => void;
     copiedId: string | null;
     isArchived: boolean;
     onCopyLink: (name: string, id: string) => void;
+    onShareTelegram?: (name: string, id: string) => void;
     onEdit: (guest: any) => void;
     onDelete: (id: string, name: string) => void;
 }
@@ -20,11 +23,14 @@ interface DesktopGuestTableProps {
 export function DesktopGuestTable({
     loading,
     guests,
+    searchActive,
+    onClearSearch,
     visibleCount,
     setVisibleCount,
     copiedId,
     isArchived,
     onCopyLink,
+    onShareTelegram,
     onEdit,
     onDelete
 }: DesktopGuestTableProps) {
@@ -36,10 +42,10 @@ export function DesktopGuestTable({
                 <TableHeader className="bg-muted/50 print:bg-white">
                 </TableHeader>
                 <TableBody>
-                    <TableRow className="border-none print:border-t-2 print:border-b-2 print:border-rose-300 hover:bg-transparent hidden print:table-row bg-rose-50/20">
-                        <TableHead className="h-14 px-4 text-xs font-bold font-kantumruy print:text-rose-600 w-16 text-center whitespace-nowrap border-r print:border-rose-300 print:border-t-2 print:border-l-2">{t("guests.cols.no")}</TableHead>
-                        <TableHead className="h-14 px-8 text-xs font-bold font-kantumruy print:text-rose-600 border-r print:border-rose-300 text-left print:border-t-2">{t("guests.cols.name")}</TableHead>
-                        <TableHead className="h-14 px-8 text-xs font-bold font-kantumruy print:text-rose-600 text-center print:border-t-2 print:border-r-2 print:border-rose-300">{t("guests.cols.location")}</TableHead>
+                    <TableRow className="border-none print:border-t-2 print:border-b-2 print:border-teal-300 hover:bg-transparent hidden print:table-row bg-teal-50/20">
+                        <TableHead className="h-14 px-4 text-xs font-bold font-kantumruy print:text-teal-600 w-16 text-center whitespace-nowrap border-r print:border-teal-300 print:border-t-2 print:border-l-2">{t("guests.cols.no")}</TableHead>
+                        <TableHead className="h-14 px-8 text-xs font-bold font-kantumruy print:text-teal-600 border-r print:border-teal-300 text-left print:border-t-2">{t("guests.cols.name")}</TableHead>
+                        <TableHead className="h-14 px-8 text-xs font-bold font-kantumruy print:text-teal-600 text-center print:border-t-2 print:border-r-2 print:border-teal-300">{t("guests.cols.location")}</TableHead>
                     </TableRow>
 
                     <TableRow className="border-none print:hidden hover:bg-transparent">
@@ -63,24 +69,40 @@ export function DesktopGuestTable({
                         <TableRow>
                             <TableCell colSpan={4} className="h-[400px]">
                                 <div className="flex flex-col items-center justify-center text-center space-y-6 animate-in fade-in zoom-in-95 duration-500">
-                                    <div className="w-24 h-24 bg-rose-50 dark:bg-rose-950/20 rounded-full flex items-center justify-center border border-rose-100 dark:border-rose-900/30">
-                                        <Users className="w-10 h-10 text-rose-300 dark:text-rose-700" />
+                                    <div className="w-24 h-24 bg-teal-50 dark:bg-teal-950/20 rounded-full flex items-center justify-center border border-teal-100 dark:border-teal-900/30">
+                                        <Users className="w-10 h-10 text-teal-300 dark:text-teal-700" />
                                     </div>
                                     <div className="space-y-2">
                                         <h3 className="text-xl font-black text-foreground font-kantumruy">
-                                            {t("guests.empty")}
+                                            {searchActive
+                                                ? t("guests.searchEmptyTitle", { defaultValue: "រកមិនឃើញភ្ញៀវដែលត្រូវនឹងការស្វែងរកទេ" })
+                                                : isArchived ? "មិនមានភ្ញៀវក្នុងប័ណ្ណសារទេ" : t("guests.empty")}
                                         </h3>
                                         <p className="text-sm font-medium text-muted-foreground/80 max-w-sm mx-auto font-kantumruy">
-                                            ចាប់ផ្តើមបន្ថែមភ្ញៀវកិត្តិយសរបស់អ្នក ដើម្បីងាយស្រួលក្នុងការគ្រប់គ្រង និងផ្ញើធៀប។
+                                            {searchActive
+                                                ? t("guests.searchEmptyDescription", { defaultValue: "សាកល្បងពាក្យផ្សេង ឬសម្អាតការស្វែងរក។" })
+                                                : isArchived ? "ភ្ញៀវដែលបានរក្សាទុកក្នុងប័ណ្ណសារ នឹងបង្ហាញនៅទីនេះ។" : "ចាប់ផ្តើមបន្ថែមភ្ញៀវកិត្តិយសរបស់អ្នក ដើម្បីងាយស្រួលក្នុងការគ្រប់គ្រង និងផ្ញើធៀប។"}
                                         </p>
                                     </div>
-                                    <Button 
-                                        onClick={() => onEdit(null)} 
-                                        className="h-12 px-8 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl shadow-lg shadow-rose-600/20 font-bold font-kantumruy transition-all hover:scale-105 active:scale-95"
-                                    >
-                                        <Plus className="w-5 h-5 mr-2" />
-                                        {t("dashboard.actions.addGuest", { defaultValue: "បន្ថែមភ្ញៀវដំបូង" })}
-                                    </Button>
+                                    {searchActive ? (
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={onClearSearch}
+                                            className="h-11 rounded-xl px-6 font-kantumruy font-bold"
+                                        >
+                                            {t("guests.clearSearch", { defaultValue: "សម្អាតការស្វែងរក" })}
+                                        </Button>
+                                    ) : !isArchived && (
+                                        <Button
+                                            type="button"
+                                            onClick={() => onEdit(null)}
+                                            className="h-12 px-8 bg-teal-600 hover:bg-teal-700 text-white rounded-2xl shadow-lg shadow-teal-600/20 font-bold font-kantumruy transition-all hover:scale-105 active:scale-95"
+                                        >
+                                            <Plus className="w-5 h-5 mr-2" />
+                                            {t("dashboard.actions.addGuest", { defaultValue: "បន្ថែមភ្ញៀវដំបូង" })}
+                                        </Button>
+                                    )}
                                 </div>
                             </TableCell>
                         </TableRow>
@@ -108,22 +130,34 @@ export function DesktopGuestTable({
                                     </span>
                                 </TableCell>
                                 <TableCell className="px-8 py-4 text-right print:hidden">
-                                    <div className="flex items-center justify-end gap-2">
+                                    <div className="flex items-center justify-end gap-1.5">
                                         <Button
                                             variant={copiedId === g.id ? "default" : "outline"}
                                             size="sm"
                                             onClick={() => onCopyLink(g.name, g.id)}
                                             className={cn(
-                                                "h-9 px-4 rounded-xl font-kantumruy font-bold text-[11px] transition-all",
+                                                "h-9 px-3 rounded-xl font-kantumruy font-bold text-[11px] transition-all",
                                                 copiedId === g.id ? "bg-green-600 text-white" : "text-muted-foreground"
                                             )}
                                         >
                                             {copiedId === g.id ? t("guests.copied") : t("guests.copyLink")}
                                         </Button>
+                                        {onShareTelegram && (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => onShareTelegram(g.name, g.id)}
+                                                className="h-9 px-3 rounded-xl font-kantumruy font-bold text-[11px] border-[#229ED9]/30 text-[#229ED9] hover:bg-[#229ED9]/10 hover:text-[#229ED9] transition-all flex items-center gap-1.5"
+                                                title="ផ្ញើតាម Telegram ជាមួយឈ្មោះភ្ញៀវ"
+                                            >
+                                                <Send className="w-3.5 h-3.5" />
+                                                <span>Telegram</span>
+                                            </Button>
+                                        )}
                                         {!isArchived && (
                                             <>
-                                                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl" onClick={() => onEdit(g)}><Edit className="h-4 w-4" /></Button>
-                                                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl" onClick={() => onDelete(g.id, g.name)}><Trash2 className="h-4 w-4" /></Button>
+                                                <Button variant="ghost" size="icon" aria-label="Edit guest" className="h-9 w-9 rounded-xl" onClick={() => onEdit(g)}><Edit className="h-4 w-4" /></Button>
+                                                <Button variant="ghost" size="icon" aria-label="Delete guest" className="h-9 w-9 rounded-xl" onClick={() => onDelete(g.id, g.name)}><Trash2 className="h-4 w-4" /></Button>
                                             </>
                                         )}
                                     </div>

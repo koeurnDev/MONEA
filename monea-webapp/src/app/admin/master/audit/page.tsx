@@ -64,17 +64,11 @@ export default function MasterAuditPage() {
 
     const filterTabs = [
         { id: "ALL", label: isKm ? "កំណត់ត្រាទាំងអស់" : "All Events", icon: History },
-        { id: "CHECK_IN", label: isKm ? "Check-in ភ្ញៀវ" : "Guest Check-in", icon: UserCheck },
-        { id: "GIFT", label: isKm ? "ទទួលចំណងដៃ" : "Gift Remittance", icon: Gift },
         { id: "UPDATE", label: isKm ? "កែសម្រួលទិន្នន័យ" : "Data Updates", icon: FileText },
     ];
 
     const getActionBadge = (action: string) => {
         switch (action) {
-            case "CHECK_IN":
-                return { label: "Check-in ភ្ញៀវ", bg: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" };
-            case "GIFT":
-                return { label: "ចំណងដៃ KHQR", bg: "bg-blue-500/10 text-blue-600 border-blue-500/20" };
             case "UPDATE":
                 return { label: "កែប្រែទិន្នន័យ", bg: "bg-amber-500/10 text-amber-600 border-amber-500/20" };
             case "DELETE":
@@ -96,7 +90,7 @@ export default function MasterAuditPage() {
                             </Button>
                         </Link>
                         <div>
-                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-teal-800 dark:text-teal-300">
                                 <History size={13} />
                                 <span>Platform Accountability</span>
                             </div>
@@ -139,7 +133,7 @@ export default function MasterAuditPage() {
                                             : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
                                     )}
                                 >
-                                    <Icon size={14} className={isActive ? "text-rose-600 dark:text-rose-400" : "text-muted-foreground"} />
+                                    <Icon size={14} className={isActive ? "text-teal-800 dark:text-teal-300" : "text-muted-foreground"} />
                                     <span>{tab.label}</span>
                                 </button>
                             );
@@ -176,7 +170,7 @@ export default function MasterAuditPage() {
                                     <tr>
                                         <td colSpan={5} className="py-24 text-center">
                                             <div className="flex flex-col items-center justify-center space-y-2">
-                                                <Loader2 className="w-7 h-7 animate-spin text-rose-600" />
+                                                <Loader2 className="w-7 h-7 animate-spin text-teal-700 dark:text-teal-300" />
                                                 <span className="text-xs text-muted-foreground font-bold">កំពុងទាញយកកំណត់ត្រាសវនកម្ម...</span>
                                             </div>
                                         </td>
@@ -243,7 +237,7 @@ export default function MasterAuditPage() {
                                                                 </span>
                                                             </div>
                                                             <Link to={`/admin/weddings/${log.wedding.id}`}>
-                                                                <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg text-muted-foreground hover:text-rose-600 hover:bg-rose-500/10">
+                                                                <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg text-muted-foreground hover:text-teal-800 hover:bg-teal-600/10 dark:hover:text-teal-300">
                                                                     <ArrowUpRight size={13} />
                                                                 </Button>
                                                             </Link>

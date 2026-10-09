@@ -10,8 +10,43 @@ import { SystemGovernance, GOVERNANCE_ACTIONS } from "@/lib/governance";
 
 const adminRouter = new Hono();
 
-const isAuthorizedAdmin = (user: any) =>
-    user && (user.role === ROLES.PLATFORM_OWNER || user.role === 'ADMIN' || user.role === 'SUPERADMIN' || user.role === ROLES.EVENT_MANAGER);
+/**
+ * Shape returned by `getServerUser` for an authenticated caller.
+ */
+type SessionUser = NonNullable<Awaited<ReturnType<typeof getServerUser>>>;
+
+/**
+ * A caller whose role is the platform-owner literal.
+ *
+ * Narrowing to this *distinct* type (instead of re-asserting `SessionUser`) is what
+ * keeps the `else` branch of `isPlatformOwnerOnly(user) ? ... : ...` usable — the
+ * caller's id is still reachable for manager-scoped queries.
+ */
+type PlatformOwnerUser = SessionUser & { role: typeof ROLES.PLATFORM_OWNER };
+
+/**
+ * Manager-console access: platform owner + event manager.
+ *
+ * NOTE: `ROLES.EVENT_MANAGER` *is* the literal string "ADMIN", so the previous
+ * extra comparisons against 'ADMIN'/'SUPERADMIN' were redundant aliases.
+ * Use this guard ONLY for endpoints whose payload is scoped to resources the
+ * caller owns; never for cross-tenant reads or writes.
+ */
+const isAuthorizedAdmin = (user: SessionUser | null | undefined): user is SessionUser =>
+    Boolean(user && (user.role === ROLES.PLATFORM_OWNER || user.role === ROLES.EVENT_MANAGER));
+
+/**
+ * Platform-level (cross-tenant) access — platform owner only.
+ *
+ * SECURITY (C-04): `ROLES.EVENT_MANAGER === "ADMIN"`, which is both the signup
+ * default and the `User.role` schema default, so any self-registered customer
+ * used to satisfy `isAuthorizedAdmin`. Everything that reads or mutates another
+ * tenant's data (user directory, wedding catalogue/billing, global governance
+ * snapshots, session revocation of other accounts, platform health) must use
+ * this guard instead.
+ */
+const isPlatformOwnerOnly = (user: SessionUser | null | undefined): user is PlatformOwnerUser =>
+    Boolean(user && user.role === ROLES.PLATFORM_OWNER);
 
 function escapeCSV(val: any): string {
     if (val === null || val === undefined) return "";
@@ -27,6 +62,11 @@ adminRouter.get('/weddings', async (c) => {
     const user = await getServerUser(c.req.raw);
     if (!isAuthorizedAdmin(user)) return c.json({ error: "Unauthorized" }, 401);
 
+    // Platform owner sees the whole catalogue; an event manager only ever sees
+    // their own weddings (previously every manager received all tenants' data
+    // together with the owner email addresses).
+    const ownerScope = isPlatformOwnerOnly(user) ? null : (user.userId || user.id);
+
     const limit = parseInt(c.req.query("limit") || "50", 10);
     const page = parseInt(c.req.query("page") || "1", 10);
     const offset = (page - 1) * limit;
@@ -39,11 +79,12 @@ adminRouter.get('/weddings', async (c) => {
                 json_build_object('email', u.email) as user
             FROM "Wedding" w
             LEFT JOIN "User" u ON w."userId" = u.id
+            WHERE ($1::text IS NULL OR w."userId" = $1)
             ORDER BY w."createdAt" DESC
-            LIMIT $1 OFFSET $2
-        `, limit, offset);
+            LIMIT $2 OFFSET $3
+        `, ownerScope, limit, offset);
 
-        const totalResult = await queryRaw('SELECT count(*) as count FROM "Wedding"');
+        const totalResult = await queryRaw('SELECT count(*) as count FROM "Wedding" WHERE ($1::text IS NULL OR "userId" = $1)', ownerScope);
         const total = Number(totalResult[0]?.count || 0);
 
         return c.json({
@@ -63,7 +104,10 @@ adminRouter.get('/weddings', async (c) => {
 
 adminRouter.put('/weddings', async (c) => {
     const user = await getServerUser(c.req.raw);
-    if (!isAuthorizedAdmin(user)) return c.json({ error: "Unauthorized" }, 401);
+    // Package/status/payment-state changes are billing operations that affect any
+    // tenant, so they are platform-owner only (an event manager could previously
+    // upgrade any wedding's package or payment status for free).
+    if (!isPlatformOwnerOnly(user)) return c.json({ error: "Unauthorized" }, 401);
 
     try {
         const body = await c.req.json();
@@ -100,7 +144,9 @@ adminRouter.get('/weddings/:id', async (c) => {
 
     try {
         const wedding = await prisma.wedding.findUnique({
-            where: { id: weddingId },
+            where: isPlatformOwnerOnly(user)
+                ? { id: weddingId }
+                : { id: weddingId, userId: user.userId || user.id },
             include: {
                 user: { select: { id: true, email: true, role: true, createdAt: true } },
                 activities: { orderBy: { time: 'asc' } },
@@ -121,7 +167,8 @@ adminRouter.get('/weddings/:id', async (c) => {
 
 adminRouter.get('/users', async (c) => {
     const user = await getServerUser(c.req.raw);
-    if (!isAuthorizedAdmin(user)) return c.json({ error: "Unauthorized" }, 401);
+    // The platform user directory is cross-tenant: platform owner only.
+    if (!isPlatformOwnerOnly(user)) return c.json({ error: "Unauthorized" }, 401);
 
     const limit = parseInt(c.req.query("limit") || "50", 10);
     const page = parseInt(c.req.query("page") || "1", 10);
@@ -165,11 +212,17 @@ adminRouter.get('/users', async (c) => {
 
 adminRouter.get('/users/:id', async (c) => {
     const user = await getServerUser(c.req.raw);
-    if (!user || (user.role !== ROLES.PLATFORM_OWNER && user.role !== ROLES.EVENT_MANAGER)) {
+    if (!user) {
         return c.json({ error: "Unauthorized" }, 401);
     }
 
     const targetUserId = c.req.param("id");
+
+    // Any authenticated user may read their own record; reading another account's
+    // record is a platform-owner-only operation.
+    if (!isPlatformOwnerOnly(user) && targetUserId !== (user.userId || user.id)) {
+        return c.json({ error: "Forbidden" }, 403);
+    }
 
     try {
         const targetUser = await prisma.user.findUnique({
@@ -231,8 +284,10 @@ adminRouter.patch('/users/:id', async (c) => {
 
 adminRouter.delete('/users/:id', async (c) => {
     const user = await getServerUser(c.req.raw);
-    if (!isAuthorizedAdmin(user)) {
-        return c.json({ error: "Unauthorized: Only authorized admins can delete users" }, 401);
+    // Deleting accounts is a platform-owner operation (an event manager could
+    // previously soft-delete any user, including other tenants' owners).
+    if (!isPlatformOwnerOnly(user)) {
+        return c.json({ error: "Unauthorized: Only the platform owner can delete users" }, 401);
     }
 
     const targetUserId = c.req.param("id");
@@ -267,15 +322,23 @@ adminRouter.get('/stats', async (c) => {
         return c.json({ error: "Unauthorized" }, 401);
     }
 
+    // Managers get aggregates scoped to their own weddings; only the platform
+    // owner sees platform-wide user/wedding/revenue totals.
+    const userScope = isPlatformOwnerOnly(user) ? null : (user.userId || user.id);
+
     try {
         const today = new Date(new Date().setHours(0, 0, 0, 0));
 
         const [userResults, weddingResults, activeResults, todayResults, giftResults] = await Promise.all([
-            queryRaw('SELECT count(*) as count FROM "User"'),
-            queryRaw('SELECT count(*) as count FROM "Wedding"'),
-            queryRaw('SELECT count(*) as count FROM "Wedding" WHERE status = \'ACTIVE\''),
-            queryRaw('SELECT count(*) as count FROM "Wedding" WHERE "createdAt" >= $1', today),
-            queryRaw('SELECT currency, SUM(amount) as amount FROM "Gift" GROUP BY currency')
+            userScope
+                ? queryRaw('SELECT count(*) as count FROM "Staff" s JOIN "Wedding" w ON s."weddingId" = w.id WHERE w."userId" = $1', userScope)
+                : queryRaw('SELECT count(*) as count FROM "User"'),
+            queryRaw('SELECT count(*) as count FROM "Wedding" WHERE ($1::text IS NULL OR "userId" = $1)', userScope),
+            queryRaw('SELECT count(*) as count FROM "Wedding" WHERE status = \'ACTIVE\' AND ($1::text IS NULL OR "userId" = $1)', userScope),
+            queryRaw('SELECT count(*) as count FROM "Wedding" WHERE "createdAt" >= $2 AND ($1::text IS NULL OR "userId" = $1)', userScope, today),
+            userScope
+                ? queryRaw('SELECT g.currency, SUM(g.amount) as amount FROM "Gift" g JOIN "Wedding" w ON g."weddingId" = w.id WHERE w."userId" = $1 GROUP BY g.currency', userScope)
+                : queryRaw('SELECT currency, SUM(amount) as amount FROM "Gift" GROUP BY currency')
         ]);
 
         const financialOverview = giftResults.reduce((acc: any, curr: any) => {
@@ -307,7 +370,8 @@ adminRouter.get('/stats', async (c) => {
 adminRouter.get('/security/stats', async (c) => {
     try {
         const user = await getServerUser(c.req.raw);
-        if (!user || (user.role !== "SUPERADMIN" && user.role !== "ADMIN" && user.role !== ROLES.PLATFORM_OWNER)) {
+        // Platform-wide security telemetry: platform owner only.
+        if (!isPlatformOwnerOnly(user)) {
             return c.json({ error: "Unauthorized" }, 401);
         }
 
@@ -343,10 +407,12 @@ adminRouter.post('/security/revoke', async (c) => {
         const body = await c.req.json();
         const { targetType, targetId } = body;
 
-        const isAuthorized = user && (
-            (user.role === "SUPERADMIN" || user.role === "ADMIN" || user.role === ROLES.PLATFORM_OWNER) ||
-            (targetType === "SELF")
-        );
+        // Only the platform owner may revoke *other* accounts' sessions; any
+        // authenticated user may still revoke their own ("SELF"). Previously the
+        // "ADMIN" role — i.e. every registered customer — passed the first clause,
+        // so a customer could revoke every staff member's sessions platform-wide.
+        // (`user && ...` is kept so TypeScript narrows `user` for the code below.)
+        const isAuthorized = user && (isPlatformOwnerOnly(user) || targetType === "SELF");
 
         if (!isAuthorized) {
             return c.json({ error: "Unauthorized" }, 401);
@@ -462,7 +528,10 @@ adminRouter.get('/logs', async (c) => {
     const action = c.req.query("action");
 
     try {
-        if (user.role === ROLES.PLATFORM_OWNER || user.role === ROLES.EVENT_MANAGER) {
+        // Security and governance feeds contain platform-wide events (all tenants),
+        // so they are restricted to the platform owner. ACTIVITY logs below stay
+        // available to managers, scoped to their own weddings.
+        if (isPlatformOwnerOnly(user)) {
             if (type === "SECURITY") {
                 const logs = await prisma.securityLog.findMany({
                     orderBy: { createdAt: "desc" },
@@ -510,7 +579,8 @@ adminRouter.get('/logs', async (c) => {
 
 adminRouter.get('/health', async (c) => {
     const user = await getServerUser(c.req.raw);
-    if (!isAuthorizedAdmin(user)) {
+    // Infrastructure health/latency probing: platform owner only.
+    if (!isPlatformOwnerOnly(user)) {
         return c.json({ error: "Unauthorized" }, 401);
     }
 
@@ -545,7 +615,8 @@ adminRouter.get('/health', async (c) => {
 adminRouter.get('/governance', async (c) => {
     try {
         const user = await getServerUser(c.req.raw);
-        if (!isAuthorizedAdmin(user)) {
+        // Global system-config snapshots and governance audit history: owner only.
+        if (!isPlatformOwnerOnly(user)) {
             return c.json({ error: "Unauthorized" }, 401);
         }
 
@@ -583,7 +654,8 @@ adminRouter.get('/governance', async (c) => {
 adminRouter.post('/governance', async (c) => {
     try {
         const user = await getServerUser(c.req.raw);
-        if (!isAuthorizedAdmin(user)) {
+        // Creating a snapshot captures the whole platform's system config.
+        if (!isPlatformOwnerOnly(user)) {
             return c.json({ error: "Unauthorized" }, 401);
         }
 
@@ -614,7 +686,9 @@ adminRouter.post('/governance', async (c) => {
 adminRouter.patch('/governance', async (c) => {
     try {
         const user = await getServerUser(c.req.raw);
-        if (!isAuthorizedAdmin(user)) {
+        // Rolling the platform back to a previous system-config version is a
+        // destructive, platform-wide operation: owner only.
+        if (!isPlatformOwnerOnly(user)) {
             return c.json({ error: "Unauthorized" }, 401);
         }
 
@@ -735,7 +809,7 @@ adminRouter.get('/export/gifts', async (c) => {
 adminRouter.post('/bakong/verify-token', async (c) => {
     try {
         const user = await getServerUser(c.req.raw);
-        if (!isAuthorizedAdmin(user)) {
+        if (!isPlatformOwnerOnly(user)) {
             return c.json({ error: "Unauthorized" }, 401);
         }
 
@@ -786,7 +860,7 @@ adminRouter.post('/bakong/verify-token', async (c) => {
 adminRouter.get('/bakong/status', async (c) => {
     try {
         const user = await getServerUser(c.req.raw);
-        if (!isAuthorizedAdmin(user)) {
+        if (!isPlatformOwnerOnly(user)) {
             return c.json({ error: "Unauthorized" }, 401);
         }
 
@@ -800,7 +874,12 @@ adminRouter.get('/bakong/status', async (c) => {
             email: bakongConfig.email || "",
             organization: bakongConfig.organization || "",
             project: bakongConfig.project || "",
+            // Receiving account the KHQR codes are generated against. Without it
+            // /api/payment/generate-qr answers "Payment system not configured".
+            accountID: bakongConfig.accountID || "",
+            merchantName: bakongConfig.merchantName || "",
             isConnected: !!bakongConfig.token,
+            isPaymentReady: Boolean(bakongConfig.token && bakongConfig.accountID),
             updatedAt: config?.updatedAt
         }, 200);
     } catch (error: any) {
@@ -809,10 +888,76 @@ adminRouter.get('/bakong/status', async (c) => {
     }
 });
 
+// ── POST /api/admin/bakong/account ───────────────────────────────────────────
+// Stores the Bakong receiving account that KHQR codes are generated against.
+//
+// Historically no endpoint could persist `bakongConfig.accountID`, so even a
+// fully "Connected" Bakong gateway (token present) still failed with
+// "Payment system not configured" (400) on POST /api/payment/generate-qr.
+adminRouter.post('/bakong/account', async (c) => {
+    try {
+        const user = await getServerUser(c.req.raw);
+        // The destination of every customer payment: platform owner only.
+        if (!isPlatformOwnerOnly(user)) {
+            return c.json({ error: "Unauthorized" }, 401);
+        }
+
+        const body = await c.req.json();
+        const account = String(body?.accountID || "").trim();
+        const merchant = String(body?.merchantName || "").trim();
+
+        if (!account) {
+            return c.json({ error: "accountID is required" }, 400);
+        }
+
+        // ts-khqr requires "<name>@<bank>" (e.g. seabkoeurn64@aclb) and rejects
+        // identifiers longer than 32 characters.
+        if (account.length > 32 || !account.includes("@")) {
+            return c.json({
+                error: 'accountID must be a Bakong account like "seabkoeurn64@aclb" (one "@" separator, max 32 characters)'
+            }, 400);
+        }
+
+        const config = await (prisma as any).systemConfig.findUnique({
+            where: { id: "GLOBAL" }
+        });
+
+        const bakongData = (config?.bakongConfig as any) || {};
+
+        const bakongConfig = {
+            ...bakongData,
+            accountID: account,
+            merchantName: merchant || bakongData.merchantName || "MONEA",
+            accountUpdatedAt: new Date().toISOString(),
+        };
+
+        if (config) {
+            await (prisma as any).systemConfig.update({
+                where: { id: "GLOBAL" },
+                data: { bakongConfig }
+            });
+        } else {
+            await (prisma as any).systemConfig.create({
+                data: { id: "GLOBAL", bakongConfig }
+            });
+        }
+
+        return c.json({
+            message: "Bakong receiving account saved",
+            accountID: bakongConfig.accountID,
+            merchantName: bakongConfig.merchantName,
+            isPaymentReady: Boolean(bakongConfig.token)
+        }, 200);
+    } catch (error: any) {
+        console.error("[Bakong Account] Error:", error?.message || error);
+        return c.json({ error: error.message }, 500);
+    }
+});
+
 adminRouter.post('/bakong/request-token', async (c) => {
     try {
         const user = await getServerUser(c.req.raw);
-        if (!isAuthorizedAdmin(user)) {
+        if (!isPlatformOwnerOnly(user)) {
             return c.json({ error: "Unauthorized" }, 401);
         }
 
@@ -836,10 +981,18 @@ adminRouter.post('/bakong/request-token', async (c) => {
             }, 400);
         }
 
+        // Read the current blob first: a bare object below used to wipe the
+        // stored token/accountID on every "request token" click.
+        const config = await (prisma as any).systemConfig.findUnique({
+            where: { id: "GLOBAL" }
+        });
+        const bakongData = (config?.bakongConfig as any) || {};
+
         await (prisma as any).systemConfig.update({
             where: { id: "GLOBAL" },
             data: {
                 bakongConfig: {
+                    ...bakongData,
                     email,
                     organization,
                     project,
@@ -858,7 +1011,7 @@ adminRouter.post('/bakong/request-token', async (c) => {
 adminRouter.post('/bakong/manual-token', async (c) => {
     try {
         const user = await getServerUser(c.req.raw);
-        if (!isAuthorizedAdmin(user)) {
+        if (!isPlatformOwnerOnly(user)) {
             return c.json({ error: "Unauthorized" }, 401);
         }
 

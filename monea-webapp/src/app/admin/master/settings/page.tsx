@@ -63,11 +63,19 @@ export default function MasterSettingsPage() {
     const [bakongProject, setBakongProject] = useState("Wedding Integration");
     const [bakongManualToken, setBakongManualToken] = useState("");
     const [isBakongLoading, setIsBakongLoading] = useState(false);
+    // Receiving account the KHQR codes are generated against. Required — without
+    // it /api/payment/generate-qr returns "Payment system not configured".
+    const [bakongAccountID, setBakongAccountID] = useState("");
+    const [bakongMerchantName, setBakongMerchantName] = useState("MONEA");
+    const [isSavingBakongAccount, setIsSavingBakongAccount] = useState(false);
     const [bakongInfo, setBakongInfo] = useState<{
         email?: string;
         organization?: string;
         project?: string;
+        accountID?: string;
+        merchantName?: string;
         isConnected?: boolean;
+        isPaymentReady?: boolean;
         updatedAt?: string;
     } | null>(null);
 
@@ -113,6 +121,8 @@ export default function MasterSettingsPage() {
                 if (data?.email) setBakongEmail(data.email);
                 if (data?.organization) setBakongOrg(data.organization);
                 if (data?.project) setBakongProject(data.project);
+                if (data?.accountID) setBakongAccountID(data.accountID);
+                if (data?.merchantName) setBakongMerchantName(data.merchantName);
             })
             .catch(() => {});
     }, []);
@@ -229,6 +239,34 @@ export default function MasterSettingsPage() {
         }
     };
 
+    const handleBakongAccountSave = async () => {
+        const accountID = bakongAccountID.trim();
+        if (!accountID) return;
+        setIsSavingBakongAccount(true);
+        try {
+            const res = await moneaClient.post<any>("/api/admin/bakong/account", {
+                accountID,
+                merchantName: bakongMerchantName.trim() || "MONEA",
+            });
+            if (!res.error && res.data) {
+                showToast({ title: "Saved", description: "Bakong receiving account updated.", type: "success" });
+                setBakongInfo({
+                    ...bakongInfo,
+                    accountID: res.data.accountID,
+                    merchantName: res.data.merchantName,
+                    isPaymentReady: res.data.isPaymentReady,
+                });
+            } else {
+                showToast({ title: "Save Failed", description: res.error || "Could not save Bakong account.", type: "error" });
+            }
+        } catch (e: any) {
+            console.error(e);
+            showToast({ title: "Save Failed", description: e?.message || "Could not save Bakong account.", type: "error" });
+        } finally {
+            setIsSavingBakongAccount(false);
+        }
+    };
+
     const handleUpdateProfile = async () => {
         setIsSavingProfile(true);
         try {
@@ -298,7 +336,7 @@ export default function MasterSettingsPage() {
     if (loading) {
         return (
             <div className="min-h-[70vh] flex items-center justify-center font-kantumruy">
-                <Loader2 className="w-10 h-10 animate-spin text-rose-600" />
+                <Loader2 className="w-10 h-10 animate-spin text-teal-700 dark:text-teal-300" />
             </div>
         );
     }
@@ -315,7 +353,7 @@ export default function MasterSettingsPage() {
                             </Button>
                         </Link>
                         <div>
-                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-teal-800 dark:text-teal-300">
                                 <ShieldCheck size={13} />
                                 <span>Master Config</span>
                             </div>
@@ -327,7 +365,7 @@ export default function MasterSettingsPage() {
 
                     <div className="flex items-center gap-2">
                         <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-muted/60 border border-border/60 text-xs font-medium text-muted-foreground">
-                            <Cpu size={14} className="text-rose-500" />
+                            <Cpu size={14} className="text-teal-700 dark:text-teal-300" />
                             <span>Engine v1.2.3</span>
                         </div>
                     </div>
@@ -351,7 +389,7 @@ export default function MasterSettingsPage() {
                                         : "text-muted-foreground hover:text-foreground hover:bg-card/50"
                                 )}
                             >
-                                <Icon size={16} className={cn(isActive ? "text-rose-600 dark:text-rose-400" : "text-muted-foreground")} />
+                                <Icon size={16} className={cn(isActive ? "text-teal-800 dark:text-teal-300" : "text-muted-foreground")} />
                                 <span>{tab.label}</span>
                             </button>
                         );
@@ -390,7 +428,7 @@ export default function MasterSettingsPage() {
                                                 type="text"
                                                 inputMode="decimal"
                                                 placeholder="9"
-                                                className="h-12 w-full pl-9 pr-4 rounded-xl border border-input bg-background text-xl font-bold text-foreground focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 outline-none font-mono"
+                                                className="h-12 w-full pl-9 pr-4 rounded-xl border border-input bg-background text-xl font-bold text-foreground focus:border-teal-600 focus:ring-2 focus:ring-teal-600/10 outline-none font-mono"
                                                 value={stadPrice}
                                                 onChange={(e) => {
                                                     const val = e.target.value.replace(/[^0-9.]/g, '');
@@ -458,7 +496,7 @@ export default function MasterSettingsPage() {
                             <Button
                                 onClick={handleSavePricing}
                                 disabled={isSavingPricing}
-                                className="h-12 px-8 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-sm shadow-md shadow-rose-500/20 flex items-center gap-2"
+                                className="h-12 px-8 bg-teal-700 hover:bg-teal-800 text-white rounded-xl font-bold text-sm shadow-md shadow-teal-700/20 flex items-center gap-2"
                             >
                                 {isSavingPricing ? (
                                     <>
@@ -483,7 +521,7 @@ export default function MasterSettingsPage() {
                         <Card className="bg-card border border-border/80 rounded-2xl shadow-xs">
                             <CardContent className="p-6 sm:p-8 space-y-6">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center">
+                                    <div className="w-10 h-10 rounded-xl bg-teal-600/10 text-teal-800 dark:text-teal-300 flex items-center justify-center">
                                         <Lock size={20} />
                                     </div>
                                     <div>
@@ -509,7 +547,7 @@ export default function MasterSettingsPage() {
                                                 <input
                                                     type={showPasswordFor2FA ? "text" : "password"}
                                                     placeholder="Master Password"
-                                                    className="h-11 w-full pl-4 pr-10 rounded-xl border border-input bg-background text-sm font-medium focus:border-rose-500 outline-none"
+                                                    className="h-11 w-full pl-4 pr-10 rounded-xl border border-input bg-background text-sm font-medium focus:border-teal-600 outline-none"
                                                     value={passwordFor2FA}
                                                     onChange={(e) => setPasswordFor2FA(e.target.value)}
                                                     onKeyDown={(e) => e.key === 'Enter' && handleSetup2FA()}
@@ -526,7 +564,7 @@ export default function MasterSettingsPage() {
                                                 <Button onClick={() => setShowPasswordPromptFor2FA(false)} variant="outline" className="h-10 flex-1 rounded-xl text-xs font-bold">
                                                     បោះបង់
                                                 </Button>
-                                                <Button onClick={handleSetup2FA} disabled={is2FASetupLoading || !passwordFor2FA} className="h-10 flex-1 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold">
+                                                <Button onClick={handleSetup2FA} disabled={is2FASetupLoading || !passwordFor2FA} className="h-10 flex-1 bg-teal-700 hover:bg-teal-800 text-white rounded-xl text-xs font-bold">
                                                     {is2FASetupLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "ផ្ទៀងផ្ទាត់"}
                                                 </Button>
                                             </div>
@@ -535,7 +573,7 @@ export default function MasterSettingsPage() {
                                         <Button
                                             onClick={() => setShowPasswordPromptFor2FA(true)}
                                             disabled={is2FASetupLoading}
-                                            className="w-full h-11 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs"
+                                            className="w-full h-11 bg-teal-700 hover:bg-teal-800 text-white rounded-xl font-bold text-xs"
                                         >
                                             {is2FASetupLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "ចាប់ផ្តើមរៀបចំប្រព័ន្ធ 2FA"}
                                         </Button>
@@ -550,7 +588,7 @@ export default function MasterSettingsPage() {
                                             <input
                                                 type="text"
                                                 placeholder="000000"
-                                                className="h-11 flex-1 px-4 rounded-xl border border-input bg-background text-base font-bold text-center focus:border-rose-500 outline-none font-mono"
+                                                className="h-11 flex-1 px-4 rounded-xl border border-input bg-background text-base font-bold text-center focus:border-teal-600 outline-none font-mono"
                                                 value={twoFactorToken}
                                                 onChange={(e) => setTwoFactorToken(e.target.value)}
                                                 maxLength={6}
@@ -558,7 +596,7 @@ export default function MasterSettingsPage() {
                                             <Button
                                                 onClick={handleVerify2FA}
                                                 disabled={is2FASetupLoading || twoFactorToken.length < 6}
-                                                className="h-11 px-5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs"
+                                                className="h-11 px-5 bg-teal-700 hover:bg-teal-800 text-white rounded-xl font-bold text-xs"
                                             >
                                                 ផ្ទៀងផ្ទាត់
                                             </Button>
@@ -618,7 +656,7 @@ export default function MasterSettingsPage() {
                         <Card className="bg-card border border-border/80 rounded-2xl shadow-xs">
                             <CardContent className="p-6 sm:p-8 space-y-5">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center">
+                                    <div className="w-10 h-10 rounded-xl bg-teal-600/10 text-teal-800 dark:text-teal-300 flex items-center justify-center">
                                         <Lock size={20} />
                                     </div>
                                     <div>
@@ -632,7 +670,7 @@ export default function MasterSettingsPage() {
                                         <input
                                             type={showPwFields ? "text" : "password"}
                                             placeholder="លេខសម្ងាត់បច្ចុប្បន្ន (Current Password)"
-                                            className="h-11 w-full pl-4 pr-10 rounded-xl border border-input bg-background text-xs font-medium focus:border-rose-500 outline-none"
+                                            className="h-11 w-full pl-4 pr-10 rounded-xl border border-input bg-background text-xs font-medium focus:border-teal-600 outline-none"
                                             value={currPassword}
                                             onChange={(e) => setCurrPassword(e.target.value)}
                                         />
@@ -648,7 +686,7 @@ export default function MasterSettingsPage() {
                                     <input
                                         type={showPwFields ? "text" : "password"}
                                         placeholder="លេខសម្ងាត់ថ្មី (New Password - យ៉ាងតិច 8 ខ្ទង់)"
-                                        className="h-11 w-full px-4 rounded-xl border border-input bg-background text-xs font-medium focus:border-rose-500 outline-none"
+                                        className="h-11 w-full px-4 rounded-xl border border-input bg-background text-xs font-medium focus:border-teal-600 outline-none"
                                         value={newPassword}
                                         onChange={(e) => setNewPassword(e.target.value)}
                                     />
@@ -656,7 +694,7 @@ export default function MasterSettingsPage() {
                                     <input
                                         type={showPwFields ? "text" : "password"}
                                         placeholder="ផ្ទៀងផ្ទាត់លេខសម្ងាត់ថ្មី (Confirm New Password)"
-                                        className="h-11 w-full px-4 rounded-xl border border-input bg-background text-xs font-medium focus:border-rose-500 outline-none"
+                                        className="h-11 w-full px-4 rounded-xl border border-input bg-background text-xs font-medium focus:border-teal-600 outline-none"
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
                                     />
@@ -664,7 +702,7 @@ export default function MasterSettingsPage() {
                                     <Button
                                         onClick={handleChangePassword}
                                         disabled={isChangingPassword || !currPassword || !newPassword}
-                                        className="w-full h-11 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs shadow-xs flex items-center justify-center gap-2"
+                                        className="w-full h-11 bg-teal-700 hover:bg-teal-800 text-white rounded-xl font-bold text-xs shadow-xs flex items-center justify-center gap-2"
                                     >
                                         {isChangingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck size={15} />}
                                         <span>ផ្លាស់ប្តូរលេខសម្ងាត់ថ្មី (Change Password)</span>
@@ -681,7 +719,7 @@ export default function MasterSettingsPage() {
                         <CardContent className="p-6 sm:p-8 space-y-6">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center">
+                                    <div className="w-10 h-10 rounded-xl bg-teal-600/10 text-teal-800 dark:text-teal-300 flex items-center justify-center">
                                         <CreditCard size={20} />
                                     </div>
                                     <div>
@@ -697,17 +735,80 @@ export default function MasterSettingsPage() {
                                 )}
                             </div>
 
+                            {/* Receiving account — required, otherwise QR generation fails with
+                                "Payment system not configured". */}
+                            <div className="space-y-3 p-4 rounded-2xl border border-border bg-muted/30">
+                                <div className="flex items-center justify-between gap-3">
+                                    <div>
+                                        <p className="text-xs font-bold text-foreground">Bakong Receiving Account</p>
+                                        <p className="text-[11px] text-muted-foreground">គណនីទទួលប្រាក់ (Required for KHQR)</p>
+                                    </div>
+                                    {bakongInfo?.isPaymentReady ? (
+                                        <div className="px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center gap-1.5">
+                                            <CheckCircle2 size={12} className="text-emerald-600" />
+                                            <span className="text-[10px] font-black text-emerald-600 uppercase tracking-wider">Payment Ready</span>
+                                        </div>
+                                    ) : (
+                                        <div className="px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full flex items-center gap-1.5">
+                                            <AlertTriangle size={12} className="text-amber-600" />
+                                            <span className="text-[10px] font-black text-amber-600 uppercase tracking-wider">Not Ready</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-muted-foreground">Account ID (name@bank)</label>
+                                        <input
+                                            type="text"
+                                            placeholder="seabkoeurn64@aclb"
+                                            className="w-full px-3 py-2.5 rounded-xl border border-input bg-background text-xs font-mono focus:border-teal-600 focus:ring-2 focus:ring-teal-600/10 outline-none transition-all"
+                                            value={bakongAccountID}
+                                            onChange={(e) => setBakongAccountID(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-bold text-muted-foreground">Merchant Name</label>
+                                        <input
+                                            type="text"
+                                            placeholder="MONEA"
+                                            className="w-full px-3 py-2.5 rounded-xl border border-input bg-background text-xs focus:border-teal-600 focus:ring-2 focus:ring-teal-600/10 outline-none transition-all"
+                                            value={bakongMerchantName}
+                                            onChange={(e) => setBakongMerchantName(e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+
+                                <Button
+                                    onClick={handleBakongAccountSave}
+                                    disabled={isSavingBakongAccount || !bakongAccountID.trim()}
+                                    className="w-full h-11 bg-teal-700 hover:bg-teal-800 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2"
+                                >
+                                    {isSavingBakongAccount ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                            <span>កំពុងរក្សាទុក...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Save size={15} />
+                                            <span>រក្សាទុកគណនីទទួលប្រាក់ (Save Receiving Account)</span>
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between px-1">
                                     <label className="text-xs font-bold text-muted-foreground flex items-center gap-1.5">
-                                        <Terminal size={14} className="text-rose-600" />
+                                        <Terminal size={14} className="text-teal-800 dark:text-teal-300" />
                                         <span>API Token (JWT)</span>
                                     </label>
                                     <a
                                         href="https://api-bakong.nbc.gov.kh"
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="text-xs font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1 transition-colors"
+                                        className="text-xs font-bold text-teal-800 hover:text-teal-900 dark:text-teal-300 dark:hover:text-teal-200 flex items-center gap-1 transition-colors"
                                     >
                                         <span>NBC Portal</span>
                                         <ExternalLink size={12} />
@@ -715,14 +816,14 @@ export default function MasterSettingsPage() {
                                 </div>
                                 <textarea
                                     placeholder="Paste your production JWT token here..."
-                                    className="w-full p-4 rounded-xl border border-input bg-background text-xs font-mono focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10 outline-none transition-all min-h-[120px] resize-none"
+                                    className="w-full p-4 rounded-xl border border-input bg-background text-xs font-mono focus:border-teal-600 focus:ring-2 focus:ring-teal-600/10 outline-none transition-all min-h-[120px] resize-none"
                                     value={bakongManualToken}
                                     onChange={(e) => setBakongManualToken(e.target.value)}
                                 />
                                 <Button
                                     onClick={handleBakongManualSave}
                                     disabled={isBakongLoading || !bakongManualToken}
-                                    className="w-full h-11 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2"
+                                    className="w-full h-11 bg-teal-700 hover:bg-teal-800 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2"
                                 >
                                     {isBakongLoading ? (
                                         <>
@@ -749,7 +850,7 @@ export default function MasterSettingsPage() {
                                 <div className="flex items-center gap-3">
                                     <div className={cn(
                                         "w-10 h-10 rounded-xl flex items-center justify-center",
-                                        config?.maintenanceMode ? "bg-rose-500/10 text-rose-600" : "bg-emerald-500/10 text-emerald-600"
+                                        config?.maintenanceMode ? "bg-amber-500/10 text-amber-700 dark:text-amber-300" : "bg-emerald-500/10 text-emerald-600"
                                     )}>
                                         <Wrench size={20} />
                                     </div>
@@ -775,12 +876,12 @@ export default function MasterSettingsPage() {
                             <div className="space-y-4 pt-4 border-t border-border/80">
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-bold text-muted-foreground flex items-center gap-1.5">
-                                        <Calendar size={13} className="text-rose-500" />
+                                        <Calendar size={13} className="text-teal-700 dark:text-teal-300" />
                                         <span>{isKm ? "ម៉ោងចាប់ផ្តើមបិទ (Auto-Halt)" : "Maintenance Start"}</span>
                                     </label>
                                     <input
                                         type="datetime-local"
-                                        className="w-full h-11 px-3 rounded-xl bg-background border border-input text-xs font-medium text-foreground outline-none focus:border-rose-500"
+                                        className="w-full h-11 px-3 rounded-xl bg-background border border-input text-xs font-medium text-foreground outline-none focus:border-teal-600"
                                         value={config?.maintenanceStart ? new Date(new Date(config.maintenanceStart).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ""}
                                         onChange={(e) => setConfig({ ...config, maintenanceStart: e.target.value })}
                                         onBlur={(e) => handleAutoSave({ maintenanceStart: e.target.value })}
@@ -793,7 +894,7 @@ export default function MasterSettingsPage() {
                                     </label>
                                     <input
                                         type="datetime-local"
-                                        className="w-full h-11 px-3 rounded-xl bg-background border border-input text-xs font-medium text-foreground outline-none focus:border-rose-500"
+                                        className="w-full h-11 px-3 rounded-xl bg-background border border-input text-xs font-medium text-foreground outline-none focus:border-teal-600"
                                         value={config?.maintenanceEnd ? new Date(new Date(config.maintenanceEnd).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : ""}
                                         onChange={(e) => setConfig({ ...config, maintenanceEnd: e.target.value })}
                                         onBlur={(e) => handleAutoSave({ maintenanceEnd: e.target.value })}

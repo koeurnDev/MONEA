@@ -5,7 +5,7 @@
  * Compatible with Neon PostgreSQL + Cloudflare Workers
  */
 
-import { pgTable, text, timestamp, boolean, integer, decimal, json, pgEnum, index, uniqueIndex } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, boolean, integer, decimal, json, jsonb, pgEnum, index, uniqueIndex } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // ============================================================================
@@ -15,7 +15,7 @@ import { relations } from 'drizzle-orm';
 export const userRoleEnum = pgEnum('UserRole', ['SUPERADMIN', 'ADMIN', 'STAFF']);
 export const weddingStatusEnum = pgEnum('WeddingStatus', ['ACTIVE', 'ARCHIVED']);
 export const packageTypeEnum = pgEnum('PackageType', ['FREE', 'PRO', 'PREMIUM']);
-export const paymentStatusEnum = pgEnum('PaymentStatus', ['PENDING', 'AWAITING_VERIFICATION', 'PAID']);
+export const paymentStatusEnum = pgEnum('PaymentStatus', ['PENDING', 'AWAITING_VERIFICATION', 'PAID', 'REJECTED']);
 export const eventTypeEnum = pgEnum('EventType', ['wedding', 'anniversary']);
 export const analyticsTypeEnum = pgEnum('AnalyticsType', ['VIEW', 'MAP_CLICK', 'SAVE_DATE', 'RSVP_OPEN', 'RSVP_SUBMIT']);
 export const deviceTypeEnum = pgEnum('DeviceType', ['MOBILE', 'DESKTOP']);
@@ -87,6 +87,8 @@ export const weddings = pgTable('Wedding', {
   userId: text('userId').notNull(),
   telegramLink: text('telegramLink'),
   paymentInfo: text('paymentInfo'),
+  paymentOrderId: text('paymentOrderId'),
+  paymentRejectedAt: timestamp('paymentRejectedAt'),
   paymentHash: text('paymentHash'),
   bakongTrxId: text('bakongTrxId'),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
@@ -96,6 +98,7 @@ export const weddings = pgTable('Wedding', {
   statusIdx: index('Wedding_status_idx').on(table.status),
   createdAtIdx: index('Wedding_createdAt_idx').on(table.createdAt),
   paymentStatusIdx: index('Wedding_paymentStatus_idx').on(table.paymentStatus),
+  paymentStatusRejectedAtIdx: index('Wedding_paymentStatus_paymentRejectedAt_idx').on(table.paymentStatus, table.paymentRejectedAt),
   packageTypeIdx: index('Wedding_packageType_idx').on(table.packageType),
   userIdStatusCreatedAtIdx: index('Wedding_userId_status_createdAt_idx').on(table.userId, table.status, table.createdAt),
   statusPaymentStatusIdx: index('Wedding_status_paymentStatus_idx').on(table.status, table.paymentStatus),
@@ -244,6 +247,16 @@ export const blacklistedIPs = pgTable('BlacklistedIP', {
   createdAt: timestamp('createdAt').defaultNow().notNull(),
 });
 
+export const rejectedPaymentReceipts = pgTable('RejectedPaymentReceipt', {
+  id: text('id').primaryKey(),
+  weddingId: text('weddingId').notNull().references(() => weddings.id, { onDelete: 'cascade' }),
+  receiptUrl: text('receiptUrl').notNull(),
+  rejectedAt: timestamp('rejectedAt').notNull(),
+}, (table) => ({
+  rejectedAtIdx: index('RejectedPaymentReceipt_rejectedAt_idx').on(table.rejectedAt),
+  weddingIdIdx: index('RejectedPaymentReceipt_weddingId_idx').on(table.weddingId),
+}));
+
 export const ipSecurity = pgTable('IpSecurity', {
   id: text('id').primaryKey(),
   ip: text('ip').notNull().unique(),
@@ -278,6 +291,8 @@ export const systemConfig = pgTable('SystemConfig', {
   stadPrice: decimal('stadPrice').default('9.0').notNull(),
   proPrice: decimal('proPrice').default('19.0').notNull(),
   bakongConfig: json('bakongConfig'),
+  templateAvailability: jsonb('templateAvailability'),
+  templateMetadata: jsonb('templateMetadata'),
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
 });
 
@@ -403,6 +418,7 @@ export const weddingsRelations = relations(weddings, ({ one, many }) => ({
   staff: many(staff),
   supportTickets: many(supportTickets),
   templateVersions: many(weddingTemplateVersions),
+  rejectedPaymentReceipts: many(rejectedPaymentReceipts),
 }));
 
 export const guestsRelations = relations(guests, ({ one, many }) => ({

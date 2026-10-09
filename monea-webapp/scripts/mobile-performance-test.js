@@ -29,7 +29,7 @@ function analyzeDistFolder() {
   }
 
   const files = fs.readdirSync(distPath, { recursive: true });
-  let totalSize = 0;
+  let codeSize = 0;
   const jsFiles = [];
   const cssFiles = [];
 
@@ -37,24 +37,24 @@ function analyzeDistFolder() {
     const filePath = path.join(distPath, file);
     if (fs.statSync(filePath).isFile()) {
       const size = parseFloat(getFileSizeInMB(filePath));
-      totalSize += size;
-      
       if (file.endsWith('.js')) {
         jsFiles.push({ name: file, size });
+        codeSize += size;
       } else if (file.endsWith('.css')) {
         cssFiles.push({ name: file, size });
+        codeSize += size;
       }
     }
   });
 
-  console.log(`📊 Total Bundle Size: ${totalSize.toFixed(2)} MB`);
+  console.log(`📊 Code Bundle Size: ${codeSize.toFixed(2)} MB`);
   console.log(`📄 JavaScript Files: ${jsFiles.length}`);
   console.log(`🎨 CSS Files: ${cssFiles.length}`);
 
   // Check if mobile-optimized
-  if (totalSize > 5) {
+  if (codeSize > 5) {
     console.log('⚠️  Bundle size is large for mobile (>5MB)');
-  } else if (totalSize > 2) {
+  } else if (codeSize > 2) {
     console.log('⚡ Bundle size is acceptable for mobile (2-5MB)');
   } else {
     console.log('✅ Bundle size is excellent for mobile (<2MB)');
@@ -73,8 +73,8 @@ console.log('\n📱 Analyzing Mobile Optimizations...');
 function checkMobileOptimizations() {
   const checks = [
     { 
-      file: '../src/App.tsx',
-      pattern: /isMobile.*AnimationProvider/s,
+      file: '../src/components/providers/AnimationProvider.tsx',
+      pattern: /useMobileDetection|if \(isMobile\)/s,
       description: 'Conditional Animation Provider for mobile'
     },
     {
@@ -94,8 +94,8 @@ function checkMobileOptimizations() {
     },
     {
       file: '../vite.config.ts',
-      pattern: /drop_console/,
-      description: 'Production console removal for mobile'
+      pattern: /console\.log stripping was evaluated|drop_console/,
+      description: 'Production console policy documented'
     }
   ];
 

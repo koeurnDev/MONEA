@@ -4,8 +4,47 @@ import { weddings, weddingTemplateVersions } from "@/drizzle/schema"
 import { eq, desc } from "drizzle-orm"
 import { getServerUser } from "@/lib/auth"
 import { ROLES } from "@/lib/constants"
+import { systemConfig } from "@/drizzle/schema"
+import {
+    normalizeTemplateAvailability,
+    normalizeTemplateMetadata,
+} from "@/lib/template-availability"
 
 const templatesRouter = new Hono()
+
+templatesRouter.get('/availability', async (c) => {
+    c.header("Cache-Control", "no-store");
+    try {
+        const db = getDb(c.env);
+        const config = await db.select({ templateAvailability: systemConfig.templateAvailability })
+            .from(systemConfig)
+            .where(eq(systemConfig.id, "GLOBAL"))
+            .limit(1)
+            .then((rows: any) => rows[0]);
+
+        return c.json(normalizeTemplateAvailability(config?.templateAvailability));
+    } catch (error) {
+        console.error("[TEMPLATE_AVAILABILITY_GET]", error);
+        return c.json({ error: "Failed to fetch template availability" }, 500);
+    }
+});
+
+templatesRouter.get('/metadata', async (c) => {
+    c.header("Cache-Control", "no-store");
+    try {
+        const db = getDb(c.env);
+        const config = await db.select({ templateMetadata: systemConfig.templateMetadata })
+            .from(systemConfig)
+            .where(eq(systemConfig.id, "GLOBAL"))
+            .limit(1)
+            .then((rows: any) => rows[0]);
+
+        return c.json(normalizeTemplateMetadata(config?.templateMetadata));
+    } catch (error) {
+        console.error("[TEMPLATE_METADATA_GET]", error);
+        return c.json({ error: "Failed to fetch template metadata" }, 500);
+    }
+});
 
 templatesRouter.get('/versions', async (c) => {
     try {

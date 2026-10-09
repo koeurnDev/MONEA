@@ -47,7 +47,7 @@ export function QuickInviteCard({ weddingId }: { weddingId: string }) {
                 <div className="flex flex-col sm:flex-row gap-3">
                     <div className="relative flex-1 group">
                         <input
-                            className="flex h-10 w-full rounded-xl border border-black/[0.05] dark:border-white/[0.05] bg-muted/20 px-4 py-2 text-sm md:text-base font-medium transition-all focus:ring-2 focus:ring-rose-500/10 focus:border-rose-500 outline-none text-muted-foreground group-hover:bg-muted/30"
+                            className="flex h-10 w-full rounded-xl border border-black/[0.05] dark:border-white/[0.05] bg-muted/20 px-4 py-2 text-sm md:text-base font-medium transition-all focus:ring-2 focus:ring-teal-500/10 focus:border-teal-500 outline-none text-muted-foreground group-hover:bg-muted/30"
                             readOnly
                             value={url}
                         />

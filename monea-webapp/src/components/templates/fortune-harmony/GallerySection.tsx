@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { WeddingData } from '../types';
+import { getWeddingPhotos } from "../shared/weddingPhotos";
 
 interface GallerySectionProps {
     wedding: WeddingData;
@@ -9,31 +10,23 @@ interface GallerySectionProps {
 }
 
 export const GallerySection: React.FC<GallerySectionProps> = ({ wedding, primaryColor }) => {
-    const rawGallery = wedding.galleryItems || [];
-    const photos = rawGallery.filter(item => item.url && item.type !== 'VIDEO');
+    const photos = getWeddingPhotos(wedding);
     const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
 
-    const defaultPhotos = [
-        { url: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop", caption: "Sweet Moments" },
-        { url: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=800&auto=format&fit=crop", caption: "Eternal Love" },
-        { url: "https://images.unsplash.com/photo-1606800052052-a08af7148866?q=80&w=800&auto=format&fit=crop", caption: "Together Forever" },
-        { url: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?q=80&w=800&auto=format&fit=crop", caption: "Our Journey" },
-    ];
-
-    const displayPhotos = photos.length > 0 ? photos : defaultPhotos;
+    if (photos.length === 0) return null;
 
     return (
-        <section className="py-14 px-4 sm:px-6 bg-[#5E0F1B] text-white font-kantumruy relative overflow-hidden">
+        <section className="py-14 px-4 sm:px-6 bg-transparent text-[#2d352b] font-kantumruy relative overflow-hidden">
             <div className="max-w-md mx-auto space-y-6 relative z-10">
                 <div className="text-center space-y-1">
-                    <span className="text-xl sm:text-2xl font-khmer-moul text-amber-300 block">
+                    <span className="text-xl sm:text-2xl font-khmer-moul text-[#4d5649] block">
                         កម្រងរូបភាពអនុស្សាវរីយ៍
                     </span>
-                    <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto" />
+                    <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-[#8ea07a] to-transparent mx-auto" />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                    {displayPhotos.map((photo, idx) => (
+                    {photos.map((photo, idx) => (
                         <motion.div
                             key={idx}
                             whileHover={{ scale: 1.02 }}
@@ -45,13 +38,13 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ wedding, primary
                         >
                             <img
                                 src={photo.url}
-                                alt={(photo as any).caption || `Photo ${idx + 1}`}
+                                alt={`Photo ${idx + 1}`}
                                 className="w-full h-full object-cover"
                                 loading="lazy"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity flex items-end p-2.5">
                                 <span className="text-[11px] text-amber-200 font-bold truncate">
-                                    {(photo as any).caption || "អនុស្សាវរីយ៍"}
+                                    អនុស្សាវរីយ៍
                                 </span>
                             </div>
                         </motion.div>
@@ -80,7 +73,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ wedding, primary
                             onClick={(e) => e.stopPropagation()}
                         >
                             <img
-                                src={displayPhotos[selectedPhoto].url}
+                                src={photos[selectedPhoto].url}
                                 alt="Enlarged moment"
                                 className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl border border-amber-400/40"
                             />

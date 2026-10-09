@@ -10,6 +10,7 @@ import { isEditingLocked } from "@/lib/permissions"
 import { cloudinaryDelete } from "@/lib/cloudinary-edge"
 import { publicLimiter, getIP } from "@/lib/ratelimit"
 import { z } from "zod"
+import { generateWeddingCode } from "@/lib/wedding-code"
 
 const weddingRouter = new Hono()
 
@@ -228,9 +229,22 @@ weddingRouter.post('/rsvp', async (c) => {
             return c.json({ error: "Missing CAPTCHA response" }, 400);
         }
 
-        const turnstileSecret = process.env.TURNSTILE_SECRET_KEY || '1x0000000000000000000000000000000AA';
+        const turnstileSecret = process.env.TURNSTILE_SECRET_KEY || process.env.TURNSTILE_SECRET;
+        const isDevEnvironment =
+            process.env.NODE_ENV === 'development' || process.env.ENVIRONMENT === 'development';
+        const usingTestSecret =
+            !turnstileSecret || turnstileSecret === '1x0000000000000000000000000000000AA';
+
+        // Fail closed outside development: never send Cloudflare's always-pass test secret.
+        if (usingTestSecret && !isDevEnvironment) {
+            console.error(
+                '[Turnstile] RSVP blocked: CAPTCHA secret is missing or set to the always-pass test key.'
+            );
+            return c.json({ error: "CAPTCHA verification is unavailable. Please try again later." }, 503);
+        }
+
         const formData = new FormData();
-        formData.append('secret', turnstileSecret);
+        formData.append('secret', turnstileSecret || '1x0000000000000000000000000000000AA');
         formData.append('response', cfTurnstileResponse);
         formData.append('remoteip', ip);
 
@@ -410,6 +424,7 @@ weddingRouter.post('/', async (c) => {
         const wedding = await prisma.wedding.create({
             data: {
                 userId: user.userId,
+                weddingCode: generateWeddingCode(),
                 groomName: groomName || "Groom",
                 brideName: brideName || "Bride",
                 date: date,
@@ -491,6 +506,7 @@ weddingRouter.put('/', async (c) => {
             wedding = await prisma.wedding.create({
                 data: {
                     userId: user.userId,
+                    weddingCode: generateWeddingCode(),
                     groomName: groomName || "Groom",
                     brideName: brideName || "Bride",
                     date: date ? new Date(date) : new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),

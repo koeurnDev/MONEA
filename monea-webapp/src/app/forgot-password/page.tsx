@@ -2,7 +2,7 @@ import { lazy, Suspense, useState } from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Mail, ArrowLeft, Loader2, ChevronLeft } from "lucide-react";
 import { m, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
@@ -18,17 +18,19 @@ import { Input } from "@/components/ui/input";
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { AUTH_URLS } from "@/lib/constants";
-import { LanguageToggle } from "@/components/LanguageToggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { moneaClient } from "@/lib/api-client";
 
 const Turnstile = lazy(() => import("@marsidev/react-turnstile").then(mod => ({ default: mod.Turnstile })));
 
 export default function ForgotPasswordPage() {
     const { t } = useTranslation();
+    const navigate = useNavigate();
     const [error, setError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [turnstileToken, setTurnstileToken] = useState("");
+    const [otp, setOtp] = useState("");
 
     const formSchema = z.object({
         email: z.string().email({ message: t('common.validation.invalidEmail') }),
@@ -50,7 +52,7 @@ export default function ForgotPasswordPage() {
             });
 
             if (!res.error) {
-                setSuccessMessage(t('common.auth.resetLinkSent'));
+                setSuccessMessage(t('common.auth.resetLinkSent', { defaultValue: 'បើគណនីមាន Telegram ភ្ជាប់ កូដសង្គ្រោះនឹងត្រូវបានផ្ញើទៅ Telegram។' }));
             } else {
                 setError(res.error || t('common.errors.technical'));
             }
@@ -62,71 +64,77 @@ export default function ForgotPasswordPage() {
     }
 
     return (
-        <div className="min-h-screen w-full relative flex items-center justify-center bg-black py-10">
-            {/* Background Image with Overlay */}
-            <div className="absolute inset-0 z-0">
-                <div
-                    className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-40"
-                    style={{ backgroundPosition: 'center 40%' }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/60 backdrop-blur-[2px]"></div>
+        <div className="relative flex min-h-[100dvh] w-full flex-col items-center justify-center overflow-x-hidden bg-gradient-to-br from-[#FFF5F7] via-[#FDF8FF] to-[#FFF8F0] px-3 py-4 transition-colors duration-300 dark:from-[#09090B] dark:via-[#130E1B] dark:to-[#09090B] sm:px-4">
+            <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                <div className="absolute -left-[10%] -top-[15%] h-[50vw] w-[50vw] rounded-full bg-teal-400/15 blur-[130px] dark:bg-teal-600/10" />
+                <div className="absolute -bottom-[15%] -right-[10%] h-[45vw] w-[45vw] rounded-full bg-amber-300/15 blur-[130px] dark:bg-amber-900/10" />
             </div>
 
-            <div className="absolute top-4 right-4 md:top-6 md:right-8 z-50">
-                <LanguageToggle className="bg-white/10 text-white hover:bg-white/20 hover:text-white border border-white/20 backdrop-blur-md" />
+            <div className="z-10 mb-3 flex w-full max-w-[420px] items-center justify-between px-1">
+                <Link
+                    to={AUTH_URLS.SIGN_IN}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-card/80 px-3 py-1.5 text-xs font-bold text-muted-foreground shadow-xs transition-all hover:bg-muted hover:text-foreground active:scale-95"
+                >
+                    <ChevronLeft size={15} />
+                    <span>{t('common.auth.back', { defaultValue: 'ត្រឡប់' })}</span>
+                </Link>
+                <div className="flex items-center gap-2">
+                    <ThemeToggle className="h-8 w-8 border border-border/80 bg-card text-foreground shadow-xs hover:bg-muted" />
+                </div>
             </div>
 
-            {/* Content Container */}
             <m.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-                className="relative z-10 w-full max-w-md p-4 md:p-6"
+                transition={{ duration: 0.25, ease: "easeOut" }}
+                className="relative z-10 w-full max-w-[420px]"
             >
-                <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
-                    {/* Back Button */}
-                    <Link to={AUTH_URLS.SIGN_IN}
-                        className="absolute left-6 top-6 text-white/40 hover:text-white transition-colors group flex items-center gap-1 text-[10px] font-black uppercase tracking-widest z-20"
-                    >
-                        <ChevronLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" /> {t('common.auth.back')}
-                    </Link>
-
-                    {/* Header */}
-                    <div className="text-center mb-8">
-                        <Link to="/" className="inline-flex justify-center">
-                            <MoneaLogo showText size="md" variant="dark" />
+                <div className="rounded-[28px] border border-border/80 bg-card/95 p-5 shadow-2xl shadow-slate-900/5 backdrop-blur-2xl dark:border-white/10 dark:bg-[#121216]/95 dark:shadow-teal-950/10 sm:p-6">
+                    <div className="mb-4 text-center">
+                        <Link to="/" className="mb-2 inline-flex justify-center">
+                            <MoneaLogo showText size="sm" />
                         </Link>
-                        <h1 className="text-2xl font-bold text-white mb-2 font-kantumruy mt-4">{t('common.auth.forgotPasswordTitle')}</h1>
-                        <p className="text-white/40 text-xs font-kantumruy">{t('common.auth.forgotPasswordSubtitle')}</p>
+                        <h1 className="text-xl font-black text-foreground font-kantumruy sm:text-2xl">
+                            {t('common.auth.forgotPasswordTitle', { defaultValue: 'ភ្លេចពាក្យសម្ងាត់' })}
+                        </h1>
+                        <p className="mt-1 text-[11px] font-medium text-muted-foreground">
+                            {t('common.auth.forgotPasswordSubtitle', { defaultValue: 'បញ្ចូលអ៊ីមែលគណនី។ បើបានភ្ជាប់ Telegram រួច កូដសង្គ្រោះនឹងផ្ញើទៅ Telegram របស់អ្នក។' })}
+                        </p>
                     </div>
 
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
                             <FormField
                                 control={form.control}
                                 name="email"
                                 render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="text-white/80 font-kantumruy text-xs">{t('common.auth.emailLabel')}</FormLabel>
-                                        <div className="relative">
-                                            <Mail className="absolute left-3 top-3 h-4 w-4 text-white/40" />
-                                            <Input placeholder="name@example.com" className="pl-10 bg-white/5 border-white/10 text-white rounded-xl focus:border-pink-500/50 h-11" {...field} />
+                                    <FormItem className="space-y-1">
+                                        <FormLabel className="text-xs font-bold text-foreground font-kantumruy">
+                                            {t('common.auth.emailLabel', { defaultValue: 'អ៊ីមែល' })}
+                                        </FormLabel>
+                                        <div className="relative group">
+                                            <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-teal-700 dark:group-focus-within:text-teal-300" />
+                                            <Input
+                                                placeholder="name@example.com"
+                                                className="h-11 pl-11 rounded-xl border border-input bg-background text-sm text-foreground transition-all focus:border-teal-600 focus-visible:ring-2 focus-visible:ring-teal-600/20 dark:bg-zinc-900/60"
+                                                {...field}
+                                            />
                                         </div>
-                                        <FormMessage className="text-red-400 text-xs" />
+                                        <FormMessage className="text-xs text-rose-600" />
                                     </FormItem>
                                 )}
                             />
 
                             {import.meta.env.VITE_TURNSTILE_SITE_KEY ? (
-                                <div className="flex justify-center my-4 scale-90 xs:scale-100 origin-center">
+                                <div className="flex min-h-[58px] w-full items-center justify-center py-0.5">
                                     <Turnstile
                                         siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || "0x4AAAAAACqptbDqodh591Td"}
                                         onSuccess={(token: string) => setTurnstileToken(token)}
-                                        options={{ theme: 'dark', appearance: 'always' }}
+                                        options={{ theme: 'auto', appearance: 'always' }}
                                     />
                                 </div>
                             ) : (
-                                <div className="text-[10px] text-red-400 bg-red-400/10 p-2 rounded-lg text-center font-bold mb-4">
+                                <div className="mb-2 rounded-lg border border-red-500/20 bg-red-500/10 p-2 text-center text-[10px] font-bold text-red-500">
                                     Turnstile Key Missing
                                 </div>
                             )}
@@ -134,36 +142,64 @@ export default function ForgotPasswordPage() {
                             <AnimatePresence>
                                 {error && (
                                     <m.div
-                                        initial={{ opacity: 0, y: -10 }}
+                                        initial={{ opacity: 0, y: -8 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                        className="mt-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-200 text-xs text-center font-kantumruy"
+                                        exit={{ opacity: 0, y: -8 }}
+                                        className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-2.5 text-center text-xs font-bold text-rose-600 dark:text-rose-400"
                                     >
                                         {error}
                                     </m.div>
                                 )}
                                 {successMessage && (
                                     <m.div
-                                        initial={{ opacity: 0, y: -10 }}
+                                        initial={{ opacity: 0, y: -8 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                        className="mt-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs text-center font-kantumruy"
+                                        exit={{ opacity: 0, y: -8 }}
+                                        className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-2.5 text-center text-xs font-bold text-emerald-600 dark:text-emerald-400"
                                     >
                                         {successMessage}
                                     </m.div>
                                 )}
                             </AnimatePresence>
 
-                            <Button type="submit" disabled={isLoading || !!successMessage || !turnstileToken} className="w-full bg-gradient-to-r from-pink-500 to-rose-600 rounded-xl font-bold uppercase tracking-wide h-11 border border-white/10 hover:shadow-lg hover:shadow-pink-500/20 transition-all mt-6 text-white text-sm">
-                                {isLoading ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        {t('common.auth.sending')}
-                                    </>
-                                ) : (
-                                    t('common.auth.sendResetLink')
-                                )}
-                            </Button>
+                            {!successMessage && (
+                                <Button
+                                    type="submit"
+                                    disabled={isLoading || !turnstileToken}
+                                    className="mt-1 h-11 w-full rounded-xl bg-gradient-to-r from-teal-700 to-teal-600 text-sm font-bold text-white shadow-md shadow-teal-700/20 transition-all hover:from-teal-800 hover:to-teal-700 active:bg-teal-800"
+                                >
+                                    {isLoading ? (
+                                        <span className="flex items-center justify-center gap-2">
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                            {t('common.auth.sending', { defaultValue: 'កំពុងផ្ញើ...' })}
+                                        </span>
+                                    ) : (
+                                        t('common.auth.sendResetLink', { defaultValue: 'ផ្ញើ OTP' })
+                                    )}
+                                </Button>
+                            )}
+
+                            {successMessage && (
+                                <div className="space-y-3 pt-1">
+                                    <Input
+                                        value={otp}
+                                        onChange={(event) => setOtp(event.target.value.replace(/\D/g, '').slice(0, 6))}
+                                        inputMode="numeric"
+                                        placeholder="បញ្ចូល OTP ៦ ខ្ទង់"
+                                        className="h-11 rounded-xl border border-input bg-background text-center text-lg font-bold tracking-[0.35em] text-foreground dark:bg-zinc-900/60"
+                                    />
+                                    <Button
+                                        type="button"
+                                        disabled={otp.length !== 6}
+                                        onClick={() => navigate(`/reset-password?token=${encodeURIComponent(otp)}`, {
+                                            state: { email: form.getValues("email").trim().toLowerCase() },
+                                        })}
+                                        className="h-11 w-full rounded-xl bg-gradient-to-r from-teal-700 to-teal-600 text-sm font-bold text-white shadow-md shadow-teal-700/20 transition-all hover:from-teal-800 hover:to-teal-700"
+                                    >
+                                        {t('common.auth.continue', { defaultValue: 'បន្ត' })}
+                                    </Button>
+                                </div>
+                            )}
                         </form>
                     </Form>
                 </div>

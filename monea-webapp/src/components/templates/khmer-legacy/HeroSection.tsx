@@ -23,7 +23,7 @@ export function HeroSection({ wedding, heroImage, smartColors, heroPan, formatte
     }, []);
 
     return (
-        <section id="hero" className="relative min-h-[100dvh] flex flex-col justify-between items-center text-center overflow-hidden p-6 py-12 select-none bg-[#0A1226]">
+        <section id="hero" className="relative min-h-[100dvh] lg:min-h-[93vh] lg:max-h-[960px] flex flex-col justify-between items-center text-center overflow-hidden p-4 py-8 sm:p-6 sm:py-12 select-none bg-[#1a1a1a]">
             {/* Background Full-Color Image */}
             <m.div
                 initial={{ scale: 1.05, opacity: 0 }}
@@ -44,33 +44,42 @@ export function HeroSection({ wedding, heroImage, smartColors, heroPan, formatte
                 ) : (
                     <>
                         {heroImage && (
-                            <div className="absolute inset-0 pointer-events-auto">
+                            <div className="absolute inset-0 bg-[#1a1a1a]">
+                                {/* Main Image - responsive fit */}
                                 <img
                                     src={heroImage} 
-                                    className={`w-full h-full object-cover transition-none ${heroPan.isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+                                    className={`w-full h-full transition-none ${heroPan.isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
                                     style={{
-                                        objectPosition: `${heroPan.localX} ${heroPan.localY}`,
+                                        objectFit: isMobile ? 'contain' : 'cover',  // contain = show full image on mobile
+                                        objectPosition: 'center center',
                                         transform: `scale(${wedding.themeSettings?.heroImageScale || 1})`,
                                         filter: `brightness(${wedding.themeSettings?.heroImageBrightness || 100}%) contrast(${wedding.themeSettings?.heroImageContrast || 100}%)`,
                                         userSelect: 'none',
                                         touchAction: 'none',
-                                        willChange: 'object-position, transform'
+                                        willChange: isMobile ? 'transform' : 'object-position, transform'
                                     }}
                                     onMouseDown={(e) => {
-                                        e.stopPropagation();
-                                        heroPan.onStart(e);
+                                        if (!isMobile) {
+                                            e.stopPropagation();
+                                            heroPan.onStart(e);
+                                        }
                                     }}
                                     onTouchStart={(e) => {
-                                        e.stopPropagation();
-                                        heroPan.onStart(e);
+                                        if (!isMobile) {
+                                            e.stopPropagation();
+                                            heroPan.onStart(e);
+                                        }
                                     }}
                                     draggable={false}
                                     alt="Wedding Hero"
                                 />
                             </div>
                         )}
-                        {/* Soft Cinematic Scrim for High-Contrast Text Legibility */}
-                        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-black/70 via-transparent to-black/80" />
+                        {/* Minimal gradient - only at edges for text */}
+                        <div className="absolute inset-0 pointer-events-none">
+                            <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black/15 to-transparent" />
+                            <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black/20 to-transparent" />
+                        </div>
                     </>
                 )}
             </m.div>
@@ -83,28 +92,47 @@ export function HeroSection({ wedding, heroImage, smartColors, heroPan, formatte
                 className="relative z-10 w-full max-w-lg mx-auto space-y-3 pt-6 sm:pt-12"
             >
                 {/* Subtitle with gold accents */}
-                <div className="flex items-center justify-center gap-2">
-                    <span className="w-6 sm:w-8 h-[1px] bg-gradient-to-r from-transparent to-[#D4AF37]" />
-                    <h3 className="font-khmer-moul text-xs sm:text-sm text-gold-gradient text-gold-embossed drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] tracking-wider">
+                <div className="inline-flex items-center justify-center gap-2 rounded-full border border-[#D4AF37]/35 bg-black/20 px-4 py-2 backdrop-blur-sm shadow-[0_12px_24px_rgba(0,0,0,0.18)] mx-auto">
+                    <span className="w-5 sm:w-7 h-[1px] bg-gradient-to-r from-transparent to-[#D4AF37]" />
+                    <h3 className="font-khmer-moul text-[10px] sm:text-xs md:text-sm text-gold-gradient text-gold-embossed drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] tracking-[0.18em] uppercase">
                         {wedding.themeSettings?.customLabels?.heroSubtitle || 
                          (isAnniversary ? "សិរីមង្គលពិធីភ្ជាប់ពាក្យ" : "សិរីមង្គលអាពាហ៍ពិពាហ៍")}
                     </h3>
-                    <span className="w-6 sm:w-8 h-[1px] bg-gradient-to-l from-transparent to-[#D4AF37]" />
+                    <span className="w-5 sm:w-7 h-[1px] bg-gradient-to-l from-transparent to-[#D4AF37]" />
                 </div>
                 
                 {/* Couple Names */}
-                <div className="space-y-1">
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-khmer-moul text-gold-gradient text-gold-embossed drop-shadow-[0_4px_20px_rgba(0,0,0,0.95)] tracking-wide leading-tight py-0.5">
-                        {wedding.groomName || "សុវណ្ណរាជ មាន"}
-                    </h1>
-                    
-                    <p className="text-xs sm:text-sm text-[#D4AF37] font-khmer-moul drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] py-0.5">
-                        {wedding.themeSettings?.customLabels?.andLabel || "និង"}
-                    </p>
+                <div className="space-y-2 w-full pt-1">
+                    {wedding.themeSettings?.customTypographyUrl ? (
+                        <div 
+                            className="flex justify-center py-4 relative" 
+                            style={{ 
+                                transform: `scale(${(wedding.themeSettings.customTypographyScale || 100) / 100}) translateY(${wedding.themeSettings.customTypographyY || 0}px)`, 
+                                transformOrigin: 'center' 
+                            }}
+                        >
+                            <img 
+                                src={wedding.themeSettings.customTypographyUrl} 
+                                alt={`${wedding.groomName} and ${wedding.brideName}`} 
+                                className="h-20 sm:h-24 md:h-28 w-auto object-contain"
+                                style={{ filter: `drop-shadow(${wedding.themeSettings.customTypographyDropShadow || '0px 2px 4px rgba(0,0,0,0.5)'})` }}
+                            />
+                        </div>
+                    ) : (
+                        <>
+                            {wedding.groomName && <h1 className="text-3xl sm:text-4xl md:text-5xl font-khmer-moul text-gold-gradient text-gold-embossed drop-shadow-[0_4px_20px_rgba(0,0,0,0.95)] tracking-[0.08em] leading-tight py-0.5">
+                                {wedding.groomName}
+                            </h1>}
+                            
+                            {wedding.groomName && wedding.brideName && <p className="text-xs sm:text-sm text-[#D4AF37] font-khmer-moul drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] py-0.5 tracking-[0.32em] uppercase">
+                                {wedding.themeSettings?.customLabels?.andLabel || "និង"}
+                            </p>}
 
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-khmer-moul text-gold-gradient text-gold-embossed drop-shadow-[0_4px_20px_rgba(0,0,0,0.95)] tracking-wide leading-tight py-0.5">
-                        {wedding.brideName || "មាស ចាន់មានណា"}
-                    </h1>
+                            {wedding.brideName && <h1 className="text-3xl sm:text-4xl md:text-5xl font-khmer-moul text-gold-gradient text-gold-embossed drop-shadow-[0_4px_20px_rgba(0,0,0,0.95)] tracking-[0.08em] leading-tight py-0.5">
+                                {wedding.brideName}
+                            </h1>}
+                        </>
+                    )}
                 </div>
             </m.div>
 

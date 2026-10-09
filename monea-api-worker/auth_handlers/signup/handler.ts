@@ -2,7 +2,8 @@ export const dynamic = 'force-dynamic';
 import { prisma } from "@/lib/prisma";
 import { ROLES } from "@/lib/constants";
 import { CryptoUtils } from "@/lib/crypto";
-import { authLimiter, getIP } from "@/lib/ratelimit";
+import { authLimiter, getIP, signupEmailLimiter } from "@/lib/ratelimit";
+import { verifyTurnstileDetailed } from "@/lib/turnstile";
 
 // Helper function to create CORS-compliant Response
 function createCorsResponse(body: any, status: number, origin?: string): Response {
@@ -28,6 +29,20 @@ export async function OPTIONS(req: Request) {
 
 export async function POST(req: Request) {
     const origin = req.headers.get('origin') || undefined;
+
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.ENVIRONMENT === 'production';
+    const hasDistributedRateLimit = Boolean(
+        process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+    );
+    if (isProduction && !hasDistributedRateLimit) {
+        console.error('[RateLimit] Distributed signup protection is not configured');
+        return createCorsResponse({ error: "សេវាចុះឈ្មោះកំពុងរៀបចំសុវត្ថិភាព។ សូមព្យាយាមម្ដងទៀតពេលក្រោយ។" }, 503, origin);
+    }
+
+    const contentLength = Number(req.headers.get('content-length') || 0);
+    if (contentLength > 16_384) {
+        return createCorsResponse({ error: "Request body is too large" }, 413, origin);
+    }
     
     // Simplified rate limiting
     const ip = getIP(req);
@@ -37,7 +52,8 @@ export async function POST(req: Request) {
             return createCorsResponse({ error: "Too many attempts. Please try again later." }, 429, origin);
         }
     } catch (e) {
-        console.warn('[RateLimit] Bypassing due to error:', e);
+        console.error('[RateLimit] Signup protection unavailable:', e);
+        return createCorsResponse({ error: "សេវាការពារកំពុងរវល់។ សូមព្យាយាមម្ដងទៀត។" }, 503, origin);
     }
 
     try {
@@ -48,6 +64,10 @@ export async function POST(req: Request) {
             return createCorsResponse({ error: "Invalid request body" }, 400, origin);
         }
 
+        if (!body || typeof body !== 'object' || Array.isArray(body)) {
+            return createCorsResponse({ error: "Invalid request body" }, 400, origin);
+        }
+
         const { name, email, password, turnstileToken } = body;
         const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : email;
         const normalizedName = typeof name === 'string' ? name.trim() : name;
@@ -55,36 +75,43 @@ export async function POST(req: Request) {
         if (!normalizedEmail || !password) {
             return createCorsResponse({ error: "Email and password required" }, 400, origin);
         }
-        // 1. Password Complexity Validation
-        if (password.length < 8) {
+        if (typeof normalizedName !== 'string' || normalizedName.length < 2 || normalizedName.length > 80) {
+            return createCorsResponse({ error: "សូមបញ្ចូលឈ្មោះដែលមានពី ២ ដល់ ៨០ តួអក្សរ។" }, 400, origin);
+        }
+        if (typeof normalizedEmail !== 'string' || normalizedEmail.length > 254) {
+            return createCorsResponse({ error: "សូមបញ្ចូលអ៊ីមែលត្រឹមត្រូវ។" }, 400, origin);
+        }
+        if (typeof password !== 'string' || password.length < 8 || password.length > 128) {
             return createCorsResponse({ error: "ពាក្យសម្ងាត់ត្រូវមានយ៉ាងហោចណាស់ ៨ ខ្ទង់ (Password must be at least 8 characters)" }, 400, origin);
         }
 
-        // Simplified Turnstile verification
-        const turnstileSecret = process.env.TURNSTILE_SECRET_KEY;
-        if (turnstileSecret && turnstileSecret !== '1x0000000000000000000000000000000AA') {
+        const hasTurnstileSecret = Boolean(process.env.TURNSTILE_SECRET_KEY || process.env.TURNSTILE_SECRET);
+        if (isProduction || hasTurnstileSecret) {
             if (!turnstileToken) {
-                return createCorsResponse({ error: "សូមផ្ទៀងផ្ទាត់ CAPTCHA" }, 428, origin);
+                return createCorsResponse({ error: "សូមផ្ទៀងផ្ទាត់សុវត្ថិភាព CAPTCHA ដើម្បីបន្ត។" }, 428, origin);
             }
-            
-            try {
-                const formData = new URLSearchParams();
-                formData.append('secret', turnstileSecret);
-                formData.append('response', turnstileToken);
 
-                const verifyRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-                    method: 'POST',
-                    body: formData,
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-                });
-
-                const verifyData = await verifyRes.json();
-                if (!verifyData.success) {
-                    return createCorsResponse({ error: "ការផ្ទៀងផ្ទាត់ CAPTCHA បរាជ័យ" }, 400, origin);
-                }
-            } catch (e) {
-                console.warn('[Turnstile] Verification failed, continuing...', e);
+            const verification = await verifyTurnstileDetailed(turnstileToken, { remoteip: ip });
+            if (!verification.success) {
+                const isVerificationUnavailable = verification.errorCodes?.some(code =>
+                    code === 'missing-secret-key' || code === 'request-timeout' || code?.startsWith('http-status-') || code === 'internal-error'
+                );
+                return createCorsResponse({
+                    error: isVerificationUnavailable
+                        ? "សេវាផ្ទៀងផ្ទាត់កំពុងរវល់។ សូមព្យាយាមម្ដងទៀត។"
+                        : "ការផ្ទៀងផ្ទាត់ CAPTCHA បរាជ័យ។ សូមព្យាយាមម្ដងទៀត។"
+                }, isVerificationUnavailable ? 503 : 400, origin);
             }
+        }
+
+        try {
+            const emailLimit = await signupEmailLimiter.limit(normalizedEmail);
+            if (!emailLimit.success) {
+                return createCorsResponse({ error: "Too many signup attempts for this email. Please try again later." }, 429, origin);
+            }
+        } catch (e) {
+            console.error('[RateLimit] Signup email protection unavailable:', e);
+            return createCorsResponse({ error: "សេវាការពារកំពុងរវល់។ សូមព្យាយាមម្ដងទៀត។" }, 503, origin);
         }
 
         // 3. Check for existing user
@@ -127,15 +154,18 @@ export async function POST(req: Request) {
 
         return new Response(JSON.stringify({ 
             success: true, 
-            token,
             userId: user.id,
             user: { id: user.id, email: user.email, name: user.name, role: user.role }
         }), { status: 200, headers });
     } catch (error: any) {
         console.error("[Auth Signup] Registration Error:", error);
+        if (error?.code === 'P2002') {
+            return createCorsResponse({
+                error: "អ៊ីមែលនេះមានគណនីក្នុងប្រព័ន្ធរួចហើយ។ សូមចូលគណនី។"
+            }, 409, origin);
+        }
         return createCorsResponse({
-            error: "Internal Server Error",
-            message: error?.message || "An unexpected error occurred during account creation."
+            error: "ការបង្កើតគណនីមិនទាន់បានសម្រេចទេ។ សូមព្យាយាមម្ដងទៀត។"
         }, 500, origin);
     }
 }

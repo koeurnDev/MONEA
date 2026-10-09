@@ -4,6 +4,7 @@ import QRCode from "qrcode-svg";
 import { prisma } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
 import { CryptoUtils } from "@/lib/crypto";
+import { encryptTotpSecret } from "@/lib/totp-secret";
 
 export async function POST(req: Request) {
     try {
@@ -69,13 +70,14 @@ export async function POST(req: Request) {
         // Hash recovery codes for secure storage
         const hashedCodes = await Promise.all(plainRecoveryCodes.map(c => CryptoUtils.hash(c)));
         const recoveryCodesJson = JSON.stringify(hashedCodes);
+        const encryptedSecret = await encryptTotpSecret(secret);
 
         // 5. Save pending 2FA secret (Keep twoFactorEnabled: false until OTP code is verified)
         if (user.type === "admin") {
             await prisma.user.update({
                 where: { id: user.userId },
                 data: { 
-                    twoFactorSecret: secret, 
+                    twoFactorSecret: encryptedSecret,
                     twoFactorRecoveryCodes: recoveryCodesJson,
                     twoFactorEnabled: false
                 },
@@ -84,7 +86,7 @@ export async function POST(req: Request) {
             await prisma.staff.update({
                 where: { id: user.userId },
                 data: { 
-                    twoFactorSecret: secret, 
+                    twoFactorSecret: encryptedSecret,
                     twoFactorRecoveryCodes: recoveryCodesJson,
                     twoFactorEnabled: false
                 },

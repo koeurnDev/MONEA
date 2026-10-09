@@ -12,6 +12,7 @@ export async function POST(request: Request) {
     // Production Cross-Site Handling
     const sameSitePolicy = isDev ? "Lax" : "None";
     const secureFlag = isDev ? "" : "; Secure";
+    const partitionedFlag = isDev ? "" : "; Partitioned";
 
     const headers = new Headers({ 
         "Content-Type": "application/json",
@@ -22,7 +23,7 @@ export async function POST(request: Request) {
     const staffTokenName = COOKIE_NAMES?.STAFF_TOKEN || "staff_token";
 
     // Expire cookies by setting Max-Age=0 and Date in the past
-    const cookieOptions = `HttpOnly${secureFlag}; Path=/; SameSite=${sameSitePolicy}; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+    const cookieOptions = `HttpOnly${secureFlag}${partitionedFlag}; Path=/; SameSite=${sameSitePolicy}; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT`;
 
     headers.append("Set-Cookie", `${tokenName}=; ${cookieOptions}`);
     headers.append("Set-Cookie", `${staffTokenName}=; ${cookieOptions}`);

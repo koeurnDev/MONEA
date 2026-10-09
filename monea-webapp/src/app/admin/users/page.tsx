@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -175,140 +175,136 @@ export default function AdminUsersPage() {
 
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center py-20 gap-6">
+            <div className="flex flex-col items-center justify-center py-24 gap-4">
                 <div className="relative w-12 h-12">
-                    <div className="absolute inset-0 border-4 border-slate-100 rounded-full" />
-                    <div className="absolute inset-0 border-4 border-red-600 border-t-transparent rounded-full animate-spin" />
+                    <div className="absolute inset-0 rounded-full border-4 border-slate-100 dark:border-slate-800" />
+                    <div className="absolute inset-0 rounded-full border-4 border-t-rose-500 border-x-transparent border-b-transparent animate-spin" />
                 </div>
-                <span className="text-slate-500 text-xs font-bold uppercase tracking-widest">កំពុងទាញយកទិន្នន័យ...</span>
+                <span className="text-slate-400 dark:text-slate-500 text-sm font-kantumruy">កំពុងទាញយក...</span>
             </div>
         );
     }
 
     return (
-        <div className="max-w-7xl mx-auto space-y-10 pb-20">
+        <div className="max-w-7xl mx-auto space-y-6 pb-20">
             {/* Page Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.3em] text-red-600 mb-1">
-                        <Users size={14} />
-                        PLATFORM CORE
-                    </div>
-                    <h2 className="text-4xl font-black tracking-tight text-foreground font-kantumruy">គ្រប់គ្រងអ្នកប្រើប្រាស់</h2>
-                    <p className="text-muted-foreground font-medium font-kantumruy text-sm max-w-xl">មើល និងគ្រប់គ្រងគណនីប្តីប្រពន្ធទាំងអស់ដែលប្រើប្រាស់ប្រព័ន្ធ MONEA ។ អ្នកអាចកែប្រែតួនាទី ឬផ្អាកគណនីបណ្ដោះអាសន្ន។</p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-500 dark:text-blue-400 mb-1">User Management</p>
+                    <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white font-kantumruy tracking-tight">អ្នកប្រើប្រាស់</h2>
                 </div>
 
-                <div className="flex items-center gap-3">
-                    <div className="relative group">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-red-500 transition-colors" size={18} />
-                        <input
-                            type="text"
-                            placeholder="ស្វែងរកអ៊ីមែល ឬឈ្មោះ..."
-                            className="h-12 pl-11 pr-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all font-kantumruy font-medium text-sm w-full md:w-[300px]"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
-                    <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-12 w-12 rounded-xl border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
-                    >
-                        <Filter size={20} />
-                    </Button>
+                <div className="relative">
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                    <input
+                        type="text"
+                        placeholder="ស្វែងរកអ្នកប្រើ..."
+                        className="h-10 pl-10 pr-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all font-kantumruy text-sm w-full md:w-[260px] placeholder:text-slate-400"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
                 </div>
             </div>
 
             {/* Table Container */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-2xl border border-slate-200/80 dark:border-slate-800/80 overflow-hidden shadow-sm">
                 <Table>
-                    <TableHeader className="bg-slate-50 dark:bg-slate-800/50">
-                        <TableRow className="border-b border-slate-200 dark:border-slate-800 hover:bg-transparent">
-                            <TableHead className="text-slate-500 font-semibold uppercase text-[10px] tracking-wider px-6 py-4">User/Identity</TableHead>
-                            <TableHead className="text-slate-500 font-semibold uppercase text-[10px] tracking-wider">Role</TableHead>
-                            <TableHead className="text-slate-500 font-semibold uppercase text-[10px] tracking-wider text-center">Weddings</TableHead>
-                            <TableHead className="text-slate-500 font-semibold uppercase text-[10px] tracking-wider">Groom & Bride</TableHead>
-                            <TableHead className="text-slate-500 font-semibold uppercase text-[10px] tracking-wider">Joined Date</TableHead>
-                            <TableHead className="text-right text-slate-500 font-semibold uppercase text-[10px] tracking-wider px-6">Actions</TableHead>
+                    <TableHeader className="bg-slate-50/80 dark:bg-slate-800/40">
+                        <TableRow className="border-b border-slate-200/80 dark:border-slate-700/50 hover:bg-transparent">
+                            <TableHead className="text-slate-500 dark:text-slate-400 font-bold text-[10px] uppercase tracking-wider px-5 py-3.5 font-kantumruy">អ្នកប្រើប្រាស់</TableHead>
+                            <TableHead className="text-slate-500 dark:text-slate-400 font-bold text-[10px] uppercase tracking-wider font-kantumruy">តួនាទី</TableHead>
+                            <TableHead className="text-slate-500 dark:text-slate-400 font-bold text-[10px] uppercase tracking-wider text-center font-kantumruy">ការងារ</TableHead>
+                            <TableHead className="text-slate-500 dark:text-slate-400 font-bold text-[10px] uppercase tracking-wider font-kantumruy">ឈ្មោះ</TableHead>
+                            <TableHead className="text-slate-500 dark:text-slate-400 font-bold text-[10px] uppercase tracking-wider font-kantumruy">ថ្ងៃចូល</TableHead>
+                            <TableHead className="text-right text-slate-500 dark:text-slate-400 font-bold text-[10px] uppercase tracking-wider px-5"></TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {filteredUsers.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={6} className="py-20 text-center">
+                                <TableCell colSpan={6} className="py-16 text-center">
                                     <div className="flex flex-col items-center gap-2 opacity-30">
-                                        <Users size={48} />
-                                        <p className="font-kantumruy font-black uppercase text-xs tracking-widest">មិនឃើញមានអ្នកប្រើប្រាស់ឡើយ</p>
+                                        <Users size={40} />
+                                        <p className="font-kantumruy font-bold text-sm">គ្មានអ្នកប្រើប្រាស់</p>
                                     </div>
                                 </TableCell>
                             </TableRow>
-                        ) : filteredUsers.map((user) => (
+                        ) : filteredUsers.map((user, idx) => {
+                            const avatarColors = [
+                                "bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400",
+                                "bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-400",
+                                "bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400",
+                                "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400",
+                                "bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400",
+                            ];
+                            const avatarColor = avatarColors[idx % avatarColors.length];
+                            return (
                             <TableRow
                                 key={user.id}
-                                className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer"
+                                className="border-b border-slate-100/80 dark:border-slate-800/50 hover:bg-blue-50/40 dark:hover:bg-slate-800/30 transition-colors cursor-pointer"
                                 onClick={() => setSelectedUserId(user.id)}
                             >
-                                <TableCell className="px-6 py-4">
+                                <TableCell className="px-5 py-3">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 shrink-0">
-                                            <User size={16} />
+                                        <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center shrink-0 font-black text-sm", avatarColor)}>
+                                            {user.name ? user.name[0].toUpperCase() : <User size={15} />}
                                         </div>
                                         <div className="flex flex-col min-w-0">
-                                            <span className="font-bold text-slate-900 dark:text-white truncate" title={user.name}>{user.name || "N/A"}</span>
-                                            <span className="text-xs text-slate-500 truncate" title={user.email}>{user.email}</span>
+                                            <span className="font-semibold text-slate-900 dark:text-white truncate text-sm" title={user.name}>{user.name || "N/A"}</span>
+                                            <span className="text-[11px] text-slate-400 dark:text-slate-500 truncate font-mono" title={user.email}>{user.email}</span>
                                         </div>
                                     </div>
                                 </TableCell>
                                 <TableCell>
                                     <Badge className={cn(
-                                        "px-2 py-0.5 rounded-md text-[10px] font-semibold tracking-wider uppercase border",
+                                        "px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-wide border",
                                         user.role === ROLES.PLATFORM_OWNER
-                                            ? "bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white"
+                                            ? "bg-slate-900 text-white border-slate-700 dark:bg-white dark:text-slate-900 dark:border-slate-200"
                                             : user.role === ROLES.EVENT_MANAGER
-                                                ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20"
-                                                : "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20"
+                                                ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20"
+                                                : "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20"
                                     )}>
                                         {ROLE_LABELS[user.role as keyof typeof ROLE_LABELS] || user.role}
                                     </Badge>
                                 </TableCell>
                                 <TableCell className="text-center">
-                                    <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono text-xs font-bold">
+                                    <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-black text-xs">
                                         {user.weddings?.length || 0}
                                     </span>
                                 </TableCell>
                                 <TableCell>
                                     {user.weddings && user.weddings.length > 0 ? (
                                         <div className="flex flex-col">
-                                            <span className="text-sm font-medium font-kantumruy truncate max-w-[150px]">{user.weddings[0].groomName} & {user.weddings[0].brideName}</span>
+                                            <span className="text-sm font-semibold font-kantumruy truncate max-w-[150px] text-slate-800 dark:text-slate-200">{user.weddings[0].groomName} & {user.weddings[0].brideName}</span>
                                             {user.weddings.length > 1 && (
-                                                <span className="text-[10px] text-slate-400">+{user.weddings.length - 1} more</span>
+                                                <span className="text-[10px] text-slate-400 font-medium">+{user.weddings.length - 1} more</span>
                                             )}
                                         </div>
                                     ) : (
-                                        <span className="text-slate-400 text-xs italic">N/A</span>
+                                        <span className="text-slate-300 dark:text-slate-600 text-sm">—</span>
                                     )}
                                 </TableCell>
                                 <TableCell>
-                                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300 tabular-nums whitespace-nowrap">
+                                    <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
                                         {new Date(user.createdAt).toLocaleDateString('km-KH', { timeZone: 'Asia/Phnom_Penh' })}
                                     </span>
                                 </TableCell>
-                                <TableCell className="text-right px-6">
+                                <TableCell className="text-right px-5">
                                     <Button
-                                        variant="outline"
+                                        variant="ghost"
                                         size="sm"
-                                        className="rounded-lg border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all font-kantumruy text-xs font-medium h-8 group/btn"
+                                        className="rounded-xl text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 text-xs h-8 font-bold"
                                         onClick={(e) => {
-                                            e.stopPropagation(); // Prevents double firing since row is also clickable
+                                            e.stopPropagation();
                                             setSelectedUserId(user.id);
                                         }}
                                     >
-                                        Manage
-                                        <ArrowRight size={14} className="ml-1.5 group-hover/btn:translate-x-1 transition-transform opacity-70" />
+                                        មើល
+                                        <ArrowRight size={13} className="ml-1" />
                                     </Button>
                                 </TableCell>
                             </TableRow>
-                        ))}
+                        )})}
                     </TableBody>
                 </Table>
             </div>

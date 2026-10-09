@@ -24,7 +24,7 @@ export default function AdminLayout() {
 
   return (
     <ToastProvider>
-      <div className="flex h-screen w-full bg-slate-50 dark:bg-slate-950 overflow-hidden font-kantumruy">
+      <div className="flex h-screen w-full overflow-hidden bg-background font-kantumruy">
         {/* Desktop Fixed Sidebar */}
         <div className="hidden lg:block h-full shrink-0">
           <AdminSidebar />
@@ -53,7 +53,7 @@ export default function AdminLayout() {
                 <Menu size={20} />
               </Button>
               <Link to="/admin/master" className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-600 dark:text-rose-400">
+                <div className="w-8 h-8 rounded-xl bg-teal-600/10 border border-teal-600/20 flex items-center justify-center text-teal-800 dark:text-teal-300">
                   <ShieldCheck size={18} />
                 </div>
                 <span className="font-bold text-sm">Super Admin</span>
@@ -63,8 +63,10 @@ export default function AdminLayout() {
           </header>
 
           {/* Page Content Scroll Container */}
-          <main className="flex-1 min-w-0 overflow-y-auto bg-slate-50 dark:bg-slate-950">
-            <Outlet />
+          <main className="min-w-0 flex-1 overflow-y-auto bg-background">
+            <div className="mx-auto max-w-[1600px] p-2 sm:p-4 lg:p-8">
+              <Outlet />
+            </div>
           </main>
         </div>
       </div>

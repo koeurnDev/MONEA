@@ -33,6 +33,7 @@ export class PaymentService {
   static async generateKHQR(payload: QRPayload) {
     try {
       const safeBillNumber = (payload.orderId || `BILL-${Date.now().toString(36)}`).slice(0, 24);
+      const expiresAt = Date.now() + 10 * 60 * 1000;
 
       const result = KHQR.generate({
         tag: TAG.INDIVIDUAL,
@@ -42,7 +43,7 @@ export class PaymentService {
         amount: Number(payload.amount),
         currency: payload.currency === "USD" ? CURRENCY.USD : CURRENCY.KHR,
         countryCode: COUNTRY.KH,
-        expirationTimestamp: Date.now() + 10 * 60 * 1000, // 10 minutes expiry
+        expirationTimestamp: expiresAt,
         additionalData: { billNumber: safeBillNumber },
       });
 
@@ -56,7 +57,7 @@ export class PaymentService {
 
       if (payload.weddingId && md5Hash) {
         await executeRaw(
-          `UPDATE "Wedding" SET "paymentHash" = $1, "paymentInfo" = $2 WHERE "id" = $3`,
+          `UPDATE "Wedding" SET "paymentHash" = $1, "paymentOrderId" = $2 WHERE "id" = $3`,
           md5Hash,
           orderId,
           payload.weddingId
@@ -67,6 +68,7 @@ export class PaymentService {
         qr: qrData,
         md5: md5Hash,
         orderId: orderId,
+        expiresAt,
       };
     } catch (error: any) {
       console.error("[PaymentService/generateKHQR Error]:", error?.message || error);
@@ -83,9 +85,15 @@ export class PaymentService {
     orderId: string,
     packageType: string,
     accountID: string,
-    env?: any
+    env?: any,
+    tokenOverride?: string
   ): Promise<{ status: string; alreadyPaid: boolean; method?: string; message?: string }> {
-    const token = getEnvVar("BAKONG_API_TOKEN", env);
+    /**
+     * SECURITY/CONFIG: the token stored through the admin console (BKRT) takes
+     * precedence over the `BAKONG_API_TOKEN` secret so a rotated token can be
+     * applied without redeploying the Worker. Never fall back to a literal.
+     */
+    const token = (tokenOverride || "").trim() || getEnvVar("BAKONG_API_TOKEN", env);
     if (!token) throw new Error("BAKONG_API_TOKEN environment variable is missing.");
 
     // Prevent Price Manipulation: Extract actual package type from secure orderId prefix
@@ -203,6 +211,8 @@ export class PaymentService {
             "status" = $2, 
             "bakongTrxId" = $3, 
             "packageType" = $4::"PackageType",
+            "paymentOrderId" = NULL,
+            "paymentRejectedAt" = NULL,
             "updatedAt" = NOW()
           WHERE "id" = $5`,
           "PAID",
@@ -224,6 +234,8 @@ export class PaymentService {
               paymentStatus: "PAID",
               status: "ACTIVE",
               bakongTrxId: trxHash,
+              paymentOrderId: null,
+              paymentRejectedAt: null,
               packageType: packageType as any,
             },
           });

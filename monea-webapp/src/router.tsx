@@ -1,16 +1,28 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 import RootLayout from './layouts/RootLayout'
-import AuthLayout from './layouts/AuthLayout'
-import DashboardLayout from './layouts/DashboardLayout'
-import AdminLayout from './layouts/AdminLayout'
 import LoadingScreen from './components/ui/LoadingScreen'
+
+/**
+ * Layouts are code-split as well as pages.
+ *
+ * `AuthLayout`, `DashboardLayout` and `AdminLayout` used to be static imports
+ * here, so their whole dependency graph (radix dialog/sheet, the dashboard and
+ * admin shells, icons, toast UI) was pulled into the *initial* bundle that every
+ * visitor downloads before the first paint — even though a landing-page visitor
+ * never renders any of them.
+ */
+const AuthLayout = lazy(() => import('./layouts/AuthLayout'))
+const DashboardLayout = lazy(() => import('./layouts/DashboardLayout'))
+const AdminLayout = lazy(() => import('./layouts/AdminLayout'))
 
 // --- Landing & Public Pages ---
 const LandingPage = lazy(() => import('./pages/LandingPage'))
 const TemplatesPage = lazy(() => import('./pages/TemplatesPage'))
 const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'))
 const TermsPage = lazy(() => import('./pages/TermsPage'))
+const ContactPage = lazy(() => import('./pages/ContactPage'))
+const SupportPage = lazy(() => import('./pages/SupportPage'))
 const MaintenancePage = lazy(() => import('./pages/MaintenancePage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
@@ -20,6 +32,7 @@ const SignUpPage = lazy(() => import('./pages/auth/SignUpPage'))
 const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'))
 const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'))
 const AuthCallbackPage = lazy(() => import('./pages/auth/AuthCallbackPage'))
+const TelegramCallbackPage = lazy(() => import('./pages/auth/TelegramCallbackPage'))
 
 // --- Wedding Public Pages ---
 const WeddingPage = lazy(() => import('./pages/wedding/WeddingPage'))
@@ -34,24 +47,12 @@ const InvitePage = lazy(() => import('./pages/wedding/InvitePage'))
 const DashboardPage = lazy(() => import('./pages/dashboard/DashboardPage'))
 const DashboardCreatePage = lazy(() => import('./pages/dashboard/CreatePage'))
 const DashboardDesignPage = lazy(() => import('./pages/dashboard/DesignPage'))
-const DashboardDisplayPage = lazy(() => import('./pages/dashboard/DisplayPage'))
 const DashboardGuestsPage = lazy(() => import('./pages/dashboard/GuestsPage'))
-const DashboardGiftsPage = lazy(() => import('./pages/dashboard/GiftsPage'))
-const DashboardGiftsLivePage = lazy(() => import('./pages/dashboard/GiftsLivePage'))
-const DashboardSchedulePage = lazy(() => import('./pages/dashboard/SchedulePage'))
-const DashboardNotesPage = lazy(() => import('./pages/dashboard/NotesPage'))
-const DashboardReportsPage = lazy(() => import('./pages/dashboard/ReportsPage'))
-const DashboardScannerPage = lazy(() => import('./pages/dashboard/ScannerPage'))
 const DashboardAccountPage = lazy(() => import('./pages/dashboard/AccountPage'))
 const DashboardSettingsPage = lazy(() => import('./pages/dashboard/SettingsPage'))
 const DashboardSupportPage = lazy(() => import('./pages/dashboard/SupportPage'))
 const DashboardUpgradePage = lazy(() => import('./pages/dashboard/UpgradePage'))
-const DashboardGuidePage = lazy(() => import('./pages/dashboard/GuidePage'))
-const DashboardStaffPage = lazy(() => import('./pages/dashboard/StaffPage'))
 const PreviewPage = lazy(() => import('./pages/dashboard/PreviewPage'))
-
-// --- Staff Pages ---
-const StaffDashboardPage = lazy(() => import('./pages/staff/StaffDashboardPage'))
 
 // --- Admin Pages ---
 const AdminLoginPage = lazy(() => import('./pages/admin/AdminLoginPage'))
@@ -71,6 +72,7 @@ const AdminMasterPaymentsPage = lazy(() => import('./pages/admin/master/Payments
 const AdminMasterSecurityPage = lazy(() => import('./pages/admin/master/SecurityPage'))
 const AdminMasterSettingsPage = lazy(() => import('./pages/admin/master/SettingsPage'))
 const AdminMasterSupportPage = lazy(() => import('./pages/admin/master/SupportPage'))
+const AdminMasterTemplatesPage = lazy(() => import('./pages/admin/master/TemplatesPage'))
 const AdminMasterUsersPage = lazy(() => import('./pages/admin/master/UsersPage'))
 const AdminMasterWeddingsPage = lazy(() => import('./pages/admin/master/WeddingsPage'))
 
@@ -82,9 +84,11 @@ export default function Router() {
         <Route element={<RootLayout />}>
           {/* Public Routes */}
           <Route path="/" element={<Suspense fallback={fallback}><LandingPage /></Suspense>} />
-          <Route path="/templates" element={<Navigate to="/" replace />} />
+          <Route path="/templates" element={<Suspense fallback={fallback}><TemplatesPage /></Suspense>} />
           <Route path="/privacy-policy" element={<Suspense fallback={fallback}><PrivacyPolicyPage /></Suspense>} />
           <Route path="/terms-and-conditions" element={<Suspense fallback={fallback}><TermsPage /></Suspense>} />
+          <Route path="/contact" element={<Suspense fallback={fallback}><ContactPage /></Suspense>} />
+          <Route path="/support" element={<Suspense fallback={fallback}><SupportPage /></Suspense>} />
           <Route path="/maintenance" element={<Suspense fallback={fallback}><MaintenancePage /></Suspense>} />
 
           {/* Wedding Public Routes */}
@@ -108,6 +112,7 @@ export default function Router() {
 
           {/* SSO Auth Callback — outside AuthLayout so it shows just a loader */}
           <Route path="/auth/callback" element={<Suspense fallback={fallback}><AuthCallbackPage /></Suspense>} />
+          <Route path="/auth/telegram/callback" element={<Suspense fallback={fallback}><TelegramCallbackPage /></Suspense>} />
 
           {/* Preview Route (Rendered inside iframe, no layout) */}
           <Route path="/preview" element={<Suspense fallback={fallback}><PreviewPage /></Suspense>} />
@@ -117,24 +122,16 @@ export default function Router() {
             <Route path="/dashboard" element={<Suspense fallback={fallback}><DashboardPage /></Suspense>} />
             <Route path="/dashboard/create" element={<Suspense fallback={fallback}><DashboardCreatePage /></Suspense>} />
             <Route path="/dashboard/design" element={<Suspense fallback={fallback}><DashboardDesignPage /></Suspense>} />
-            <Route path="/dashboard/display" element={<Suspense fallback={fallback}><DashboardDisplayPage /></Suspense>} />
             <Route path="/dashboard/guests" element={<Suspense fallback={fallback}><DashboardGuestsPage /></Suspense>} />
-            <Route path="/dashboard/gifts" element={<Suspense fallback={fallback}><DashboardGiftsPage /></Suspense>} />
-            <Route path="/dashboard/gifts/live" element={<Suspense fallback={fallback}><DashboardGiftsLivePage /></Suspense>} />
-            <Route path="/dashboard/schedule" element={<Suspense fallback={fallback}><DashboardSchedulePage /></Suspense>} />
-            <Route path="/dashboard/notes" element={<Suspense fallback={fallback}><DashboardNotesPage /></Suspense>} />
-            <Route path="/dashboard/reports" element={<Suspense fallback={fallback}><DashboardReportsPage /></Suspense>} />
-            <Route path="/dashboard/scanner" element={<Suspense fallback={fallback}><DashboardScannerPage /></Suspense>} />
+            <Route path="/dashboard/schedule" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard/notes" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard/reports" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard/account" element={<Suspense fallback={fallback}><DashboardAccountPage /></Suspense>} />
             <Route path="/dashboard/settings" element={<Suspense fallback={fallback}><DashboardSettingsPage /></Suspense>} />
             <Route path="/dashboard/support" element={<Suspense fallback={fallback}><DashboardSupportPage /></Suspense>} />
             <Route path="/dashboard/upgrade" element={<Suspense fallback={fallback}><DashboardUpgradePage /></Suspense>} />
-            <Route path="/dashboard/guide" element={<Suspense fallback={fallback}><DashboardGuidePage /></Suspense>} />
-            <Route path="/dashboard/staff" element={<Suspense fallback={fallback}><DashboardStaffPage /></Suspense>} />
+            <Route path="/dashboard/guide" element={<Navigate to="/dashboard" replace />} />
           </Route>
-
-          {/* Staff Routes (protected) */}
-          <Route path="/staff/dashboard" element={<Suspense fallback={fallback}><StaffDashboardPage /></Suspense>} />
 
           {/* Admin Login — Hidden / Stealth Mode (Redirected to 404 for attackers) */}
           <Route path="/admin/login" element={<Suspense fallback={fallback}><NotFoundPage /></Suspense>} />
@@ -157,6 +154,7 @@ export default function Router() {
             <Route path="/admin/master/security" element={<Suspense fallback={fallback}><AdminMasterSecurityPage /></Suspense>} />
             <Route path="/admin/master/settings" element={<Suspense fallback={fallback}><AdminMasterSettingsPage /></Suspense>} />
             <Route path="/admin/master/support" element={<Suspense fallback={fallback}><AdminMasterSupportPage /></Suspense>} />
+            <Route path="/admin/master/templates" element={<Suspense fallback={fallback}><AdminMasterTemplatesPage /></Suspense>} />
             <Route path="/admin/master/users" element={<Suspense fallback={fallback}><AdminMasterUsersPage /></Suspense>} />
             <Route path="/admin/master/weddings" element={<Suspense fallback={fallback}><AdminMasterWeddingsPage /></Suspense>} />
           </Route>

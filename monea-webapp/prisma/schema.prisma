@@ -54,6 +54,8 @@ model Wedding {
   userId           String
   telegramLink     String?
   paymentInfo      String?
+  paymentOrderId   String?
+  paymentRejectedAt DateTime?
   paymentHash      String?
   bakongTrxId      String?
   createdAt        DateTime                 @default(now())
@@ -69,7 +71,9 @@ model Wedding {
   supportTickets   SupportTicket[]
   user             User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
   templateVersions WeddingTemplateVersion[]
+  rejectedPaymentReceipts RejectedPaymentReceipt[]
 
+  @@index([paymentStatus, paymentRejectedAt])
   @@index([userId])
   @@index([status])
   @@index([createdAt])
@@ -77,6 +81,17 @@ model Wedding {
   @@index([packageType])                           // package filter
   @@index([userId, status, createdAt(sort: Desc)]) // dashboard: my weddings
   @@index([status, paymentStatus])                 // admin: pending payments
+}
+
+model RejectedPaymentReceipt {
+  id         String   @id
+  weddingId  String
+  receiptUrl String
+  rejectedAt DateTime
+  wedding    Wedding  @relation(fields: [weddingId], references: [id], onDelete: Cascade)
+
+  @@index([rejectedAt])
+  @@index([weddingId])
 }
 
 model InvitationAnalytics {
@@ -381,6 +396,7 @@ enum PaymentStatus {
   PENDING
   AWAITING_VERIFICATION
   PAID
+  REJECTED
 }
 
 enum EventType {

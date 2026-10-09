@@ -90,14 +90,23 @@ export default function AdminWeddingDetailsPage() {
                             </p>
                         </div>
                     </div>
-                    <Badge className={cn(
-                        "px-4 py-1.5 rounded-xl text-xs font-black tracking-widest uppercase border whitespace-nowrap hidden md:inline-flex",
-                        wedding.status === "ACTIVE"
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-100"
-                            : "bg-slate-50 text-slate-600 border-slate-200"
-                    )}>
-                        {wedding.status}
-                    </Badge>
+                    <div className="flex items-center gap-3">
+                        <Badge className={cn(
+                            "px-4 py-1.5 rounded-xl text-xs font-black tracking-widest uppercase border whitespace-nowrap hidden md:inline-flex",
+                            wedding.status === "ACTIVE"
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                                : "bg-slate-50 text-slate-600 border-slate-200"
+                        )}>
+                            {wedding.status}
+                        </Badge>
+                        <Button
+                            variant="outline"
+                            className="rounded-xl border-slate-200 hover:bg-slate-50 text-slate-700 font-bold gap-2"
+                            onClick={() => window.open(`/dashboard/design?id=${wedding.id}`, '_blank')}
+                        >
+                            <ImageIcon size={16} /> Edit Design
+                        </Button>
+                    </div>
                 </div>
             </div>
 
@@ -106,14 +115,14 @@ export default function AdminWeddingDetailsPage() {
                 <div className="md:col-span-2 space-y-8">
 
                     {/* Quick Overview */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 min-[400px]:grid-cols-2">
                         <m.div 
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="p-8 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2rem] shadow-sm flex items-center gap-6 group hover:shadow-md transition-all duration-500"
+                            className="flex items-center gap-4 rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm transition-all duration-500 group hover:shadow-md dark:border-slate-800 dark:bg-slate-900 sm:gap-6 sm:p-8"
                         >
-                            <div className="w-16 h-16 rounded-2xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 flex items-center justify-center transition-transform group-hover:scale-110 duration-500">
-                                <Users size={28} />
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 transition-transform duration-500 group-hover:scale-110 dark:bg-blue-900/20 sm:h-16 sm:w-16">
+                                <Users size={24} className="sm:h-7 sm:w-7" />
                             </div>
                             <div>
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">ភ្ញៀវសរុប</p>
@@ -124,10 +133,10 @@ export default function AdminWeddingDetailsPage() {
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 }}
-                            className="p-8 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[2rem] shadow-sm flex items-center gap-6 group hover:shadow-md transition-all duration-500"
+                            className="flex items-center gap-4 rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm transition-all duration-500 group hover:shadow-md dark:border-slate-800 dark:bg-slate-900 sm:gap-6 sm:p-8"
                         >
-                            <div className="w-16 h-16 rounded-2xl bg-purple-50 dark:bg-purple-900/20 text-purple-600 flex items-center justify-center transition-transform group-hover:scale-110 duration-500">
-                                <Sparkles size={28} />
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-purple-50 text-purple-600 transition-transform duration-500 group-hover:scale-110 dark:bg-purple-900/20 sm:h-16 sm:w-16">
+                                <Sparkles size={24} className="sm:h-7 sm:w-7" />
                             </div>
                             <div>
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Template</p>
@@ -137,7 +146,7 @@ export default function AdminWeddingDetailsPage() {
                     </div>
 
                     {/* Schedule / Activities */}
-                    <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 p-10 shadow-sm relative overflow-hidden">
+                    <div className="relative overflow-hidden rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-10">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 blur-3xl rounded-full -mr-16 -mt-16" />
                         
                         <h3 className="text-xl font-black text-slate-900 dark:text-white font-kantumruy mb-8 flex items-center justify-between">
@@ -191,7 +200,7 @@ export default function AdminWeddingDetailsPage() {
                                 ))}
                             </div>
                         ) : (
-                            <div className="p-16 text-center bg-slate-50 dark:bg-slate-800/30 rounded-[2rem] border border-slate-100 dark:border-slate-800 border-dashed">
+                            <div className="rounded-[2rem] border border-dashed border-slate-100 bg-slate-50 p-8 text-center dark:border-slate-800 dark:bg-slate-800/30 sm:p-16">
                                 <div className="w-16 h-16 bg-white dark:bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-slate-100 dark:border-slate-800">
                                     <Calendar className="text-slate-300" size={24} />
                                 </div>
@@ -206,7 +215,7 @@ export default function AdminWeddingDetailsPage() {
                     {/* Share Section */}
                     <QRCodeCard weddingId={wedding.id} />
 
-                    <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-100 dark:border-slate-800 p-8 shadow-sm">
+                    <div className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-8">
                         <h3 className="text-xs font-black text-slate-900 dark:text-white font-kantumruy mb-6 uppercase tracking-[0.2em] border-b border-slate-100 dark:border-slate-800 pb-4 flex items-center gap-2">
                             <Share2 size={14} className="text-slate-400" />
                             ព័ត៌មានលម្អិត

@@ -59,13 +59,13 @@ export const AnniversaryCountdown = ({ wedding }: { wedding: WeddingData }) => {
     ];
 
     return (
-        <section className="py-14 px-4 bg-gradient-to-b from-[#FAF7F2] to-white font-kantumruy text-center">
+        <section className="py-16 px-4 bg-gradient-to-b from-[#F1ECE5] to-[#FBF9F5] font-kantumruy text-center">
             <div className="max-w-md mx-auto space-y-6">
                 
                 {/* Header */}
                 <div className="space-y-1">
-                    <h3 className="text-lg sm:text-xl font-khmer-moul text-[#3B0764] flex items-center justify-center gap-2">
-                        <Clock size={18} className="text-purple-600" />
+                    <h3 className="text-lg sm:text-xl font-khmer-moul text-[#633E42] flex items-center justify-center gap-2">
+                        <Clock size={18} className="text-[#966B4E]" />
                         <span>រាប់ថយក្រោយ</span>
                     </h3>
                 </div>
@@ -98,12 +98,12 @@ export const AnniversaryCountdown = ({ wedding }: { wedding: WeddingData }) => {
                             whileInView={{ opacity: 1, scale: 1 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.5, delay: idx * 0.08 }}
-                            className="bg-gradient-to-b from-white to-purple-50/60 p-2.5 sm:p-3.5 rounded-2xl border border-purple-200/80 shadow-md text-center space-y-0.5"
+                            className="bg-gradient-to-b from-white to-[#F0E3D1] p-2.5 sm:p-3.5 rounded-2xl border border-[#D9C6AA] shadow-md text-center space-y-0.5"
                         >
-                            <span className="font-mono text-lg sm:text-2xl font-black text-[#3B0764] block tracking-tight">
+                            <span className="font-mono text-lg sm:text-2xl font-black text-[#633E42] block tracking-tight">
                                 {String(card.val).padStart(2, '0')}
                             </span>
-                            <span className="text-[10px] sm:text-xs font-bold text-purple-800/80 block whitespace-nowrap">
+                            <span className="text-[10px] sm:text-xs font-bold text-[#966B4E] block whitespace-nowrap">
                                 {card.label}
                             </span>
                         </m.div>

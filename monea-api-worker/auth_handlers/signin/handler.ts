@@ -6,6 +6,8 @@ import { ROLES } from "@/lib/constants";
 import { sendTelegramAlert } from "@/lib/telegram";
 import { CryptoUtils } from "@/lib/crypto";
 import { authLimiter, getIP } from "@/lib/ratelimit";
+import { verifyTurnstileDetailed } from "@/lib/turnstile";
+import { decryptAndMigrateTotpSecret } from "@/lib/totp-secret";
 
 export async function OPTIONS(req: Request) {
     const origin = req.headers.get("origin") || "*";
@@ -18,17 +20,22 @@ export async function OPTIONS(req: Request) {
 }
 
 export async function POST(req: Request) {
-    // Simplified rate limiting for performance
+    // Rate limiting
     const ip = getIP(req);
+    let rateLimit: Awaited<ReturnType<typeof authLimiter.limitStrict>>;
     try {
-        const { success } = await authLimiter.limit(ip);
-        if (!success) {
-            console.warn(`[RateLimit] Auth threshold exceeded for IP: ${ip}`);
-            return Response.json({ error: "Too many login attempts. Please try again later." }, { status: 429 });
-        }
-    } catch (e) {
-        // Continue without rate limiting if Redis is down
-        console.warn(`[RateLimit] Bypassing due to error:`, e);
+        rateLimit = await authLimiter.limitStrict(ip);
+    } catch {
+        console.error("[RateLimit] Distributed sign-in protection unavailable; rejecting request.");
+        return Response.json(
+            { error: "Sign-in is temporarily unavailable. Please try again later." },
+            { status: 503 }
+        );
+    }
+
+    if (!rateLimit.success) {
+        console.warn(`[RateLimit] Auth threshold exceeded for IP: ${ip}`);
+        return Response.json({ error: "Too many login attempts. Please try again later." }, { status: 429 });
     }
 
     try {
@@ -46,29 +53,50 @@ export async function POST(req: Request) {
         const geoIp = req.headers.get("x-vercel-ip-country") || req.headers.get("cf-ipcountry") || "UNKNOWN";
         const userAgent = req.headers.get("user-agent") || "UNKNOWN";
 
-        // Simplified Turnstile check for development
-        if (process.env.TURNSTILE_SECRET_KEY && process.env.TURNSTILE_SECRET_KEY !== '1x0000000000000000000000000000000AA') {
-            if (!turnstileToken) {
+        // Turnstile CAPTCHA verification
+        const isProduction = process.env.NODE_ENV === 'production' || process.env.ENVIRONMENT === 'production';
+        const TEST_TURNSTILE_SECRET = '1x0000000000000000000000000000000AA';
+        const turnstileSecret = process.env.TURNSTILE_SECRET_KEY || process.env.TURNSTILE_SECRET;
+        const turnstileBypassedForDev = !isProduction && !turnstileSecret;
+
+        if (!turnstileBypassedForDev) {
+            if (!turnstileSecret || turnstileSecret === TEST_TURNSTILE_SECRET) {
+                console.error(
+                    '[Turnstile] CRITICAL: TURNSTILE_SECRET_KEY is missing or set to the always-pass test key. Refusing to authenticate.'
+                );
+                return Response.json(
+                    { error: "សេវាផ្ទៀងផ្ទាត់ CAPTCHA មិនអាចប្រើប្រាស់បានទេ។ សូមព្យាយាមម្ដងទៀត។" },
+                    { status: 503 }
+                );
+            }
+
+            if (!turnstileToken || typeof turnstileToken !== 'string') {
                 return Response.json({ error: "សូមផ្ទៀងផ្ទាត់ CAPTCHA ដើម្បីបន្ត។" }, { status: 428 });
             }
-            // Simplified turnstile verification
-            try {
-                const formData = new URLSearchParams();
-                formData.append('secret', process.env.TURNSTILE_SECRET_KEY);
-                formData.append('response', turnstileToken);
 
-                const verifyRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-                    method: 'POST',
-                    body: formData,
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                });
-                const turnstileResult = await verifyRes.json();
+            const verification = await verifyTurnstileDetailed(turnstileToken, { remoteip: ip });
 
-                if (!turnstileResult.success) {
-                    return Response.json({ error: "ការផ្ទៀងផ្ទាត់ CAPTCHA បរាជ័យ។" }, { status: 400 });
-                }
-            } catch (e) {
-                console.warn('[Turnstile] Verification failed, continuing...', e);
+            if (!verification.success) {
+                const isVerificationUnavailable = verification.errorCodes?.some((code) =>
+                    code === 'request-timeout' ||
+                    code === 'internal-error' ||
+                    code === 'missing-secret-key' ||
+                    (typeof code === 'string' && code.startsWith('http-status-'))
+                );
+
+                console.warn(
+                    `[Turnstile] Signin CAPTCHA rejected for IP ${ip}:`,
+                    verification.errorCodes
+                );
+
+                return Response.json(
+                    {
+                        error: isVerificationUnavailable
+                            ? "សេវាផ្ទៀងផ្ទាត់ CAPTCHA កំពុងរវល់។ សូមព្យាយាមម្ដងទៀត។"
+                            : "ការផ្ទៀងផ្ទាត់ CAPTCHA បរាជ័យ។",
+                    },
+                    { status: isVerificationUnavailable ? 503 : 400 }
+                );
             }
         }
 
@@ -151,7 +179,14 @@ export async function POST(req: Request) {
                         return Response.json({ require2FA: true, error: "2FA Token required" }, { status: 428 });
                     }
 
-                    const is2faValid = authenticator.check(twoFactorToken, user.twoFactorSecret);
+                    const secret = await decryptAndMigrateTotpSecret(
+                        user.twoFactorSecret,
+                        encryptedSecret => prisma.user.update({
+                            where: { id: user.id },
+                            data: { twoFactorSecret: encryptedSecret },
+                        }),
+                    );
+                    const is2faValid = authenticator.check(twoFactorToken, secret);
                     if (!is2faValid) {
                         return await handleFailure(user, "User", "លេខកូដសុវត្ថិភាពមិនត្រឹមត្រូវ");
                     }
@@ -187,7 +222,6 @@ export async function POST(req: Request) {
                 headers.append("Set-Cookie", getCookieHeader("token", token, req, 60 * 60 * 24 * 30));
                 return new Response(JSON.stringify({ 
                     success: true, 
-                    token, 
                     user: { id: user.id, email: user.email, role } 
                 }), { status: 200, headers });
             } else {
@@ -210,7 +244,14 @@ export async function POST(req: Request) {
                     if (!twoFactorToken) {
                         return Response.json({ require2FA: true, error: "2FA Token required" }, { status: 428 });
                     }
-                    const is2faValid = authenticator.check(twoFactorToken, staff.twoFactorSecret);
+                    const secret = await decryptAndMigrateTotpSecret(
+                        staff.twoFactorSecret,
+                        encryptedSecret => prisma.staff.update({
+                            where: { id: staff.id },
+                            data: { twoFactorSecret: encryptedSecret },
+                        }),
+                    );
+                    const is2faValid = authenticator.check(twoFactorToken, secret);
                     if (!is2faValid) {
                         return await handleFailure(staff, "Staff", "លេខកូដសុវត្ថិភាពមិនត្រឹមត្រូវ");
                     }
@@ -234,7 +275,6 @@ export async function POST(req: Request) {
                 headers.append("Set-Cookie", getCookieHeader("staff_token", token, req, 60 * 60 * 12));
                 return new Response(JSON.stringify({ 
                     success: true, 
-                    token, 
                     user: { id: staff.id, email: staff.email, role: ROLES.EVENT_STAFF } 
                 }), { status: 200, headers });
             } else {
@@ -248,7 +288,7 @@ export async function POST(req: Request) {
         console.error("[Auth Signin] Error:", error);
         return Response.json({
             error: "Internal Server Error",
-            message: "An unexpected error occurred during authentication."
+            message: "An unexpected error occurred during authentication.",
         }, { status: 500 });
     }
 }

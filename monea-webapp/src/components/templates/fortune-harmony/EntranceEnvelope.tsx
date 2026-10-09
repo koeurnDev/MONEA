@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { WeddingData } from '../types';
+import { getWeddingHeroImage } from "../shared/weddingPhotos";
 
 interface EntranceEnvelopeProps {
     wedding: WeddingData;
@@ -20,7 +21,7 @@ export const EntranceEnvelope: React.FC<EntranceEnvelopeProps> = ({
     const isEngagement = wedding.eventType === 'anniversary';
     const groomName = wedding.groomName || "កូនកំលោះ";
     const brideName = wedding.brideName || "កូនក្រមុំ";
-    const heroImage = wedding.themeSettings?.heroImage || wedding.galleryItems?.[0]?.url || '/assets/fortune-harmony/fortune-crimson-bg.jpg';
+    const heroImage = getWeddingHeroImage(wedding, '/assets/fortune-harmony/fortune-crimson-bg.jpg');
 
     return (
         <AnimatePresence>
@@ -37,9 +38,19 @@ export const EntranceEnvelope: React.FC<EntranceEnvelopeProps> = ({
                     {/* Full-bleed Pre-Wedding Photo Background */}
                     <div className="absolute inset-0 z-0 overflow-hidden">
                         <img
-                            src={heroImage} 
-                            className="w-full h-full object-cover transform scale-100 filter brightness-[0.92] transition-transform duration-1000"
+                            src={heroImage}
+                            className="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-70"
                             style={{ objectPosition: 'center 20%' }}
+                            alt=""
+                            aria-hidden="true"
+                        />
+                        <img
+                            src={heroImage}
+                            className="relative w-full h-full object-cover filter brightness-[0.92] transition-transform duration-1000"
+                            style={{ objectPosition: 'center 20%' }}
+                            loading="eager"
+                            fetchPriority="high"
+                            decoding="async"
                             alt="Pre-wedding Cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/85" />
@@ -69,11 +80,11 @@ export const EntranceEnvelope: React.FC<EntranceEnvelopeProps> = ({
                     >
                         {/* Couple Names in pure Khmer Moul */}
                         <div className="space-y-0.5">
-                            <h2 className="font-khmer-moul text-2xl sm:text-3xl text-amber-100 drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)] tracking-wide">
+                            <h2 className="m05-font-name font-khmer-moul text-2xl sm:text-3xl text-amber-100 drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)] tracking-wide">
                                 {groomName}
                             </h2>
                             <p className="text-xs text-amber-300 font-khmer-moul drop-shadow-md">និង</p>
-                            <h2 className="font-khmer-moul text-2xl sm:text-3xl text-amber-100 drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)] tracking-wide">
+                            <h2 className="m05-font-name font-khmer-moul text-2xl sm:text-3xl text-amber-100 drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)] tracking-wide">
                                 {brideName}
                             </h2>
                         </div>

@@ -91,7 +91,7 @@ const ImageCropperModal: React.FC<ImageCropperModalProps> = ({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-3xl w-[95vw] p-0 overflow-hidden bg-background rounded-2xl border-none shadow-2xl">
+            <DialogContent className="z-[70] flex h-[94dvh] max-h-[94dvh] w-[95vw] max-w-3xl flex-col gap-0 overflow-hidden rounded-2xl border-none bg-background p-0 shadow-2xl md:h-[min(90vh,760px)] md:max-h-[90vh]">
                 <DialogHeader className="p-4 border-b bg-muted/30">
                     <DialogTitle className="text-sm font-bold flex items-center gap-2 font-kantumruy">
                         <Scissors className="w-4 h-4 text-red-600" />
@@ -99,8 +99,8 @@ const ImageCropperModal: React.FC<ImageCropperModalProps> = ({
                     </DialogTitle>
                 </DialogHeader>
 
-                <div className="flex flex-col md:flex-row">
-                    <div className="relative h-[40vh] md:h-[60vh] md:flex-1 bg-black/95">
+                <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+                    <div className="relative h-[34dvh] min-h-[180px] max-h-[300px] shrink-0 bg-black/95 md:h-auto md:min-h-0 md:max-h-none md:flex-1">
                         <Cropper
                             image={imageSrc}
                             crop={crop}
@@ -114,7 +114,8 @@ const ImageCropperModal: React.FC<ImageCropperModalProps> = ({
                         />
                     </div>
 
-                    <div className="w-full md:w-64 p-6 space-y-8 bg-background border-t md:border-t-0 md:border-l">
+                    <div className="flex min-h-0 flex-1 flex-col bg-background md:w-64 md:flex-none">
+                        <div className="min-h-0 flex-1 space-y-6 overflow-y-auto border-t p-4 md:space-y-8 md:border-l md:border-t-0 md:p-6">
                         {showPresets && (
                             <div className="space-y-3">
                                 <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">ទំហំរូបភាព (Aspect Ratio)</Label>
@@ -199,7 +200,8 @@ const ImageCropperModal: React.FC<ImageCropperModalProps> = ({
                             </div>
                         </div>
 
-                        <div className="pt-4 space-y-2">
+                        </div>
+                        <div className="shrink-0 space-y-2 border-t bg-background p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:p-4">
                             <Button 
                                 onClick={handleCrop} 
                                 disabled={isCropping}

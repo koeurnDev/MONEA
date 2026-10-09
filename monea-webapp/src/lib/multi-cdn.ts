@@ -36,7 +36,7 @@ async function uploadToCloudinaryInternal(
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            paramsToSign: { timestamp, folder }
+            paramsToSign: { timestamp, upload_preset: "wedding_upload", folder }
         })
     });
 
@@ -44,16 +44,29 @@ async function uploadToCloudinaryInternal(
         throw new Error('Cloudinary signature failed');
     }
 
-    const { signature } = await signRes.json();
-    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "dilx4i5s4";
-    const apiKey = import.meta.env.VITE_CLOUDINARY_API_KEY || "678179776217443";
+    const { signature, folder: signedFolder } = await signRes.json();
+    if (!signature || typeof signedFolder !== 'string') {
+        throw new Error('Invalid Cloudinary signature response');
+    }
+    // Credentials come from the environment only. The literal production values
+    // that used to live here were committed to a public repository and must be
+    // treated as compromised (docs/SECURITY_INCIDENT_2026-09-22_SECRET_LEAK.md).
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+    const apiKey = import.meta.env.VITE_CLOUDINARY_API_KEY;
+
+    if (!cloudName || !apiKey) {
+        throw new Error(
+            "[Config] Missing Cloudinary upload configuration. Set VITE_CLOUDINARY_CLOUD_NAME and VITE_CLOUDINARY_API_KEY."
+        );
+    }
 
     const formData = new FormData();
     formData.append("file", file);
     formData.append("api_key", apiKey);
     formData.append("timestamp", timestamp);
     formData.append("signature", signature);
-    formData.append("folder", folder);
+    formData.append("upload_preset", "wedding_upload");
+    formData.append("folder", signedFolder);
 
     const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`, {
         method: 'POST',

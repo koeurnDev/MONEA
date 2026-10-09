@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { prisma } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
+import { isValidProfileName, isValidProfilePhone } from "@/lib/validations/profile";
 
 // Helper function to create CORS-compliant Response
 function createCorsResponse(body: any, status: number, origin?: string): Response {
@@ -68,6 +69,11 @@ export async function GET(req: Request) {
                     id: true,
                     name: true,
                     email: true,
+                    phone: true,
+                    avatar: true,
+                    password: true,
+                    googleId: true,
+                    telegramId: true,
                     role: true,
                     createdAt: true,
                     twoFactorEnabled: true,
@@ -105,8 +111,10 @@ export async function GET(req: Request) {
 
         console.log(`[Auth /me] Database queries successful for user: ${dbUser.id}`);
 
+        const { password, ...safeDbUser } = dbUser;
         const userData = {
-            ...dbUser,
+            ...safeDbUser,
+            hasPassword: Boolean(password),
             type: "user",
             weddingId: firstWedding?.id ?? null,
             wedding: firstWedding ?? null,
@@ -137,11 +145,16 @@ export async function PUT(req: Request) {
             return createCorsResponse({ error: "Unauthorized" }, 401, origin);
         }
 
-        const { name, email } = await req.json();
+        const { name, email, phone, avatar } = await req.json();
         const targetUserId = user.userId || user.id;
 
         const updateData: any = {};
-        if (name && typeof name === "string") updateData.name = name.trim();
+        if (name !== undefined) {
+            if (!isValidProfileName(name)) {
+                return createCorsResponse({ error: "ឈ្មោះត្រូវមានពី 1 ដល់ 100 តួអក្សរ" }, 400, origin);
+            }
+            updateData.name = name.trim();
+        }
         if (email && typeof email === "string" && email.includes("@")) {
             const cleanEmail = email.toLowerCase().trim();
             const existing = await prisma.user.findUnique({ where: { email: cleanEmail } });
@@ -150,11 +163,19 @@ export async function PUT(req: Request) {
             }
             updateData.email = cleanEmail;
         }
+        if (phone !== undefined) {
+            if (!isValidProfilePhone(phone)) {
+                return createCorsResponse({ error: "លេខទូរស័ព្ទត្រូវមាន 7–15 ខ្ទង់ និងអាចប្រើ +, ដកឃ្លា ឬសញ្ញា - បាន" }, 400, origin);
+            }
+            updateData.phone = phone.trim();
+        }
+        if (avatar === null) updateData.avatar = null;
+        if (typeof avatar === "string" && avatar.length <= 2048) updateData.avatar = avatar.trim();
 
         const updatedUser = await prisma.user.update({
             where: { id: targetUserId },
             data: updateData,
-            select: { id: true, name: true, email: true, role: true }
+            select: { id: true, name: true, email: true, phone: true, avatar: true, role: true }
         });
 
         return createCorsResponse({ success: true, user: updatedUser }, 200, origin);

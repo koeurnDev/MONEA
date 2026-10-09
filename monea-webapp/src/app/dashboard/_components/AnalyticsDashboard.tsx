@@ -1,18 +1,29 @@
 ﻿import * as React from 'react';
 import useSWR from 'swr';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { m } from "framer-motion";
-import { Activity, Users, MousePointer2, Calendar, Smartphone, Monitor, Info, TrendingUp, BarChart3, Check } from "lucide-react";
+import { Activity, Users, MousePointer2, Calendar, Smartphone, Monitor, Info, TrendingUp, BarChart3, Check, AlertCircle, RefreshCw } from "lucide-react";
 import { useTranslation } from '@/i18n/LanguageProvider';
 
-const fetcher = (url: string) => fetch(url).then(res => res.json());
+const fetcher = async (url: string) => {
+    const response = await fetch(url);
+    const payload = await response.json();
+    if (!response.ok || payload?.error) {
+        throw new Error(payload?.error || `Analytics request failed (${response.status})`);
+    }
+    return payload;
+};
 
 export function AnalyticsDashboard({ weddingId }: { weddingId: string }) {
     const { t } = useTranslation();
     const [mounted, setMounted] = React.useState(false);
     const [activeTooltip, setActiveTooltip] = React.useState<number | null>(null);
 
-    const { data, error, isLoading } = useSWR(mounted ? `/api/wedding/analytics/stats?weddingId=${weddingId}` : null, fetcher);
+    const { data, error, isLoading, mutate } = useSWR(
+        mounted ? `/api/wedding/analytics/stats?weddingId=${encodeURIComponent(weddingId)}` : null,
+        fetcher
+    );
 
     React.useEffect(() => {
         setMounted(true);
@@ -34,7 +45,26 @@ export function AnalyticsDashboard({ weddingId }: { weddingId: string }) {
         </div>
     );
 
-    if (error || !data || data.error) return (
+    if (error) return (
+        <div className="p-8 text-center bg-rose-50/50 dark:bg-rose-500/5 rounded-3xl border border-rose-200 dark:border-rose-500/20" role="alert">
+            <div className="w-14 h-14 bg-rose-500/10 rounded-2xl flex items-center justify-center mx-auto mb-3 text-rose-600 dark:text-rose-400">
+                <AlertCircle size={28} />
+            </div>
+            <h3 className="text-base font-bold font-kantumruy text-foreground mb-1">{t("dashboard.analytics.loadError")}</h3>
+            <p className="text-sm text-muted-foreground font-kantumruy mb-4">{t("dashboard.analytics.loadErrorSub")}</p>
+            <Button
+                type="button"
+                variant="outline"
+                onClick={() => void mutate()}
+                className="h-11 rounded-xl font-kantumruy text-sm font-bold"
+            >
+                <RefreshCw className="mr-2 h-4 w-4" />
+                {t("dashboard.analytics.retry")}
+            </Button>
+        </div>
+    );
+
+    if (!data) return (
         <div className="p-8 text-center bg-muted/20 rounded-3xl border-2 border-dashed border-border/50">
             <div className="w-14 h-14 bg-muted/50 rounded-2xl flex items-center justify-center mx-auto mb-3 text-muted-foreground/30">
                 <Info size={28} />
@@ -62,8 +92,8 @@ export function AnalyticsDashboard({ weddingId }: { weddingId: string }) {
             value: Number(data.mapClicks) || 0,
             sub: t("dashboard.analytics.mapClicksSub"),
             icon: MousePointer2,
-            color: "text-rose-600 dark:text-rose-400",
-            bg: "bg-rose-50 dark:bg-rose-500/10",
+            color: "text-teal-600 dark:text-teal-400",
+            bg: "bg-teal-50 dark:bg-teal-500/10",
         },
         {
             title: t("dashboard.analytics.saveDate"),

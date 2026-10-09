@@ -60,42 +60,22 @@ const getActivityIcon = (title: string, iconKey?: string | null): LucideIcon => 
 
 export function KhmerSchedule({ 
     wedding, 
-    galleryImages = [] 
+    galleryImages = [],
+    customTitle,
 }: { 
     wedding: WeddingData; 
     galleryImages?: string[];
+    customTitle?: string;
 }) {
     const { t } = useTranslation();
     const isEngagement = wedding.eventType === 'anniversary';
 
-    const defaultWeddingActivities = [
-        { time: "ម៉ោង ០៦:០០ នាទីព្រឹក", title: "ពិធីសូត្រមន្តចម្រើនព្រះបរិត្ត", description: null, icon: "flower" },
-        { time: "ម៉ោង ០៦:៣០ នាទីព្រឹក", title: "ជួបជុំភ្ញៀវកិត្តិយស ដើម្បីរៀបចំហែជំនូន", description: null, icon: "users" },
-        { time: "ម៉ោង ០៧:០០ នាទីព្រឹក", title: "ពិធីហែជំនូន (កំលាត់)", description: null, icon: "gift" },
-        { time: "ម៉ោង ០៧:៣០ នាទីព្រឹក", title: "ពិធីជំនុំជើងការ និងពិសារស្លាកំណត់", description: null, icon: "landmark" },
-        { time: "ម៉ោង ០៨:០០ នាទីព្រឹក", title: "ពិធីបំពាក់ចិញ្ចៀន", description: null, icon: "gem" },
-        { time: "ម៉ោង ០៩:០០ នាទីព្រឹក", title: "ពិធីកាត់សក់បង្កក់សិរី", description: null, icon: "scissors" },
-        { time: "ម៉ោង ១០:០០ នាទីព្រឹក", title: "ពិធីបាចផ្កាស្លា", description: null, icon: "flower" },
-        { time: "ម៉ោង ១០:៣០ នាទីព្រឹក", title: "ពិធីបង្វិលពពិល និងសំពះផ្ទឹមសែនចងដៃ", description: null, icon: "heart" },
-        { time: "ម៉ោង ១២:០០ ថ្ងៃត្រង់", title: "អញ្ជើញភ្ញៀវកិត្តិយសពិសារភោជនាហារ ថ្ងៃត្រង់", description: null, icon: "utensils" },
-        { time: "ម៉ោង ០៥:០០ ល្ងាច", title: "អញ្ជើញភ្ញៀវកិត្តិយសពិសារភោជនាហារ ពេលល្ងាច", description: null, icon: "glass" },
-    ];
+    const activities = wedding.activities || [];
 
-    const defaultEngagementActivities = [
-        { time: "ម៉ោង ០៧:០០ នាទីព្រឹក", title: "ពិធីជួបជុំញាតិមិត្ត & ហែជំនូនភ្ជាប់ពាក្យ", description: null, icon: "gift" },
-        { time: "ម៉ោង ០៧:៣០ នាទីព្រឹក", title: "ពិធីរៀបចំ និងរាប់ផ្លែឈើជំនូន", description: null, icon: "flower" },
-        { time: "ម៉ោង ០៨:៣០ នាទីព្រឹក", title: "ពិធីពិសារស្លាដក់ និងបំពាក់ចិញ្ចៀន", description: null, icon: "gem" },
-        { time: "ម៉ោង ០៩:៣០ នាទីព្រឹក", title: "ពិធីសែនព្រេន និងចងដៃជូនពរជ័យ", description: null, icon: "heart" },
-        { time: "ម៉ោង ១១:៣០ នាទីព្រឹក", title: "ពិធីពិសារអាហារសាមគ្គីអបអរសាទរ", description: null, icon: "glass" },
-    ];
-
-    const defaultList = isEngagement ? defaultEngagementActivities : defaultWeddingActivities;
-    const activities: any[] = wedding.activities && wedding.activities.length > 0 ? wedding.activities : defaultList;
-
-    const scheduleTitle = wedding.themeSettings?.customLabels?.scheduleTitle || 
-                          wedding.themeSettings?.customLabels?.schedule_title || 
-                          t("template.khmerLegacy.schedule") || 
-                          "កម្មវិធីសិរីមង្គលអាពាហ៍ពិពាហ៍";
+    const scheduleTitle = customTitle ||
+                          (isEngagement
+                              ? "កម្មវិធីសិរីមង្គលភ្ជាប់ពាក្យ"
+                              : t("template.khmerLegacy.schedule") || "កម្មវិធីសិរីមង្គលអាពាហ៍ពិពាហ៍");
 
     // Calendar computation for Save The Date
     const weddingDate = React.useMemo(() => {
@@ -153,7 +133,7 @@ export function KhmerSchedule({
     return (
         <section id="schedule-khmer" className="py-12 md:py-20 px-4 sm:px-6 md:px-12 bg-white relative overflow-hidden font-kantumruy">
             {/* Background ambient gold radial glow */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] md:w-[1000px] h-[500px] bg-[radial-gradient(circle_at_center,_rgba(212,175,55,0.04)_0%,_transparent_70%)] pointer-events-none" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-[radial-gradient(circle_at_center,_rgba(212,175,55,0.04)_0%,_transparent_70%)] pointer-events-none" />
             
             <div className="max-w-xl mx-auto relative z-10 space-y-12">
                 {/* 1. Title Section */}

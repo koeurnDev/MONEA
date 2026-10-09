@@ -40,8 +40,8 @@ export function ChangePasswordDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[440px] p-0 overflow-hidden border-none rounded-[2rem] bg-card shadow-2xl">
-                <DialogHeader className="p-8 pb-0">
+            <DialogContent className="w-[92vw] max-w-[440px] max-h-[90dvh] overflow-y-auto p-0 border-none rounded-2xl sm:rounded-[2rem] bg-card shadow-2xl">
+                <DialogHeader className="p-5 sm:p-8 pb-0">
                     <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/30 flex items-center justify-center text-indigo-600 mb-4">
                         <KeyRound size={24} />
                     </div>
@@ -53,7 +53,7 @@ export function ChangePasswordDialog({
                     </DialogDescription>
                 </DialogHeader>
 
-                <form onSubmit={onSubmit} className="p-8 space-y-6">
+                <form onSubmit={onSubmit} className="p-5 sm:p-8 space-y-4 sm:space-y-6">
                     {pwError && (
                         <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold font-kantumruy flex items-center gap-2">
                             <AlertCircle size={14} /> {pwError}
@@ -74,7 +74,7 @@ export function ChangePasswordDialog({
                                     value={currentPassword}
                                     onChange={(e) => setCurrentPassword(e.target.value)}
                                     placeholder={t("account.dialogs.changePassword.currentPlaceholder", { defaultValue: "បញ្ចូលពាក្យសម្ងាត់បច្ចុប្បន្ន" })}
-                                    className="h-12 pl-11 pr-11 bg-muted/40 border-none rounded-xl font-bold focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                                    className="h-11 sm:h-12 pl-11 pr-11 bg-muted/40 border-none rounded-xl font-bold focus:ring-2 focus:ring-indigo-500/20 transition-all"
                                     required
                                 />
                                 <button
@@ -100,7 +100,7 @@ export function ChangePasswordDialog({
                                     value={newPassword}
                                     onChange={(e) => setNewPassword(e.target.value)}
                                     placeholder={t("account.dialogs.changePassword.newPlaceholder", { defaultValue: "បញ្ចូលពាក្យសម្ងាត់ថ្មី" })}
-                                    className="h-12 pl-11 pr-11 bg-muted/40 border-none rounded-xl font-bold focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                                    className="h-11 sm:h-12 pl-11 pr-11 bg-muted/40 border-none rounded-xl font-bold focus:ring-2 focus:ring-indigo-500/20 transition-all"
                                     required
                                 />
                                 <button
@@ -126,7 +126,7 @@ export function ChangePasswordDialog({
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     placeholder={t("account.dialogs.changePassword.confirmPlaceholder", { defaultValue: "បញ្ចូលពាក្យសម្ងាត់ថ្មីម្តងទៀត" })}
-                                    className="h-12 pl-11 pr-11 bg-muted/40 border-none rounded-xl font-bold focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                                    className="h-11 sm:h-12 pl-11 pr-11 bg-muted/40 border-none rounded-xl font-bold focus:ring-2 focus:ring-indigo-500/20 transition-all"
                                     required
                                 />
                                 <button
@@ -144,7 +144,7 @@ export function ChangePasswordDialog({
                         <Button
                             type="submit"
                             disabled={changingPassword}
-                            className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black font-kantumruy shadow-lg shadow-indigo-500/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+                            className="w-full h-11 sm:h-12 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black font-kantumruy shadow-lg shadow-indigo-500/20 transition-all active:scale-95 flex items-center justify-center gap-2"
                         >
                             {changingPassword ? (
                                 <RefreshCw className="w-4 h-4 animate-spin" />

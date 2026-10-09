@@ -73,7 +73,7 @@ export default function MasterAnalyticsPage() {
                             </Button>
                         </Link>
                         <div>
-                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-teal-800 dark:text-teal-300">
                                 <TrendingUp size={13} />
                                 <span>Platform Analytics</span>
                             </div>
@@ -98,43 +98,16 @@ export default function MasterAnalyticsPage() {
             </div>
 
             <main className="max-w-[1400px] mx-auto p-4 sm:p-8 space-y-6">
-                {/* 4 Summary KPI Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Card className="bg-card border border-border/80 rounded-2xl shadow-xs">
                         <CardContent className="p-5 flex items-center justify-between">
                             <div>
                                 <p className="text-xs font-bold text-muted-foreground">{isKm ? "ចំណូលពីកញ្ចប់សេវា" : "Plan Revenue"}</p>
-                                <h3 className="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">${summary.totalPlanRevenue.toFixed(2)}</h3>
+                                <h3 className="text-2xl font-black text-teal-800 dark:text-teal-300 mt-1">${summary.totalPlanRevenue.toFixed(2)}</h3>
                                 <p className="text-[10px] text-emerald-600 font-bold mt-0.5">USD ({summary.proCount + summary.premiumCount} កម្មវិធី)</p>
                             </div>
-                            <div className="w-12 h-12 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center font-bold">
+                            <div className="w-12 h-12 rounded-xl bg-teal-600/10 text-teal-800 dark:text-teal-300 flex items-center justify-center font-bold">
                                 <DollarSign size={22} />
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="bg-card border border-border/80 rounded-2xl shadow-xs">
-                        <CardContent className="p-5 flex items-center justify-between">
-                            <div>
-                                <p className="text-xs font-bold text-muted-foreground">{isKm ? "ចំណងដៃ KHQR (USD)" : "USD Gifts"}</p>
-                                <h3 className="text-2xl font-black text-foreground mt-1">${summary.usdGifts.toLocaleString()}</h3>
-                                <p className="text-[10px] text-muted-foreground font-bold mt-0.5">Digital Gift Transferred</p>
-                            </div>
-                            <div className="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center font-bold">
-                                <Gift size={22} />
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card className="bg-card border border-border/80 rounded-2xl shadow-xs">
-                        <CardContent className="p-5 flex items-center justify-between">
-                            <div>
-                                <p className="text-xs font-bold text-muted-foreground">{isKm ? "ចំណងដៃ KHQR (KHR)" : "KHR Gifts"}</p>
-                                <h3 className="text-2xl font-black text-foreground mt-1">{summary.khrGifts.toLocaleString()} ៛</h3>
-                                <p className="text-[10px] text-muted-foreground font-bold mt-0.5">ប្រាក់រៀលខ្មែរ</p>
-                            </div>
-                            <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold">
-                                <Sparkles size={22} />
                             </div>
                         </CardContent>
                     </Card>
@@ -159,17 +132,17 @@ export default function MasterAnalyticsPage() {
                     <Card className="lg:col-span-8 bg-card border border-border/80 rounded-2xl shadow-xs overflow-hidden">
                         <CardHeader className="p-6 pb-4 border-b border-border/50 flex flex-row items-center justify-between">
                             <CardTitle className="text-base font-bold text-foreground flex items-center gap-2">
-                                <BarChart3 size={18} className="text-rose-500" />
+                                <BarChart3 size={18} className="text-teal-700 dark:text-teal-300" />
                                 <span>{isKm ? "ស្ថិតិកំណើនបង្កើតមង្គលការប្រចាំខែ" : "Monthly Wedding Registrations"}</span>
                             </CardTitle>
-                            <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400">
+                            <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-lg bg-teal-600/10 text-teal-800 dark:text-teal-300">
                                 {summary.totalWeddings} {isKm ? "កម្មវិធីសរុប" : "Total Weddings"}
                             </span>
                         </CardHeader>
                         <CardContent className="p-6">
                             {loading ? (
                                 <div className="py-20 text-center flex flex-col items-center justify-center space-y-2">
-                                    <Loader2 className="w-8 h-8 animate-spin text-rose-600" />
+                                    <Loader2 className="w-8 h-8 animate-spin text-teal-700 dark:text-teal-300" />
                                     <span className="text-xs text-muted-foreground">កំពុងទាញយកទិន្នន័យ...</span>
                                 </div>
                             ) : data?.weddingsByMonth?.length > 0 ? (
@@ -180,11 +153,11 @@ export default function MasterAnalyticsPage() {
                                             <div key={i} className="space-y-1.5 p-3 rounded-xl bg-muted/30 border border-border/40 hover:bg-muted/60 transition-colors">
                                                 <div className="flex justify-between items-center text-xs font-bold text-foreground">
                                                     <span className="font-mono">{m.month}</span>
-                                                    <span className="text-rose-600 dark:text-rose-400 font-black">{m.count} កម្មវិធី</span>
+                                                    <span className="text-teal-800 dark:text-teal-300 font-black">{m.count} កម្មវិធី</span>
                                                 </div>
                                                 <div className="h-2.5 bg-muted rounded-full overflow-hidden">
                                                     <div
-                                                        className="h-full bg-gradient-to-r from-rose-500 to-amber-500 rounded-full transition-all duration-700"
+                                                        className="h-full bg-gradient-to-r from-teal-600 to-amber-400 rounded-full transition-all duration-700"
                                                         style={{ width: `${percent}%` }}
                                                     />
                                                 </div>
@@ -232,37 +205,6 @@ export default function MasterAnalyticsPage() {
                                         </span>
                                     </div>
                                 ))}
-                            </CardContent>
-                        </Card>
-
-                        {/* Currency Remittance */}
-                        <Card className="bg-card border border-border/80 rounded-2xl shadow-xs overflow-hidden">
-                            <CardHeader className="p-5 pb-3 border-b border-border/50">
-                                <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
-                                    <HeartHandshake size={16} className="text-rose-500" />
-                                    <span>{isKm ? "ចំណងដៃតាមរូបិយប័ណ្ណ (KHQR Gifts)" : "Gift Remittance"}</span>
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-5 space-y-3">
-                                <div className="flex items-center justify-between p-3.5 rounded-xl bg-blue-500/5 border border-blue-500/20">
-                                    <div>
-                                        <span className="text-xs font-bold text-blue-700 dark:text-blue-400 block">USD (ដុល្លារអាមេរិក)</span>
-                                        <span className="text-[10px] text-muted-foreground">ស្កេនតាម Bakong KHQR</span>
-                                    </div>
-                                    <span className="text-sm font-black font-mono text-blue-700 dark:text-blue-400">
-                                        ${summary.usdGifts.toLocaleString()}
-                                    </span>
-                                </div>
-
-                                <div className="flex items-center justify-between p-3.5 rounded-xl bg-amber-500/5 border border-amber-500/20">
-                                    <div>
-                                        <span className="text-xs font-bold text-amber-700 dark:text-amber-400 block">KHR (ប្រាក់រៀល)</span>
-                                        <span className="text-[10px] text-muted-foreground">ស្កេនតាម Bakong KHQR</span>
-                                    </div>
-                                    <span className="text-sm font-black font-mono text-amber-700 dark:text-amber-400">
-                                        {summary.khrGifts.toLocaleString()} ៛
-                                    </span>
-                                </div>
                             </CardContent>
                         </Card>
                     </div>

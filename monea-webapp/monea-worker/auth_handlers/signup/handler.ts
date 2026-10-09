@@ -55,30 +55,53 @@ export async function POST(req: Request) {
             return Response.json({ error: "ពាក្យសម្ងាត់ត្រូវមានយ៉ាងហោចណាស់ ៨ ខ្ទង់ (Password must be at least 8 characters)" }, { status: 400 });
         }
 
-        // 2. Cloudflare Turnstile Verification
-        const turnstileSecret = process.env.TURNSTILE_SECRET_KEY;
-        const isTurnstileConfigured = turnstileSecret && turnstileSecret !== '1x0000000000000000000000000000000AA';
+        // 2. Cloudflare Turnstile Verification — fails CLOSED outside development
+        const TEST_TURNSTILE_SECRET = '1x0000000000000000000000000000000AA';
+        const turnstileSecret = process.env.TURNSTILE_SECRET_KEY || process.env.TURNSTILE_SECRET;
+        const isDevEnvironment =
+            process.env.NODE_ENV === 'development' || process.env.ENVIRONMENT === 'development';
+        const turnstileBypassedForDev =
+            isDevEnvironment && (!turnstileSecret || turnstileSecret === TEST_TURNSTILE_SECRET);
 
-        if (isTurnstileConfigured) {
+        if (!turnstileBypassedForDev) {
+            if (!turnstileSecret || turnstileSecret === TEST_TURNSTILE_SECRET) {
+                console.error(
+                    '[Auth Signup] CRITICAL: TURNSTILE_SECRET_KEY is missing or set to the always-pass test key. Refusing registration.'
+                );
+                return Response.json(
+                    { error: "សេវាផ្ទៀងផ្ទាត់ CAPTCHA មិនអាចប្រើប្រាស់បានទេ។ សូមព្យាយាមម្ដងទៀត។" },
+                    { status: 503 }
+                );
+            }
+
             if (!turnstileToken) {
                 return Response.json({ error: "សូមផ្ទៀងផ្ទាត់ CAPTCHA (CAPTCHA required)" }, { status: 428 });
             }
-            const formData = new URLSearchParams();
-            formData.append('secret', turnstileSecret);
-            formData.append('response', turnstileToken);
 
-            const verifyRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-                method: 'POST',
-                body: formData,
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-            });
+            try {
+                const formData = new URLSearchParams();
+                formData.append('secret', turnstileSecret);
+                formData.append('response', turnstileToken);
 
-            const verifyData = await verifyRes.json();
-            console.log(`[Auth Signup] Turnstile verification: success=${verifyData.success}`);
+                const verifyRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                });
 
-            if (!verifyData.success) {
-                console.warn(`[Auth Signup] 400: Turnstile verification failed. Result: ${JSON.stringify(verifyData)}`);
-                return Response.json({ error: "ការផ្ទៀងផ្ទាត់ CAPTCHA បរាជ័យ (CAPTCHA verification failed)" }, { status: 400 });
+                const verifyData = await verifyRes.json();
+                console.log(`[Auth Signup] Turnstile verification: success=${verifyData.success}`);
+
+                if (!verifyData.success) {
+                    console.warn(`[Auth Signup] 400: Turnstile verification failed. Result: ${JSON.stringify(verifyData)}`);
+                    return Response.json({ error: "ការផ្ទៀងផ្ទាត់ CAPTCHA បរាជ័យ (CAPTCHA verification failed)" }, { status: 400 });
+                }
+            } catch (e) {
+                console.error('[Auth Signup] CRITICAL: Turnstile verification error. Refusing registration.', e);
+                return Response.json(
+                    { error: "សេវាផ្ទៀងផ្ទាត់ CAPTCHA កំពុងរវល់។ សូមព្យាយាមម្ដងទៀត។" },
+                    { status: 503 }
+                );
             }
         }
 

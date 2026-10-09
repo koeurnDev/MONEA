@@ -4,6 +4,8 @@ export interface AuthUser {
     email: string;
     name: string | null;
     role: string;
+    avatar?: string | null;
+    image?: string | null;
     weddingId?: string;
     type: "admin" | "user" | "staff";
 }

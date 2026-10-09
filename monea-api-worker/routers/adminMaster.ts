@@ -4,22 +4,296 @@ import { getDb } from "@/lib/drizzle";
 import { systemConfig, broadcasts } from "@/drizzle/schema";
 import { eq, desc } from "drizzle-orm";
 import { getServerUser } from "@/lib/auth";
-import { ROLES } from "@/lib/constants";
+import { isPlatformOwner, ROLES } from "@/lib/constants";
+import {
+    escapeWeddingSearch,
+    resolveAdminPackagePayment,
+    validateAdminReason,
+    validateWeddingListParams
+} from "@/lib/adminMasterValidation";
+import { UPDATE_WEDDING_PACKAGE_SQL, UPDATE_WEDDING_STATUS_SQL } from "@/lib/adminMasterSql";
 import { SystemGovernance, GOVERNANCE_ACTIONS } from "@/lib/governance";
 import redis from "@/lib/redis";
 import { v2 as cloudinary } from 'cloudinary';
-import { cloudinaryDelete } from '@/lib/cloudinary-edge';
+import { z } from "zod"
+import {
+    isTemplateId,
+    normalizeTemplateAvailability,
+    normalizeTemplateMetadata,
+    type TemplateEventType,
+} from "@/lib/template-availability";
 
-cloudinary.config({
-    cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || process.env.VITE_CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME || "dilx4i5s4",
-    api_key: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY || process.env.VITE_CLOUDINARY_API_KEY || process.env.CLOUDINARY_API_KEY || "678179776217443",
-    api_secret: process.env.CLOUDINARY_API_SECRET || "FC0GYeRsfbJFCLw4g6_ExOfXdVs",
-});
+const BACKUP_PAGE_SIZE = 250;
+
+async function* streamJsonArray<T extends { id: string }>(
+    loadPage: (cursor?: string) => Promise<T[]>,
+): AsyncGenerator<string> {
+    yield "[";
+    let cursor: string | undefined;
+    let first = true;
+
+    while (true) {
+        const rows = await loadPage(cursor);
+        for (const row of rows) {
+            if (!first) yield ",";
+            const serialized = JSON.stringify(row);
+            if (serialized === undefined) throw new Error("Backup row could not be serialized");
+            yield serialized;
+            first = false;
+        }
+
+        if (rows.length < BACKUP_PAGE_SIZE) break;
+        cursor = rows[rows.length - 1].id;
+    }
+
+    yield "]";
+}
+
+function streamJson(chunks: AsyncIterable<string>): ReadableStream<Uint8Array> {
+    const iterator = chunks[Symbol.asyncIterator]();
+    const encoder = new TextEncoder();
+
+    return new ReadableStream({
+        async pull(controller) {
+            try {
+                const { done, value } = await iterator.next();
+                if (done) {
+                    controller.close();
+                    return;
+                }
+                controller.enqueue(encoder.encode(value));
+            } catch (error) {
+                console.error("[Backup] Stream failed:", error instanceof Error ? error.message : error);
+                controller.error(error);
+            }
+        },
+        async cancel() {
+            await iterator.return?.();
+        },
+    });
+}
+
+/**
+ * Resolves Cloudinary credentials from the environment.
+ *
+ * SECURITY: production credentials were previously hard-coded here as fallbacks.
+ * They were committed to a public GitHub repository and must be treated as
+ * compromised (see docs/SECURITY_INCIDENT_2026-09-22_SECRET_LEAK.md). Never
+ * reintroduce a literal fallback — fail loudly instead, so a misconfigured
+ * environment can never silently authenticate with a leaked credential.
+ */
+function resolveCloudinaryCredentials() {
+    const cloudName =
+        process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ||
+        process.env.VITE_CLOUDINARY_CLOUD_NAME ||
+        process.env.CLOUDINARY_CLOUD_NAME;
+    const apiKey =
+        process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY ||
+        process.env.VITE_CLOUDINARY_API_KEY ||
+        process.env.CLOUDINARY_API_KEY;
+    const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+    if (!cloudName || !apiKey || !apiSecret) {
+        throw new Error(
+            "[Config] Missing Cloudinary credentials. Set NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME, " +
+            "NEXT_PUBLIC_CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET."
+        );
+    }
+
+    return { cloudName, apiKey, apiSecret };
+}
+
+// Configure the Node SDK without any literal fallback. A missing configuration
+// only degrades Cloudinary-based features; it no longer leaks/fabricates keys.
+try {
+    const { cloudName, apiKey, apiSecret } = resolveCloudinaryCredentials();
+    cloudinary.config({ cloud_name: cloudName, api_key: apiKey, api_secret: apiSecret });
+} catch (error: any) {
+    console.error("[Cloudinary] SDK not configured:", error?.message || error);
+}
 
 const adminMasterRouter = new Hono();
 
+adminMasterRouter.get('/templates', async (c) => {
+    const user = await getServerUser(c.req.raw);
+    if (!isAuthorizedMaster(user)) {
+        return c.json({ error: "Unauthorized" }, 401);
+    }
+
+    try {
+        const db = getDb(c.env);
+        const config = await db.select({ templateAvailability: systemConfig.templateAvailability })
+            .from(systemConfig)
+            .where(eq(systemConfig.id, "GLOBAL"))
+            .limit(1)
+            .then((rows: any) => rows[0]);
+
+        return c.json(normalizeTemplateAvailability(config?.templateAvailability));
+    } catch (error) {
+        console.error("[ADMIN_TEMPLATES_GET]", error);
+        return c.json({ error: "Failed to fetch templates" }, 500);
+    }
+});
+
+adminMasterRouter.patch('/templates', async (c) => {
+    const user = await getServerUser(c.req.raw);
+    if (!isAuthorizedMaster(user)) {
+        return c.json({ error: "Unauthorized" }, 401);
+    }
+
+    let body: unknown;
+    try {
+        body = await c.req.json();
+    } catch {
+        return c.json({ error: "Invalid JSON" }, 400);
+    }
+
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+        return c.json({ error: "Invalid template update" }, 400);
+    }
+
+    const { templateId, enabled } = body as Record<string, unknown>;
+    if (typeof templateId !== "string" || !isTemplateId(templateId) || typeof enabled !== "boolean") {
+        return c.json({ error: "A valid templateId and boolean enabled value are required" }, 400);
+    }
+
+    try {
+        const db = getDb(c.env);
+        const existing = await db.select({ templateAvailability: systemConfig.templateAvailability })
+            .from(systemConfig)
+            .where(eq(systemConfig.id, "GLOBAL"))
+            .limit(1)
+            .then((rows: any) => rows[0]);
+        const availability = normalizeTemplateAvailability(existing?.templateAvailability);
+        availability[templateId] = enabled;
+
+        if (existing) {
+            await db.update(systemConfig)
+                .set({ templateAvailability: availability })
+                .where(eq(systemConfig.id, "GLOBAL"));
+        } else {
+            await db.insert(systemConfig)
+                .values({ id: "GLOBAL", templateAvailability: availability });
+        }
+
+        return c.json(availability);
+    } catch (error) {
+        console.error("[ADMIN_TEMPLATES_PATCH]", error);
+        return c.json({ error: "Failed to update template availability" }, 500);
+    }
+});
+
+adminMasterRouter.get('/templates/metadata', async (c) => {
+    const user = await getServerUser(c.req.raw);
+    if (!isAuthorizedMaster(user)) {
+        return c.json({ error: "Unauthorized" }, 401);
+    }
+
+    try {
+        const config = await getDb(c.env).select({ templateMetadata: systemConfig.templateMetadata })
+            .from(systemConfig)
+            .where(eq(systemConfig.id, "GLOBAL"))
+            .limit(1)
+            .then((rows: any) => rows[0]);
+        return c.json(normalizeTemplateMetadata(config?.templateMetadata));
+    } catch (error) {
+        console.error("[ADMIN_TEMPLATE_METADATA_GET]", error);
+        return c.json({ error: "Failed to fetch template metadata" }, 500);
+    }
+});
+
+adminMasterRouter.patch('/templates/metadata', async (c) => {
+    const user = await getServerUser(c.req.raw);
+    if (!isAuthorizedMaster(user)) {
+        return c.json({ error: "Unauthorized" }, 401);
+    }
+
+    let body: unknown;
+    try {
+        body = await c.req.json();
+    } catch {
+        return c.json({ error: "Invalid JSON" }, 400);
+    }
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+        return c.json({ error: "Invalid template metadata update" }, 400);
+    }
+
+    const { templateId, title, description, image, eventType } = body as Record<string, unknown>;
+    const validEventTypes: TemplateEventType[] = ["wedding", "anniversary", "both"];
+    if (
+        typeof templateId !== "string"
+        || !isTemplateId(templateId)
+        || typeof title !== "string"
+        || !title.trim()
+        || title.trim().length > 80
+        || typeof description !== "string"
+        || description.trim().length > 300
+        || typeof image !== "string"
+        || image.length > 2048
+        || typeof eventType !== "string"
+        || !validEventTypes.includes(eventType as TemplateEventType)
+    ) {
+        return c.json({ error: "Valid templateId, title, description, image and eventType are required" }, 400);
+    }
+
+    const isSafeImagePath = /^\/(?:assets|images|khmer-invite-starter-kit)\/[a-zA-Z0-9_./-]+$/.test(image)
+        && !image.split("/").includes("..");
+    let isCloudinaryImage = false;
+    try {
+        const imageUrl = new URL(image);
+        isCloudinaryImage = imageUrl.protocol === "https:"
+            && imageUrl.hostname === "res.cloudinary.com"
+            && imageUrl.pathname.includes("/image/upload/");
+    } catch {
+        // Relative paths are validated separately; malformed absolute URLs are rejected below.
+    }
+    if (!isSafeImagePath && !isCloudinaryImage) {
+        return c.json({ error: "Cover must be an application image or a Cloudinary image URL" }, 400);
+    }
+
+    try {
+        const db = getDb(c.env);
+        const existing = await db.select({ templateMetadata: systemConfig.templateMetadata })
+            .from(systemConfig)
+            .where(eq(systemConfig.id, "GLOBAL"))
+            .limit(1)
+            .then((rows: any) => rows[0]);
+        const metadata = normalizeTemplateMetadata(existing?.templateMetadata);
+        metadata[templateId] = {
+            title: title.trim(),
+            description: description.trim(),
+            image,
+            eventType: eventType as TemplateEventType,
+        };
+
+        if (existing) {
+            await db.update(systemConfig)
+                .set({ templateMetadata: metadata })
+                .where(eq(systemConfig.id, "GLOBAL"));
+        } else {
+            await db.insert(systemConfig)
+                .values({ id: "GLOBAL", templateMetadata: metadata });
+        }
+        return c.json(metadata);
+    } catch (error) {
+        console.error("[ADMIN_TEMPLATE_METADATA_PATCH]", error);
+        return c.json({ error: "Failed to update template metadata" }, 500);
+    }
+});
+
+/**
+ * Platform master panel access.
+ *
+ * SECURITY (C-04): this guard previously also accepted the literal role "ADMIN",
+ * but "ADMIN" is `ROLES.EVENT_MANAGER` — the role every self-registered customer
+ * receives (`auth_handlers/signup/handler.ts`) and the schema default
+ * (`User.role @default(ADMIN)`). That let any customer call the platform master
+ * API: cross-tenant user/wedding directories, broadcasts, media maintenance and
+ * even `maintenance/restore` (database restore). Only the platform owner may now
+ * pass this guard.
+ */
 const isAuthorizedMaster = (user: any) =>
-    user && (user.role === ROLES.PLATFORM_OWNER || user.role === 'ADMIN' || user.role === 'SUPERADMIN');
+    Boolean(user && isPlatformOwner(user.role));
 
 function escapeCSV(val: any): string {
     if (val === null || val === undefined) return "";
@@ -35,8 +309,11 @@ function escapeCSV(val: any): string {
 adminMasterRouter.get('/stats', async (c) => {
     try {
         const user = await getServerUser(c.req.raw);
-        if (!isAuthorizedMaster(user)) {
+        if (!user) {
             return c.json({ error: "Unauthorized" }, 401);
+        }
+        if (!isAuthorizedMaster(user)) {
+            return c.json({ error: "Forbidden" }, 403);
         }
 
         const [
@@ -109,15 +386,36 @@ adminMasterRouter.get('/stats', async (c) => {
 adminMasterRouter.get('/weddings', async (c) => {
     try {
         const user = await getServerUser(c.req.raw);
-        if (!isAuthorizedMaster(user)) {
+        if (!user) {
             return c.json({ error: "Unauthorized" }, 401);
         }
+        if (!isAuthorizedMaster(user)) {
+            return c.json({ error: "Forbidden" }, 403);
+        }
 
-        const search = c.req.query("search") || "";
-        const page = parseInt(c.req.query("page") || "1", 10);
+        const params = validateWeddingListParams(
+            c.req.query("search"),
+            c.req.query("page"),
+            c.req.query("packageType")
+        );
+        if (!params.valid) return c.json({ error: params.error }, 400);
+        const { search, page, packageFilter } = params;
+
         const limit = 20;
         const skip = (page - 1) * limit;
-        const searchPattern = `%${search}%`;
+        const searchPattern = `%${escapeWeddingSearch(search)}%`;
+        const filters: string[] = [];
+        const filterParams: any[] = [];
+        if (search) {
+            filterParams.push(searchPattern);
+            const searchParam = `$${filterParams.length}`;
+            filters.push(`(w."groomName" ILIKE ${searchParam} ESCAPE '!' OR w."brideName" ILIKE ${searchParam} ESCAPE '!' OR w."weddingCode" ILIKE ${searchParam} ESCAPE '!' OR u."email" ILIKE ${searchParam} ESCAPE '!')`);
+        }
+        if (packageFilter !== "ALL") {
+            filterParams.push(packageFilter);
+            filters.push(`w."packageType"::text = $${filterParams.length}`);
+        }
+        const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
 
         const weddings = await queryRaw(`
             SELECT 
@@ -127,19 +425,30 @@ adminMasterRouter.get('/weddings', async (c) => {
                                   'gifts', (SELECT count(*) FROM "Gift" gi WHERE gi."weddingId" = w.id)) as _count
             FROM "Wedding" w
             LEFT JOIN "User" u ON w."userId" = u.id
-            WHERE w."groomName" ILIKE $1 OR w."brideName" ILIKE $1 OR w."weddingCode" ILIKE $1
+            ${whereClause}
             ORDER BY w."createdAt" DESC
-            LIMIT $2 OFFSET $3
-        `, searchPattern, limit, skip);
+            LIMIT $${filterParams.length + 1} OFFSET $${filterParams.length + 2}
+        `, ...filterParams, limit, skip);
 
         const totalResults = await queryRaw(`
-            SELECT count(*) as count FROM "Wedding"
-            WHERE "groomName" ILIKE $1 OR "brideName" ILIKE $1 OR "weddingCode" ILIKE $1
-        `, searchPattern);
+            SELECT count(*) as count
+            FROM "Wedding" w
+            LEFT JOIN "User" u ON w."userId" = u.id
+            ${whereClause}
+        `, ...filterParams);
 
         const total = Number(totalResults[0]?.count || 0);
 
-        const configs = await queryRaw('SELECT "stadPrice", "proPrice" FROM "SystemConfig" LIMIT 1');
+        const [configs, weddingStats, allWeddingResults] = await Promise.all([
+            queryRaw('SELECT "stadPrice", "proPrice" FROM "SystemConfig" LIMIT 1'),
+            queryRaw(`
+                SELECT
+                    count(*) FILTER (WHERE status::text = 'ACTIVE') as active,
+                    count(*) FILTER (WHERE "packageType"::text = 'PREMIUM') as premium
+                FROM "Wedding"
+            `),
+            queryRaw('SELECT count(*) as count FROM "Wedding"')
+        ]);
         const config = configs[0];
         const stadPrice = Number(config?.stadPrice) || 9;
         const proPrice = Number(config?.proPrice) || 19;
@@ -150,6 +459,14 @@ adminMasterRouter.get('/weddings', async (c) => {
                 total,
                 pages: Math.ceil(total / limit),
                 currentPage: page
+            },
+            stats: {
+                total: Number(allWeddingResults[0]?.count || 0),
+                active: Number(weddingStats[0]?.active || 0),
+                premium: Number(weddingStats[0]?.premium || 0)
+            },
+            permissions: {
+                canEditPackages: true
             },
             pricing: {
                 standard: stadPrice,
@@ -165,37 +482,78 @@ adminMasterRouter.get('/weddings', async (c) => {
 adminMasterRouter.patch('/weddings', async (c) => {
     try {
         const user = await getServerUser(c.req.raw);
-        if (!isAuthorizedMaster(user)) {
+        if (!user || !isAuthorizedMaster(user)) {
             return c.json({ error: "Unauthorized" }, 401);
         }
 
         const body = await c.req.json();
-        const { weddingId, packageType, status, paymentStatus } = body;
-        if (!weddingId) {
+        if (!body || typeof body !== "object" || Array.isArray(body)) {
+            return c.json({ error: "Invalid request body" }, 400);
+        }
+        const { weddingId, packageType, paymentDisposition, paymentReference, reason, action } = body;
+        if (typeof weddingId !== "string" || !weddingId.trim()) {
             return c.json({ error: "weddingId is required" }, 400);
         }
-
-        const validPackages = ['FREE', 'PRO', 'PREMIUM'];
-        const finalPackage = validPackages.includes(packageType) ? packageType : 'PRO';
-
-        let finalPaymentStatus = 'PAID';
-        if (finalPackage === 'FREE' || paymentStatus === 'PENDING' || paymentStatus === 'NONE') {
-            finalPaymentStatus = 'PENDING';
-        } else if (paymentStatus === 'AWAITING_VERIFICATION') {
-            finalPaymentStatus = 'AWAITING_VERIFICATION';
-        } else {
-            finalPaymentStatus = 'PAID';
+        if (action !== undefined && action !== "ARCHIVE" && action !== "RESTORE") {
+            return c.json({ error: "Invalid wedding action" }, 400);
+        }
+        if (!validateAdminReason(reason)) {
+            return c.json({ error: "Reason must be between 10 and 500 characters" }, 400);
         }
 
-        const finalStatus = status === 'ARCHIVED' ? 'ARCHIVED' : 'ACTIVE';
+        if (action === "ARCHIVE" || action === "RESTORE") {
+            const targetStatus = action === "ARCHIVE" ? "ARCHIVED" : "ACTIVE";
+            const actorId = user.userId || user.id;
+            const actorName = user.name || user.email || "Admin";
+            const ip = (c.req.header("x-forwarded-for") || "unknown").slice(0, 45);
+            const userAgent = (c.req.header("user-agent") || "unknown").slice(0, 255);
+            const [governanceAuditId, weddingAuditId] = [crypto.randomUUID(), crypto.randomUUID()];
+            const changed = await queryRaw<{ id: string; changed: boolean }>(
+                UPDATE_WEDDING_STATUS_SQL,
+                weddingId.trim(),
+                targetStatus,
+                actorId,
+                actorName,
+                ip,
+                userAgent,
+                governanceAuditId,
+                reason.trim(),
+                weddingAuditId
+            );
+            if (changed.length === 0) return c.json({ error: "Wedding not found" }, 404);
+            return c.json({ success: true, status: targetStatus, changed: changed[0].changed });
+        }
 
-        await executeRaw(`
-            UPDATE "Wedding"
-            SET "packageType" = $1::"PackageType", "paymentStatus" = $2::"PaymentStatus", "status" = $3::"WeddingStatus"
-            WHERE "id" = $4
-        `, finalPackage, finalPaymentStatus, finalStatus, weddingId);
+        const payment = resolveAdminPackagePayment(packageType, paymentDisposition, paymentReference);
+        if (!payment.valid) return c.json({ error: payment.error }, 400);
+        const finalPackage = packageType as "FREE" | "PRO" | "PREMIUM";
 
-        return c.json({ success: true, packageType: finalPackage, paymentStatus: finalPaymentStatus });
+        const actorId = user.userId || user.id;
+        const actorName = user.name || user.email || "Admin";
+        const ip = c.req.header("x-forwarded-for") || "unknown";
+        const userAgent = c.req.header("user-agent") || "unknown";
+
+        const auditIds = [crypto.randomUUID(), crypto.randomUUID()];
+        const updatedWedding = await queryRaw<{ id: string }>(
+            UPDATE_WEDDING_PACKAGE_SQL,
+            weddingId,
+            finalPackage,
+            payment.paymentStatus,
+            actorId,
+            actorName,
+            ip.slice(0, 45),
+            userAgent.slice(0, 255),
+            auditIds[0],
+            auditIds[1],
+            reason.trim(),
+            payment.disposition,
+            payment.reference
+        );
+        if (updatedWedding.length === 0) {
+            return c.json({ error: "Wedding not found" }, 404);
+        }
+
+        return c.json({ success: true, packageType: finalPackage, paymentStatus: payment.paymentStatus });
     } catch (error: any) {
         console.error("Master Wedding Upgrade Error:", error?.message || error);
         return c.json({ error: error.message || "Failed to update wedding" }, 500);
@@ -206,8 +564,11 @@ adminMasterRouter.patch('/weddings', async (c) => {
 adminMasterRouter.get('/users', async (c) => {
     try {
         const user = await getServerUser(c.req.raw);
-        if (!isAuthorizedMaster(user)) {
+        if (!user) {
             return c.json({ error: "Unauthorized" }, 401);
+        }
+        if (!isAuthorizedMaster(user)) {
+            return c.json({ error: "Forbidden" }, 403);
         }
 
         const search = c.req.query("search") || "";
@@ -225,7 +586,14 @@ adminMasterRouter.get('/users', async (c) => {
         const [users, total] = await Promise.all([
             prisma.user.findMany({
                 where,
-                include: { _count: { select: { weddings: true } } },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    role: true,
+                    createdAt: true,
+                    _count: { select: { weddings: true } }
+                },
                 orderBy: { createdAt: "desc" },
                 take: limit,
                 skip: skip
@@ -295,8 +663,11 @@ adminMasterRouter.patch('/users', async (c) => {
 adminMasterRouter.get('/support', async (c) => {
     try {
         const user = await getServerUser(c.req.raw);
-        if (!isAuthorizedMaster(user)) {
+        if (!user) {
             return c.json({ error: "Unauthorized" }, 401);
+        }
+        if (!isAuthorizedMaster(user)) {
+            return c.json({ error: "Forbidden" }, 403);
         }
 
         const tickets = await (prisma as any).supportTicket.findMany({
@@ -317,8 +688,11 @@ adminMasterRouter.get('/support', async (c) => {
 adminMasterRouter.patch('/support', async (c) => {
     try {
         const user = await getServerUser(c.req.raw);
-        if (!isAuthorizedMaster(user)) {
+        if (!user) {
             return c.json({ error: "Unauthorized" }, 401);
+        }
+        if (!isAuthorizedMaster(user)) {
+            return c.json({ error: "Forbidden" }, 403);
         }
 
         const body = await c.req.json();
@@ -655,7 +1029,8 @@ adminMasterRouter.get('/payments', async (c) => {
                 json_build_object('name', u.name, 'email', u.email) as user
             FROM "Wedding" w
             LEFT JOIN "User" u ON w."userId" = u.id
-            WHERE w."packageType" != 'FREE' AND (w."paymentStatus"::text != 'NONE' OR w."paymentInfo" IS NOT NULL)
+            WHERE (w."packageType" != 'FREE' OR w."paymentStatus"::text = 'REJECTED')
+              AND (w."paymentStatus"::text != 'NONE' OR w."paymentInfo" IS NOT NULL)
             ORDER BY 
                 CASE 
                     WHEN w."paymentStatus"::text = 'AWAITING_VERIFICATION' THEN 1
@@ -683,46 +1058,62 @@ adminMasterRouter.post('/payments', async (c) => {
             return c.json({ error: "Unauthorized" }, 401);
         }
 
-        const body = await c.req.json();
-        const { weddingId, status, packageType } = body;
-
-        if (!weddingId || !status) {
-            return c.json({ error: "Missing required fields" }, 400);
-        }
+        const parsed = z.object({
+            weddingId: z.string().min(1),
+            status: z.enum(["PAID", "REJECTED"]),
+            packageType: z.enum(["PRO", "PREMIUM"]).optional(),
+        }).safeParse(await c.req.json());
+        if (!parsed.success) return c.json({ error: "Invalid payment review request" }, 400);
+        const { weddingId, status, packageType } = parsed.data;
 
         const currentWeddings = await queryRaw('SELECT * FROM "Wedding" WHERE id = $1 LIMIT 1', weddingId);
         const currentWedding = currentWeddings[0];
-
-        if (status === 'REJECTED' && currentWedding?.paymentInfo) {
-            try {
-                const rawInfo = String(currentWedding.paymentInfo);
-                if (rawInfo.includes("cloudinary.com") || rawInfo.includes("/")) {
-                    const cleanUrl = rawInfo.split('?')[0];
-                    const parts = cleanUrl.split('/');
-                    const filenameWithExt = parts[parts.length - 1];
-                    const filename = filenameWithExt.split('.')[0];
-                    const folder = parts[parts.length - 2];
-                    const publicId = `${folder}/${filename}`;
-                    await cloudinaryDelete(publicId, 'image').catch((e) => console.warn("[Cloudinary Delete Catch]", e));
-                }
-            } catch (err: any) {
-                console.warn("[Cloudinary Auto-Delete Error]", err?.message || err);
-            }
+        if (!currentWedding) return c.json({ error: "Wedding not found" }, 404);
+        if (!["PENDING", "AWAITING_VERIFICATION", "PAID"].includes(currentWedding.paymentStatus)) {
+            return c.json({ error: "Payment request is no longer available for review" }, 409);
+        }
+        const approvedPackage = packageType || currentWedding.packageType;
+        if (status === "PAID" && !["PRO", "PREMIUM"].includes(approvedPackage)) {
+            return c.json({ error: "Wedding does not have a valid upgrade package to approve" }, 409);
         }
 
         let retries = 3;
         const weddingStatus = 'ACTIVE';
-        const finalPackage = status === 'PAID' ? (packageType || 'PRO') : 'FREE';
-        const finalPaymentStatus = status === 'PAID' ? 'PAID' : 'FAILED';
-        const finalPaymentInfo = status === 'REJECTED' ? null : currentWedding?.paymentInfo;
+        const finalPackage = status === 'PAID' ? approvedPackage : 'FREE';
+        const finalPaymentStatus = status;
+        const paymentRejectedAt = status === 'REJECTED' ? new Date() : null;
+        const finalPaymentInfo = currentWedding.paymentInfo;
+        const expectedUpdatedAt = currentWedding.updatedAt;
+        const receiptArchiveId = crypto.randomUUID();
+        let updated = false;
 
         while (retries > 0) {
             try {
-                await executeRaw(`
-                    UPDATE "Wedding"
-                    SET "paymentStatus" = $1, "status" = $2, "packageType" = $3, "paymentInfo" = $4
-                    WHERE "id" = $5
-                `, finalPaymentStatus, weddingStatus, finalPackage, finalPaymentInfo, weddingId);
+                const changedRows = await queryRaw<{ id: string }>(`
+                    WITH changed AS (
+                        UPDATE "Wedding"
+                        SET "paymentStatus" = $1, "status" = $2, "packageType" = $3, "paymentInfo" = $4,
+                            "paymentRejectedAt" = $5, "updatedAt" = NOW()
+                        WHERE "id" = $6
+                          AND "paymentStatus" = $7::"PaymentStatus"
+                          AND "packageType" = $8::"PackageType"
+                          AND "updatedAt" = $9
+                        RETURNING id, "paymentInfo"
+                    ),
+                    archived AS (
+                        INSERT INTO "RejectedPaymentReceipt" ("id", "weddingId", "receiptUrl", "rejectedAt")
+                        SELECT $10, id, "paymentInfo", $5
+                        FROM changed
+                        WHERE $5 IS NOT NULL
+                          AND "paymentInfo" LIKE 'https://res.cloudinary.com/%'
+                        RETURNING id
+                    )
+                    SELECT id FROM changed
+                `, finalPaymentStatus, weddingStatus, finalPackage, finalPaymentInfo, paymentRejectedAt, weddingId, currentWedding.paymentStatus, currentWedding.packageType, expectedUpdatedAt, receiptArchiveId);
+                if (changedRows.length === 0) {
+                    return c.json({ error: "Payment request changed while it was being reviewed. Refresh and try again." }, 409);
+                }
+                updated = true;
                 break;
             } catch (err: any) {
                 retries--;
@@ -730,6 +1121,7 @@ adminMasterRouter.post('/payments', async (c) => {
                 await new Promise(r => setTimeout(r, 1000));
             }
         }
+        if (!updated) return c.json({ error: "Failed to update payment review" }, 500);
 
         const updatedWeddings = await queryRaw('SELECT * FROM "Wedding" WHERE id = $1 LIMIT 1', weddingId);
         const updatedWedding = updatedWeddings[0];
@@ -805,9 +1197,12 @@ adminMasterRouter.get('/maintenance/tasks', async (c) => {
         let realCloudinaryObjects = 0;
         let isRealCloudinaryData = false;
 
-        const cName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || process.env.VITE_CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME || "dilx4i5s4";
-        const cKey = process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY || process.env.VITE_CLOUDINARY_API_KEY || process.env.CLOUDINARY_API_KEY || "678179776217443";
-        const cSecret = process.env.CLOUDINARY_API_SECRET || "FC0GYeRsfbJFCLw4g6_ExOfXdVs";
+        const creds = (() => {
+            try { return resolveCloudinaryCredentials(); } catch { return null; }
+        })();
+        const cName = creds?.cloudName || "";
+        const cKey = creds?.apiKey || "";
+        const cSecret = creds?.apiSecret || "";
 
         try {
             if (cName && cKey && cSecret) {
@@ -931,9 +1326,12 @@ adminMasterRouter.get('/media/assets', async (c) => {
             return c.json({ error: "Unauthorized" }, 401);
         }
 
-        const cName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || process.env.VITE_CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME || "dilx4i5s4";
-        const cKey = process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY || process.env.VITE_CLOUDINARY_API_KEY || process.env.CLOUDINARY_API_KEY || "678179776217443";
-        const cSecret = process.env.CLOUDINARY_API_SECRET || "FC0GYeRsfbJFCLw4g6_ExOfXdVs";
+        const creds = (() => {
+            try { return resolveCloudinaryCredentials(); } catch { return null; }
+        })();
+        const cName = creds?.cloudName || "";
+        const cKey = creds?.apiKey || "";
+        const cSecret = creds?.apiSecret || "";
 
         const authHeader = 'Basic ' + btoa(`${cKey}:${cSecret}`);
         const res = await fetch(`https://api.cloudinary.com/v1_1/${cName}/resources/image?max_results=100`, {
@@ -1007,8 +1405,21 @@ adminMasterRouter.get('/maintenance/backup', async (c) => {
             return c.json({ error: "Unauthorized" }, 401);
         }
 
-        const [users, weddings, guests, gifts, config] = await Promise.all([
-            prisma.user.findMany({
+        const [userCount, weddingCount, guestCount, giftCount, config] = await Promise.all([
+            prisma.user.count(),
+            prisma.wedding.count(),
+            prisma.guest.count(),
+            prisma.gift.count(),
+            prisma.systemConfig.findFirst()
+        ]);
+
+        const exportedAt = new Date();
+        const backupChunks = async function* () {
+            yield `{"platform":"MONEA Platform","version":"1.2.3","exportedAt":${JSON.stringify(exportedAt.toISOString())}`;
+            yield `,"exportedBy":${JSON.stringify(user?.email || user?.name || "MasterAdmin")}`;
+            yield `,"counts":{"users":${userCount},"weddings":${weddingCount},"guests":${guestCount},"gifts":${giftCount}}`;
+            yield `,"data":{"systemConfig":${JSON.stringify(config)},"users":`;
+            yield* streamJsonArray((cursor) => prisma.user.findMany({
                 select: {
                     id: true,
                     name: true,
@@ -1018,38 +1429,34 @@ adminMasterRouter.get('/maintenance/backup', async (c) => {
                     avatarUrl: true,
                     status: true,
                     createdAt: true
-                }
-            }),
-            prisma.wedding.findMany(),
-            prisma.guest.findMany(),
-            prisma.gift.findMany(),
-            prisma.systemConfig.findFirst()
-        ]);
-
-        const backupData = {
-            platform: "MONEA Platform",
-            version: "1.2.3",
-            exportedAt: new Date().toISOString(),
-            exportedBy: user?.email || user?.name || "MasterAdmin",
-            counts: {
-                users: users.length,
-                weddings: weddings.length,
-                guests: guests.length,
-                gifts: gifts.length
-            },
-            data: {
-                systemConfig: config,
-                users,
-                weddings,
-                guests,
-                gifts
-            }
+                },
+                take: BACKUP_PAGE_SIZE,
+                orderBy: { id: "asc" },
+                ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+            }));
+            yield `,"weddings":`;
+            yield* streamJsonArray((cursor) => prisma.wedding.findMany({
+                take: BACKUP_PAGE_SIZE,
+                orderBy: { id: "asc" },
+                ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+            }));
+            yield `,"guests":`;
+            yield* streamJsonArray((cursor) => prisma.guest.findMany({
+                take: BACKUP_PAGE_SIZE,
+                orderBy: { id: "asc" },
+                ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+            }));
+            yield `,"gifts":`;
+            yield* streamJsonArray((cursor) => prisma.gift.findMany({
+                take: BACKUP_PAGE_SIZE,
+                orderBy: { id: "asc" },
+                ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+            }));
+            yield "}}";
         };
+        const fileName = `monea_backup_${exportedAt.toISOString().split('T')[0]}.json`;
 
-        const jsonStr = JSON.stringify(backupData, null, 2);
-        const fileName = `monea_backup_${new Date().toISOString().split('T')[0]}.json`;
-
-        return new Response(jsonStr, {
+        return new Response(streamJson(backupChunks()), {
             headers: {
                 'Content-Type': 'application/json',
                 'Content-Disposition': `attachment; filename="${fileName}"`
@@ -1290,8 +1697,11 @@ adminMasterRouter.delete('/broadcast', async (c) => {
 adminMasterRouter.get('/audit', async (c) => {
     try {
         const user = await getServerUser(c.req.raw);
-        if (!isAuthorizedMaster(user)) {
+        if (!user) {
             return c.json({ error: "Unauthorized" }, 401);
+        }
+        if (!isAuthorizedMaster(user)) {
+            return c.json({ error: "Forbidden" }, 403);
         }
 
         const search = c.req.query("search") || "";
@@ -1351,8 +1761,11 @@ adminMasterRouter.get('/audit', async (c) => {
 adminMasterRouter.get('/analytics', async (c) => {
     try {
         const user = await getServerUser(c.req.raw);
-        if (!isAuthorizedMaster(user)) {
+        if (!user) {
             return c.json({ error: "Unauthorized" }, 401);
+        }
+        if (!isAuthorizedMaster(user)) {
+            return c.json({ error: "Forbidden" }, 403);
         }
 
         const configs = await queryRaw('SELECT "stadPrice", "proPrice" FROM "SystemConfig" LIMIT 1');

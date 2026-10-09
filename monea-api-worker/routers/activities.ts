@@ -29,9 +29,29 @@ async function resolveWeddingId(user: any, env: any): Promise<string | null> {
 
 activitiesRouter.get('/', async (c) => {
     const user = await getServerUser(c.req.raw);
-    if (!user) return c.json({ error: "Unauthorized" }, 401);
+    const requestedWeddingId = c.req.query("weddingId");
+    let weddingId: string | null = null;
 
-    const weddingId = await resolveWeddingId(user, c.env);
+    if (user) {
+        weddingId = await resolveWeddingId(user, c.env);
+        if (requestedWeddingId && requestedWeddingId !== weddingId) {
+            return c.json({ error: "Forbidden" }, 403);
+        }
+    } else if (requestedWeddingId) {
+        const db = getDb(c.env);
+        const publicWedding = await db.select({ id: weddings.id })
+            .from(weddings)
+            .where(and(
+                eq(weddings.id, requestedWeddingId),
+                eq(weddings.status, "ACTIVE")
+            ))
+            .limit(1)
+            .then((r: any) => r[0]);
+        weddingId = publicWedding?.id || null;
+    } else {
+        return c.json({ error: "Unauthorized" }, 401);
+    }
+
     if (!weddingId) return c.json([]);
 
     const db = getDb(c.env);

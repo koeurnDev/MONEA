@@ -1,22 +1,38 @@
 import { Hono } from 'hono';
-import * as nextRoute from '@/auth_handlers/sso/telegram/handler';
+import * as telegramOidc from '@/auth_handlers/sso/telegram/handler';
 
 const router = new Hono();
 
-router.get('/', async (c) => {
+router.post('/', async (c) => {
   try {
-    // Standard Web API call passing the raw request to Next.js route handler
-    return await nextRoute.GET(c.req.raw);
+    return await telegramOidc.START();
   } catch (error: any) {
-    console.error('[Hono Telegram SSO Route Error]:', error?.message || error);
-    
+    console.error('[Hono Telegram OIDC Start Error]:', error?.message || error);
     return c.json(
       {
         success: false,
-        error: error?.message || 'Failed to initialize Telegram SSO authentication',
+        error: 'Failed to initialize Telegram sign-in',
       },
       500
     );
+  }
+});
+
+router.post('/link', async (c) => {
+  try {
+    return await telegramOidc.LINK(c.req.raw);
+  } catch (error: any) {
+    console.error('[Hono Telegram OIDC Link Start Error]:', error?.message || error);
+    return c.json({ success: false, error: 'Failed to initialize Telegram linking' }, 500);
+  }
+});
+
+router.post('/callback', async (c) => {
+  try {
+    return await telegramOidc.CALLBACK(c.req.raw);
+  } catch (error: any) {
+    console.error('[Hono Telegram OIDC Callback Error]:', error?.message || error);
+    return c.json({ success: false, error: 'Failed to complete Telegram sign-in' }, 500);
   }
 });
 

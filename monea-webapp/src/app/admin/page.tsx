@@ -20,7 +20,7 @@ export default function AdminDashboardPage() {
     }
 
     // 2. Check role authorization immediately
-    if (!user || (user.role !== ROLES.EVENT_MANAGER && user.role !== ROLES.PLATFORM_OWNER)) {
+    if (!user || (user.role !== ROLES.EVENT_MANAGER && user.role !== ROLES.PLATFORM_OWNER && user.role !== ROLES.EVENT_STAFF)) {
         return <Navigate to="/sign-in" replace />;
     }
 

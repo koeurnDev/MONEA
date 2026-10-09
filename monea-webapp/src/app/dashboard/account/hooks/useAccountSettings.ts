@@ -18,6 +18,7 @@ export function useAccountSettings() {
     const [show2FASetup, setShow2FASetup] = useState(false);
     const [securityLogs, setSecurityLogs] = useState<any[]>([]);
     const [loadingLogs, setLoadingLogs] = useState(false);
+    const [securityLogsError, setSecurityLogsError] = useState(false);
     const [revoking, setRevoking] = useState(false);
     const [activeTab, setActiveTab] = useState("profile");
 
@@ -51,13 +52,16 @@ export function useAccountSettings() {
 
     const fetchLogs = useCallback(async () => {
         setLoadingLogs(true);
+        setSecurityLogsError(false);
         try {
             const res = await moneaClient.get<any[]>("/api/admin/security/logs");
             if (res.status === 401) return;
             if (res.error) throw new Error(res.error);
-            if (Array.isArray(res.data)) setSecurityLogs(res.data);
+            if (!Array.isArray(res.data)) throw new Error("Security logs response was invalid");
+            setSecurityLogs(res.data);
         } catch (err) {
             console.error("Failed to fetch logs:", err);
+            setSecurityLogsError(true);
         } finally {
             setLoadingLogs(false);
         }
@@ -183,6 +187,7 @@ export function useAccountSettings() {
         setShow2FASetup,
         securityLogs,
         loadingLogs,
+        securityLogsError,
         fetchLogs,
         revoking,
         handleRevokeSessions,

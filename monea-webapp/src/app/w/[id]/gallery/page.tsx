@@ -1,12 +1,61 @@
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Plus, Play, Loader2, ChevronLeft, Sparkles, Image as ImageIcon } from "lucide-react";
+import { Play, Loader2, ChevronLeft, ChevronRight, Sparkles, Image as ImageIcon, RefreshCw } from "lucide-react";
 import useSWR from "swr";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogTitle,
+} from "@/components/ui/dialog";
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = async (url: string) => {
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`Gallery request failed with status ${response.status}`);
+    }
+
+    const result = await response.json();
+    if (!result || !Array.isArray(result.data)) {
+        throw new Error("Gallery response was invalid");
+    }
+
+    return result as { data: any[] };
+};
 
 export default function GalleryPage() {
     const { id } = useParams();
-    const { data: items, error, isLoading } = useSWR(id ? `/api/gallery?weddingId=${id}` : null, fetcher);
+    const [selectedVideo, setSelectedVideo] = useState<{ url: string; caption: string | null } | null>(null);
+    const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
+    const { data: items, error, isLoading, mutate } = useSWR(id ? `/api/gallery?weddingId=${encodeURIComponent(id)}` : null, fetcher);
+    const galleryItems = items?.data || [];
+    const photos = galleryItems.filter((item: any) => item.type !== "VIDEO");
+    const selectedPhoto = selectedPhotoIndex === null ? null : photos[selectedPhotoIndex] ?? null;
+    const changePhoto = (direction: -1 | 1) => {
+        if (selectedPhotoIndex === null || photos.length < 2) return;
+        setSelectedPhotoIndex((selectedPhotoIndex + direction + photos.length) % photos.length);
+    };
+
+    useEffect(() => {
+        if (selectedPhotoIndex !== null && !selectedPhoto) {
+            setSelectedPhotoIndex(null);
+        }
+    }, [selectedPhoto, selectedPhotoIndex]);
+
+    useEffect(() => {
+        if (selectedVideo || selectedPhotoIndex === null) return;
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "ArrowLeft") {
+                event.preventDefault();
+                changePhoto(-1);
+            } else if (event.key === "ArrowRight") {
+                event.preventDefault();
+                changePhoto(1);
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [selectedVideo, selectedPhotoIndex, photos.length]);
 
     if (isLoading) return (
         <div className="min-h-screen flex items-center justify-center bg-background">
@@ -16,11 +65,25 @@ export default function GalleryPage() {
     
     if (error) return (
         <div className="min-h-screen flex items-center justify-center p-4 text-center font-kantumruy">
-            <p className="text-muted-foreground text-sm">មិនអាចទាញយកទិន្នន័យរូបភាពបានទេ</p>
+            <div className="w-full max-w-sm rounded-3xl border border-border bg-card p-6 shadow-sm">
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-500/10 text-rose-600">
+                    <ImageIcon className="h-6 w-6" />
+                </div>
+                <h1 className="text-base font-bold text-foreground">មិនអាចផ្ទុកកម្រងរូបភាពបានទេ</h1>
+                <p className="mt-2 text-sm text-muted-foreground">
+                    សូមពិនិត្យការភ្ជាប់អ៊ីនធឺណិត ហើយព្យាយាមម្តងទៀត។
+                </p>
+                <button
+                    type="button"
+                    onClick={() => void mutate()}
+                    className="mt-5 inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-rose-600 px-4 text-sm font-bold text-white transition-colors hover:bg-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2"
+                >
+                    <RefreshCw className="h-4 w-4" />
+                    ព្យាយាមម្តងទៀត
+                </button>
+            </div>
         </div>
     );
-
-    const galleryItems = items?.data || [];
 
     return (
         <div className="min-h-[100dvh] bg-gradient-to-b from-amber-50/30 via-background to-background p-4 sm:p-6 pb-28 font-kantumruy">
@@ -53,16 +116,30 @@ export default function GalleryPage() {
                     {galleryItems.map((item: any) => (
                         <div key={item.id} className="group relative aspect-square bg-muted rounded-2xl overflow-hidden border border-border/80 shadow-xs">
                             {item.type === 'VIDEO' ? (
-                                <div className="w-full h-full flex items-center justify-center bg-black/20">
-                                    <Play className="w-10 h-10 text-white drop-shadow-md" />
-                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setSelectedVideo({ url: item.url, caption: item.caption || null })}
+                                    aria-label={item.caption ? `ចាក់វីដេអូ៖ ${item.caption}` : "ចាក់វីដេអូ"}
+                                    className="flex h-full w-full items-center justify-center bg-black/70 text-white transition-colors hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-rose-500"
+                                >
+                                    <Play className="h-10 w-10 drop-shadow-md" aria-hidden="true" />
+                                    <span className="sr-only">ចុចដើម្បីមើលវីដេអូ</span>
+                                </button>
                             ) : (
-                                <img
-                                    src={item.url}
-                                    alt={item.caption || "Gallery Image"} 
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                    loading="lazy"
-                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setSelectedPhotoIndex(photos.findIndex((photo: any) => photo.id === item.id))}
+                                    aria-label={item.caption ? `មើលរូបភាព៖ ${item.caption}` : "មើលរូបភាពពេញ"}
+                                    className="h-full w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-rose-500"
+                                >
+                                    <img
+                                        src={item.url}
+                                        alt={item.caption || "រូបភាពក្នុងកម្រង"}
+                                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                        loading="lazy"
+                                    />
+                                    <span className="sr-only">ចុចដើម្បីមើលរូបភាពធំ</span>
+                                </button>
                             )}
                             {item.caption && (
                                 <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/80 via-black/40 to-transparent text-white text-[10px] font-bold line-clamp-1">
@@ -79,21 +156,90 @@ export default function GalleryPage() {
                             </div>
                             <h3 className="text-base font-bold text-foreground">មិនទាន់មានរូបភាពនៅឡើយ</h3>
                             <p className="text-xs text-muted-foreground mt-1 max-w-xs">
-                                សូមចុចប៊ូតុង (+) ខាងក្រោម ដើម្បីបង្ហោះរូបភាពអនុស្សាវរីយ៍ដំបូងគេ!
+                                មិនមានរូបភាពសម្រាប់បង្ហាញនៅឡើយទេ។
                             </p>
                         </div>
                     )}
                 </div>
 
-                {/* Floating Action Button (FAB) for Upload */}
-                <Link
-                    to={`/w/${id}/gallery/upload`}
-                    className="fixed bottom-6 right-6 w-14 h-14 bg-rose-600 hover:bg-rose-700 text-white rounded-full shadow-xl shadow-rose-600/30 flex items-center justify-center active:scale-90 transition-all z-50 group"
-                    title="បង្ហោះរូបភាពថ្មី"
-                >
-                    <Plus className="w-7 h-7 group-hover:rotate-90 transition-transform duration-300" />
-                </Link>
             </div>
+            <Dialog open={!!selectedVideo} onOpenChange={(open) => !open && setSelectedVideo(null)}>
+                <DialogContent className="w-[96vw] max-w-5xl border-white/10 bg-black p-2 sm:p-4">
+                    <DialogTitle className="sr-only">
+                        {selectedVideo?.caption || "មើលវីដេអូក្នុងកម្រងរូបភាព"}
+                    </DialogTitle>
+                    <DialogDescription className="sr-only">
+                        ប្រើប៊ូតុងលើវីដេអូដើម្បីចាក់ ផ្អាក ឬប្តូរសំឡេង។
+                    </DialogDescription>
+                    {selectedVideo && (
+                        <video
+                            key={selectedVideo.url}
+                            src={selectedVideo.url}
+                            controls
+                            autoPlay
+                            playsInline
+                            className="max-h-[78dvh] w-full rounded-xl bg-black object-contain"
+                        />
+                    )}
+                    {selectedVideo?.caption && (
+                        <p className="px-2 pb-1 text-center text-sm font-medium text-white">
+                            {selectedVideo.caption}
+                        </p>
+                    )}
+                </DialogContent>
+            </Dialog>
+            <Dialog
+                open={selectedPhotoIndex !== null}
+                onOpenChange={(open) => !open && setSelectedPhotoIndex(null)}
+            >
+                <DialogContent className="w-[96vw] max-w-6xl border-white/10 bg-black p-2 sm:p-4">
+                    <DialogTitle className="sr-only">
+                        {selectedPhoto?.caption || "មើលរូបភាពក្នុងកម្រង"}
+                    </DialogTitle>
+                    <DialogDescription className="sr-only">
+                        ប្រើប៊ូតុងមុន និងបន្ទាប់ដើម្បីមើលរូបភាពផ្សេងទៀត។
+                    </DialogDescription>
+                    {selectedPhoto && (
+                        <div className="relative flex min-h-[45vh] max-h-[82dvh] items-center justify-center">
+                            <img
+                                src={selectedPhoto.url}
+                                alt={selectedPhoto.caption || "រូបភាពក្នុងកម្រង"}
+                                className="max-h-[76dvh] max-w-full rounded-xl object-contain"
+                            />
+                            {photos.length > 1 && (
+                                <>
+                                    <button
+                                        type="button"
+                                        onClick={() => changePhoto(-1)}
+                                        aria-label="រូបភាពមុន"
+                                        className="absolute left-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/65 text-white shadow-lg hover:bg-black/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+                                    >
+                                        <ChevronLeft className="h-6 w-6" />
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => changePhoto(1)}
+                                        aria-label="រូបភាពបន្ទាប់"
+                                        className="absolute right-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/65 text-white shadow-lg hover:bg-black/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+                                    >
+                                        <ChevronRight className="h-6 w-6" />
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                    )}
+                    {selectedPhoto && (
+                        <div className="flex items-center justify-between gap-3 px-2 pb-1 text-white">
+                            <p className="min-w-0 flex-1 truncate text-sm">
+                                {selectedPhoto.caption || "រូបភាព"}
+                            </p>
+                            <span className="shrink-0 text-xs text-white/70">
+                                {(selectedPhotoIndex ?? 0) + 1} / {photos.length}
+                            </span>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

@@ -5,13 +5,13 @@ import { DashboardSidebar } from "./DashboardSidebar";
 import { BroadcastBanner } from "./BroadcastBanner";
 import { NotificationBell } from "./NotificationBell";
 import MobileBottomNav from "./MobileBottomNav";
+import { InstallAppPrompt } from "./InstallAppPrompt";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 
 import { cn } from "@/lib/utils";
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
-import { moneaClient } from "@/lib/api-client";
 import { useAuth } from "@/hooks/useAuth";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { User, Settings, LogOut, LifeBuoy, ShieldCheck, Menu } from "lucide-react";
@@ -30,54 +30,45 @@ import {
     AvatarFallback,
     AvatarImage,
 } from "@/components/ui/avatar";
-import useSWR from "swr";
 import { useTranslation } from "@/i18n/LanguageProvider";
-
-const fetcher = async (url: string) => {
-    const res = await fetch(url);
-    if (!res.ok) {
-        const error = new Error('An error occurred while fetching the data.');
-        (error as any).status = res.status;
-        throw error;
-    }
-    return res.json();
-};
 
 interface DashboardShellProps {
     children: React.ReactNode;
     isStaff: boolean;
     isAdmin: boolean;
-    initialUser?: any;
 }
 
-export function DashboardShell({ children, isStaff, isAdmin, initialUser }: DashboardShellProps) {
+export function DashboardShell({ children, isStaff, isAdmin }: DashboardShellProps) {
     const { t } = useTranslation();
-    const { data: user, error } = useSWR("/api/auth/me", fetcher, {
-        fallbackData: initialUser,
-        revalidateOnFocus: false,
-        dedupingInterval: 60000,
-    });
+    const { user, logout } = useAuth();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(false);
     const [isLogoutModalOpen, setIsLogoutModalOpen] = React.useState(false);
     const [mounted, setMounted] = React.useState(false);
-    const { logout } = useAuth();
     const { pathname } = useLocation();
 
     React.useEffect(() => {
         setMounted(true);
+        try {
+            setIsSidebarCollapsed(localStorage.getItem("monea-sidebar-collapsed") === "true");
+        } catch {
+            // Ignore storage restrictions.
+        }
+    }, []);
+
+    const toggleSidebar = React.useCallback(() => {
+        setIsSidebarCollapsed((collapsed) => {
+            const next = !collapsed;
+            try {
+                localStorage.setItem("monea-sidebar-collapsed", String(next));
+            } catch {
+                // Ignore storage restrictions.
+            }
+            return next;
+        });
     }, []);
 
     const router = useNavigate();
-
-    React.useEffect(() => {
-        if (error?.status === 401) {
-            if (initialUser) {
-                console.warn("[DashboardShell] SWR returned 401, but ignoring because initialUser is present.");
-            } else {
-                handleLogout();
-            }
-        }
-    }, [error, initialUser, logout]);
 
     const isDesignPage = pathname?.includes("/dashboard/design");
     const isLivePage = pathname?.includes("/dashboard/gifts/live");
@@ -94,8 +85,13 @@ export function DashboardShell({ children, isStaff, isAdmin, initialUser }: Dash
     const isEffectiveAdmin = isAdmin || user?.role === 'ADMIN' || user?.role === 'SUPERADMIN' || user?.role === 'PLATFORM_OWNER' || user?.type === 'admin';
 
     const memoizedSidebar = React.useMemo(() => (
-        <DashboardSidebar isStaff={isStaff} isAdmin={isEffectiveAdmin} />
-    ), [isStaff, isEffectiveAdmin]);
+        <DashboardSidebar
+            isStaff={isStaff}
+            isAdmin={isEffectiveAdmin}
+            collapsed={isSidebarCollapsed}
+            onToggleCollapse={toggleSidebar}
+        />
+    ), [isStaff, isEffectiveAdmin, isSidebarCollapsed, toggleSidebar]);
 
     const isPlatformAdmin = isEffectiveAdmin || user?.role === ROLES.EVENT_STAFF;
     const userName = user?.name || (user?.email ? user.email.split('@')[0] : "");
@@ -105,46 +101,50 @@ export function DashboardShell({ children, isStaff, isAdmin, initialUser }: Dash
     const resolvedSubtitle = isPlatformAdmin
         ? t('admin.header.platform')
         : (user?.email || "MONEA User");
+    const avatarUrl = user?.avatar || user?.image || undefined;
 
     if (isLivePage) {
-        return <main className="w-full min-h-screen">{children}</main>;
+        return <main className="w-full min-h-[100dvh] relative">{children}</main>;
     }
 
     return (
         <div className="flex min-h-screen w-full max-w-full overflow-x-clip bg-background font-sans text-foreground print:!bg-white print:!text-black">
             {/* Desktop Sidebar */}
-            <aside className="w-[280px] bg-card hidden md:flex flex-col fixed h-full z-20 shadow-sm dark:shadow-none print:hidden border-r border-border/50">
+            <aside className={cn(
+                "hidden md:flex flex-col fixed h-full z-20 bg-card shadow-sm dark:shadow-none print:hidden border-r border-border/50 transition-[width] duration-200",
+                isSidebarCollapsed ? "w-[76px]" : "w-[280px]"
+            )}>
                 {memoizedSidebar}
             </aside>
 
             {/* Main Content */}
             <main className={cn(
-                "flex-1 min-w-0 max-w-full overflow-x-clip flex flex-col md:ml-[280px] min-h-screen relative print:ml-0 print:m-0 print:p-0",
-                !isDesignPage && "pb-32 md:pb-0",
-                isDesignPage && "p-0 h-screen overflow-hidden"
+                "flex-1 min-w-0 max-w-full overflow-x-clip flex flex-col min-h-screen relative print:ml-0 print:m-0 print:p-0 transition-[margin] duration-200",
+                isSidebarCollapsed ? "md:ml-[76px]" : "md:ml-[280px]",
+                isDesignPage && "p-0 h-[100dvh] overflow-hidden"
             )}>
                 {/* Unified Header */}
                 {!isDesignPage && (
                     <header className={cn(
-                        "h-16 md:h-20 sticky top-0 z-30 flex items-center px-4 sm:px-6 md:px-10 print:hidden transition-all duration-300",
+                        "h-[58px] md:h-20 sticky top-0 z-30 flex items-center px-3 sm:px-6 md:px-10 print:hidden transition-all duration-300",
                         "bg-background/80 backdrop-blur-2xl supports-[backdrop-filter]:bg-background/60 border-b border-border/50 shadow-sm"
                     )}>
-                        <div className="w-full max-w-7xl mx-auto flex items-center justify-between relative">
+                        <div className="w-full max-w-7xl mx-auto flex items-center justify-between gap-2">
                             <div className="flex items-center gap-4">
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    aria-label="Open Navigation Menu"
-                                    className="md:hidden -ml-2 text-muted-foreground hover:text-foreground active:scale-95 transition-transform"
+                                    aria-label={t("dashboard.nav.menu", { defaultValue: "ម៉ឺនុយ" })}
+                                    className="md:hidden -ml-2 h-11 w-11 text-muted-foreground hover:text-foreground active:scale-95 transition-transform p-2"
                                     onClick={() => setIsMobileMenuOpen(true)}
                                 >
-                                    <Menu className="h-6 w-6" />
+                                    <Menu className="h-5 w-5" />
                                 </Button>
 
                                 <Link to="/dashboard/account" className="hidden md:flex group items-center gap-3 outline-none transition-opacity focus-visible:opacity-80 active:scale-95 duration-200">
                                     <Avatar className="w-10 h-10 rounded-2xl bg-muted/30 group-hover:bg-red-600/5 transition-all shadow-sm border-none">
-                                        {user?.image ? (
-                                            <AvatarImage src={user.image} alt="User" />
+                                        {avatarUrl ? (
+                                            <AvatarImage src={avatarUrl} alt="User" />
                                         ) : null}
                                         <AvatarFallback className="bg-transparent text-muted-foreground group-hover:text-red-600">
                                             <User className="w-5 h-5" />
@@ -161,23 +161,24 @@ export function DashboardShell({ children, isStaff, isAdmin, initialUser }: Dash
                                 </Link>
                             </div>
 
-                            {/* Centered Mobile Logo */}
-                            <div className="md:hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-center">
+                            <div aria-hidden="true" className="md:hidden flex min-w-0 flex-1 items-center justify-center overflow-hidden">
                                 <MoneaLogo showText size="sm" />
                             </div>
 
-                            <div className="flex items-center gap-2 md:gap-4">
-                                <ThemeToggle />
+                            <div className="flex shrink-0 items-center gap-1.5 md:gap-4">
+                                <div className="hidden md:flex items-center gap-4">
+                                    <ThemeToggle />
+                                </div>
                                 <NotificationBell isAuthenticated={!!user} />
                                 <Link
                                     to="/dashboard/account"
-                                    aria-label="Account Settings"
-                                    className="md:hidden flex items-center justify-center w-8 h-8 rounded-xl bg-slate-100 dark:bg-zinc-800 border border-slate-200/80 dark:border-white/10 text-muted-foreground hover:text-foreground active:scale-95 transition-transform"
+                                    aria-label={t("dashboard.nav.account", { defaultValue: "គណនី និងប្រវត្តិរូប" })}
+                                    className="md:hidden flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200/80 bg-slate-100 text-muted-foreground transition-transform hover:text-foreground active:scale-95 dark:border-white/10 dark:bg-zinc-800"
                                 >
-                                    {user?.image ? (
-                                        <img src={user.image} alt="User" className="w-full h-full rounded-xl object-cover" />
+                                    {avatarUrl ? (
+                                        <img src={avatarUrl} alt="User" className="w-full h-full rounded-xl object-cover" />
                                     ) : (
-                                        <User className="w-4 h-4 text-rose-500" />
+                                        <User className="w-4 h-4 text-teal-700 dark:text-teal-300" />
                                     )}
                                 </Link>
                             </div>
@@ -200,10 +201,11 @@ export function DashboardShell({ children, isStaff, isAdmin, initialUser }: Dash
 
                 {/* Content Container */}
                 <div className={cn(
-                    "w-full print:p-0 print:max-w-none",
-                    !isDesignPage && "max-w-7xl mx-auto px-4 sm:px-6 md:px-10 py-6 md:py-8 pb-36 sm:pb-32 md:pb-12",
+                    "dashboard-mobile-content w-full print:p-0 print:max-w-none",
+                    !isDesignPage && "max-w-7xl mx-auto px-3 sm:px-6 md:px-10 py-3 sm:py-5 md:py-8 pb-[6.5rem] md:pb-12",
                     isDesignPage && "p-0 m-0 max-w-none h-full flex flex-col"
                 )}>
+                    {!isDesignPage && <InstallAppPrompt />}
                     {!isDesignPage && <div className="print:hidden"><BroadcastBanner isAuthenticated={!!user} /></div>}
                     {children}
                 </div>
@@ -211,9 +213,11 @@ export function DashboardShell({ children, isStaff, isAdmin, initialUser }: Dash
             </main>
 
             {/* Mobile Bottom Navigation — outside <main> so fixed positioning is relative to viewport, not scroll container */}
-            <div className="print:hidden">
-                <MobileBottomNav onOpenMenu={() => setIsMobileMenuOpen(true)} />
-            </div>
+            {!isDesignPage && (
+                <div className="print:hidden">
+                    <MobileBottomNav onOpenMenu={() => setIsMobileMenuOpen(true)} />
+                </div>
+            )}
 
             <ConfirmModal
                 open={isLogoutModalOpen}

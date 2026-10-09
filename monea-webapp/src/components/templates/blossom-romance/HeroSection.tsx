@@ -49,14 +49,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
     };
 
     return (
-        <section className="relative w-full min-h-[640px] bg-[#FBF5F2] flex flex-col items-center justify-center p-6 text-center overflow-hidden">
-            {/* Background Image with Arch */}
-            <div 
-                className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-95"
-                style={{ backgroundImage: `url('/assets/blossom-romance/blossom-arch-bg.jpg')` }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-white/40 via-transparent to-white/70" />
-
+        <section className="relative w-full min-h-[640px] flex flex-col items-center justify-center p-6 text-center overflow-hidden">
             <div className="relative z-10 max-w-lg mx-auto flex flex-col items-center space-y-6 pt-16 pb-12">
                 {/* Header Tag */}
                 <motion.div
@@ -65,10 +58,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
                     transition={{ duration: 0.6 }}
                     className="space-y-1"
                 >
-                    <span className="text-xl sm:text-2xl font-khmer-moul text-[#B45309] tracking-wider drop-shadow-sm block">
+                    <span className="text-xl sm:text-2xl font-khmer-moul text-[#5d604e] tracking-wider block">
                         {isEngagement ? "សិរីសួស្តី ពិធីភ្ជាប់ពាក្យ" : "សិរីមង្គលអាពាហ៍ពិពាហ៍"}
                     </span>
-                    <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto mt-1" />
+                    <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-[#9ea58a] to-transparent mx-auto mt-1" />
                 </motion.div>
 
                 {/* Monogram / Crest */}
@@ -76,9 +69,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ duration: 0.7, delay: 0.2 }}
-                    className="w-20 h-20 rounded-full border-2 border-rose-300 bg-white/70 backdrop-blur-md shadow-lg flex items-center justify-center text-rose-700 font-serif italic text-2xl"
+                    className="mt-4 flex items-center justify-center gap-4 text-[#7a8f65]"
+                    style={{ fontFamily: 'serif' }}
                 >
-                    {groomName[0]} & {brideName[0]}
+                    <span className="h-px w-10 bg-[#96a087]" />
+                    <span className="text-[28px] leading-none tracking-[0.2em]">◆</span>
+                    <span className="h-px w-10 bg-[#96a087]" />
                 </motion.div>
 
                 {/* Couple Names */}
@@ -88,15 +84,15 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
                     transition={{ duration: 0.6, delay: 0.3 }}
                     className="space-y-2 py-2"
                 >
-                    <h1 className="text-3xl sm:text-4xl font-khmer-moul text-[#881337] drop-shadow-md">
+                    <h1 className="m05-font-name text-3xl sm:text-4xl font-khmer-moul text-[#2d352b]">
                         {groomName}
                     </h1>
                     <div className="flex items-center justify-center gap-3">
-                        <span className="h-px w-10 bg-rose-300" />
-                        <Heart size={16} className="text-rose-500 fill-rose-500" />
-                        <span className="h-px w-10 bg-rose-300" />
+                        <span className="h-px w-10 bg-[#98a78e]" />
+                        <Heart size={16} className="text-[#5b6a53] fill-[#5b6a53]" />
+                        <span className="h-px w-10 bg-[#98a78e]" />
                     </div>
-                    <h1 className="text-3xl sm:text-4xl font-khmer-moul text-[#881337] drop-shadow-md">
+                    <h1 className="m05-font-name text-3xl sm:text-4xl font-khmer-moul text-[#2d352b]">
                         {brideName}
                     </h1>
                 </motion.div>
@@ -108,11 +104,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
                     transition={{ duration: 0.6, delay: 0.4 }}
                     className="space-y-1.5"
                 >
-                    <p className="text-sm sm:text-base font-bold font-kantumruy text-slate-800 bg-white/80 backdrop-blur-md px-5 py-2 rounded-full border border-rose-200/80 shadow-sm inline-block">
+                    <p className="text-sm sm:text-base font-bold font-khmer-moul text-[#4d5649] inline-block">
                         📅 {formatKhmerDate(eventDate)}
                     </p>
                     {wedding.themeSettings?.lunarDate && (
-                        <p className="text-xs text-rose-800/80 font-kantumruy">
+                        <p className="text-xs text-[#7a5d6a] font-khmer-moul">
                             {wedding.themeSettings.lunarDate}
                         </p>
                     )}
@@ -123,7 +119,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.5 }}
-                    className="grid grid-cols-4 gap-2.5 w-full max-w-xs pt-2"
+                    className="flex items-center justify-center gap-3 pt-2"
                 >
                     {[
                         { label: "ថ្ងៃ", value: timeLeft.days },
@@ -131,11 +127,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
                         { label: "នាទី", value: timeLeft.minutes },
                         { label: "វិនាទី", value: timeLeft.seconds },
                     ].map((item, idx) => (
-                        <div key={idx} className="bg-white/85 backdrop-blur-md border border-rose-200/80 rounded-2xl p-2.5 shadow-sm text-center">
-                            <span className="text-lg sm:text-xl font-bold font-mono text-[#881337] block">
+                        <div key={idx} className="min-w-[54px] text-center">
+                            <span className="text-lg sm:text-xl font-bold font-khmer-moul text-[#881337] block leading-none">
                                 {item.value < 10 ? `0${item.value}` : item.value}
                             </span>
-                            <span className="text-[10px] font-kantumruy text-slate-600 block">
+                            <span className="text-[10px] font-khmer-moul text-[#5d604e] block mt-1">
                                 {item.label}
                             </span>
                         </div>

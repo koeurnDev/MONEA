@@ -2,6 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
+.monea-full-palette {
+  --primary: var(--monea-palette-primary);
+}
+
+.monea-full-palette [class*="bg-rose-500"]:not([class*="/"]),
+.monea-full-palette [class*="bg-rose-600"]:not([class*="/"]),
+.monea-full-palette [class*="bg-rose-700"]:not([class*="/"]),
+.monea-full-palette [class*="bg-amber-400"]:not([class*="/"]),
+.monea-full-palette [class*="bg-amber-500"]:not([class*="/"]),
+.monea-full-palette [class*="bg-amber-600"]:not([class*="/"]),
+.monea-full-palette [class*="bg-emerald-500"]:not([class*="/"]),
+.monea-full-palette [class*="bg-emerald-600"]:not([class*="/"]),
+.monea-full-palette [class*="bg-teal-500"]:not([class*="/"]),
+.monea-full-palette [class*="bg-teal-600"]:not([class*="/"]),
+.monea-full-palette [class*="bg-yellow-500"]:not([class*="/"]),
+.monea-full-palette [class*="bg-orange-500"]:not([class*="/"]),
+.monea-full-palette [class*="bg-red-500"]:not([class*="/"]),
+.monea-full-palette [class*="bg-blue-500"]:not([class*="/"]),
+.monea-full-palette [class*="bg-green-500"]:not([class*="/"]),
+.monea-full-palette [class*="bg-purple-500"]:not([class*="/"]),
+.monea-full-palette [class*="bg-pink-500"]:not([class*="/"]) {
+  background-color: var(--monea-palette-primary) !important;
+}
+
+.monea-full-palette [class*="border-rose-"],
+.monea-full-palette [class*="border-amber-"],
+.monea-full-palette [class*="border-emerald-"],
+.monea-full-palette [class*="border-teal-"],
+.monea-full-palette [class*="border-yellow-"],
+.monea-full-palette [class*="border-orange-"],
+.monea-full-palette [class*="border-red-"],
+.monea-full-palette [class*="border-blue-"],
+.monea-full-palette [class*="border-green-"],
+.monea-full-palette [class*="border-purple-"],
+.monea-full-palette [class*="border-pink-"] {
+  border-color: color-mix(in srgb, var(--monea-palette-secondary) 42%, transparent) !important;
+}
+
 /* Hide default browser (Edge / Windows / Chrome) password reveal buttons */
 input::-ms-reveal,
 input::-ms-clear {
@@ -18,6 +56,48 @@ input::-webkit-credentials-auto-fill-button {
 
 /* Mobile Performance Optimizations */
 @media (max-width: 768px) {
+  /* Framer Motion's whileInView observers can miss sections inside mobile
+     browser/device emulation. Keep invitation content visible if an observer
+     leaves an inline opacity/transform state behind. */
+  .modern-minimal-invitation [style*="opacity: 0"] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .modern-minimal-invitation {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* Keep Khmer copy readable without making every mobile card excessively tall. */
+  html,
+  body {
+    line-height: 1.55;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  p {
+    line-height: 1.55;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    line-height: 1.35;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    line-height: 1.35;
+  }
+
   /* Disable heavy continuous animations on mobile */
   .animate-spin-slow,
   .animate-bounce {
@@ -86,6 +166,56 @@ input::-webkit-credentials-auto-fill-button {
   font-family: 'Kh Ang ToaThmor 2', sans-serif !important;
 }
 
+/* Decorative Khmer typography for the public invitation only. */
+.modern-minimal-invitation,
+.modern-minimal-invitation .font-kantumruy,
+.modern-minimal-invitation .font-khmer,
+.modern-minimal-invitation .font-siemreap,
+.modern-minimal-invitation .font-suwannaphum,
+.modern-minimal-invitation .font-moul,
+.modern-minimal-invitation .font-khmer-moul-pali,
+.modern-minimal-invitation .font-khmer-os-moul-light,
+.modern-minimal-invitation .font-khmer-m1,
+.modern-minimal-invitation .font-gisha,
+.modern-minimal-invitation .font-script,
+.modern-minimal-invitation .font-sans {
+  font-family: 'Kh Ang ToaThmor 2', 'Kantumruy Pro', sans-serif !important;
+  line-height: 1.7;
+}
+
+.modern-minimal-invitation .font-khmer-muol {
+  font-family: 'Khmer OS Muol Light', 'Khmer OS Moul', 'Moul', serif !important;
+  font-weight: 400;
+  line-height: 1.8;
+}
+
+.m05-type-system {
+  --m05-title-font: 'Moul', serif;
+  --m05-name-font: 'Moulpali', serif;
+  font-family: 'Kantumruy Pro', sans-serif;
+}
+
+.m05-type-system .font-khmer-moul,
+.m05-type-system .font-khmer-muol {
+  font-family: var(--m05-title-font) !important;
+  letter-spacing: normal;
+}
+
+.m05-type-system .m05-font-name {
+  font-family: var(--m05-name-font) !important;
+  letter-spacing: normal;
+  line-height: 2.1;
+}
+
+.m05-type-system .m05-font-script {
+  font-family: 'Pinyon Script', cursive !important;
+}
+
+.m05-type-system .font-kantumruy,
+.m05-type-system.modern-minimal-invitation .font-kantumruy {
+  font-family: 'Kantumruy Pro', sans-serif !important;
+}
+
 :root {
   --font-kantumruy: 'Kantumruy Pro', sans-serif;
   font-family: 'Kantumruy Pro', sans-serif;
@@ -112,7 +242,7 @@ html, body, *, button, input, select, textarea, a {
 .font-outfit,
 .font-sans {
   font-family: 'Kantumruy Pro', sans-serif !important;
-  line-height: 1.8;
+  line-height: 1.5;
   word-break: break-word;
   overflow-wrap: break-word;
 }
@@ -256,9 +386,6 @@ html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     
-    /* Prevent mobile freezing */
-    transform: translateZ(0);
-    backface-visibility: hidden;
   }
 
   /* Headings with Kantumruy Pro */
@@ -346,5 +473,92 @@ html {
   backface-visibility: hidden;
   perspective: 1000;
   transform: translateZ(0);
+}
+
+@media (max-width: 639px) {
+  .dashboard-mobile-content [class*="text-[8px]"],
+  .dashboard-mobile-content [class*="text-[9px]"],
+  .dashboard-mobile-content [class*="text-[10px]"],
+  .dashboard-mobile-content [class*="text-[11px]"] {
+    font-size: 0.75rem !important;
+    line-height: 1.5 !important;
+  }
+
+  .dashboard-mobile-content [class~="text-xs"] {
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+  }
+
+  .dashboard-mobile-content input,
+  .dashboard-mobile-content select,
+  .dashboard-mobile-content textarea {
+    font-size: 16px;
+  }
+
+  .dashboard-mobile-content button[class~="h-8"],
+  .dashboard-mobile-content button[class~="h-9"],
+  .dashboard-mobile-content button[class~="h-10"],
+  .dashboard-mobile-content a[class~="h-8"],
+  .dashboard-mobile-content a[class~="h-9"],
+  .dashboard-mobile-content a[class~="h-10"] {
+    min-height: 44px;
+  }
+
+  .dashboard-mobile-content button[class~="h-8"][class~="w-8"],
+  .dashboard-mobile-content button[class~="h-9"][class~="w-9"],
+  .dashboard-mobile-content button[class~="h-10"][class~="w-10"],
+  .dashboard-mobile-content a[class~="h-8"][class~="w-8"],
+  .dashboard-mobile-content a[class~="h-9"][class~="w-9"],
+  .dashboard-mobile-content a[class~="h-10"][class~="w-10"] {
+    min-width: 44px;
+  }
+}
+
+/* ------------------------------------------------------------------
+ * Lightweight replacements for framer-motion micro-interactions.
+ *
+ * `LoadingBar` and `ToastProvider` are mounted by the root providers, i.e. on
+ * every single route, so their animations previously dragged the whole
+ * framer-motion runtime into the blocking first-paint bundle. These keyframes
+ * are GPU-composited (transform/opacity only) and ship in the stylesheet that
+ * was already being downloaded.
+ * ------------------------------------------------------------------ */
+
+@keyframes monea-loading-bar-move {
+  0%   { transform: translate3d(-100%, 0, 0); }
+  50%  { transform: translate3d(-20%, 0, 0); }
+  100% { transform: translate3d(0%, 0, 0); }
+}
+
+.monea-loading-bar {
+  animation: monea-loading-bar-move 1.5s cubic-bezier(0.22, 1, 0.36, 1) infinite alternate;
+  will-change: transform;
+}
+
+@keyframes monea-toast-in {
+  from {
+    opacity: 0;
+    transform: translate3d(100px, 0, 0) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.monea-toast-in {
+  animation: monea-toast-in 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
   will-change: transform, opacity;
+}
+
+/* Respect the OS-level motion preference (also a WCAG 2.3.3 requirement). */
+@media (prefers-reduced-motion: reduce) {
+  .monea-toast-in {
+    animation: none;
+  }
+
+  .monea-loading-bar {
+    animation: none;
+    transform: translate3d(0, 0, 0);
+  }
 }

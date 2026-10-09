@@ -4,28 +4,13 @@ import { ToastProvider } from '@/components/ui/Toast'
 import { NotificationProvider } from '@/components/providers/NotificationProvider'
 import { DashboardShell } from '@/app/dashboard/_components/DashboardShell'
 import LoadingScreen from '@/components/ui/LoadingScreen'
-import { useEffect } from 'react'
 
 /**
  * Protected Dashboard layout — redirects to /sign-in if unauthenticated.
  * Replaces src/app/dashboard/layout.tsx (server-side auth → client-side auth).
  */
 export default function DashboardLayout() {
-  const { user, isLoading, refetch } = useAuth()
-
-  // Add effect to handle potential auth state recovery
-  useEffect(() => {
-    if (!isLoading && !user) {
-      // Try to refetch once more before redirecting
-      const timeoutId = setTimeout(() => {
-        refetch().catch(() => {
-          // If refetch fails, we'll redirect
-        })
-      }, 100)
-
-      return () => clearTimeout(timeoutId)
-    }
-  }, [user, isLoading, refetch])
+  const { user, isLoading } = useAuth()
 
   if (isLoading) return <LoadingScreen />
   if (!user) return <Navigate to="/sign-in" replace />
@@ -36,7 +21,7 @@ export default function DashboardLayout() {
   return (
     <ToastProvider>
       <NotificationProvider weddingId={user?.weddingId || ""}>
-        <DashboardShell isStaff={isStaff} isAdmin={isAdmin} initialUser={user}>
+        <DashboardShell isStaff={isStaff} isAdmin={isAdmin}>
           <Outlet />
         </DashboardShell>
       </NotificationProvider>

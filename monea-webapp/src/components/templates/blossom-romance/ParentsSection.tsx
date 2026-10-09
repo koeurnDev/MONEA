@@ -13,10 +13,10 @@ export const ParentsSection: React.FC<ParentsSectionProps> = ({ wedding, primary
     const groomName = wedding.groomName || "កូនកំលោះ";
     const brideName = wedding.brideName || "កូនក្រមុំ";
 
-    const groomFather = wedding.themeSettings?.parents?.groomFather || "លោកឪពុក";
-    const groomMother = wedding.themeSettings?.parents?.groomMother || "អ្នកម្តាយ";
-    const brideFather = wedding.themeSettings?.parents?.brideFather || "លោកឪពុក";
-    const brideMother = wedding.themeSettings?.parents?.brideMother || "អ្នកម្តាយ";
+    const groomFather = (wedding.themeSettings?.parents?.groomFather ?? wedding.groomFather)?.trim();
+    const groomMother = (wedding.themeSettings?.parents?.groomMother ?? wedding.groomMother)?.trim();
+    const brideFather = (wedding.themeSettings?.parents?.brideFather ?? wedding.brideFather)?.trim();
+    const brideMother = (wedding.themeSettings?.parents?.brideMother ?? wedding.brideMother)?.trim();
 
     return (
         <section className="py-12 px-4 sm:px-6 bg-gradient-to-b from-white via-rose-50/40 to-white text-center font-kantumruy relative overflow-hidden">
@@ -30,25 +30,25 @@ export const ParentsSection: React.FC<ParentsSectionProps> = ({ wedding, primary
                 </div>
 
                 {/* Parents Grid */}
-                <div className="grid grid-cols-2 gap-4 text-xs sm:text-sm">
+                {(groomFather || groomMother || brideFather || brideMother) && <div className="grid grid-cols-2 gap-4 text-xs sm:text-sm">
                     {/* Groom Parents */}
-                    <div className="bg-white/80 border border-rose-200/80 rounded-2xl p-4 shadow-sm space-y-1.5">
+                    {(groomFather || groomMother) && <div className="bg-white/80 border border-rose-200/80 rounded-2xl p-4 shadow-sm space-y-1.5">
                         <span className="text-[11px] font-bold text-rose-700 block uppercase tracking-wider">
                             មាតាបិតាខាងប្រុស
                         </span>
-                        <p className="font-bold text-slate-800">{groomFather}</p>
-                        <p className="font-bold text-slate-800">{groomMother}</p>
-                    </div>
+                        {groomFather && <p className="font-bold text-slate-800">ឪពុក៖ {groomFather}</p>}
+                        {groomMother && <p className="font-bold text-slate-800">ម្តាយ៖ {groomMother}</p>}
+                    </div>}
 
                     {/* Bride Parents */}
-                    <div className="bg-white/80 border border-rose-200/80 rounded-2xl p-4 shadow-sm space-y-1.5">
+                    {(brideFather || brideMother) && <div className={`bg-white/80 border border-rose-200/80 rounded-2xl p-4 shadow-sm space-y-1.5 ${!groomFather && !groomMother ? "col-start-2" : ""}`}>
                         <span className="text-[11px] font-bold text-rose-700 block uppercase tracking-wider">
                             មាតាបិតាខាងស្រី
                         </span>
-                        <p className="font-bold text-slate-800">{brideFather}</p>
-                        <p className="font-bold text-slate-800">{brideMother}</p>
-                    </div>
-                </div>
+                        {brideFather && <p className="font-bold text-slate-800">ឪពុក៖ {brideFather}</p>}
+                        {brideMother && <p className="font-bold text-slate-800">ម្តាយ៖ {brideMother}</p>}
+                    </div>}
+                </div>}
 
                 {/* Formal Invitation Paragraph */}
                 <div className="bg-rose-50/70 border border-rose-200/60 rounded-3xl p-5 sm:p-6 text-xs sm:text-sm leading-relaxed text-slate-700 space-y-3">
@@ -66,11 +66,11 @@ export const ParentsSection: React.FC<ParentsSectionProps> = ({ wedding, primary
                     <div className="grid grid-cols-2 gap-4 items-center">
                         <div className="text-right">
                             <span className="text-[11px] text-muted-foreground block">កូនប្រុសនាម</span>
-                            <span className="text-base sm:text-lg font-khmer-moul text-[#881337]">{groomName}</span>
+                            <span className="m05-font-name text-base sm:text-lg font-khmer-moul text-[#881337]">{groomName}</span>
                         </div>
                         <div className="text-left">
                             <span className="text-[11px] text-muted-foreground block">កូនស្រីនាម</span>
-                            <span className="text-base sm:text-lg font-khmer-moul text-[#881337]">{brideName}</span>
+                            <span className="m05-font-name text-base sm:text-lg font-khmer-moul text-[#881337]">{brideName}</span>
                         </div>
                     </div>
                 </div>

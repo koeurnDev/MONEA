@@ -43,12 +43,12 @@ export function HistorySection({
                         placeholder={t("wizard.steps.5.versionPlaceholder")}
                         value={newVersionTitle}
                         onChange={(e) => setNewVersionTitle(e.target.value)}
-                        className="h-14 rounded-2xl border-none bg-white dark:bg-white/10 shadow-sm font-bold px-6 text-sm focus:ring-2 ring-rose-500/10 flex-1"
+                        className="h-14 rounded-2xl border-none bg-white dark:bg-white/10 shadow-sm font-bold px-6 text-sm focus:ring-2 ring-teal-500/10 flex-1"
                     />
                     <button
                         onClick={handleSaveVersion}
                         disabled={isSavingVersion || !newVersionTitle}
-                        className="w-14 h-14 bg-rose-500 hover:bg-rose-600 disabled:bg-slate-200 dark:disabled:bg-white/10 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-rose-500/20 transition-all active:scale-95 shrink-0"
+                        className="w-14 h-14 bg-teal-500 hover:bg-teal-600 disabled:bg-slate-200 dark:disabled:bg-white/10 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-teal-500/20 transition-all active:scale-95 shrink-0"
                     >
                         {isSavingVersion ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} />}
                     </button>
@@ -56,16 +56,16 @@ export function HistorySection({
             </m.div>
 
             <div className="space-y-4">
-                <Label className="text-[10px] font-black text-rose-500 uppercase tracking-widest px-1 flex items-center gap-3">
+                <Label className="text-[10px] font-black text-teal-500 uppercase tracking-widest px-1 flex items-center gap-3">
                     <Clock size={14} /> {t("wizard.steps.5.savedList")}
                 </Label>
 
                 {fetchingVersions ? (
                     <div className="flex flex-col items-center py-12 gap-4">
                         <div className="relative">
-                            <div className="w-12 h-12 border-4 border-rose-500/10 border-t-rose-500 rounded-full animate-spin" />
+                            <div className="w-12 h-12 border-4 border-teal-500/10 border-t-teal-500 rounded-full animate-spin" />
                             <div className="absolute inset-0 flex items-center justify-center">
-                                <Sparkles size={16} className="text-rose-500/20" />
+                                <Sparkles size={16} className="text-teal-500/20" />
                             </div>
                         </div>
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t("wizard.steps.5.loading")}</span>
@@ -86,7 +86,7 @@ export function HistorySection({
                                 className="bg-white dark:bg-white/5 p-6 md:p-8 rounded-[2rem] border border-slate-100 dark:border-white/5 flex items-center justify-between shadow-sm hover:shadow-md transition-all group"
                             >
                                 <div className="flex items-center gap-5 min-w-0">
-                                    <div className="w-12 h-12 rounded-2xl bg-slate-50/50 dark:bg-white/10 flex items-center justify-center text-slate-400 group-hover:text-rose-500 transition-colors shrink-0">
+                                    <div className="w-12 h-12 rounded-2xl bg-slate-50/50 dark:bg-white/10 flex items-center justify-center text-slate-400 group-hover:text-teal-500 transition-colors shrink-0">
                                         <Clock size={20} />
                                     </div>
                                     <div className="min-w-0">
@@ -101,13 +101,13 @@ export function HistorySection({
                                 <div className="flex gap-3 shrink-0">
                                     <button
                                         onClick={() => handleRollback(ver.id)}
-                                        className="px-4 py-2.5 bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-rose-600 transition-colors shadow-sm"
+                                        className="px-4 py-2.5 bg-teal-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-teal-600 transition-colors shadow-sm"
                                     >
                                         {t("wizard.steps.5.restore")}
                                     </button>
                                     <button
                                         onClick={() => handleDeleteVersion(ver.id)}
-                                        className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
+                                        className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors"
                                     >
                                         <RotateCcw size={14} />
                                     </button>

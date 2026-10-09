@@ -3,6 +3,11 @@ import { prisma } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
 
 const dashboardCombinedRouter = new Hono();
+const emptyStats = {
+    totalGuests: 0,
+    totalGuestbookEntries: 0,
+    totalGifts: 0,
+};
 
 /**
  * GET /api/dashboard/init
@@ -20,7 +25,9 @@ dashboardCombinedRouter.get('/init', async (c) => {
             }, 401);
         }
 
-        // ធ្វើ parallel queries ទាំងអស់ក្នុងពេលតែមួយ
+        // Run independent dashboard reads together; measure their wall time separately
+        // from the full Worker request duration emitted by the app middleware.
+        const databaseStartedAt = performance.now();
         const [userDetails, wedding, broadcasts, stats] = await Promise.all([
             // User details with wedding
             prisma.user.findUnique({
@@ -65,19 +72,37 @@ dashboardCombinedRouter.get('/init', async (c) => {
             
             // Quick stats (if user has wedding)
             user.userId ? prisma.$queryRaw`
-                SELECT 
-                    COUNT(DISTINCT g.id) as "totalGuests",
-                    COUNT(DISTINCT gb.id) as "totalGuestbookEntries",
-                    COUNT(DISTINCT gift.id) as "totalGifts"
-                FROM "Wedding" w
-                LEFT JOIN "Guest" g ON w.id = g."weddingId"
-                LEFT JOIN "GuestbookEntry" gb ON w.id = gb."weddingId" 
-                LEFT JOIN "Gift" gift ON w.id = gift."weddingId"
-                WHERE w."userId" = ${user.userId}
-                GROUP BY w.id
-                LIMIT 1
+                WITH primary_wedding AS (
+                    SELECT id
+                    FROM "Wedding"
+                    WHERE "userId" = ${user.userId}
+                    ORDER BY "createdAt" ASC
+                    LIMIT 1
+                ),
+                guest_stats AS (
+                    SELECT
+                        COUNT(*)::int AS "totalGuests"
+                    FROM "Guest"
+                    WHERE "weddingId" = (SELECT id FROM primary_wedding)
+                ),
+                guestbook_stats AS (
+                    SELECT COUNT(*)::int AS "totalGuestbookEntries"
+                    FROM "GuestbookEntry"
+                    WHERE "weddingId" = (SELECT id FROM primary_wedding)
+                ),
+                gift_stats AS (
+                    SELECT COUNT(*)::int AS "totalGifts"
+                    FROM "Gift"
+                    WHERE "weddingId" = (SELECT id FROM primary_wedding)
+                )
+                SELECT guest_stats.*, guestbook_stats.*, gift_stats.*
+                FROM primary_wedding
+                CROSS JOIN guest_stats
+                CROSS JOIN guestbook_stats
+                CROSS JOIN gift_stats
             ` : []
         ]);
+        c.header('Server-Timing', `dashboard-db;dur=${(performance.now() - databaseStartedAt).toFixed(1)}`);
 
         const dashboardData = {
             success: true,
@@ -90,11 +115,7 @@ dashboardCombinedRouter.get('/init', async (c) => {
                 _count: { weddings: wedding ? 1 : 0 },
             },
             broadcasts: broadcasts || [],
-            stats: Array.isArray(stats) && stats.length > 0 ? stats[0] : {
-                totalGuests: 0,
-                totalGuestbookEntries: 0,
-                totalGifts: 0
-            },
+            stats: Array.isArray(stats) && stats.length > 0 ? stats[0] : emptyStats,
             timestamp: new Date().toISOString()
         };
 

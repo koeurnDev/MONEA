@@ -2,11 +2,33 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from 'react-router-dom';
 import useSWR from "swr";
 import { useCloudinary } from "@/hooks/use-cloudinary";
+import { useAuth } from "@/hooks/useAuth";
 import type { WeddingData } from "@/components/templates/types";
 import { moneaClient } from "@/lib/api-client";
+import { getTemplateConfig, getTemplatesForEventType } from "@/components/templates/template-config";
+import { DEFAULT_WEDDING } from "@/data/wedding";
+
+export { DEFAULT_WEDDING } from "@/data/wedding";
 
 // --- API Fetcher ---
-const fetcher = (url: string) => fetch(url).then(res => res.json());
+const fetcher = async (url: string) => {
+    const response = await fetch(url, { credentials: "include" });
+    const data = await response.json().catch(() => null);
+    if (!response.ok) {
+        throw new Error(
+            typeof data?.error === "string"
+                ? data.error
+                : `Failed to load wedding data (${response.status})`
+        );
+    }
+    if (!data || typeof data !== "object") {
+        throw new Error("Wedding data response was invalid");
+    }
+    return data;
+};
+
+const isNetworkSaveFailure = (status: number, error: string | null) =>
+    status === 503 && /failed to fetch|networkerror|load failed/i.test(error || "");
 
 // --- Constants ---
 export const PRESET_COLORS = ["#8E5A5A", "#1E40AF", "#047857", "#B91C1C", "#D97706", "#4B5563", "#000000", "#D4AF37"];
@@ -60,72 +82,59 @@ export const TEMPLATE_LAYOUTS: Record<string, { slots: number, labels: string[] 
             "wizard.steps.4.slots.wife"
         ] 
     },
-};
-
-export const DEFAULT_WEDDING: WeddingData = {
-    id: "",
-    groomName: "កាប់ ស៊ីន",
-    brideName: "មាស ចាន់មានណា",
-    date: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
-    location: "មជ្ឈមណ្ឌលសន្និបាត និងពិព័រណ៍កោះពេជ្រ (អគារ A)",
-    templateId: "khmer-legacy",
-    eventType: "wedding",
-    themeSettings: {
-        primaryColor: "#E8AC00",
-        musicUrl: "",
-        videoUrl: "",
-        mapLink: "https://maps.google.com/?q=Koh+Pich+Convention+and+Exhibition+Centre",
-        heroImage: "/assets/khmer-legacy/621811254_905398285378636_5240747682765358044_n.jpg",
-        coverImageUrl: "/assets/khmer-legacy/621811254_905398285378636_5240747682765358044_n.jpg",
-        lunarDate: "ថ្ងៃ ១៥ កើត ខែពិសាខ ឆ្នាំរោង ឆស័ក ព.ស. ២៥៦៩",
-        groomVow: "អរគុណដែលបានចូលមកក្នុងជីវិតបង និងតែងតែជាកម្លាំងចិត្តដ៏រឹងមាំសម្រាប់បងគ្រប់ពេលវេលា។",
-        brideVow: "អរគុណសម្រាប់ការស្រលាញ់ ការមើលថែ និងភាពកក់ក្តៅដែលបងតែងតែផ្តល់ឱ្យអូនជារៀងរាល់ថ្ងៃ។",
-        mainQuote: "សេចក្តីស្រឡាញ់ គឺជាការចាប់ផ្តើមនៃដំណើរជីវិតដ៏ស្រស់បំព្រងជាមួយគ្នា។",
-        welcomeMessage: "យើងខ្ញុំមានកិត្តិយស និងក្តីសោមនស្សរីករាយឥតឧបមា សូមគោរពអញ្ជើញ ឯកឧត្តម លោកជំទាវ អ្នកឧកញ៉ា លោក លោកស្រី អ្នកនាងកញ្ញា អញ្ជើញចូលរួមជាអធិបតី និងជាភ្ញៀវកិត្តិយសក្នុងពិធីសិរីសួស្តី អាពាហ៍ពិពាហ៍របស់យើងខ្ញុំ...",
-        customLabels: {
-            invite_title: "សិរីសួស្តី អាពាហ៍ពិពាហ៍",
-            hero_title: "សិរីមង្គលអាពាហ៍ពិពាហ៍",
-            timeline_title: "កម្មវិធីពិធីមង្គលការ",
-            gallery_title: "វិចិត្រសាលរូបថត",
-            editorial_1: "",
-            moments_title: "អនុស្សាវរីយ៍ផ្អែមល្ហែម",
-            invitationHonorTitle: "សូមគោរពអញ្ជើញ"
-        },
-        parents: {
-            groomFather: "កាប់ សុខា",
-            groomMother: "ឃិន ស្រីពៅ",
-            groomPhone: "012 345 678",
-            brideFather: "មាស សម្បត្តិ",
-            brideMother: "អ៊ុ ស្រីនាង",
-            bridePhone: "098 765 432"
-        },
-        invitationText: "មានកិត្តិយសសូមគោរពអញ្ជើញ ឯកឧត្តម លោកជំទាវ លោក លោកស្រី អ្នកនាងកញ្ញា និងប្រិយមិត្តជិតឆ្ងាយទាំងអស់ ចូលរួមជាអធិបតី និងជាសាក្សីក្នុងពិធីសិរីមង្គលអាពាហ៍ពិពាហ៍",
-        bankAccounts: [
-            {
-                bankName: "ABA Bank (KHQR)",
-                accountName: "KAB SIN & MEAS CHANMEANA",
-                accountNumber: "001 234 567",
-                qrUrl: "/images/qr.webp",
-                side: "both"
-            }
+    "blossom-romance": {
+        slots: 11,
+        labels: [
+            "wizard.steps.4.slots.hero",
+            "wizard.steps.4.slots.editorial1",
+            "wizard.steps.4.slots.editorial2",
+            "wizard.steps.4.slots.editorial3",
+            "wizard.steps.4.slots.editorial4",
+            "wizard.steps.4.slots.map",
+            "wizard.steps.4.slots.sig1",
+            "wizard.steps.4.slots.sig2",
+            "wizard.steps.4.slots.sig3",
+            "wizard.steps.4.slots.groom",
+            "wizard.steps.4.slots.bride"
         ]
     },
-    galleryItems: [
-        { url: "/assets/khmer-legacy/621811254_905398285378636_5240747682765358044_n.jpg", type: "IMAGE" },
-        { url: "/assets/khmer-legacy/621811002_905396558712142_5126771807004187076_n.jpg", type: "IMAGE" },
-        { url: "/assets/khmer-legacy/621811942_905392918712506_8600818650624857202_n.jpg", type: "IMAGE" },
-        { url: "/assets/khmer-legacy/621813168_905393265379138_2356104923368506186_n.jpg", type: "IMAGE" },
-        { url: "/assets/khmer-legacy/622279784_905392782045853_1189842078802821714_n.jpg", type: "IMAGE" },
-        { url: "/assets/khmer-legacy/622374686_905392995379165_1001573724208229331_n.jpg", type: "IMAGE" },
-        { url: "/assets/khmer-legacy/622582548_905399002045231_4147705888928073222_n.jpg", type: "IMAGE" },
-        { url: "/assets/khmer-legacy/622629866_905398512045280_817022291532741601_n.jpg", type: "IMAGE" }
-    ],
-    activities: [
-        { time: "០៧:០០ ព្រឹក", title: "ពិធីហែជំនូន", description: "ជួបជុំសាច់ញាតិ និងភ្ញៀវកិត្តិយស ហែជំនូនចូលរោងជ័យ", icon: null, order: 0 },
-        { time: "០៨:៣០ ព្រឹក", title: "ពិធីសំពះផ្ទឹម និងចងដៃ", description: "ពិធីសិរីសួស្តីកាត់សក់ និងចងដៃជូនពរជ័យដល់គូស្វាមីភរិយាថ្មី", icon: null, order: 1 },
-        { time: "១១:០០ ថ្ងៃត្រង់", title: "ពិសាភោជនាហារថ្ងៃត្រង់", description: "ទទួលទានអាហារថ្ងៃត្រង់ជួបជុំបងប្អូន និងភ្ញៀវកិត្តិយស", icon: null, order: 2 },
-        { time: "០៥:០០ ល្ងាច", title: "ពិធីជប់លៀង និងពិសាភោជនាហារពេលល្ងាច", description: "ទទួលស្វាគមន៍ភ្ញៀវកិត្តិយស និងពិសាភោជនាហារពេលល្ងាច", icon: null, order: 3 }
-    ]
+    "nea-m05": {
+        slots: 11,
+        labels: [
+            "wizard.steps.4.slots.hero",
+            "wizard.steps.4.slots.editorial1",
+            "wizard.steps.4.slots.editorial2",
+            "wizard.steps.4.slots.editorial3",
+            "wizard.steps.4.slots.editorial4",
+            "wizard.steps.4.slots.map",
+            "wizard.steps.4.slots.sig1",
+            "wizard.steps.4.slots.sig2",
+            "wizard.steps.4.slots.sig3",
+            "wizard.steps.4.slots.groom",
+            "wizard.steps.4.slots.bride"
+        ]
+    },
+};
+
+const getEditorDefaults = (isPlatformAdmin: boolean): WeddingData => {
+    if (isPlatformAdmin) return DEFAULT_WEDDING;
+
+    return {
+        ...DEFAULT_WEDDING,
+        groomName: "",
+        brideName: "",
+        date: "",
+        location: "",
+        themeSettings: {
+            primaryColor: "",
+            heroImage: "",
+            coverImageUrl: "",
+            customLabels: {},
+            parents: {},
+        },
+        galleryItems: [],
+        activities: DEFAULT_WEDDING.activities.map((activity) => ({ ...activity })),
+    };
 };
 
 export const STEPS = [
@@ -149,6 +158,8 @@ export function useDesignWizard() {
     const [previewMode, setPreviewMode] = useState<'mobile' | 'desktop'>('mobile');
     const [isDraggingGallery, setIsDraggingGallery] = useState(false);
     const [activeAccordion, setActiveAccordion] = useState<string | null>('theme');
+    const { user, isLoading: authLoading } = useAuth();
+    const isPlatformAdmin = user?.role === 'SUPERADMIN' || user?.role === 'PLATFORM_OWNER';
 
     // Versioning states
     const [templateVersions, setTemplateVersions] = useState<any[]>([]);
@@ -168,9 +179,9 @@ export function useDesignWizard() {
         setTimeout(() => setNotification(null), 3000);
     };
 
-    // Navigation & URL
     const [searchParams] = useSearchParams();
     const idFromUrl = searchParams.get('id');
+    const templateIdFromUrl = searchParams.get('templateId');
 
     // Refs & Hooks
     const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -187,12 +198,15 @@ export function useDesignWizard() {
     const { data: swrWedding, error: swrError, mutate } = useSWR(apiUrl, fetcher, {
         revalidateOnFocus: false,
         dedupingInterval: 10000,
+        shouldRetryOnError: false,
     });
 
     // Track initial load from SWR
     const isLoadedRef = useRef(false);
 
     useEffect(() => {
+        if (authLoading) return;
+        const editorDefaults = getEditorDefaults(isPlatformAdmin);
         if (isLoadedRef.current) return;
 
 function decodeHtmlEntities(str: any): any {
@@ -259,34 +273,42 @@ function deepDecodeEntities(obj: any): any {
                     data.galleryItems = reconstructed;
                 }
 
-                setWedding({
-                    ...DEFAULT_WEDDING,
+                const loadedWedding = {
+                    ...editorDefaults,
                     ...data,
+                    // If user came from templates gallery, override templateId
+                    templateId: templateIdFromUrl || data.templateId || editorDefaults.templateId,
                     groomName: data.groomName !== undefined ? data.groomName : "",
                     brideName: data.brideName !== undefined ? data.brideName : "",
                     location: data.location !== undefined ? data.location : "",
                     themeSettings: {
-                        ...(DEFAULT_WEDDING.themeSettings || {}),
+                        ...(editorDefaults.themeSettings || {}),
                         ...(data.themeSettings || {})
                     },
                     galleryItems: data.galleryItems || [],
                     activities: data.activities || []
-                });
+                };
+                setWedding(loadedWedding);
+                lastSavedSnapshotRef.current = getPayloadSnapshot(loadedWedding);
                 isLoadedRef.current = true;
             } else {
-                setWedding(DEFAULT_WEDDING);
+                // No wedding yet — use default, apply templateId from URL if provided
+                const defaultWithTemplate = templateIdFromUrl
+                    ? { ...editorDefaults, templateId: templateIdFromUrl }
+                    : editorDefaults;
+                setWedding(defaultWithTemplate);
+                lastSavedSnapshotRef.current = getPayloadSnapshot(defaultWithTemplate);
                 isLoadedRef.current = true;
             }
             setLoading(false);
         } else if (swrError) {
             console.error("SWR Fetch Error:", swrError);
-            setWedding(DEFAULT_WEDDING);
-            isLoadedRef.current = true;
+            setWedding(null);
             setLoading(false);
         } else {
             setLoading(true);
         }
-    }, [swrWedding, swrError]);
+    }, [swrWedding, swrError, authLoading, isPlatformAdmin]);
 
     // --- Progress Calculation ---
     useEffect(() => {
@@ -301,36 +323,88 @@ function deepDecodeEntities(obj: any): any {
         setProgress(p);
     }, [wedding]);
 
-    // Track latest wedding state in a ref
+    // Track latest wedding state in a ref & dirty state
     const weddingRef = useRef(wedding);
+    const lastSavedSnapshotRef = useRef<string | null>(null);
+    const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
     weddingRef.current = wedding;
 
+    const getPayloadSnapshot = useCallback((data: WeddingData | null) => {
+        if (!data) return null;
+        return JSON.stringify({
+            id: data.id,
+            templateId: data.templateId,
+            groomName: data.groomName,
+            brideName: data.brideName,
+            date: data.date,
+            location: data.location,
+            themeSettings: data.themeSettings,
+            galleryItems: data.galleryItems,
+            activities: data.activities,
+            eventType: data.eventType
+        });
+    }, []);
+
+    // Dirty state: true when active wedding state differs from the last saved snapshot
+    const isDirty = Boolean(
+        wedding &&
+        lastSavedSnapshotRef.current !== null &&
+        getPayloadSnapshot(wedding) !== lastSavedSnapshotRef.current
+    );
+
+    // Guard against accidental tab close/refresh with unsaved changes
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (isDirty || loading) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        };
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [isDirty, loading]);
+
     // --- Save Logic ---
-    const saveChanges = useCallback(async (manualData?: WeddingData, options: { silent?: boolean } = {}) => {
+    const saveChanges = useCallback(async (manualData?: WeddingData, options: { silent?: boolean } = {}): Promise<boolean> => {
         const { silent = false } = options;
         const data = manualData || weddingRef.current;
-        if (!data) return;
+        if (!data) return false;
+
+        if (!silent && !data.themeSettings?.mapLink?.trim() && !data.mapUrl?.trim()) {
+            setSaveToast("map-link-required");
+            setTimeout(() => setSaveToast(null), 3000);
+            return false;
+        }
+
+        const payloadSnapshot = getPayloadSnapshot(data);
+        if (lastSavedSnapshotRef.current === payloadSnapshot) return true;
 
         // Validation (only skip if silent/auto-save)
-        if (!silent && (!data.groomName?.trim() || !data.brideName?.trim() || !data.date)) {
+        if (!silent && (
+            !data.eventType ||
+            !data.groomName?.trim() ||
+            !data.brideName?.trim() ||
+            !data.date ||
+            !data.location?.trim()
+        )) {
             setSaveToast("error");
             setTimeout(() => setSaveToast(null), 3000);
-            return;
+            return false;
         }
 
         if (!silent) setLoading(true);
         try {
-            const res = await moneaClient.put<any>("/api/wedding", {
+            const payload = {
                 weddingId: data.id || undefined,
-                templateId: data.templateId || "khmer-legacy",
+                templateId: data.templateId || "modern-minimal",
                 groomName: data.groomName,
                 brideName: data.brideName,
                 date: data.date,
                 location: data.location,
                 themeSettings: data.themeSettings,
-                galleryItems: data.galleryItems?.filter((item: any) => item && (item.url || item.publicId)),
-                activities: data.activities?.map((item: any) => ({
-                    title: item.title || "Activity",
+                galleryItems: data.galleryItems,
+                activities: data.activities?.filter((item: any) => item.title?.trim()).map((item: any) => ({
+                    title: item.title.trim(),
                     time: item.time || "",
                     description: item.description || "",
                     icon: item.icon || null,
@@ -338,9 +412,19 @@ function deepDecodeEntities(obj: any): any {
                     order: item.order || 0
                 })),
                 eventType: data.eventType
-            });
+            };
+
+            let res = await moneaClient.put<any>("/api/wedding", payload);
+            for (let retry = 0; retry < 2 && isNetworkSaveFailure(res.status, res.error); retry++) {
+                console.warn(`[Wedding Save] Network request failed; retrying (${retry + 1}/2).`);
+                await new Promise(resolve => setTimeout(resolve, 500 * 2 ** retry));
+                res = await moneaClient.put<any>("/api/wedding", payload);
+            }
 
             if (res.status === 200 && res.data) {
+                lastSavedSnapshotRef.current = payloadSnapshot;
+                setLastSavedAt(new Date());
+
                 // If the wedding was created or updated with a new ID, update it
                 if (res.data.id) {
                     setWedding(prev => prev ? { ...prev, id: res.data.id } : res.data);
@@ -351,7 +435,8 @@ function deepDecodeEntities(obj: any): any {
                     setSaveToast("success");
                     setTimeout(() => setSaveToast(null), 3000);
                 }
-            } else if (res.status !== 200) {
+                return true;
+            } else {
                 console.error("Save failed with status:", res.status, res.error, "Details:", res.details);
                 
                 // Extract useful error message
@@ -359,17 +444,17 @@ function deepDecodeEntities(obj: any): any {
                 
                 setSaveToast(errorMsg);
                 setTimeout(() => setSaveToast(null), 4000);
+                return false;
             }
         } catch (error: any) {
             console.error("Save error:", error);
-            if (!silent) {
-                setSaveToast(error?.message || "error");
-                setTimeout(() => setSaveToast(null), 4000);
-            }
+            setSaveToast(error?.message || "error");
+            setTimeout(() => setSaveToast(null), 4000);
+            return false;
         } finally {
             if (!silent) setLoading(false);
         }
-    }, [mutate]);
+    }, [mutate, getPayloadSnapshot]);
 
     // Auto-save: Every time wedding state changes, automatically save to database after 1000ms debounce
     const isInitialMount = useRef(true);
@@ -400,31 +485,58 @@ function deepDecodeEntities(obj: any): any {
         setWedding((prev) => prev ? { ...prev, [key]: value } : null);
     }, []);
 
-    const updateTheme = useCallback((key: string, value: any, autoSave = false) => {
+    const updateTheme = useCallback((keyOrValues: string | Record<string, unknown>, value?: any, autoSave = false) => {
         setWedding((prev) => {
             if (!prev) return null;
-            if (key === 'musicUrl' && prev.themeSettings?.musicUrlPublicId) {
+            const changes = typeof keyOrValues === "string" ? { [keyOrValues]: value } : keyOrValues;
+            if (typeof keyOrValues === "string" && keyOrValues === 'musicUrl' && prev.themeSettings?.musicUrlPublicId) {
                 if (value && value !== prev.themeSettings.musicUrl) {
                     deleteCloudinaryAsset(prev.themeSettings.musicUrlPublicId);
                 }
             }
             const updated = {
                 ...prev,
-                themeSettings: { ...(prev.themeSettings || {}), [key]: value }
+                themeSettings: { ...(prev.themeSettings || {}), ...changes }
             };
             if (autoSave) saveChanges(updated, { silent: true });
             return updated;
         });
     }, [deleteCloudinaryAsset, saveChanges]);
 
-    const removeThemeAsset = useCallback(async (urlKey: string, publicIdKey: string) => {
+    const removeThemeAsset = useCallback(async (urlKey: string, publicIdKey: string, assetIndex?: number) => {
         setWedding(prev => {
             if (!prev) return null;
-            const publicId = (prev.themeSettings as any)?.[publicIdKey];
-            if (publicId) deleteCloudinaryAsset(publicId);
+            const storyPublicIds = prev.themeSettings?.storyImagePublicIds || [];
+            const publicIdsToDelete = urlKey === "storyImages"
+                ? assetIndex !== undefined
+                    ? [storyPublicIds[assetIndex] || (assetIndex === 0 ? prev.themeSettings?.storyImagePublicId : undefined)]
+                    : [...storyPublicIds, prev.themeSettings?.storyImagePublicId]
+                : [(prev.themeSettings as any)?.[publicIdKey]];
+            for (const publicId of new Set(publicIdsToDelete.filter((id): id is string => Boolean(id)))) {
+                deleteCloudinaryAsset(publicId);
+            }
+            const storyImages = prev.themeSettings?.storyImages || [];
             const updated = {
                 ...prev,
-                themeSettings: { ...(prev.themeSettings || {}), [urlKey]: "", [publicIdKey]: "" }
+                themeSettings: {
+                    ...(prev.themeSettings || {}),
+                    [urlKey]: assetIndex !== undefined && urlKey === "storyImages"
+                        ? storyImages.filter((_, index) => index !== assetIndex)
+                        : urlKey === "storyImages" ? [] : "",
+                    ...(urlKey === "storyImages" && assetIndex !== undefined
+                        ? {
+                            storyImageCaptions: (prev.themeSettings?.storyImageCaptions || [])
+                                .filter((_, index) => index !== assetIndex),
+                            storyImagePublicIds: storyPublicIds.length
+                                ? storyPublicIds.filter((_, index) => index !== assetIndex)
+                                : [],
+                            ...(assetIndex === 0 ? { [publicIdKey]: "" } : {}),
+                        }
+                        : {
+                            [publicIdKey]: "",
+                            ...(urlKey === "storyImages" ? { storyImageCaptions: [] } : {}),
+                        }),
+                }
             };
             mutate(updated, false);
             saveChanges(updated, { silent: true });
@@ -453,11 +565,47 @@ function deepDecodeEntities(obj: any): any {
     }, []);
 
     const updateTemplate = useCallback((templateId: string) => {
-        setWedding((prev) => prev ? { ...prev, templateId } : null);
+        setWedding((prev) => {
+            if (!prev) return null;
+            const config = getTemplateConfig(templateId);
+            return {
+                ...prev,
+                templateId,
+                themeSettings: {
+                    ...(prev.themeSettings || {}),
+                    ...(config?.primaryColor ? { primaryColor: config.primaryColor } : {}),
+                },
+            };
+        });
     }, []);
 
-    const updateEventType = useCallback((type: 'wedding' | 'anniversary') => {
-        setWedding((prev) => prev ? { ...prev, eventType: type, templateId: 'khmer-legacy' } : null);
+    const updateEventType = useCallback((type: 'wedding' | 'anniversary', allowedTemplateIds?: readonly string[]) => {
+        setWedding((prev) => {
+            if (!prev) return null;
+
+            const normalizedType = type === 'anniversary' ? 'anniversary' : 'wedding';
+            const allowedTemplates = allowedTemplateIds
+                ? [...allowedTemplateIds]
+                : getTemplatesForEventType(normalizedType).map((template) => template.id);
+
+            const currentTemplate = prev.templateId;
+            const isCurrentTemplateAllowed = !!currentTemplate && allowedTemplates.includes(currentTemplate);
+            const nextTemplate = isCurrentTemplateAllowed ? currentTemplate : (allowedTemplates[0] || currentTemplate);
+            if (!nextTemplate) {
+                return { ...prev, eventType: normalizedType };
+            }
+
+            const config = getTemplateConfig(nextTemplate);
+            return {
+                ...prev,
+                eventType: normalizedType,
+                templateId: nextTemplate,
+                themeSettings: {
+                    ...(prev.themeSettings || {}),
+                    ...(config?.primaryColor ? { primaryColor: config.primaryColor } : {}),
+                },
+            };
+        });
     }, []);
 
     // --- Iframe Sync ---
@@ -493,14 +641,17 @@ function deepDecodeEntities(obj: any): any {
                 const oldItem = newItems[index];
                 if (oldItem?.publicId && oldItem.publicId !== publicId) deleteCloudinaryAsset(oldItem.publicId);
                 newItems[index] = { url, publicId, type };
+                newTheme.hiddenPhotoSlots = (newTheme.hiddenPhotoSlots || []).filter((slot) => slot !== index);
                 if (index === 0) {
                     newTheme.heroImage = url;
+                    newTheme.coverImageUrl = url;
                     if (publicId) newTheme.heroImagePublicId = publicId;
                 }
             } else {
                 newItems.push({ url, publicId, type });
                 if (newItems.length === 1) {
                     newTheme.heroImage = url;
+                    newTheme.coverImageUrl = url;
                     if (publicId) newTheme.heroImagePublicId = publicId;
                 }
             }
@@ -519,8 +670,17 @@ function deepDecodeEntities(obj: any): any {
             const itemToDelete = prev.galleryItems[index];
             const newTheme = { ...(prev.themeSettings || {}) };
             if (itemToDelete?.publicId) deleteCloudinaryAsset(itemToDelete.publicId);
+            if (index < layout.slots) {
+                newTheme.hiddenPhotoSlots = (newTheme.hiddenPhotoSlots || []).filter((slot) => slot !== index);
+            } else {
+                const photoKey = itemToDelete?.publicId || itemToDelete?.url;
+                if (photoKey) {
+                    newTheme.hiddenGalleryPhotoKeys = (newTheme.hiddenGalleryPhotoKeys || []).filter((key) => key !== photoKey);
+                }
+            }
             if (index === 0) {
                 newTheme.heroImage = "";
+                newTheme.coverImageUrl = "";
                 newTheme.heroImagePublicId = "";
             }
             const updated = {
@@ -660,10 +820,12 @@ function deepDecodeEntities(obj: any): any {
         isSavingVersion, rollbackConfirm, setRollbackConfirm, rollbackLoading,
         deleteVersionConfirm, setDeleteVersionConfirm, saveToast, versionToast,
         iframeRef, galleryUploading, galleryProgress,
+        loadError: swrError,
+        retryLoad: () => mutate(),
         updateWedding, updateTheme, removeThemeAsset, updateLabel, updateParent,
         updateTemplate, updateEventType, addGalleryItem, removeGalleryItem,
         handleGalleryDirectUpload, updateGalleryOrder, saveChanges, fetchVersions, handleSaveVersion,
         handleRollback, confirmRollback, handleDeleteVersion, confirmDeleteVersion,
-        nextStep, prevStep
+        nextStep, prevStep, isDirty, lastSavedAt
     };
 }

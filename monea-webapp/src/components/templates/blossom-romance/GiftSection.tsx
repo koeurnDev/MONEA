@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Gift, Copy, Check, QrCode } from 'lucide-react';
 import { WeddingData } from '../types';
+import { getConfiguredPaymentAccounts } from "../shared/weddingPhotos";
 
 interface GiftSectionProps {
     wedding: WeddingData;
@@ -10,7 +11,7 @@ interface GiftSectionProps {
 
 export const GiftSection: React.FC<GiftSectionProps> = ({ wedding, primaryColor }) => {
     const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
-    const bankAccounts = wedding.themeSettings?.bankAccounts || [];
+    const bankAccounts = getConfiguredPaymentAccounts(wedding.themeSettings?.bankAccounts);
 
     const handleCopy = (num: string, idx: number) => {
         navigator.clipboard.writeText(num);
@@ -18,7 +19,7 @@ export const GiftSection: React.FC<GiftSectionProps> = ({ wedding, primaryColor 
         setTimeout(() => setCopiedIndex(null), 2000);
     };
 
-    if (!bankAccounts || bankAccounts.length === 0) return null;
+    if (bankAccounts.length === 0) return null;
 
     return (
         <section className="py-12 px-4 sm:px-6 bg-rose-50/20 font-kantumruy relative overflow-hidden text-center">
@@ -63,7 +64,7 @@ export const GiftSection: React.FC<GiftSectionProps> = ({ wedding, primaryColor 
                                         {acc.accountNumber}
                                     </span>
                                     <button
-                                        onClick={() => handleCopy(acc.accountNumber, idx)}
+                                        onClick={() => acc.accountNumber && handleCopy(acc.accountNumber, idx)}
                                         className="text-rose-600 hover:text-rose-700 font-bold flex items-center gap-1 active:scale-95 transition-all"
                                     >
                                         {copiedIndex === idx ? (

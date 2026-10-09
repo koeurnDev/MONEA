@@ -8,12 +8,14 @@ router.post('/', async (c) => {
     // Standard Web API call for user sign-up registration
     return await nextRoute.POST(c.req.raw);
   } catch (error: any) {
-    console.error('[Hono Signup Route Error]:', error?.message || error);
+    const requestId = crypto.randomUUID();
+    console.error(`[Hono Signup Route Error] ${requestId}:`, error);
     
     return c.json(
       {
         success: false,
-        error: error?.message || 'Failed to process sign-up request',
+        error: 'ការបង្កើតគណនីមិនទាន់បានសម្រេចទេ។ សូមព្យាយាមម្ដងទៀត។',
+        requestId,
       },
       500
     );

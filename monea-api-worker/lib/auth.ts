@@ -13,7 +13,28 @@ export const requestStorage = {
 };
 
 
-export const getSecretStr = () => process.env.JWT_SECRET || (process.env.NODE_ENV === "development" ? "monea-dev-secret-do-not-use-in-prod-1234567890" : "");
+/**
+ * Returns the JWT signing secret.
+ *
+ * SECURITY (fail-closed): outside development a missing JWT_SECRET must be a hard
+ * error. Previously this returned an empty string, which made `jose` sign/verify
+ * with an empty key — a total authentication bypass for anyone who noticed.
+ * The development-only fallback keeps local work frictionless and is never used
+ * when NODE_ENV is "production" (Cloudflare deploys set ENVIRONMENT=production).
+ */
+export const getSecretStr = () => {
+  const configured = process.env.JWT_SECRET;
+  if (configured) return configured;
+
+  const isProduction =
+    process.env.NODE_ENV === "production" || process.env.ENVIRONMENT === "production";
+
+  if (isProduction) {
+    throw new Error("[CRITICAL] JWT_SECRET is not configured. Refusing to sign or verify tokens.");
+  }
+
+  return "monea-dev-secret-do-not-use-in-prod-1234567890";
+};
 export const getSecret = () => new TextEncoder().encode(getSecretStr());
 
 /**
@@ -63,13 +84,27 @@ export async function revokeToken(jti: string, exp: number) {
 
 /**
  * Checks if a token JTI is in the revocation list.
+ *
+ * SECURITY (fail-closed): when the revocation store is unreachable we cannot prove a
+ * token is still valid. Failing open (returning false) meant a revoked or stolen
+ * token kept working throughout a Redis outage. In production we now fail closed;
+ * set `AUTH_REVOCATION_FAIL_MODE=open` to restore the old behaviour during an outage.
  */
 export async function isTokenRevoked(jti: string): Promise<boolean> {
   try {
     const res = await redis.get(`revoked:${jti}`);
     return !!res;
   } catch (e) {
-    console.error("[Auth] Redis revocation check failed (fail-safe to false):", e);
+    const isProduction =
+      process.env.NODE_ENV === "production" || process.env.ENVIRONMENT === "production";
+    const failOpen = (process.env.AUTH_REVOCATION_FAIL_MODE || "").toLowerCase() === "open";
+
+    if (isProduction && !failOpen) {
+      console.error("[Auth] Revocation store unavailable — failing CLOSED (treating token as revoked):", e);
+      return true;
+    }
+
+    console.error("[Auth] Revocation store unavailable — failing open:", e);
     return false;
   }
 }

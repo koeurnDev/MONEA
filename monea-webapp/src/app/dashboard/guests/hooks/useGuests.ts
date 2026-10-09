@@ -22,6 +22,8 @@ export function useGuests() {
     const [open, setOpenInternal] = useState(false);
     const [loading, setLoading] = useState(true);
     const [visibleCount, setVisibleCount] = useState(20);
+    const [loadError, setLoadError] = useState(false);
+    const [loadMoreError, setLoadMoreError] = useState(false);
 
     // 3. Selection / Action State
     const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -32,20 +34,23 @@ export function useGuests() {
         if (!options?.silent) {
             setLoading(true);
         }
+        setLoadError(false);
         try {
             const [guestsRes, weddingRes] = await Promise.all([
                 moneaClient.get<any>(`/api/guests?limit=${LIMIT}&offset=0`),
                 moneaClient.get<any>("/api/wedding")
             ]);
 
-            if (guestsRes.data) {
-                const data = guestsRes.data;
-                const items = data.items || [];
-                setGuests(items);
-                setFilteredGuests(items);
-                setPagination(data.pagination || null);
-                setOffset(LIMIT);
+            if (guestsRes.error || !guestsRes.data || !Array.isArray(guestsRes.data.items)) {
+                throw new Error(guestsRes.error || "Guest response was incomplete");
             }
+            const data = guestsRes.data;
+            const items = data.items;
+            setGuests(items);
+            setFilteredGuests(items);
+            setPagination(data.pagination || null);
+            setOffset(LIMIT);
+
             if (weddingRes.data) {
                 const wData = weddingRes.data;
                 setWedding(wData);
@@ -56,6 +61,7 @@ export function useGuests() {
             }
         } catch (e) {
             console.error("Failed to load data", e);
+            setLoadError(true);
         } finally {
             if (!options?.silent) {
                 setLoading(false);
@@ -89,28 +95,31 @@ export function useGuests() {
     async function fetchMoreGuests() {
         if (!pagination?.hasMore || loadingMore) return;
         setLoadingMore(true);
+        setLoadMoreError(false);
         try {
             const res = await moneaClient.get<any>(`/api/guests?limit=${LIMIT}&offset=${offset}`);
-            if (res.data && res.data.items) {
-                const newItems = res.data.items;
-                setGuests(prev => [...prev, ...newItems]);
-                // Ensure search filter is applied to new items
-                if (search) {
-                    const lower = search.toLowerCase();
-                    const matchedNew = newItems.filter((g: any) => 
-                        g.name.toLowerCase().includes(lower) ||
-                        (g.source && g.source.toLowerCase().includes(lower)) ||
-                        (g.group && g.group.toLowerCase().includes(lower))
-                    );
-                    setFilteredGuests(prev => [...prev, ...matchedNew]);
-                } else {
-                    setFilteredGuests(prev => [...prev, ...newItems]);
-                }
-                setPagination(res.data.pagination || null);
-                setOffset(prev => prev + LIMIT);
+            if (res.error || !res.data || !Array.isArray(res.data.items)) {
+                throw new Error(res.error || "Guest response was incomplete");
             }
+            const newItems = res.data.items;
+            setGuests(prev => [...prev, ...newItems]);
+            // Ensure search filter is applied to new items
+            if (search) {
+                const lower = search.toLowerCase();
+                const matchedNew = newItems.filter((g: any) =>
+                    g.name.toLowerCase().includes(lower) ||
+                    (g.source && g.source.toLowerCase().includes(lower)) ||
+                    (g.group && g.group.toLowerCase().includes(lower))
+                );
+                setFilteredGuests(prev => [...prev, ...matchedNew]);
+            } else {
+                setFilteredGuests(prev => [...prev, ...newItems]);
+            }
+            setPagination(res.data.pagination || null);
+            setOffset(prev => prev + LIMIT);
         } catch (e) {
             console.error("Failed to load more guests", e);
+            setLoadMoreError(true);
         } finally {
             setLoadingMore(false);
         }
@@ -246,7 +255,6 @@ export function useGuests() {
             });
             return;
         }
-        
         if (!wedding?.id) return;
         const link = `${window.location.origin}/invite/${wedding.id}?to=${encodeURIComponent(name)}&g=${guestId}`;
         
@@ -260,12 +268,32 @@ export function useGuests() {
         
         // Use the toast provider we added earlier to give feedback that the MESSAGE was copied, not just the link
         showToast({
-            title: t("common.success") || "ជោគជ័យ",
+            title: t("common.success.title", { defaultValue: "ជោគជ័យ" }),
             description: "សារអញ្ជើញត្រូវបានថតចម្លង (Copied) រួចរាល់។ លោកអ្នកអាចយកទៅផ្ញើ (Paste) ក្នុង Telegram ជូនភ្ញៀវបាន!",
             type: "success",
         });
 
         setTimeout(() => setCopiedId(null), 2000);
+    };
+
+    const shareTelegram = (name: string, guestId: string) => {
+        if (!isPremium) {
+            showToast({
+                title: t("common.upgradeRequired", { defaultValue: "ទាមទារគណនី PRO" }),
+                description: t("guests.upgradeToShare", { defaultValue: "សូមធ្វើការ Upgrade ទៅគណនី PRO ដើម្បីអាចចម្លង និងផ្ញើលីងធៀបទៅកាន់ភ្ញៀវរបស់អ្នកបាន។" }),
+                type: "error",
+                action: { label: t("guests.upgradeBtn", { defaultValue: "Upgrade Now" }), onClick: () => window.location.href = "/dashboard/upgrade" }
+            });
+            return;
+        }
+
+        if (!wedding?.id) return;
+        const link = `${window.location.origin}/invite/${wedding.id}?to=${encodeURIComponent(name)}&g=${guestId}`;
+        const isAnniversary = wedding.eventType === 'anniversary';
+        const eventName = isAnniversary ? "កម្មវិធីភ្ជាប់ពាក្យ" : "កម្មវិធីមង្គលការ";
+        const text = `សួស្តី ${name} 🤍\nយើងខ្ញុំសូមគោរពអញ្ជើញចូលរួម${eventName}របស់យើងខ្ញុំ។\n\nសូមចុចលីងខាងក្រោមដើម្បីមើលធៀបអញ្ជើញ និងទីតាំងកម្មវិធី៖`;
+        const tgUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`;
+        window.open(tgUrl, '_blank');
     };
 
     const handlePrint = () => {
@@ -289,7 +317,7 @@ export function useGuests() {
             if (res.error) throw new Error(res.error);
             
             showToast({
-                title: t("common.success") || "ជោគជ័យ",
+                title: t("common.success.title", { defaultValue: "ជោគជ័យ" }),
                 description: t("guests.delete.success", { defaultValue: `ភ្ញៀវ ${deleteGuest.name} ត្រូវបានលុបចោលដោយជោគជ័យ។` }),
                 type: "success",
             });
@@ -330,7 +358,9 @@ export function useGuests() {
         open,
         setOpen,
         loading,
+        loadError,
         loadingMore,
+        loadMoreError,
         fetchMoreGuests,
         hasMore: pagination?.hasMore || false,
         visibleCount,
@@ -345,6 +375,7 @@ export function useGuests() {
         updateGuestOptimistic,
         exportCSV,
         copyLink,
+        shareTelegram,
         handlePrint,
         confirmDelete,
         isArchived,

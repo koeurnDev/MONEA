@@ -13,10 +13,10 @@ export function KhmerInvitation({
     const { t } = useTranslation();
     const isAnniversary = wedding.eventType === 'anniversary';
 
-    const groomFather = wedding.themeSettings?.parents?.groomFather;
-    const groomMother = wedding.themeSettings?.parents?.groomMother;
-    const brideFather = wedding.themeSettings?.parents?.brideFather;
-    const brideMother = wedding.themeSettings?.parents?.brideMother;
+    const groomFather = wedding.themeSettings?.parents?.groomFather ?? wedding.groomFather;
+    const groomMother = wedding.themeSettings?.parents?.groomMother ?? wedding.groomMother;
+    const brideFather = wedding.themeSettings?.parents?.brideFather ?? wedding.brideFather;
+    const brideMother = wedding.themeSettings?.parents?.brideMother ?? wedding.brideMother;
 
     const toKhmerNum = (num: number | string) => {
         const khmerNumbers = ["០", "១", "២", "៣", "៤", "៥", "៦", "៧", "៨", "៩"];
@@ -54,9 +54,9 @@ export function KhmerInvitation({
         "ឯកឧត្តម ឧកញ៉ា លោកជំទាវ លោក លោកស្រី អ្នកនាង កញ្ញា និងប្រិយមិត្តអញ្ជើញចូលរួមជាអធិបតីនិងជាភ្ញៀវកិត្តិយសដើម្បីប្រសិទ្ធពរជ័យសិរីសួស្តីជ័យមង្គលក្នុងពិធីរៀបអាពាហ៍ពិពាហ៍ កូនប្រុស / កូនស្រី របស់យើងខ្ញុំ";
 
     return (
-        <section id="invitation-khmer" className="py-12 md:py-20 px-4 sm:px-8 md:px-12 text-center bg-white relative overflow-hidden font-kantumruy">
+        <section id="invitation-khmer" className="py-12 md:py-20 px-4 sm:px-6 text-center bg-white relative overflow-hidden font-kantumruy w-full max-w-full">
             {/* Background subtle luxury watermark */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] md:w-[1100px] h-[600px] bg-[radial-gradient(circle_at_center,_rgba(212,175,55,0.04)_0%,_transparent_70%)] pointer-events-none" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-[radial-gradient(circle_at_center,_rgba(212,175,55,0.04)_0%,_transparent_70%)] pointer-events-none" />
 
             <div className="max-w-3xl mx-auto space-y-8 md:space-y-12 relative z-10">
                 <RevealSection>
@@ -75,47 +75,45 @@ export function KhmerInvitation({
                     </div>
 
                     {/* 2. Parents of Groom & Bride (Traditional 2-Column Format) */}
+                    {(groomFather?.trim() || groomMother?.trim() || brideFather?.trim() || brideMother?.trim()) && (
                     <div className="grid grid-cols-2 gap-4 sm:gap-10 max-w-2xl mx-auto mb-8 md:mb-12 text-left">
                         {/* Groom Parents */}
-                        <div className="space-y-2.5 flex flex-col items-center sm:items-start">
-                            <div className="flex items-center gap-2 sm:gap-3 w-full justify-center sm:justify-start">
-                                <span className="font-khmer-moul text-[11px] sm:text-xs text-gold-gradient min-w-[55px] sm:min-w-[65px] text-right sm:text-left">
-                                    លោក
-                                </span>
-                                <span className="font-khmer-moul text-xs sm:text-sm md:text-base text-gold-gradient text-gold-embossed font-bold">
-                                    {groomFather || "...................................."}
-                                </span>
+                        {(groomFather?.trim() || groomMother?.trim()) && (
+                            <div className="space-y-2.5 flex flex-col items-center sm:items-start rounded-2xl border border-[#D4AF37]/25 bg-[#FAF7F0] px-4 py-4 shadow-[0_10px_24px_rgba(0,0,0,0.02)]">
+                                {groomFather?.trim() && (
+                                    <div className="flex items-center gap-2 sm:gap-3 w-full justify-center sm:justify-start">
+                                        <span className="font-khmer-moul text-[11px] sm:text-xs text-gold-gradient min-w-[55px] sm:min-w-[65px] text-right sm:text-left">ឪពុក</span>
+                                        <span className="font-khmer-moul text-xs sm:text-sm md:text-base text-gold-gradient text-gold-embossed font-bold">{groomFather.trim()}</span>
+                                    </div>
+                                )}
+                                {groomMother?.trim() && (
+                                    <div className="flex items-center gap-2 sm:gap-3 w-full justify-center sm:justify-start">
+                                        <span className="font-khmer-moul text-[11px] sm:text-xs text-gold-gradient min-w-[55px] sm:min-w-[65px] text-right sm:text-left">ម្ដាយ</span>
+                                        <span className="font-khmer-moul text-xs sm:text-sm md:text-base text-gold-gradient text-gold-embossed font-bold">{groomMother.trim()}</span>
+                                    </div>
+                                )}
                             </div>
-                            <div className="flex items-center gap-2 sm:gap-3 w-full justify-center sm:justify-start">
-                                <span className="font-khmer-moul text-[11px] sm:text-xs text-gold-gradient min-w-[55px] sm:min-w-[65px] text-right sm:text-left">
-                                    លោកស្រី
-                                </span>
-                                <span className="font-khmer-moul text-xs sm:text-sm md:text-base text-gold-gradient text-gold-embossed font-bold">
-                                    {groomMother || "...................................."}
-                                </span>
-                            </div>
-                        </div>
+                        )}
 
                         {/* Bride Parents */}
-                        <div className="space-y-2.5 flex flex-col items-center sm:items-end">
-                            <div className="flex items-center gap-2 sm:gap-3 w-full justify-center sm:justify-end">
-                                <span className="font-khmer-moul text-[11px] sm:text-xs text-gold-gradient min-w-[55px] sm:min-w-[65px] text-right">
-                                    លោក
-                                </span>
-                                <span className="font-khmer-moul text-xs sm:text-sm md:text-base text-gold-gradient text-gold-embossed font-bold">
-                                    {brideFather || "...................................."}
-                                </span>
+                        {(brideFather?.trim() || brideMother?.trim()) && (
+                            <div className={`space-y-2.5 flex flex-col items-center sm:items-end rounded-2xl border border-[#D4AF37]/25 bg-[#FAF7F0] px-4 py-4 shadow-[0_10px_24px_rgba(0,0,0,0.02)] ${!groomFather?.trim() && !groomMother?.trim() ? "col-start-2" : ""}`}>
+                                {brideFather?.trim() && (
+                                    <div className="flex items-center gap-2 sm:gap-3 w-full justify-center sm:justify-end">
+                                        <span className="font-khmer-moul text-[11px] sm:text-xs text-gold-gradient min-w-[55px] sm:min-w-[65px] text-right">ឪពុក</span>
+                                        <span className="font-khmer-moul text-xs sm:text-sm md:text-base text-gold-gradient text-gold-embossed font-bold">{brideFather.trim()}</span>
+                                    </div>
+                                )}
+                                {brideMother?.trim() && (
+                                    <div className="flex items-center gap-2 sm:gap-3 w-full justify-center sm:justify-end">
+                                        <span className="font-khmer-moul text-[11px] sm:text-xs text-gold-gradient min-w-[55px] sm:min-w-[65px] text-right">ម្ដាយ</span>
+                                        <span className="font-khmer-moul text-xs sm:text-sm md:text-base text-gold-gradient text-gold-embossed font-bold">{brideMother.trim()}</span>
+                                    </div>
+                                )}
                             </div>
-                            <div className="flex items-center gap-2 sm:gap-3 w-full justify-center sm:justify-end">
-                                <span className="font-khmer-moul text-[11px] sm:text-xs text-gold-gradient min-w-[55px] sm:min-w-[65px] text-right">
-                                    លោកស្រី
-                                </span>
-                                <span className="font-khmer-moul text-xs sm:text-sm md:text-base text-gold-gradient text-gold-embossed font-bold">
-                                    {brideMother || "...................................."}
-                                </span>
-                            </div>
-                        </div>
+                        )}
                     </div>
+                    )}
 
                     {/* 3. Honorific Greeting & Invitation Text */}
                     <div className="space-y-4 max-w-2xl mx-auto my-8 md:my-12">
@@ -128,7 +126,20 @@ export function KhmerInvitation({
                     </div>
 
                     {/* 4. Couple Official Names (កូនប្រុសនាម ... ជាគូនឹង ... កូនស្រីនាម) */}
-                    <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-6 max-w-2xl mx-auto py-6 my-4 border-y border-[#D4AF37]/25">
+                    {wedding.themeSettings?.customMonogramUrl ? (
+                        <div className="flex justify-center items-center max-w-2xl mx-auto py-8 my-4 border-y border-[#D4AF37]/25">
+                            <img 
+                                src={wedding.themeSettings.customMonogramUrl} 
+                                alt={`${wedding.groomName} and ${wedding.brideName}`} 
+                                className="h-16 sm:h-20 md:h-24 w-auto object-contain"
+                                style={{ 
+                                    transform: `scale(${(wedding.themeSettings.customMonogramScale || 100) / 100}) translateY(${wedding.themeSettings.customMonogramY || 0}px)`,
+                                    filter: `drop-shadow(${wedding.themeSettings.customMonogramDropShadow || '0px 2px 4px rgba(0,0,0,0.5)'})` 
+                                }}
+                            />
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-6 max-w-2xl mx-auto py-6 my-4 border-y border-[#D4AF37]/25">
                         {/* Groom */}
                         <div className="flex flex-col items-center text-center space-y-1">
                             <span className="font-kantumruy text-[11px] sm:text-xs text-[#805C00] font-bold">
@@ -156,6 +167,7 @@ export function KhmerInvitation({
                             </h3>
                         </div>
                     </div>
+                )}
 
                     {/* 5. Reception Details (ដែលនឹងពិសាភោជនាហារនៅ...) */}
                     <div className="space-y-3 pt-6 max-w-2xl mx-auto">
@@ -169,8 +181,9 @@ export function KhmerInvitation({
                                     {wedding.themeSettings.lunarDate} ត្រូវនឹង
                                 </p>
                             )}
-                            <p>
-                                {formattedKhmerDate} {wedding.time ? `វេលាម៉ោង ${wedding.time}` : "វេលាម៉ោង ៤:០០ រសៀល"} ស្ថិតនៅ
+                            <p className="break-words whitespace-normal leading-relaxed">
+                                {formattedKhmerDate}<br />
+                                {wedding.time ? `វេលាម៉ោង ${wedding.time}` : "វេលាម៉ោង ៤:០០ រសៀល"} ស្ថិតនៅ
                             </p>
                             <p className="font-medium text-slate-800">
                                 {wedding.location || "គេហដ្ឋានខាងស្រី"} {wedding.themeSettings?.customLabels?.receptionClosing || "ដោយមេត្រីភាព។"}

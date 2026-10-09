@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { prisma } from '@/lib/prisma'
 import { Pool } from '@neondatabase/serverless'
 import { PrismaNeon } from '@prisma/adapter-neon'
 import { PrismaClient } from '@prisma/client'
@@ -34,6 +35,7 @@ import { cors } from 'hono/cors'
 
 // Export the root hono app
 const app = new Hono().basePath('/api')
+const workerStartedAt = Date.now()
 
 // Configure CORS for cross-origin requests (Cloudflare Pages <-> Cloudflare Worker)
 app.use('*', cors({
@@ -77,20 +79,17 @@ app.use('*', cors({
     'Origin',
     'X-Requested-With',
   ],
-  exposeHeaders: ['Content-Length', 'X-CSRF-Token', 'sentry-trace', 'baggage'],
+  exposeHeaders: ['Content-Length', 'X-CSRF-Token', 'Server-Timing', 'sentry-trace', 'baggage'],
   maxAge: 86400,
   credentials: true,
 }))
 
-let _cachedWorkerPrisma: PrismaClient | null = null;
-
-function getWorkerPrisma(connectionString: string): PrismaClient {
-  if (!_cachedWorkerPrisma) {
-    const pool = new Pool({ connectionString });
-    const adapter = new PrismaNeon(pool);
-    _cachedWorkerPrisma = new PrismaClient({ adapter, log: [] });
-  }
-  return _cachedWorkerPrisma;
+// Cloudflare Workers: Pool must be created per-request (I/O objects are request-scoped).
+// We create a fresh Pool + adapter each request, but reuse the same PrismaClient constructor.
+function createWorkerPrisma(connectionString: string): PrismaClient {
+  const pool = new Pool({ connectionString });
+  const adapter = new PrismaNeon(pool);
+  return new PrismaClient({ adapter, log: [] });
 }
 
 // Polyfill process.env and provide optimized cached PrismaClient for Cloudflare Workers
@@ -102,7 +101,8 @@ app.use('*', async (c, next) => {
   Object.assign((globalThis as any).process.env, env);
 
   const dbUrl = (env.DATABASE_URL || process.env.DATABASE_URL) as string;
-  const prismaClient = dbUrl ? getWorkerPrisma(dbUrl) : null;
+  // Create a fresh Prisma client per request to avoid Cloudflare's cross-request I/O restriction
+  const prismaClient = dbUrl ? createWorkerPrisma(dbUrl) : null;
 
   await requestStorage.run(c.req.raw, async () => {
     if (prismaClient) {
@@ -115,9 +115,41 @@ app.use('*', async (c, next) => {
   });
 });
 
+app.use('*', async (c, next) => {
+  const startedAt = performance.now();
+  await next();
+  const existing = c.res.headers.get('Server-Timing');
+  const workerTiming = `worker;dur=${(performance.now() - startedAt).toFixed(1)}`;
+  c.header('Server-Timing', existing ? `${existing}, ${workerTiming}` : workerTiming);
+});
+
 // Basic health check endpoint
 app.get('/health', (c) => {
   return c.json({ status: 'ok', timestamp: new Date().toISOString() })
+})
+
+app.get('/healthz', async (c) => {
+  c.header('Cache-Control', 'no-store')
+  c.header('CDN-Cache-Control', 'no-store')
+
+  try {
+    await prisma.$queryRaw`SELECT 1`
+    return c.json({
+      status: 'ok',
+      database: 'ok',
+      uptime: Math.floor((Date.now() - workerStartedAt) / 1000),
+    })
+  } catch (error) {
+    console.error(
+      '[Health Check] Database connectivity check failed:',
+      error instanceof Error ? error.name : typeof error,
+    )
+    return c.json({
+      status: 'error',
+      database: 'unavailable',
+      uptime: Math.floor((Date.now() - workerStartedAt) / 1000),
+    }, 503)
+  }
 })
 
 // Mount routers

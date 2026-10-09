@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useState, Suspense, useEffect } from "react";
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { useSearchParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { KeyRound, ArrowLeft, Loader2, CheckCircle2, Eye, EyeOff } from "lucide-react";
 import { m, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
@@ -18,14 +18,18 @@ import { Input } from "@/components/ui/input";
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { AUTH_URLS } from "@/lib/constants";
-import { LanguageToggle } from "@/components/LanguageToggle";
 import { moneaClient } from "@/lib/api-client";
 
 function ResetPasswordForm() {
     const { t } = useTranslation();
     const router = useNavigate();
+    const location = useLocation();
     const [searchParams] = useSearchParams();
     const token = searchParams.get("token");
+    const email = typeof location.state === "object" && location.state !== null &&
+        "email" in location.state && typeof location.state.email === "string"
+        ? location.state.email
+        : "";
 
     const [error, setError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
@@ -62,6 +66,7 @@ function ResetPasswordForm() {
         try {
             const res = await moneaClient.post<{ message?: string }>("/api/auth/reset-password", {
                 token,
+                email,
                 newPassword: values.password,
             });
 
@@ -113,10 +118,10 @@ function ResetPasswordForm() {
                                 <FormItem>
                                     <FormLabel className="text-white/80 text-xs uppercase tracking-wider font-bold ml-1">{t('common.auth.newPassword') || "New Password"}</FormLabel>
                                     <div className="relative group">
-                                        <div className="absolute left-3 top-3 text-white/40 group-focus-within:text-pink-400 transition-colors">
+                                        <div className="absolute left-3 top-3 text-white/40 group-focus-within:text-teal-300 transition-colors">
                                             <KeyRound className="w-5 h-5" />
                                         </div>
-                                        <Input type={showPassword ? "text" : "password"} placeholder="••••••••" className="pl-10 pr-10 bg-white/5 border-white/10 text-white rounded-xl focus:border-pink-500/50 h-11" {...field} />
+                                        <Input type={showPassword ? "text" : "password"} placeholder="••••••••" className="pl-10 pr-10 bg-white/5 border-white/10 text-white rounded-xl focus:border-teal-500/50 h-11" {...field} />
                                         <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-3 text-white/40 hover:text-white transition-colors">
                                             {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                         </button>
@@ -133,10 +138,10 @@ function ResetPasswordForm() {
                                 <FormItem>
                                     <FormLabel className="text-white/80 text-xs uppercase tracking-wider font-bold ml-1">{t('common.auth.confirmNewPassword') || "Confirm New Password"}</FormLabel>
                                     <div className="relative group">
-                                        <div className="absolute left-3 top-3 text-white/40 group-focus-within:text-pink-400 transition-colors">
+                                        <div className="absolute left-3 top-3 text-white/40 group-focus-within:text-teal-300 transition-colors">
                                             <KeyRound className="w-5 h-5" />
                                         </div>
-                                        <Input type={showConfirmPassword ? "text" : "password"} placeholder="••••••••" className="pl-10 pr-10 bg-white/5 border-white/10 text-white rounded-xl focus:border-pink-500/50 h-11" {...field} />
+                                        <Input type={showConfirmPassword ? "text" : "password"} placeholder="••••••••" className="pl-10 pr-10 bg-white/5 border-white/10 text-white rounded-xl focus:border-teal-500/50 h-11" {...field} />
                                         <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-3 text-white/40 hover:text-white transition-colors">
                                             {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                         </button>
@@ -159,7 +164,7 @@ function ResetPasswordForm() {
                             )}
                         </AnimatePresence>
 
-                        <Button type="submit" disabled={isLoading || !!error} className="w-full bg-gradient-to-r from-pink-500 to-rose-600 rounded-xl font-bold uppercase tracking-wide h-11 border border-white/10 hover:shadow-lg hover:shadow-pink-500/20 transition-all mt-6 text-white text-sm">
+                        <Button type="submit" disabled={isLoading || !!error} className="w-full bg-gradient-to-r from-teal-600 to-teal-700 rounded-xl font-bold uppercase tracking-wide h-11 border border-white/10 hover:shadow-lg hover:shadow-teal-500/20 transition-all mt-6 text-white text-sm">
                             {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (t('common.auth.resetButton') || "Reset Password")}
                         </Button>
                     </form>
@@ -185,10 +190,6 @@ export default function ResetPasswordPage() {
                     style={{ backgroundPosition: 'center 40%' }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/60 backdrop-blur-[2px]"></div>
-            </div>
-
-            <div className="absolute top-4 right-4 md:top-6 md:right-8 z-50">
-                <LanguageToggle className="bg-white/10 text-white hover:bg-white/20 hover:text-white border border-white/20 backdrop-blur-md" />
             </div>
 
             {/* Content Container */}

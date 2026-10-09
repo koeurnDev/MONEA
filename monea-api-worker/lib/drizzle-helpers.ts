@@ -4,9 +4,13 @@
  * Common query patterns and utilities
  */
 
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { eq, desc, sql } from 'drizzle-orm';
 import { getDb } from './drizzle';
-import { weddings, guests, activities, galleryItems, users } from '../drizzle/schema';
+import { guests, activities, galleryItems, users } from '../drizzle/schema';
+import {
+  getUserWedding as getUserWeddingRaw,
+  getWeddingById as getWeddingByIdRaw,
+} from './db-raw';
 
 /**
  * Generate CUID-like ID (compatible with Prisma)
@@ -21,16 +25,7 @@ export function generateId(): string {
  * Get user's wedding
  */
 export async function getUserWedding(userId: string, env?: any) {
-  const db = getDb(env);
-  
-  const result = await db
-    .select()
-    .from(weddings)
-    .where(eq(weddings.userId, userId))
-    .orderBy(desc(weddings.createdAt))
-    .limit(1);
-  
-  return result[0] || null;
+  return getUserWeddingRaw(userId, env);
 }
 
 /**
@@ -67,15 +62,7 @@ export async function getUserWeddingFull(userId: string, env?: any) {
  * Get wedding by ID
  */
 export async function getWeddingById(weddingId: string, env?: any) {
-  const db = getDb(env);
-  
-  const result = await db
-    .select()
-    .from(weddings)
-    .where(eq(weddings.id, weddingId))
-    .limit(1);
-  
-  return result[0] || null;
+  return getWeddingByIdRaw(weddingId, env);
 }
 
 /**

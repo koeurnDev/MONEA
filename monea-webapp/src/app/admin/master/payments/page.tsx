@@ -79,7 +79,7 @@ export default function MasterPaymentsPage() {
         loadData();
     }, [loadData]);
 
-    const handleUpdatePayment = async (weddingId: string, status: 'PAID' | 'REJECTED' | 'PENDING', packageType?: string) => {
+    const handleUpdatePayment = async (weddingId: string, status: 'PAID' | 'REJECTED', packageType?: string) => {
         setProcessing(weddingId);
         try {
             const res = await moneaClient.post("/api/admin/master/payments", { 
@@ -101,8 +101,9 @@ export default function MasterPaymentsPage() {
                         return {
                             ...w,
                             paymentStatus: status,
-                            packageType: packageType || w.packageType,
-                            status: status === 'PAID' ? 'ACTIVE' : w.status
+                            packageType: status === 'REJECTED' ? 'FREE' : (packageType || w.packageType),
+                            status: 'ACTIVE',
+                            paymentInfo: status === 'REJECTED' ? null : w.paymentInfo
                         };
                     }
                     return w;
@@ -145,7 +146,7 @@ export default function MasterPaymentsPage() {
                             </Button>
                         </Link>
                         <div>
-                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-teal-800 dark:text-teal-300">
                                 <ShieldCheck size={13} />
                                 <span>Verification Hub</span>
                             </div>
@@ -202,7 +203,7 @@ export default function MasterPaymentsPage() {
                                 <p className="text-xs font-bold text-muted-foreground">{isKm ? "ចំណូលសរុប (USD)" : "Estimated Revenue"}</p>
                                 <h3 className="text-2xl font-black text-foreground mt-1">${totalRevenue.toFixed(2)}</h3>
                             </div>
-                            <div className="w-12 h-12 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center font-bold">
+                            <div className="w-12 h-12 rounded-xl bg-teal-600/10 text-teal-800 dark:text-teal-300 flex items-center justify-center font-bold">
                                 <DollarSign size={24} />
                             </div>
                         </CardContent>
@@ -246,7 +247,7 @@ export default function MasterPaymentsPage() {
                 {/* Main List */}
                 {loading && weddings.length === 0 ? (
                     <div className="py-24 flex flex-col items-center justify-center space-y-3">
-                        <Loader2 className="w-8 h-8 animate-spin text-rose-600" />
+                        <Loader2 className="w-8 h-8 animate-spin text-teal-700 dark:text-teal-300" />
                         <p className="text-xs font-bold text-muted-foreground">{isKm ? "កំពុងទាញយកទិន្នន័យ..." : "Loading requests..."}</p>
                     </div>
                 ) : displayedWeddings.length === 0 ? (
@@ -321,7 +322,7 @@ export default function MasterPaymentsPage() {
                                                         {/* Couple Name */}
                                                         <div>
                                                             <h3 className="text-lg font-bold text-foreground">
-                                                                {w.groomName} <span className="text-rose-500">&</span> {w.brideName}
+                                                                {w.groomName} <span className="text-teal-700 dark:text-teal-300">&</span> {w.brideName}
                                                             </h3>
                                                             <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mt-1">
                                                                 <span className="flex items-center gap-1">
@@ -358,7 +359,7 @@ export default function MasterPaymentsPage() {
                                                                     date: new Date(w.createdAt).toLocaleString('km-KH', { timeZone: 'Asia/Phnom_Penh' }),
                                                                     ref: w.paymentHash || w.id
                                                                 })}
-                                                                className="relative group/slip cursor-pointer w-24 h-24 rounded-xl border-2 border-rose-500/30 overflow-hidden bg-muted hover:border-rose-500 transition-all shadow-xs"
+                                                                className="relative group/slip cursor-pointer w-24 h-24 rounded-xl border-2 border-teal-600/30 overflow-hidden bg-muted hover:border-teal-600 transition-all shadow-xs"
                                                             >
                                                                 <img 
                                                                     src={w.paymentInfo} 
@@ -403,7 +404,7 @@ export default function MasterPaymentsPage() {
                                                                     onClick={() => handleUpdatePayment(w.id, 'REJECTED')}
                                                                     disabled={processing === w.id}
                                                                     variant="outline"
-                                                                    className="h-10 px-4 border-rose-200 dark:border-rose-900/50 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl font-bold text-xs flex items-center gap-1.5"
+                                                                    className="h-10 px-4 border-teal-600/25 text-teal-800 dark:text-teal-300 hover:bg-teal-600/10 rounded-xl font-bold text-xs flex items-center gap-1.5"
                                                                 >
                                                                     <X size={15} />
                                                                     <span>បដិសេធ (Reject)</span>
@@ -428,7 +429,7 @@ export default function MasterPaymentsPage() {
                                                                     disabled={processing === w.id}
                                                                     size="sm"
                                                                     variant="ghost"
-                                                                    className="h-9 px-3 text-muted-foreground hover:text-rose-600 rounded-xl font-bold text-xs"
+                                                                    className="h-9 px-3 text-muted-foreground hover:text-teal-800 dark:hover:text-teal-300 rounded-xl font-bold text-xs"
                                                                 >
                                                                     ដកសិទ្ធិ
                                                                 </Button>

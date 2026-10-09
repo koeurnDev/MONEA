@@ -21,6 +21,7 @@ interface Step4MediaProps {
     setIsDraggingGallery: (val: boolean) => void;
     TEMPLATE_LAYOUTS: Record<string, { slots: number, labels: string[] }>;
     updateGalleryOrder: (items: any[]) => void;
+    onUploadingChange: (uploading: boolean) => void;
 }
 
 const Step4Media: React.FC<Step4MediaProps> = ({
@@ -35,7 +36,8 @@ const Step4Media: React.FC<Step4MediaProps> = ({
     isDraggingGallery,
     setIsDraggingGallery,
     TEMPLATE_LAYOUTS,
-    updateGalleryOrder
+    updateGalleryOrder,
+    onUploadingChange
 }) => {
     const { t } = useTranslation();
     const isAnniv = wedding.eventType === 'anniversary';
@@ -43,6 +45,7 @@ const Step4Media: React.FC<Step4MediaProps> = ({
     const [activeSlotIdx, setActiveSlotIdx] = React.useState<number | null>(null);
     const [isCropModalOpen, setIsCropModalOpen] = React.useState(false);
     const [selectedFileUrl, setSelectedFileUrl] = React.useState<string | null>(null);
+    const [showExtraMedia, setShowExtraMedia] = React.useState(false);
     const slotInputRef = React.useRef<HTMLInputElement>(null);
     const generalInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -61,6 +64,11 @@ const Step4Media: React.FC<Step4MediaProps> = ({
         onError: (err) => console.error("Slot upload error:", err),
         folder: wedding.id
     });
+    React.useEffect(() => {
+        onUploadingChange(slotUploading || galleryUploading);
+    }, [galleryUploading, onUploadingChange, slotUploading]);
+
+    React.useEffect(() => () => onUploadingChange(false), [onUploadingChange]);
 
     const getSlotAspectRatio = (idx: number) => {
         const horizontalSlots = [1, 4, 5];
@@ -71,7 +79,22 @@ const Step4Media: React.FC<Step4MediaProps> = ({
     };
 
     return (
-        <div className="space-y-8 font-kantumruy">
+        <div className="space-y-5 sm:space-y-8 font-kantumruy">
+            <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-4 shadow-sm dark:border-white/10 dark:bg-white/[0.02]">
+                <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-sm font-black text-foreground">រូបភាពលើធៀប</h3>
+                    <span className="rounded-full bg-slate-500/10 px-2 py-0.5 text-[10px] font-bold text-muted-foreground">អាចរំលងបាន</span>
+                </div>
+                {(slotUploading || galleryUploading) && (
+                    <p role="status" className="rounded-xl border border-amber-300/70 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+                        កំពុងបង្ហោះរូបភាព។ សូមរង់ចាំរហូតដល់ការបង្ហោះចប់ មុនពេលរក្សាទុក។
+                    </p>
+                )}
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                    ដាក់រូបនៅទីនេះ ហើយជ្រើសលាក់ ឬបង្ហាញរូបនីមួយៗតាមចិត្ត។
+                </p>
+            </div>
+
             <input 
                 type="file" 
                 accept="image/*" 
@@ -111,11 +134,24 @@ const Step4Media: React.FC<Step4MediaProps> = ({
                 setActiveSlotIdx={setActiveSlotIdx} 
                 slotInputRef={slotInputRef} 
                 removeGalleryItem={removeGalleryItem} 
+                updateTheme={updateTheme}
                 slotUploading={slotUploading} 
                 slotProgress={slotProgress} 
                 activeSlotIdx={activeSlotIdx} 
                 t={t} 
             />
+
+            <button
+                type="button"
+                onClick={() => setShowExtraMedia((value) => !value)}
+                aria-expanded={showExtraMedia}
+                className="flex w-full items-center justify-between rounded-2xl border border-slate-200/80 bg-slate-50/70 px-4 py-3 text-left dark:border-white/10 dark:bg-white/[0.02]"
+            >
+                <span className="font-kantumruy text-xs font-bold text-foreground">រូបថតបន្ថែម តន្ត្រី និងវីដេអូ (ស្រេចចិត្ត)</span>
+                <span className={`text-muted-foreground transition-transform ${showExtraMedia ? "rotate-180" : ""}`}>⌄</span>
+            </button>
+
+            {showExtraMedia && <>
 
             {/* General Multi-Photo Album Section */}
             <GeneralGallerySection 
@@ -141,6 +177,7 @@ const Step4Media: React.FC<Step4MediaProps> = ({
                 removeThemeAsset={removeThemeAsset} 
                 t={t} 
             />
+            </>}
 
             <ImageCropperModal
                 isOpen={isCropModalOpen}

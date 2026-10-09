@@ -65,19 +65,19 @@ export function Pricing() {
                             className={cn(
                                 "relative p-8 md:p-10 rounded-[2.5rem] flex flex-col items-start justify-between min-h-0 md:min-h-[600px] transition-all duration-700 group hover:-translate-y-3",
                                 plan.highlight 
-                                    ? "bg-white dark:bg-white/[0.08] border border-rose-200 dark:border-rose-500/30 shadow-xl shadow-rose-900/5 dark:shadow-rose-900/20 backdrop-blur-xl" 
+                                    ? "bg-white dark:bg-white/[0.08] border border-teal-200 dark:border-teal-500/30 shadow-xl shadow-teal-900/5 dark:shadow-teal-900/20 backdrop-blur-xl"
                                     : "bg-white/60 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 shadow-sm backdrop-blur-xl hover:shadow-2xl hover:bg-white dark:hover:bg-white/10"
                             )}
                         >
                             {plan.highlight && (
-                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-[10px] uppercase tracking-widest font-bold px-6 py-2 rounded-full shadow-lg shadow-pink-500/20 z-20 border border-white/20 whitespace-nowrap">
+                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-teal-700 to-teal-500 text-white text-[10px] uppercase tracking-widest font-bold px-6 py-2 rounded-full shadow-lg shadow-teal-500/20 z-20 border border-white/20 whitespace-nowrap">
                                     {t("pricing.proHighlight")}
                                 </div>
                             )}
                             
                             {/* Glow for highlighted plan */}
                             {plan.highlight && (
-                                <div className="absolute inset-0 bg-gradient-to-b from-rose-500/5 to-transparent rounded-[2.5rem] pointer-events-none" />
+                                <div className="absolute inset-0 bg-gradient-to-b from-teal-500/5 to-transparent rounded-[2.5rem] pointer-events-none" />
                             )}
                             
                             <div className="w-full relative z-10">
@@ -85,7 +85,7 @@ export function Pricing() {
                                 <div className="flex items-baseline gap-1.5 mb-8">
                                     <span className={cn(
                                         "text-6xl font-bold font-mono tracking-tighter transition-transform group-hover:scale-105 duration-500",
-                                        plan.highlight ? "text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-600 dark:from-pink-400 dark:to-rose-400" : "text-slate-900 dark:text-white"
+                                        plan.highlight ? "text-transparent bg-clip-text bg-gradient-to-r from-teal-700 to-teal-500 dark:from-teal-300 dark:to-teal-200" : "text-slate-900 dark:text-white"
                                     )}>{plan.price}</span>
                                     <span className="text-slate-400 dark:text-white/40 text-xs font-bold uppercase tracking-wider">/{t("pricing.priceSuffix")}</span>
                                 </div>
@@ -96,7 +96,7 @@ export function Pricing() {
                                             <div className={cn(
                                                 "w-6 h-6 rounded-full flex items-center justify-center transition-colors shadow-sm shrink-0 mt-0.5",
                                                 plan.highlight 
-                                                    ? "bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400" 
+                                                    ? "bg-teal-100 dark:bg-teal-500/20 text-teal-800 dark:text-teal-300"
                                                     : "bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-white/60"
                                             )}>
                                                 <Check size={14} className="stroke-[2.5]" />
@@ -109,7 +109,7 @@ export function Pricing() {
                             
                             {plan.highlight ? (
                                 <div className="w-full relative mt-10 md:mt-12 z-10 group/btn">
-                                    <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-pink-500 via-rose-600 to-pink-500 rounded-2xl opacity-100 transition-opacity duration-500 animate-gradient-x shadow-lg shadow-pink-500/30" />
+                                    <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-teal-700 via-teal-600 to-teal-500 rounded-2xl opacity-100 transition-opacity duration-500 animate-gradient-x shadow-lg shadow-teal-700/30" />
                                     <Button className="w-full py-6 md:py-8 text-base md:text-lg font-bold font-kantumruy bg-transparent hover:bg-transparent text-white rounded-2xl transition-all hover:scale-[1.02] active:scale-95 relative z-10 border border-white/20">
                                         {t("pricing.cta")}
                                     </Button>

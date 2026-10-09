@@ -5,17 +5,107 @@ import { ROLES } from "@/lib/constants"
 import { SystemGovernance, GOVERNANCE_ACTIONS } from "@/lib/governance"
 import redis from "@/lib/redis"
 import { v2 as cloudinary } from 'cloudinary'
-import { cloudinaryDelete } from '@/lib/cloudinary-edge'
+import { z } from "zod";
 
-cloudinary.config({
-    cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || process.env.VITE_CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME || "dilx4i5s4",
-    api_key: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY || process.env.VITE_CLOUDINARY_API_KEY || process.env.CLOUDINARY_API_KEY || "678179776217443",
-    api_secret: process.env.CLOUDINARY_API_SECRET || "FC0GYeRsfbJFCLw4g6_ExOfXdVs",
-});
+const BACKUP_PAGE_SIZE = 250;
+
+async function* streamJsonArray<T extends { id: string }>(
+    loadPage: (cursor?: string) => Promise<T[]>,
+): AsyncGenerator<string> {
+    yield "[";
+    let cursor: string | undefined;
+    let first = true;
+
+    while (true) {
+        const rows = await loadPage(cursor);
+        for (const row of rows) {
+            if (!first) yield ",";
+            const serialized = JSON.stringify(row);
+            if (serialized === undefined) throw new Error("Backup row could not be serialized");
+            yield serialized;
+            first = false;
+        }
+
+        if (rows.length < BACKUP_PAGE_SIZE) break;
+        cursor = rows[rows.length - 1].id;
+    }
+
+    yield "]";
+}
+
+function streamJson(chunks: AsyncIterable<string>): ReadableStream<Uint8Array> {
+    const iterator = chunks[Symbol.asyncIterator]();
+    const encoder = new TextEncoder();
+
+    return new ReadableStream({
+        async pull(controller) {
+            try {
+                const { done, value } = await iterator.next();
+                if (done) {
+                    controller.close();
+                    return;
+                }
+                controller.enqueue(encoder.encode(value));
+            } catch (error) {
+                console.error("[Backup] Stream failed:", error instanceof Error ? error.message : error);
+                controller.error(error);
+            }
+        },
+        async cancel() {
+            await iterator.return?.();
+        },
+    });
+}
+
+/**
+ * Resolves Cloudinary credentials from the environment.
+ *
+ * SECURITY: production credentials were previously hard-coded here as fallbacks
+ * and ended up in a public repository. Never reintroduce a literal fallback —
+ * fail loudly instead. Keep in sync with
+ * monea-api-worker/routers/adminMaster.ts.
+ */
+function resolveCloudinaryCredentials() {
+    const cloudName =
+        process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ||
+        process.env.VITE_CLOUDINARY_CLOUD_NAME ||
+        process.env.CLOUDINARY_CLOUD_NAME;
+    const apiKey =
+        process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY ||
+        process.env.VITE_CLOUDINARY_API_KEY ||
+        process.env.CLOUDINARY_API_KEY;
+    const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+    if (!cloudName || !apiKey || !apiSecret) {
+        throw new Error(
+            "[Config] Missing Cloudinary credentials. Set NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME, " +
+            "NEXT_PUBLIC_CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET."
+        );
+    }
+
+    return { cloudName, apiKey, apiSecret };
+}
+
+try {
+    const { cloudName, apiKey, apiSecret } = resolveCloudinaryCredentials();
+    cloudinary.config({ cloud_name: cloudName, api_key: apiKey, api_secret: apiSecret });
+} catch (error: any) {
+    console.error("[Cloudinary] SDK not configured:", error?.message || error);
+}
 
 const adminMasterRouter = new Hono()
 
-const isAuthorizedMaster = (user: any) => user && (user.role === ROLES.PLATFORM_OWNER || user.role === 'ADMIN' || user.role === 'SUPERADMIN');
+/**
+ * Platform master panel access — platform owner only.
+ *
+ * SECURITY (C-04): this previously also accepted the literal "ADMIN" role, which
+ * is `ROLES.EVENT_MANAGER`, i.e. the default role of every self-registered
+ * customer (`User.role @default(ADMIN)`). Any customer could therefore reach the
+ * platform master API (cross-tenant directories, broadcasts, media maintenance,
+ * database backup/restore). Keep this guard in sync with
+ * monea-api-worker/routers/adminMaster.ts.
+ */
+const isAuthorizedMaster = (user: any) => Boolean(user && user.role === ROLES.PLATFORM_OWNER);
 
 function escapeCSV(val: any) {
     if (val === null || val === undefined) return "";
@@ -717,7 +807,8 @@ adminMasterRouter.get('/payments', async (c) => {
                 json_build_object('name', u.name, 'email', u.email) as user
             FROM "Wedding" w
             LEFT JOIN "User" u ON w."userId" = u.id
-            WHERE w."packageType" != 'FREE' AND (w."paymentStatus"::text != 'NONE' OR w."paymentInfo" IS NOT NULL)
+            WHERE (w."packageType" != 'FREE' OR w."paymentStatus"::text = 'REJECTED')
+              AND (w."paymentStatus"::text != 'NONE' OR w."paymentInfo" IS NOT NULL)
             ORDER BY 
                 CASE 
                     WHEN w."paymentStatus"::text = 'AWAITING_VERIFICATION' THEN 1
@@ -745,48 +836,63 @@ adminMasterRouter.post('/payments', async (c) => {
             return c.json({ error: "Unauthorized" }, 401);
         }
 
-        const body = await c.req.json();
-        const { weddingId, status, packageType } = body;
-
-        if (!weddingId || !status) {
-            return c.json({ error: "Missing required fields" }, 400);
-        }
+        const parsed = z.object({
+            weddingId: z.string().min(1),
+            status: z.enum(["PAID", "REJECTED"]),
+            packageType: z.enum(["PRO", "PREMIUM"]).optional(),
+        }).safeParse(await c.req.json());
+        if (!parsed.success) return c.json({ error: "Invalid payment review request" }, 400);
+        const { weddingId, status, packageType } = parsed.data;
 
         // 1. Fetch current wedding to inspect receipt image
         const currentWeddings = await queryRaw('SELECT * FROM "Wedding" WHERE id = $1 LIMIT 1', weddingId);
         const currentWedding = currentWeddings[0];
-
-        // 2. If rejecting, automatically delete the receipt image from Cloudinary to free storage and protect privacy
-        if (status === 'REJECTED' && currentWedding?.paymentInfo) {
-            try {
-                const rawInfo = String(currentWedding.paymentInfo);
-                if (rawInfo.includes("cloudinary.com") || rawInfo.includes("/")) {
-                    const cleanUrl = rawInfo.split('?')[0];
-                    const parts = cleanUrl.split('/');
-                    const filenameWithExt = parts[parts.length - 1];
-                    const filename = filenameWithExt.split('.')[0];
-                    const folder = parts[parts.length - 2];
-                    const publicId = `${folder}/${filename}`;
-                    await cloudinaryDelete(publicId, 'image').catch((e) => console.warn("[Cloudinary Delete Catch]", e));
-                }
-            } catch (err) {
-                console.warn("[Cloudinary Auto-Delete Error]", err);
-            }
+        if (!currentWedding) return c.json({ error: "Wedding not found" }, 404);
+        if (!["PENDING", "AWAITING_VERIFICATION", "PAID"].includes(currentWedding.paymentStatus)) {
+            return c.json({ error: "Payment request is no longer available for review" }, 409);
+        }
+        const approvedPackage = packageType || currentWedding.packageType;
+        if (status === "PAID" && !["PRO", "PREMIUM"].includes(approvedPackage)) {
+            return c.json({ error: "Wedding does not have a valid upgrade package to approve" }, 409);
         }
 
         let retries = 3;
         const weddingStatus = 'ACTIVE';
-        const finalPackage = status === 'PAID' ? (packageType || 'PRO') : 'FREE';
-        const finalPaymentStatus = status === 'PAID' ? 'PAID' : 'FAILED';
-        const finalPaymentInfo = status === 'REJECTED' ? null : currentWedding?.paymentInfo;
+        const finalPackage = status === 'PAID' ? approvedPackage : 'FREE';
+        const finalPaymentStatus = status;
+        const paymentRejectedAt = status === 'REJECTED' ? new Date() : null;
+        const finalPaymentInfo = currentWedding.paymentInfo;
+        const expectedUpdatedAt = currentWedding.updatedAt;
+        const receiptArchiveId = crypto.randomUUID();
+        let updated = false;
 
         while (retries > 0) {
             try {
-                await executeRaw(`
-                    UPDATE "Wedding"
-                    SET "paymentStatus" = $1, "status" = $2, "packageType" = $3, "paymentInfo" = $4
-                    WHERE "id" = $5
-                `, finalPaymentStatus, weddingStatus, finalPackage, finalPaymentInfo, weddingId);
+                const changedRows = await queryRaw<{ id: string }>(`
+                    WITH changed AS (
+                        UPDATE "Wedding"
+                        SET "paymentStatus" = $1, "status" = $2, "packageType" = $3, "paymentInfo" = $4,
+                            "paymentRejectedAt" = $5, "updatedAt" = NOW()
+                        WHERE "id" = $6
+                          AND "paymentStatus" = $7::"PaymentStatus"
+                          AND "packageType" = $8::"PackageType"
+                          AND "updatedAt" = $9
+                        RETURNING id, "paymentInfo"
+                    ),
+                    archived AS (
+                        INSERT INTO "RejectedPaymentReceipt" ("id", "weddingId", "receiptUrl", "rejectedAt")
+                        SELECT $10, id, "paymentInfo", $5
+                        FROM changed
+                        WHERE $5 IS NOT NULL
+                          AND "paymentInfo" LIKE 'https://res.cloudinary.com/%'
+                        RETURNING id
+                    )
+                    SELECT id FROM changed
+                `, finalPaymentStatus, weddingStatus, finalPackage, finalPaymentInfo, paymentRejectedAt, weddingId, currentWedding.paymentStatus, currentWedding.packageType, expectedUpdatedAt, receiptArchiveId);
+                if (changedRows.length === 0) {
+                    return c.json({ error: "Payment request changed while it was being reviewed. Refresh and try again." }, 409);
+                }
+                updated = true;
                 break;
             } catch (err: any) {
                 retries--;
@@ -794,6 +900,7 @@ adminMasterRouter.post('/payments', async (c) => {
                 await new Promise(r => setTimeout(r, 1000));
             }
         }
+        if (!updated) return c.json({ error: "Failed to update payment review" }, 500);
 
         const updatedWeddings = await queryRaw('SELECT * FROM "Wedding" WHERE id = $1 LIMIT 1', weddingId);
         const updatedWedding = updatedWeddings[0];
@@ -876,9 +983,12 @@ adminMasterRouter.get('/maintenance/tasks', async (c) => {
         let realCloudinaryObjects = 0;
         let isRealCloudinaryData = false;
 
-        const cName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || process.env.VITE_CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME || "dilx4i5s4";
-        const cKey = process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY || process.env.VITE_CLOUDINARY_API_KEY || process.env.CLOUDINARY_API_KEY || "678179776217443";
-        const cSecret = process.env.CLOUDINARY_API_SECRET || "FC0GYeRsfbJFCLw4g6_ExOfXdVs";
+        const creds = (() => {
+            try { return resolveCloudinaryCredentials(); } catch { return null; }
+        })();
+        const cName = creds?.cloudName || "";
+        const cKey = creds?.apiKey || "";
+        const cSecret = creds?.apiSecret || "";
 
         try {
             if (cName && cKey && cSecret) {
@@ -1013,9 +1123,12 @@ adminMasterRouter.get('/media/assets', async (c) => {
             return c.json({ error: "Unauthorized" }, 401);
         }
 
-        const cName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || process.env.VITE_CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME || "dilx4i5s4";
-        const cKey = process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY || process.env.VITE_CLOUDINARY_API_KEY || process.env.CLOUDINARY_API_KEY || "678179776217443";
-        const cSecret = process.env.CLOUDINARY_API_SECRET || "FC0GYeRsfbJFCLw4g6_ExOfXdVs";
+        const creds = (() => {
+            try { return resolveCloudinaryCredentials(); } catch { return null; }
+        })();
+        const cName = creds?.cloudName || "";
+        const cKey = creds?.apiKey || "";
+        const cSecret = creds?.apiSecret || "";
 
         const authHeader = 'Basic ' + btoa(`${cKey}:${cSecret}`);
         const res = await fetch(`https://api.cloudinary.com/v1_1/${cName}/resources/image?max_results=100`, {
@@ -1087,8 +1200,21 @@ adminMasterRouter.get('/maintenance/backup', async (c) => {
             return c.json({ error: "Unauthorized" }, 401);
         }
 
-        const [users, weddings, guests, gifts, config] = await Promise.all([
-            prisma.user.findMany({
+        const [userCount, weddingCount, guestCount, giftCount, config] = await Promise.all([
+            prisma.user.count(),
+            prisma.wedding.count(),
+            prisma.guest.count(),
+            prisma.gift.count(),
+            prisma.systemConfig.findFirst()
+        ]);
+
+        const exportedAt = new Date();
+        const backupChunks = async function* () {
+            yield `{"platform":"MONEA Platform","version":"1.2.3","exportedAt":${JSON.stringify(exportedAt.toISOString())}`;
+            yield `,"exportedBy":${JSON.stringify(user?.email || user?.name || "MasterAdmin")}`;
+            yield `,"counts":{"users":${userCount},"weddings":${weddingCount},"guests":${guestCount},"gifts":${giftCount}}`;
+            yield `,"data":{"systemConfig":${JSON.stringify(config)},"users":`;
+            yield* streamJsonArray((cursor) => prisma.user.findMany({
                 select: {
                     id: true,
                     name: true,
@@ -1098,38 +1224,34 @@ adminMasterRouter.get('/maintenance/backup', async (c) => {
                     avatarUrl: true,
                     status: true,
                     createdAt: true
-                }
-            }),
-            prisma.wedding.findMany(),
-            prisma.guest.findMany(),
-            prisma.gift.findMany(),
-            prisma.systemConfig.findFirst()
-        ]);
-
-        const backupData = {
-            platform: "MONEA Platform",
-            version: "1.2.3",
-            exportedAt: new Date().toISOString(),
-            exportedBy: user?.email || user?.name || "MasterAdmin",
-            counts: {
-                users: users.length,
-                weddings: weddings.length,
-                guests: guests.length,
-                gifts: gifts.length
-            },
-            data: {
-                systemConfig: config,
-                users,
-                weddings,
-                guests,
-                gifts
-            }
+                },
+                take: BACKUP_PAGE_SIZE,
+                orderBy: { id: "asc" },
+                ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+            }));
+            yield `,"weddings":`;
+            yield* streamJsonArray((cursor) => prisma.wedding.findMany({
+                take: BACKUP_PAGE_SIZE,
+                orderBy: { id: "asc" },
+                ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+            }));
+            yield `,"guests":`;
+            yield* streamJsonArray((cursor) => prisma.guest.findMany({
+                take: BACKUP_PAGE_SIZE,
+                orderBy: { id: "asc" },
+                ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+            }));
+            yield `,"gifts":`;
+            yield* streamJsonArray((cursor) => prisma.gift.findMany({
+                take: BACKUP_PAGE_SIZE,
+                orderBy: { id: "asc" },
+                ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+            }));
+            yield "}}";
         };
+        const fileName = `monea_backup_${exportedAt.toISOString().split('T')[0]}.json`;
 
-        const jsonStr = JSON.stringify(backupData, null, 2);
-        const fileName = `monea_backup_${new Date().toISOString().split('T')[0]}.json`;
-
-        return new Response(jsonStr, {
+        return new Response(streamJson(backupChunks()), {
             headers: {
                 'Content-Type': 'application/json',
                 'Content-Disposition': `attachment; filename="${fileName}"`

@@ -67,7 +67,6 @@ export async function GET(req: Request) {
                 avatar: true,
                 role: true,
                 twoFactorEnabled: true,
-                twoFactorSecret: true,
                 password: true,
             }
         }).catch((err) => {

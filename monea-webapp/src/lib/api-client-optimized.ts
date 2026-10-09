@@ -5,30 +5,13 @@ import { apiCache, CacheKeys, ApiCache } from './api-cache';
  */
 export class OptimizedApiClient {
     private baseUrl: string;
-    private token: string | null = null;
 
     constructor(baseUrl: string) {
         this.baseUrl = baseUrl;
     }
 
-    setToken(token: string | null) {
-        this.token = token;
-        // Clear user-specific cache when token changes
-        if (!token) {
-            apiCache.clear('user:|dashboard:|wedding:');
-        }
-    }
-
     private getHeaders() {
-        const headers: Record<string, string> = {
-            'Content-Type': 'application/json',
-        };
-        
-        if (this.token) {
-            headers['Authorization'] = `Bearer ${this.token}`;
-        }
-        
-        return headers;
+        return { 'Content-Type': 'application/json' };
     }
 
     private async request<T>(
@@ -48,6 +31,7 @@ export class OptimizedApiClient {
         const url = `${this.baseUrl}${endpoint}`;
         const response = await fetch(url, {
             ...options,
+            credentials: 'include',
             headers: {
                 ...this.getHeaders(),
                 ...options.headers,
@@ -76,30 +60,15 @@ export class OptimizedApiClient {
     /**
      * Combined dashboard initialization - replaces multiple separate calls
      */
-    async getDashboardInit(bypassCache = false): Promise<any> {
-        const userId = this.token ? 'current' : 'anonymous';
-        return this.request('/dashboard/init', 
-            { method: 'GET' },
-            { 
-                key: CacheKeys.dashboardInit(userId),
-                duration: ApiCache.DURATIONS.DASHBOARD,
-                bypassCache
-            }
-        );
+    async getDashboardInit(_bypassCache = false): Promise<any> {
+        return this.request('/dashboard/init', { method: 'GET' });
     }
 
     /**
-     * Get user session with caching
+     * Get user session without caching session data
      */
-    async getMe(bypassCache = false): Promise<any> {
-        return this.request('/auth/me', 
-            { method: 'GET' },
-            {
-                key: CacheKeys.userSession(),
-                duration: ApiCache.DURATIONS.USER_SESSION,
-                bypassCache
-            }
-        );
+    async getMe(_bypassCache = false): Promise<any> {
+        return this.request('/auth/me', { method: 'GET' });
     }
 
     /**

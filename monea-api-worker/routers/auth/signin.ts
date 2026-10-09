@@ -5,6 +5,9 @@ const router = new Hono();
 
 router.post('/', async (c) => {
   try {
+    console.log("DEBUG: c.env.DATABASE_URL is", (c.env as any).DATABASE_URL ? "SET" : "MISSING");
+    console.log("DEBUG: process.env.DATABASE_URL is", (globalThis as any).process?.env?.DATABASE_URL ? "SET" : "MISSING");
+    
     // Standard Web API call for user sign-in authentication
     return await nextRoute.POST(c.req.raw);
   } catch (error: any) {

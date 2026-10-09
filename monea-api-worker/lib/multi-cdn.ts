@@ -61,7 +61,7 @@ async function uploadToCloudinaryInternal(
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      paramsToSign: { timestamp, folder }
+      paramsToSign: { timestamp, upload_preset: "wedding_upload", folder }
     })
   });
 
@@ -69,7 +69,10 @@ async function uploadToCloudinaryInternal(
     throw new Error('Cloudinary signature fetch failed');
   }
 
-  const { signature } = await signRes.json();
+  const { signature, folder: signedFolder } = await signRes.json();
+  if (!signature || typeof signedFolder !== 'string') {
+    throw new Error('Invalid Cloudinary signature response');
+  }
 
   // Resolve resource type if set to auto
   let targetType = resourceType;
@@ -82,7 +85,8 @@ async function uploadToCloudinaryInternal(
   formData.append("api_key", apiKey);
   formData.append("timestamp", timestamp);
   formData.append("signature", signature);
-  formData.append("folder", folder);
+  formData.append("upload_preset", "wedding_upload");
+  formData.append("folder", signedFolder);
 
   const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/${targetType}/upload`, {
     method: 'POST',

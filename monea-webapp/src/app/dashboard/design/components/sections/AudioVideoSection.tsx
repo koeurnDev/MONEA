@@ -21,10 +21,10 @@ export const AudioVideoSection: React.FC<AudioVideoSectionProps> = ({
     t
 }) => {
     return (
-        <section className="space-y-6 font-kantumruy">
+        <section className="space-y-4 sm:space-y-6 font-kantumruy">
             <div className="space-y-1 border-b border-slate-200/80 dark:border-white/10 pb-2">
                 <h4 className="text-xs font-bold text-foreground flex items-center gap-2">
-                    <Music className="w-4 h-4 text-rose-500" />
+                    <Music className="w-4 h-4 text-teal-500" />
                     <span>តន្ត្រីផ្ទៃខាងក្រោយ & វីដេអូ (Background Music & Video)</span>
                 </h4>
                 <p className="text-[11px] text-muted-foreground">
@@ -32,7 +32,7 @@ export const AudioVideoSection: React.FC<AudioVideoSectionProps> = ({
                 </p>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
                 {/* Audio Section */}
                 <div className="space-y-3 bg-white dark:bg-white/[0.02] p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-sm">
                     <Label className="block text-xs font-bold text-foreground">
@@ -57,7 +57,7 @@ export const AudioVideoSection: React.FC<AudioVideoSectionProps> = ({
                 <div className="space-y-2.5 bg-white dark:bg-white/[0.02] p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-sm">
                     <div className="flex items-center justify-between">
                         <Label className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                            <Video className="w-4 h-4 text-rose-500" />
+                            <Video className="w-4 h-4 text-teal-500" />
                             <span>វីដេអូ Pre-wedding / YouTube Link</span>
                         </Label>
                     </div>

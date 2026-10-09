@@ -2,13 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { WeddingData } from "../types";
 import { useImagePan } from "../shared/CinematicComponents";
 import { useTranslation } from "@/i18n/LanguageProvider";
-
-const FALLBACK_IMAGES = [
-    "https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=2000&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=2000&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1583939003579-730e3918a45a?q=80&w=2000&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1606800052052-a08af7148866?q=80&w=2000&auto=format&fit=crop"
-];
+import { getWeddingHeroImage, isDemoPhoto } from "../shared/weddingPhotos";
 
 export const useSmartColor = (imageUrl: string) => {
     return { primary: '#D4AF37', secondary: '#8E5A5A', dark: '#1a1a1a' };
@@ -29,17 +23,20 @@ export function useKhmerLegacy(wedding: WeddingData) {
         window.addEventListener('resize', checkMobile);
         
         const handleForceReveal = () => setRevealed(true);
+        const handleResetPreview = () => setRevealed(false);
         window.addEventListener('FORCE_REVEAL', handleForceReveal);
+        window.addEventListener('RESET_PREVIEW', handleResetPreview);
         
         return () => {
             window.removeEventListener('resize', checkMobile);
             window.removeEventListener('FORCE_REVEAL', handleForceReveal);
+            window.removeEventListener('RESET_PREVIEW', handleResetPreview);
         };
     }, []);
 
     const musicUrl = wedding.themeSettings?.musicUrl;
     const galleryImages = useMemo(() => {
-        const items = (wedding?.galleryItems || []).map(item => item?.url || "");
+        const items = (wedding?.galleryItems || []).map(item => isDemoPhoto(item?.url) ? "" : item?.url || "");
         // Pad with empty strings if needed to ensure stable indices for the 11 special slots
         const padded = [...items];
         while (padded.length < 11) padded.push("");
@@ -49,7 +46,7 @@ export function useKhmerLegacy(wedding: WeddingData) {
     const dynamicPool = useMemo(() => {
         const items = (wedding?.galleryItems || [])
             .filter(item => item.type !== 'CERTIFICATE')
-            .map(item => item?.url || "")
+            .map(item => isDemoPhoto(item?.url) ? "" : item?.url || "")
             .filter(url => url !== "");
         
         // Everything from index 11 onwards is "General Gallery"
@@ -75,7 +72,7 @@ export function useKhmerLegacy(wedding: WeddingData) {
         return () => clearInterval(timer);
     }, [wedding.date]);
 
-    const heroImage = wedding.themeSettings?.heroImage || (galleryImages && galleryImages.length > 0 && galleryImages[0] !== "" ? galleryImages[0] : "/assets/khmer-legacy/621811254_905398285378636_5240747682765358044_n.jpg");
+    const heroImage = getWeddingHeroImage(wedding);
     const smartColors = useSmartColor(heroImage);
 
     const heroPan = useImagePan(wedding.themeSettings?.heroImageX || '50%', wedding.themeSettings?.heroImagePosition || '15%', 'heroImageX', 'heroImagePosition');

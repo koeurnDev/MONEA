@@ -23,9 +23,6 @@ export function BackgroundMusic({ wedding, isPlaying, setIsPlaying, audioRef }: 
 
         const audio = audioRef.current;
         
-        // When URL changes, load it
-        audio.load();
-
         if (isPlaying) {
             audio.volume = 0.5;
             const playPromise = audio.play();

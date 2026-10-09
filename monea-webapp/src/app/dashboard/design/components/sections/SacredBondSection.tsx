@@ -39,11 +39,11 @@ export const SacredBondSection: React.FC<SacredBondSectionProps> = ({
                     return (
                         <div className={clsx(
                             "relative rounded-xl overflow-hidden bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 flex flex-col items-center justify-center group transition-all duration-500 min-h-[260px]",
-                            !hasCert && "hover:border-rose-100 dark:hover:border-rose-500/10"
+                            !hasCert && "hover:border-teal-100 dark:hover:border-teal-500/10"
                         )}>
                             {hasCert ? (
                                 <>
-                                    <img src={cert.url} alt="Sacred Bond" className="object-cover transition-transform duration-1000 group-hover:scale-105"   />
+                                    <img src={cert.url} alt="Sacred Bond" loading="lazy" decoding="async" className="object-cover transition-transform duration-1000 group-hover:scale-105"   />
                                     <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center gap-4 backdrop-blur-[2px]">
                                         <div className="flex gap-3">
                                             <button
@@ -51,7 +51,7 @@ export const SacredBondSection: React.FC<SacredBondSectionProps> = ({
                                                     setActiveSlotIdx(-1);
                                                     slotInputRef.current?.click();
                                                 }}
-                                                className="bg-white text-rose-500 p-3 rounded-lg hover:bg-rose-500 hover:text-white transition-all shadow-xl"
+                                                className="bg-white text-teal-500 p-3 rounded-lg hover:bg-teal-500 hover:text-white transition-all shadow-xl"
                                             >
                                                 <Plus size={20} />
                                             </button>
@@ -73,11 +73,11 @@ export const SacredBondSection: React.FC<SacredBondSectionProps> = ({
                                     }} 
                                     className="w-full h-full flex flex-col items-center justify-center gap-4 p-8 text-center"
                                 >
-                                    <div className="w-16 h-16 rounded-xl bg-white dark:bg-white/5 flex items-center justify-center text-slate-200 group-hover:text-rose-500 shadow-sm transition-all">
+                                    <div className="w-16 h-16 rounded-xl bg-white dark:bg-white/5 flex items-center justify-center text-slate-200 group-hover:text-teal-500 shadow-sm transition-all">
                                         <Sparkles size={32} />
                                     </div>
                                     <div className="space-y-1">
-                                        <span className="text-xs text-slate-600 dark:text-white/40 font-bold block group-hover:text-rose-500 transition-colors">{t("wizard.steps.4.uploadBond")}</span>
+                                        <span className="text-xs text-slate-600 dark:text-white/40 font-bold block group-hover:text-teal-500 transition-colors">{t("wizard.steps.4.uploadBond")}</span>
                                         <span className="text-[9px] text-slate-400 font-bold block uppercase tracking-widest">{t("wizard.steps.4.recommendSize")}</span>
                                     </div>
                                 </button>

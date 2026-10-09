@@ -5,6 +5,7 @@ import { sanitizeObject } from "@/lib/sanitize";
 import { errorResponse, validateRequest } from "@/lib/api-utils";
 import { guestbookSchema } from "@/lib/validations/guestbook";
 import { publicLimiter, getIP } from "@/lib/ratelimit";
+import { verifyTurnstileDetailed } from "@/lib/turnstile";
 
 const guestbookRouter = new Hono();
 
@@ -53,13 +54,29 @@ guestbookRouter.post('/', async (c) => {
         if (error) return error;
 
         const sanitized = sanitizeObject<any>(data!);
-        const { guestName, message, weddingId, website } = sanitized;
+        const { guestName, message, weddingId, website, turnstileToken } = sanitized;
         
         // Honeypot detection
         if (website) {
             console.warn(`[BOT_DETECTION] Honeypot triggered by ${ip}. Payload:`, { guestName, message, website });
             // Silently return success to the bot to avoid detection of our protection
             return c.json({ id: "dummy", createdAt: new Date() }, 201);
+        }
+
+        const verification = await verifyTurnstileDetailed(
+            turnstileToken,
+            { remoteip: ip, action: "guestbook_submit" },
+            c.env
+        );
+        if (!verification.success) {
+            const unavailable = verification.errorCodes?.some((code) =>
+                ["missing-secret-key", "internal-error", "request-timeout"].includes(code) ||
+                code.startsWith("http-status-")
+            );
+            return errorResponse(
+                unavailable ? "CAPTCHA verification is temporarily unavailable" : "CAPTCHA verification failed",
+                unavailable ? 503 : 403
+            );
         }
 
         // Verify Wedding existence using Raw SQL

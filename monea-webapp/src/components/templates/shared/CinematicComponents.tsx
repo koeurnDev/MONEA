@@ -159,7 +159,6 @@ export const useImagePan = (initialX: string = '50%', initialY: string = '50%', 
 
     const onStart = (e: React.MouseEvent | React.TouchEvent) => {
         if (typeof window !== 'undefined' && window.self === window.top) return;
-        if ('touches' in e) e.preventDefault();
         setIsDragging(true);
         const mouseX = 'touches' in e ? (e as React.TouchEvent).touches[0].clientX : (e as React.MouseEvent).clientX;
         const mouseY = 'touches' in e ? (e as React.TouchEvent).touches[0].clientY : (e as React.MouseEvent).clientY;

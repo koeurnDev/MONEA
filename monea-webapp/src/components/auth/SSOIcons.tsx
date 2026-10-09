@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useToast } from "@/components/ui/Toast";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { getApiUrl } from "@/lib/api-url";
+import { moneaClient } from "@/lib/api-client";
+
+const TELEGRAM_VERIFIER_STORAGE_KEY = "telegram_oidc_verifier";
 
 interface SSOIconsProps {
     className?: string;
@@ -12,12 +15,13 @@ const SSOIcons: React.FC<SSOIconsProps> = ({ className }) => {
     const { showToast } = useToast();
     const { locale } = useTranslation();
     const isKm = locale === 'km';
+    const [telegramLoading, setTelegramLoading] = useState(false);
 
     const handleGoogleLogin = () => {
         window.location.href = getApiUrl("api/auth/sso/google");
     };
 
-    const handleTelegramLogin = () => {
+    const handleTelegramLogin = async () => {
         const isLocalDev = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && import.meta.env.DEV;
         
         if (isLocalDev) {
@@ -28,12 +32,26 @@ const SSOIcons: React.FC<SSOIconsProps> = ({ className }) => {
             });
             return;
         }
-        
-        const botId = import.meta.env.VITE_TELEGRAM_BOT_ID || '8289587681';
-        const authUrl = getApiUrl("api/auth/sso/telegram");
-        const telegramAuthUrl = `https://oauth.telegram.org/auth?bot_id=${botId}&origin=${encodeURIComponent(window.location.origin)}&return_to=${encodeURIComponent(authUrl)}`;
-        
-        window.location.href = telegramAuthUrl;
+
+        setTelegramLoading(true);
+        try {
+            const response = await moneaClient.post<{ url: string; verifier: string }>(
+                "/api/auth/sso/telegram"
+            );
+            if (response.error || !response.data?.url || !response.data.verifier) {
+                throw new Error(response.error || "Telegram sign-in could not be started");
+            }
+            sessionStorage.setItem(TELEGRAM_VERIFIER_STORAGE_KEY, response.data.verifier);
+            window.location.assign(response.data.url);
+        } catch (error) {
+            console.error("[Telegram OIDC] Could not start sign-in:", error);
+            showToast({
+                title: isKm ? "មិនអាចចាប់ផ្ដើម Telegram បានទេ" : "Could not start Telegram",
+                description: isKm ? "សូមពិនិត្យការតភ្ជាប់ ហើយសាកល្បងម្ដងទៀត។" : "Check your connection and try again.",
+                type: "error",
+            });
+            setTelegramLoading(false);
+        }
     };
 
     return (
@@ -41,16 +59,17 @@ const SSOIcons: React.FC<SSOIconsProps> = ({ className }) => {
             {/* Telegram Button */}
             <motion.button
                 type="button"
+                disabled={telegramLoading}
                 whileHover={{ scale: 1.015 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={handleTelegramLogin}
-                className="h-10 w-full flex items-center justify-center gap-2 bg-background dark:bg-zinc-900/80 hover:bg-muted/80 active:bg-muted border border-border/80 dark:border-white/10 rounded-xl transition-all shadow-xs group px-3 select-none"
+                onClick={() => void handleTelegramLogin()}
+                className="h-10 w-full flex items-center justify-center gap-2 bg-background dark:bg-zinc-900/80 hover:bg-muted/80 active:bg-muted border border-border/80 dark:border-white/10 rounded-xl transition-all shadow-xs group px-3 select-none disabled:cursor-wait disabled:opacity-60"
             >
                 <svg className="w-4.5 h-4.5 min-w-[18px] min-h-[18px] max-w-[18px] max-h-[18px] shrink-0 text-[#229ED9]" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.74-.55 2.92-1.27 4.86-2.11 5.83-2.51 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
                 </svg>
                 <span className="font-bold text-foreground text-xs font-kantumruy whitespace-nowrap">
-                    Telegram
+                    {telegramLoading ? (isKm ? "កំពុងភ្ជាប់..." : "Connecting...") : "Telegram"}
                 </span>
             </motion.button>
 

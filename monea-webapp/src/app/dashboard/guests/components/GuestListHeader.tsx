@@ -67,7 +67,7 @@ export function GuestListHeader({
                         <Printer className="mr-2 h-4 w-4 text-muted-foreground" /> PDF
                     </Button>
                 </div>
-                <div className="hidden sm:block">
+                <div className="hidden sm:block w-full sm:w-auto">
                     {!isArchived && (
                         <Dialog open={open} onOpenChange={(v) => {
                             setOpen(v);
@@ -76,7 +76,7 @@ export function GuestListHeader({
                             <DialogTrigger asChild>
                                 <Button
                                     onClick={() => setEditingGuest(null)}
-                                    className="h-10 px-6 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 backdrop-blur-xl border border-red-500/20 shadow-[0_8px_32px_rgba(239,68,68,0.15)] rounded-xl transition-all font-kantumruy font-bold text-sm"
+                                    className="h-11 w-full sm:w-auto px-5 sm:px-6 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 backdrop-blur-xl border border-red-500/20 shadow-[0_8px_32px_rgba(239,68,68,0.15)] rounded-xl transition-all font-kantumruy font-bold text-sm"
                                 >
                                     <Plus className="mr-2 h-4 w-4" /> {t("guests.form.addBtn")}
                                 </Button>

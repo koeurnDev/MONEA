@@ -68,7 +68,7 @@ export default function GuestbookSection({ wedding, guestName }: { wedding: Wedd
                     
                     <div className="relative inline-block px-8">
                         <h2 className="font-khmer-moul text-4xl md:text-7xl text-gold-gradient text-gold-embossed tracking-wider leading-relaxed">
-                            {t("template.khmerLegacy.guestbook.title", { defaultValue: "សៀវភៅភ្ញៀវកិត្តិយស" })}
+                            {wedding.themeSettings?.customLabels?.guestbookTitle || t("template.khmerLegacy.guestbook.title", { defaultValue: "សៀវភៅភ្ញៀវកិត្តិយស" })}
                         </h2>
                         <m.div 
                             animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2] }}
@@ -169,7 +169,7 @@ export default function GuestbookSection({ wedding, guestName }: { wedding: Wedd
                                 whileInView={{ opacity: 1, y: 0, scale: 1 }}
                                 transition={{ delay: (idx % 3) * 0.1, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                                 viewport={{ once: true }}
-                                className="min-w-[85vw] md:min-w-[500px] bg-white/80 backdrop-blur-xl p-12 md:p-14 rounded-[3.5rem] border border-slate-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] relative group overflow-hidden transition-all duration-700 snap-center hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.1)] hover:-translate-y-2"
+                                className="w-[min(85vw,360px)] flex-shrink-0 bg-white/80 backdrop-blur-xl p-8 sm:p-12 rounded-[2.5rem] border border-slate-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] relative group overflow-hidden transition-all duration-700 snap-center hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.1)] hover:-translate-y-2"
                             >
                                 <div className="absolute -top-12 -right-12 w-48 h-48 bg-gold-main/[0.03] rounded-full transition-all group-hover:bg-gold-main/[0.07] group-hover:scale-125 duration-1000" />
                                 <Heart className="absolute -right-6 -top-6 text-rose-500/5 opacity-0 group-hover:opacity-100 transition-all scale-[2.5] rotate-12 duration-700" size={100} />

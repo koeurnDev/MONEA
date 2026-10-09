@@ -6,8 +6,18 @@ import { CryptoUtils } from "@/lib/crypto"
 import { ROLES } from "@/lib/constants"
 import { authLimiter } from "@/lib/ratelimit"
 import { getIP } from "@/lib/utils"
+import { decryptAndMigrateTotpSecret } from "@/lib/totp-secret"
 
 const staffRouter = new Hono()
+
+const staffResponseFields = {
+    id: true,
+    name: true,
+    email: true,
+    role: true,
+    weddingId: true,
+    createdAt: true,
+} as const
 
 staffRouter.get('/verify-token', async (c) => {
     const token = c.req.query("token");
@@ -18,7 +28,10 @@ staffRouter.get('/verify-token', async (c) => {
 
     const staff = await prisma.staff.findUnique({
         where: { accessToken: token } as any,
-        include: { wedding: true }
+        select: {
+            name: true,
+            wedding: { select: { weddingCode: true } },
+        }
     });
 
     if (!staff) {
@@ -29,7 +42,7 @@ staffRouter.get('/verify-token', async (c) => {
         valid: true,
         staff: {
             name: staff.name,
-            weddingCode: (staff.wedding as any).weddingCode
+            weddingCode: staff.wedding.weddingCode
         }
     });
 });
@@ -105,9 +118,16 @@ staffRouter.post('/login', async (c) => {
 
         if (staffMember.twoFactorEnabled && staffMember.twoFactorSecret) {
             if (!twoFactorToken) return c.json({ require2FA: true }, 428);
+            const secret = await decryptAndMigrateTotpSecret(
+                staffMember.twoFactorSecret,
+                encryptedSecret => prisma.staff.update({
+                    where: { id: staffMember.id },
+                    data: { twoFactorSecret: encryptedSecret },
+                }),
+            );
             const verifyResult = await otplib.verify({
                 token: twoFactorToken,
-                secret: staffMember.twoFactorSecret,
+                secret,
                 epochTolerance: 2
             });
             let is2faValid = verifyResult && verifyResult.valid;
@@ -155,16 +175,20 @@ staffRouter.get('/', async (c) => {
     const user = await getServerUser(c.req.raw);
     if (!user) return c.json({ error: "Unauthorized" }, 401);
 
-    let wedding = await prisma.wedding.findFirst({
+    const wedding = await prisma.wedding.findFirst({
         where: { userId: user.userId || (user as any).id },
-        include: { staff: true }
+        select: { id: true, weddingCode: true },
     });
 
     if (!wedding) {
         return c.json([]);
     }
 
-    const staffToUpdate = wedding.staff.filter(s => !(s as any).accessToken);
+    const staffForTokenCheck = await prisma.staff.findMany({
+        where: { weddingId: wedding.id },
+        select: { id: true, accessToken: true },
+    });
+    const staffToUpdate = staffForTokenCheck.filter(s => !s.accessToken);
     if (staffToUpdate.length > 0) {
         for (const s of staffToUpdate) {
             await prisma.staff.update({
@@ -175,18 +199,23 @@ staffRouter.get('/', async (c) => {
         const updatedStaff = await prisma.staff.findMany({
             where: { weddingId: wedding.id },
             orderBy: { createdAt: "desc" },
+            select: staffResponseFields,
         });
         return c.json({
             staff: updatedStaff,
-            weddingCode: (wedding as any).weddingCode
+            weddingCode: wedding.weddingCode
         });
     }
 
-    const sortedStaff = (wedding.staff as any[]).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    const sortedStaff = await prisma.staff.findMany({
+        where: { weddingId: wedding.id },
+        orderBy: { createdAt: "desc" },
+        select: staffResponseFields,
+    });
 
     return c.json({
         staff: sortedStaff,
-        weddingCode: (wedding as any).weddingCode
+        weddingCode: wedding.weddingCode
     });
 });
 
@@ -239,6 +268,7 @@ staffRouter.post('/', async (c) => {
                 accessToken,
                 pin: null,
             },
+            select: staffResponseFields,
         });
 
         return c.json(newStaff);

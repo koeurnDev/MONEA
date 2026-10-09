@@ -12,66 +12,67 @@ export function HowItWorks() {
     ];
 
     return (
-        <section id="how-it-works" className="py-24 md:py-32 bg-[#FAFAFA] dark:bg-[#080808] relative border-y border-slate-100 dark:border-white/5 overflow-hidden">
-            {/* Background Decor */}
-            <div className="absolute top-[30%] left-[-20%] w-[50vw] h-[50vw] rounded-full bg-pink-100/40 dark:bg-pink-900/10 blur-[150px] pointer-events-none" />
+        <section id="how-it-works" className="py-14 md:py-28 bg-[#f7f1ed] dark:bg-[#08070a] relative border-y border-[#eaded8] dark:border-white/10 overflow-hidden">
             
-            <div className="container mx-auto px-6 max-w-6xl relative z-10">
-                <div className="text-center max-w-3xl mx-auto mb-20 flex flex-col items-center">
+            <div className="container mx-auto px-4 sm:px-6 max-w-6xl relative z-10">
+                <div className="grid gap-8 md:grid-cols-[0.8fr_1.2fr] md:items-start md:gap-20">
+                    <div className="max-w-xl">
                     <m.div
-                        initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-                        className="inline-flex items-center gap-2 mb-6"
+                        initial={{ opacity: 1, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                        className="inline-flex items-center gap-2 mb-5"
                     >
-                        <div className="px-5 py-2 rounded-full border border-slate-200 dark:border-white/10 bg-white/60 dark:bg-white/5 backdrop-blur-md shadow-sm flex items-center gap-2">
-                            <Sparkles className="w-4 h-4 text-rose-500" />
-                            <span className="text-slate-700 dark:text-white/90 font-bold text-[10px] md:text-xs uppercase tracking-[0.2em] font-kantumruy">
+                        <div className="px-4 py-2 rounded-full border border-teal-200 dark:border-teal-300/20 bg-white/70 dark:bg-white/5 shadow-sm flex items-center gap-2">
+                            <Sparkles className="w-4 h-4 text-teal-700 dark:text-teal-300" />
+                            <span className="text-teal-800 dark:text-teal-200 font-bold text-[10px] md:text-xs font-kantumruy">
                                 {t("features.howBadge")}
                             </span>
                         </div>
                     </m.div>
                     <m.h2
-                        initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}
-                        className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl font-black font-kantumruy text-slate-900 dark:text-white mb-8 tracking-tight leading-[1.2]"
+                        initial={{ opacity: 1, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}
+                        className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl font-black font-kantumruy text-[#281a20] dark:text-white mb-6 tracking-tight leading-[1.25]"
                     >
                         {t("features.howTitle")}
                     </m.h2>
                     <m.p
-                        initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}
-                        className="text-slate-600 dark:text-white/60 text-lg md:text-xl font-kantumruy font-light leading-relaxed max-w-2xl mx-auto"
+                        initial={{ opacity: 1, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2 }}
+                        className="text-[#725f62] dark:text-white/60 text-base md:text-lg font-kantumruy leading-relaxed"
                     >
                         {t("features.howSubtitle")}
                     </m.p>
-                </div>
+                    </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8 relative">
-                    <div className="hidden md:block absolute top-[4rem] left-[10%] right-[10%] h-[2px] bg-gradient-to-r from-transparent via-rose-300 dark:via-rose-900/50 to-transparent" />
+                <div className="relative space-y-2">
+                    <div className="absolute bottom-10 left-7 top-10 w-px bg-teal-200 dark:bg-teal-300/20" />
                     {steps.map((step, idx) => (
                         <m.div
                             key={idx}
-                            initial={{ opacity: 0, y: 30 }}
+                            initial={{ opacity: 1, y: 30 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true, margin: "-50px" }}
                             transition={{ duration: 0.8, delay: 0.1 * (idx + 1) }}
-                            className="relative flex flex-col items-center text-center group"
+                            className="group relative flex items-center gap-3 border-b border-[#eaded8] dark:border-white/10 px-1 py-4 transition-all duration-300 hover:translate-x-1"
                         >
-                            <div className="absolute -top-10 -right-2 text-6xl font-black font-kantumruy text-slate-900/[0.03] dark:text-white/[0.03] group-hover:text-rose-500/10 dark:group-hover:text-rose-500/20 transition-colors pointer-events-none italic">
-                                0{idx + 1}
+                            <div className="relative z-10 flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-700 via-teal-500 to-amber-400 text-white shadow-xl shadow-teal-700/25 transition-transform duration-300 group-hover:rotate-3 group-hover:scale-105 sm:h-[4.25rem] sm:w-[4.25rem] sm:rounded-[1.35rem]">
+                                <span className="absolute inset-1 rounded-[1.05rem] border border-white/35" />
+                                <span className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full border-2 border-[#f7f1ed] dark:border-[#08070a] bg-[#281a20] text-[10px] font-black text-white">
+                                    {idx + 1}
+                                </span>
+                                <step.icon className="relative z-10 h-6 w-6 drop-shadow-md sm:h-7 sm:w-7" />
                             </div>
-                            
-                            <div className="w-24 h-24 rounded-[2rem] bg-white dark:bg-[#111] border border-slate-200/80 dark:border-white/10 flex items-center justify-center mb-8 relative z-10 group-hover:bg-gradient-to-br group-hover:from-rose-500 group-hover:to-pink-600 group-hover:text-white text-slate-700 dark:text-white/80 group-hover:-translate-y-3 transition-all duration-500 shadow-sm hover:shadow-xl hover:shadow-rose-500/20 will-change-transform overflow-hidden">
-                                <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl" />
-                                <step.icon className="w-10 h-10 transition-colors relative z-10" />
+                            <div className="min-w-0">
+                                <span className="text-[11px] font-bold text-teal-800 dark:text-teal-300 font-kantumruy">ជំហានទី {idx + 1}</span>
+                                <h3 className="mt-1 text-lg md:text-xl font-bold font-kantumruy text-[#281a20] dark:text-white transition-colors">
+                                    {step.title}
+                                </h3>
+                                <p className="mt-1 text-[#806e70] dark:text-white/60 font-kantumruy leading-relaxed text-xs sm:text-sm transition-colors">
+                                    {step.desc}
+                                </p>
                             </div>
-                            
-                            <h3 className="text-xl md:text-2xl font-bold font-kantumruy text-slate-900 dark:text-white mb-4 transition-colors">
-                                {step.title}
-                            </h3>
-                            <p className="text-slate-500 dark:text-white/60 font-kantumruy font-light leading-relaxed text-sm md:text-base px-2 group-hover:text-slate-700 dark:group-hover:text-white/90 transition-colors">
-                                {step.desc}
-                            </p>
                         </m.div>
                     ))}
                 </div>
+            </div>
             </div>
         </section>
     );

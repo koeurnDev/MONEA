@@ -150,7 +150,7 @@ export default function SecurityDashboardPage() {
                             </Button>
                         </Link>
                         <div>
-                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-teal-800 dark:text-teal-300">
                                 <ShieldAlert size={13} />
                                 <span>Security & Firewall</span>
                             </div>

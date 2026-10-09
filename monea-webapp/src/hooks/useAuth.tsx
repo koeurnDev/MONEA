@@ -59,6 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (fetchingRef.current) return
     fetchingRef.current = true
 
+    let retryScheduled = false
     try {
       setIsLoading(true);
       const res = await moneaClient.get<{ user?: AuthUser } | AuthUser>('/api/auth/me');
@@ -79,13 +80,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      // Simplified server error handling
-      if (res.status >= 500 && retryCountRef.current < 1) {
-        retryCountRef.current++;
-        setTimeout(() => {
-          fetchingRef.current = false;
-          fetchUser();
-        }, 2000);
+      if (res.status >= 500) {
+        if (retryCountRef.current < 1) {
+          retryCountRef.current++;
+          retryScheduled = true
+          setTimeout(() => {
+            fetchingRef.current = false;
+            fetchUser();
+          }, 2000);
+        }
         return;
       }
 
@@ -93,9 +96,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
     } catch (error) {
       console.warn('[Auth] Auth fetch failed:', error);
-      setUser(null);
     } finally {
-      setIsLoading(false);
+      if (!retryScheduled) setIsLoading(false);
       fetchingRef.current = false;
     }
   }, [isBypassMode])
@@ -109,9 +111,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     setUser(null);
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth_token');
-    }
     try {
       await moneaClient.post('/api/auth/logout');
     } catch (e) {

@@ -1,5 +1,19 @@
 import { next } from '@vercel/edge';
 
+/**
+ * Escapes a value before it is interpolated into raw HTML.
+ * Wedding names / gallery URLs are user-controlled data, so they must never be
+ * written into attribute values unescaped (attribute breakout -> XSS).
+ */
+function escapeHtml(value: unknown): string {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export const config = {
   // Only run this middleware on wedding links
   matcher: ['/w/:id']
@@ -42,21 +56,25 @@ export default async function middleware(request: Request) {
         const coverImage = wedding.galleryItems && wedding.galleryItems.length > 0 
             ? wedding.galleryItems[0].url 
             : `${url.origin}/og-image.png`;
-        const image = coverImage;
+
+        // Only allow http(s) or root-relative image URLs in the social preview tag
+        const image = typeof coverImage === 'string' && /^(https?:\/\/|\/)/i.test(coverImage)
+            ? coverImage
+            : `${url.origin}/og-image.png`;
 
         // 4. Fetch the static Vite index.html
         const htmlResponse = await fetch(new URL('/index.html', request.url));
         if (!htmlResponse.ok) return next();
         let html = await htmlResponse.text();
 
-        // 5. Inject Open Graph Tags for the Bot
+        // Inject Open Graph Tags for the Bot (all values escaped - they contain user data)
         html = html.replace(
           '</title>',
           `</title>
-          <meta property="og:title" content="${title}" />
-          <meta property="og:description" content="${description}" />
-          <meta property="og:image" content="${image}" />
-          <meta property="og:url" content="${request.url}" />
+          <meta property="og:title" content="${escapeHtml(title)}" />
+          <meta property="og:description" content="${escapeHtml(description)}" />
+          <meta property="og:image" content="${escapeHtml(image)}" />
+          <meta property="og:url" content="${escapeHtml(request.url)}" />
           <meta name="twitter:card" content="summary_large_image" />`
         );
 

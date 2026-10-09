@@ -1,7 +1,11 @@
-import React, { Suspense, useEffect, useState } from "react";
-import { WeddingData, getTemplateComponent } from "@/components/templates";
+import React, { Suspense, startTransition, useEffect, useState } from "react";
+import { WeddingData } from "@/components/templates";
+import { TemplateRenderer } from "@/components/templates/TemplateRenderer";
+import { getWeddingWithPhotoVisibility } from "@/components/templates/photo-visibility";
 import { SafeBoundary } from "@/components/ui/SafeBoundary";
 import { moneaClient } from "@/lib/api-client";
+import { DEFAULT_WEDDING } from "@/data/wedding";
+import { NEA_M05_DEFAULT_ACTIVITIES } from "@/lib/nea-m05-defaults";
 
 const DEFAULT_PREVIEW_WEDDING: WeddingData = {
     id: "preview-default",
@@ -9,7 +13,7 @@ const DEFAULT_PREVIEW_WEDDING: WeddingData = {
     brideName: "មាស ចាន់មានណា",
     date: "2027-03-12T00:00:00.000Z",
     location: "មជ្ឈមណ្ឌលសន្និបាត និងពិព័រណ៍កោះពេជ្រ (អគារ A)",
-    templateId: "khmer-legacy",
+    templateId: "modern-minimal",
     eventType: "wedding",
     themeSettings: {
         primaryColor: "#8E5A5A",
@@ -56,12 +60,7 @@ const DEFAULT_PREVIEW_WEDDING: WeddingData = {
         { url: "/assets/khmer-legacy/622279784_905392782045853_1189842078802821714_n.jpg", type: "IMAGE" },
         { url: "/assets/khmer-legacy/622374686_905392995379165_1001573724208229331_n.jpg", type: "IMAGE" }
     ],
-    activities: [
-        { time: "០៧:០០ ព្រឹក", title: "ពិធីហែជំនូន", description: "ជួបជុំសាច់ញាតិ និងភ្ញៀវកិត្តិយស ហែជំនូនចូលរោងជ័យ", icon: null, order: 0 },
-        { time: "០៨:៣០ ព្រឹក", title: "ពិធីសំពះផ្ទឹម និងចងដៃ", description: "ពិធីសិរីសួស្តីកាត់សក់ និងចងដៃជូនពរជ័យដល់គូស្វាមីភរិយាថ្មី", icon: null, order: 1 },
-        { time: "១១:០០ ថ្ងៃត្រង់", title: "ពិសាភោជនាហារថ្ងៃត្រង់", description: "ទទួលទានអាហារថ្ងៃត្រង់ជួបជុំបងប្អូន និងភ្ញៀវកិត្តិយស", icon: null, order: 2 },
-        { time: "០៥:០០ ល្ងាច", title: "ពិធីជប់លៀង និងពិសាភោជនាហារពេលល្ងាច", description: "ទទួលស្វាគមន៍ភ្ញៀវកិត្តិយស និងពិសាភោជនាហារពេលល្ងាច", icon: null, order: 3 }
-    ]
+    activities: NEA_M05_DEFAULT_ACTIVITIES
 };
 
 function decodeHtmlEntities(str: any): any {
@@ -98,6 +97,9 @@ function deepDecodeEntities(obj: any): any {
 export default function PreviewPage() {
     const [wedding, setWedding] = useState<WeddingData | null>(null);
     const [mounted, setMounted] = useState(false);
+    const isApprovalPreview =
+        typeof window !== "undefined" &&
+        new URLSearchParams(window.location.search).get("mode") === "approval";
 
     useEffect(() => {
         setMounted(true);
@@ -105,15 +107,44 @@ export default function PreviewPage() {
         // Check URL params first (for template gallery preview)
         const urlParams = new URLSearchParams(window.location.search);
         const templateIdParam = urlParams.get('templateId');
+        const isApprovalMode = urlParams.get('mode') === 'approval';
+        const isEditorMode = urlParams.get('mode') === 'editor';
 
         if (templateIdParam) {
-            // Template gallery preview mode - use default data with specified template
-            console.log("[Preview] Template gallery mode:", templateIdParam);
+            console.log("[Preview] Template preview mode:", templateIdParam);
+            const approvalWedding = isApprovalMode
+                ? templateIdParam === "nea-m05"
+                    ? {
+                        ...DEFAULT_WEDDING,
+                        id: "approval-preview",
+                        templateId: templateIdParam,
+                        date: "2026-11-15T00:00:00+07:00",
+                        locationName: "ភូមិព្រែកហូរ (ខាងលិច)",
+                        location: "សង្កាត់ព្រែកហូរ ក្រុងតាខ្មៅ ខេត្តកណ្តាល",
+                        themeSettings: {
+                            ...(DEFAULT_WEDDING.themeSettings ?? {}),
+                            primaryColor: "#b18d55",
+                            lunarDate: "ថ្ងៃអាទិត្យ ៦កើត ខែកត្ដិក ឆ្នាំមមី អដ្ឋស័ក ព.ស.២៥៧០",
+                            mapLink: "https://maps.google.com/?q=ភូមិព្រែកហូរ+(ខាងលិច),+សង្កាត់ព្រែកហូរ,+ក្រុងតាខ្មៅ,+ខេត្តកណ្តាល",
+                        },
+                        activities: NEA_M05_DEFAULT_ACTIVITIES,
+                    }
+                    : {
+                        ...DEFAULT_PREVIEW_WEDDING,
+                        id: "approval-preview",
+                        groomName: "",
+                        brideName: "",
+                        date: "",
+                        location: null,
+                        galleryItems: [],
+                        activities: [],
+                        themeSettings: { primaryColor: "#b18d55" },
+                    }
+                : DEFAULT_PREVIEW_WEDDING;
             setWedding({
-                ...DEFAULT_PREVIEW_WEDDING,
-                templateId: templateIdParam
+                ...approvalWedding,
             });
-        } else {
+        } else if (!isEditorMode) {
             // Dashboard preview mode - fetch user's wedding data
             moneaClient.get<any>('/api/wedding?full=true')
                 .then(res => {
@@ -126,7 +157,7 @@ export default function PreviewPage() {
                         if (!data.groomName) data.groomName = DEFAULT_PREVIEW_WEDDING.groomName;
                         if (!data.brideName) data.brideName = DEFAULT_PREVIEW_WEDDING.brideName;
                         if (!data.date) data.date = DEFAULT_PREVIEW_WEDDING.date;
-                        setWedding(prev => prev ? prev : data);
+                        setWedding(data);
                     }
                 })
                 .catch(err => {
@@ -134,6 +165,10 @@ export default function PreviewPage() {
                     // Fallback to default if fetch fails
                     setWedding(DEFAULT_PREVIEW_WEDDING);
                 });
+        } else {
+            // Editor mode receives the current draft from the parent via postMessage.
+            // Avoid a second full wedding query that can race the dashboard request.
+            setWedding(DEFAULT_PREVIEW_WEDDING);
         }
 
         let readyPings = 0;
@@ -147,6 +182,11 @@ export default function PreviewPage() {
 
         // Listen to parent postMessages
         const handleMessage = (event: MessageEvent) => {
+            const expectedOrigin = window.location.origin;
+            const isTrustedParent = event.source === window.parent && event.origin === expectedOrigin;
+
+            if (!isTrustedParent) return;
+
             if (event.data?.type === "UPDATE_PREVIEW" && event.data.payload) {
                 clearInterval(readyInterval);
                 const cleanPayload = { ...event.data.payload };
@@ -171,28 +211,29 @@ export default function PreviewPage() {
                     cleanPayload.brideName = DEFAULT_PREVIEW_WEDDING.brideName;
                 }
                 if (!cleanPayload.templateId) {
-                    cleanPayload.templateId = "khmer-legacy";
+                    cleanPayload.templateId = "modern-minimal";
                 }
 
                 setWedding(cleanPayload);
             }
 
             if (event.data?.type === "UPDATE_PREVIEW_PARTIAL" && event.data.payload) {
-                setWedding(prev => {
-                    if (!prev) return prev;
-                    return {
-                        ...prev,
-                        themeSettings: {
-                            ...(prev.themeSettings || {}),
-                            ...event.data.payload
-                        }
-                    };
+                startTransition(() => {
+                    setWedding(prev => {
+                        if (!prev) return prev;
+                        return {
+                            ...prev,
+                            themeSettings: {
+                                ...(prev.themeSettings || {}),
+                                ...event.data.payload
+                            }
+                        };
+                    });
                 });
             }
 
             if (event.data?.type === "SCROLL_TO_SECTION" && event.data.payload) {
                 const sectionId = event.data.payload;
-                window.dispatchEvent(new CustomEvent('FORCE_REVEAL'));
 
                 setTimeout(() => {
                     const element = document.getElementById(sectionId);
@@ -221,6 +262,7 @@ export default function PreviewPage() {
     }, []);
 
     const activeWedding = wedding || DEFAULT_PREVIEW_WEDDING;
+    const previewFontClass = `preview-font-${activeWedding.themeSettings?.fontStyle || 'default'}`;
 
     // Check if viewed directly in browser (not inside an iframe)
     const isStandalone = typeof window !== 'undefined' && window.self === window.top;
@@ -233,18 +275,46 @@ export default function PreviewPage() {
                     width: 0px;
                     background: transparent;
                 }
+                .preview-font-suwannaphum, .preview-font-suwannaphum * {
+                    font-family: 'Suwannaphum', 'Kantumruy Pro', sans-serif !important;
+                }
+                .preview-font-battambang, .preview-font-battambang * {
+                    font-family: 'Battambang', 'Kantumruy Pro', sans-serif !important;
+                }
+                .preview-font-preahvihear, .preview-font-preahvihear * {
+                    font-family: 'Preahvihear', 'Kantumruy Pro', sans-serif !important;
+                }
+                #root .preview-font-suwannaphum .modern-minimal-invitation,
+                #root .preview-font-suwannaphum .modern-minimal-invitation * {
+                    font-family: 'Suwannaphum', 'Kantumruy Pro', sans-serif !important;
+                }
+                #root .preview-font-battambang .modern-minimal-invitation,
+                #root .preview-font-battambang .modern-minimal-invitation * {
+                    font-family: 'Battambang', 'Kantumruy Pro', sans-serif !important;
+                }
+                #root .preview-font-preahvihear .modern-minimal-invitation,
+                #root .preview-font-preahvihear .modern-minimal-invitation * {
+                    font-family: 'Preahvihear', 'Kantumruy Pro', sans-serif !important;
+                }
             `}</style>
-            <div className={isStandalone ? "min-h-screen bg-slate-900 flex justify-center py-6 px-3" : "relative w-full min-h-screen bg-background"}>
-                <div className={isStandalone ? "w-full max-w-[430px] bg-background rounded-3xl overflow-hidden shadow-2xl ring-1 ring-white/10 min-h-screen" : "w-full min-h-screen"}>
+            <div className={isStandalone && !isApprovalPreview ? "min-h-screen bg-slate-900 flex justify-center py-6 px-3" : "relative w-full min-h-screen bg-background"}>
+                <div className={`${isStandalone && !isApprovalPreview ? "w-full max-w-[430px] bg-background rounded-3xl overflow-hidden shadow-2xl ring-1 ring-white/10 min-h-screen" : "w-full min-h-screen"} ${previewFontClass}`}>
                     <Suspense fallback={
                         <div className="flex items-center justify-center min-h-[500px] animate-pulse font-kantumruy text-sm text-slate-400">
-                            កំពុងផ្ទុកគំរូ (Loading Preview)...
+                            កំពុងផ្ទុកគំរូ...
                         </div>
                     }>
-                        {(() => {
-                            const SelectedTemplate = getTemplateComponent(activeWedding.templateId || "khmer-legacy");
-                            return <SelectedTemplate wedding={activeWedding} />;
-                        })()}
+                        {wedding ? (() => {
+                            const visibleWedding = getWeddingWithPhotoVisibility(activeWedding);
+                            return <TemplateRenderer
+                                wedding={visibleWedding}
+                                templateId={activeWedding.templateId || "modern-minimal"}
+                            />;
+                        })() : (
+                            <div className="flex min-h-[500px] items-center justify-center animate-pulse font-kantumruy text-sm text-slate-400">
+                                កំពុងផ្ទុកគំរូ...
+                            </div>
+                        )}
                     </Suspense>
                 </div>
             </div>

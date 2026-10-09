@@ -1,17 +1,11 @@
-import { useTranslation } from "@/i18n/LanguageProvider";
+import { Navigate } from 'react-router-dom';
 
+/**
+ * `/dashboard/settings` used to render a title and a subtitle only - no controls
+ * at all - so anyone who reached it (old link, bookmark, typed URL) hit a dead
+ * end with nothing to do. Account settings are the single source of truth, so the
+ * legacy route now forwards there instead of showing an empty screen.
+ */
 export default function SettingsPage() {
-    const { t } = useTranslation();
-    return (
-        <div className="space-y-6">
-            <div>
-                <h2 className="text-2xl font-bold tracking-tight font-kantumruy">
-                    {t("settings.title") || "Settings"}
-                </h2>
-                <p className="text-muted-foreground font-kantumruy">
-                    {t("settings.subtitle") || "Manage your account and wedding settings."}
-                </p>
-            </div>
-        </div>
-    );
+    return <Navigate to="/dashboard/account" replace />;
 }

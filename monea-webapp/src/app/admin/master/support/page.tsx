@@ -76,7 +76,7 @@ export default function MasterSupportPage() {
                             </Button>
                         </Link>
                         <div>
-                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-teal-800 dark:text-teal-300">
                                 <ShieldCheck size={13} />
                                 <span>{t("admin.support.ticket.masterControl", { defaultValue: "ផ្នែកជំនួយអតិថិជន (Live Support Desk)" })}</span>
                             </div>
@@ -103,7 +103,7 @@ export default function MasterSupportPage() {
             <main className="max-w-[1400px] mx-auto p-4 sm:p-8 space-y-6">
                 {loading && tickets.length === 0 ? (
                     <div className="py-32 flex flex-col items-center justify-center space-y-4">
-                        <Loader2 className="w-10 h-10 animate-spin text-rose-600" />
+                        <Loader2 className="w-10 h-10 animate-spin text-teal-700 dark:text-teal-300" />
                         <p className="text-xs font-bold text-muted-foreground">
                             {t("admin.support.syncing", { defaultValue: "កំពុងទាញយកទិន្នន័យ..." })}
                         </p>
@@ -111,7 +111,7 @@ export default function MasterSupportPage() {
                 ) : tickets.length === 0 ? (
                     <Card className="bg-card border border-border/80 rounded-2xl shadow-xs py-24 text-center">
                         <CardContent className="flex flex-col items-center justify-center space-y-4">
-                            <div className="w-16 h-16 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+                            <div className="w-16 h-16 rounded-2xl bg-teal-600/10 text-teal-800 dark:text-teal-300 flex items-center justify-center">
                                 <Headphones size={28} />
                             </div>
                             <div className="space-y-1">
@@ -183,7 +183,7 @@ export default function MasterSupportPage() {
 
                                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                                                         <div className="flex items-center gap-3">
-                                                            <div className="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-600 shrink-0">
+                                                            <div className="w-10 h-10 rounded-xl bg-teal-600/10 flex items-center justify-center text-teal-800 dark:text-teal-300 shrink-0">
                                                                 <User size={18} />
                                                             </div>
                                                             <div className="flex flex-col min-w-0">
@@ -211,7 +211,7 @@ export default function MasterSupportPage() {
                                                     {ticket.status === 'OPEN' ? (
                                                         <Button
                                                             onClick={() => handleUpdateStatus(ticket.id, 'CLOSED')}
-                                                            className="h-10 px-5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-2"
+                                                            className="h-10 px-5 bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-2"
                                                         >
                                                             <CheckCircle2 size={16} />
                                                             <span>{t("admin.support.ticket.resolved", { defaultValue: "ដោះស្រាយរួចរាល់" })}</span>

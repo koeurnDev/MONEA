@@ -1,28 +1,31 @@
 import React from 'react';
 import { m } from 'framer-motion';
 import { WeddingData } from "../types";
+import { getWeddingHeroImage, getWeddingPhotos } from "../shared/weddingPhotos";
 
 export const ThankYouSection = ({ wedding }: { wedding: WeddingData }) => {
-    const images = (wedding.galleryItems || []).filter(i => i?.url);
-    const imageUrl = images.length > 0 
-        ? images[images.length - 1].url 
-        : (wedding.themeSettings?.heroImage || "/assets/khmer-legacy/621811254_905398285378636_5240747682765358044_n.jpg");
+    const images = getWeddingPhotos(wedding);
+    const imageUrl = images[images.length - 1]?.url || getWeddingHeroImage(wedding);
 
     return (
-        <section className="relative h-screen min-h-[550px] w-full overflow-hidden flex items-center justify-center bg-slate-950">
+        <section className="relative min-h-[min(82svh,680px)] w-full overflow-hidden flex items-center justify-center bg-slate-950">
             {/* Background Image with Zoom In Transition */}
-            <m.div 
-                initial={{ scale: 1.08, opacity: 0.8 }}
-                whileInView={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 1.5, ease: "easeOut" }}
-                className="absolute inset-0 w-full h-full"
-            >
-                <img 
-                    src={imageUrl}
-                    alt="Thank You" 
-                    className="w-full h-full object-cover object-center filter grayscale-[30%] brightness-75"
-                />
-            </m.div>
+            {imageUrl ? (
+                <m.div
+                    initial={{ scale: 1.08, opacity: 0.8 }}
+                    whileInView={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 1.5, ease: "easeOut" }}
+                    className="absolute inset-0 w-full h-full"
+                >
+                    <img
+                        src={imageUrl}
+                        alt=""
+                        className="w-full h-full object-cover object-center filter grayscale-[30%] brightness-75"
+                    />
+                </m.div>
+            ) : (
+                <div className="absolute inset-0 bg-gradient-to-br from-[#171923] via-slate-950 to-[#332b22]" aria-hidden="true" />
+            )}
 
             {/* Dark Overlay for Text Readability */}
             <div className="absolute inset-0 bg-slate-950/60" />
@@ -34,20 +37,20 @@ export const ThankYouSection = ({ wedding }: { wedding: WeddingData }) => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 1 }}
                 viewport={{ once: true }}
-                className="relative z-10 text-center px-6 max-w-3xl flex flex-col items-center w-full"
+                className="relative z-10 text-center px-5 py-12 sm:px-6 max-w-3xl flex flex-col items-center w-full"
             >
-                <div className="w-px h-16 md:h-20 bg-white/30 mb-6" />
+                <div className="w-px h-12 md:h-20 bg-white/30 mb-5 md:mb-6" />
                 
-                <h2 className="text-3xl md:text-5xl font-khmer-moul text-[#D4AF37] leading-tight mb-6 drop-shadow-md">
+                <h2 className="text-2xl sm:text-3xl md:text-5xl font-khmer-moul text-[#D4AF37] leading-tight mb-5 md:mb-6 drop-shadow-md">
                     សូមអំណរគុណ
                 </h2>
                 
-                <p className="text-xs md:text-sm font-kantumruy text-white/90 tracking-wide font-light max-w-2xl leading-relaxed md:leading-loose">
+                <p className="text-sm md:text-base font-kantumruy text-white/90 font-light max-w-2xl leading-8">
                     យើងខ្ញុំសូមថ្លែងអំណរគុណយ៉ាងជ្រាលជ្រៅបំផុតចំពោះវត្តមានរបស់អ្នកក្នុងពិធីនេះ និងសូមជូនពរឱ្យទទួលបាននូវពុទ្ធពរទាំងបួនប្រការគឺ៖ អាយុ វណ្ណៈ សុខៈ ពលៈ កុំបីឃ្លៀងឃ្លាតឡើយ។
                 </p>
 
-                <div className="mt-8 pt-6 border-t border-white/20 flex flex-col items-center">
-                    <span className="font-playfair text-xl md:text-2xl text-white font-bold tracking-widest uppercase">
+                <div className="mt-6 md:mt-8 pt-5 md:pt-6 border-t border-white/20 flex flex-col items-center">
+                    <span className="m05-font-name text-xl md:text-2xl text-white font-bold">
                         {wedding.groomName} &amp; {wedding.brideName}
                     </span>
                 </div>

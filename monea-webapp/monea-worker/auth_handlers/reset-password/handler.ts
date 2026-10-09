@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { errorResponse } from "@/lib/api-utils";
 import { CryptoUtils } from "@/lib/crypto";
+import { hashPasswordResetToken } from "@/lib/password-reset-token";
 
 export async function POST(req: Request) {
     try {
@@ -15,9 +16,23 @@ export async function POST(req: Request) {
         }
 
         // Find the token
-        const resetToken = await prisma.passwordResetToken.findUnique({
-            where: { token },
+        const tokenHash = await hashPasswordResetToken(token);
+        let resetToken = await prisma.passwordResetToken.findUnique({
+            where: { token: tokenHash },
         });
+
+        if (!resetToken) {
+            const legacyToken = await prisma.passwordResetToken.findUnique({ where: { token } });
+            if (legacyToken) {
+                const migrated = await prisma.passwordResetToken.updateMany({
+                    where: { id: legacyToken.id, token },
+                    data: { token: tokenHash },
+                });
+                if (migrated.count === 1) {
+                    resetToken = { ...legacyToken, token: tokenHash };
+                }
+            }
+        }
 
         if (!resetToken) {
             return errorResponse("Invalid or expired reset token", 400);

@@ -75,3 +75,24 @@ export const sendTelegramAlert = async (
     console.error("[Telegram Alert Exception]:", error?.message || error);
   }
 };
+
+export const sendTelegramMessage = async (
+  chatId: string,
+  message: string,
+  env?: any
+): Promise<boolean> => {
+  const token = getEnvVar("TELEGRAM_BOT_TOKEN", env);
+  if (!token || token === "your_bot_token_here") return false;
+
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, text: message }),
+    });
+    return response.ok;
+  } catch (error: any) {
+    console.error("[Telegram Message Error]:", error?.message || error);
+    return false;
+  }
+};

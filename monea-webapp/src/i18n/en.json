@@ -1,23 +1,39 @@
 {
   "admin": {
+    "sidebar": {
+      "governance": "Governance",
+      "overview": "Intelligence Hub",
+      "weddings": "Weddings",
+      "users": "Users",
+      "pricing": "Platform Pricing",
+      "settings": "Settings",
+      "logout": "Logout",
+      "pulse": "Platform Pulse",
+      "pulseStatus": "99.9% Up"
+    },
     "overview": {
-      "title": "Master Command Center",
-      "subtitle": "Global Platform Management",
+      "title": "Master Control",
+      "subtitle": "System Administration",
       "systemLogs": "System Logs",
       "globalSettings": "Global Settings",
       "stats": {
-        "totalWeddings": "Total Weddings",
-        "activeHirers": "Total Users",
-        "globalGuests": "Total Guests",
-        "ipBlacklist": "Blacklisted IPs"
+        "totalProjects": "Total Projects",
+        "activeProjects": "Active Projects",
+        "activeHirers": "Active Hirers",
+        "totalRevenue": "Total Revenue (USD)",
+        "globalGuests": "Global Guests",
+        "ipBlacklist": "IP Blacklist",
+        "securityAudit": "Security Audit",
+        "activeDefenses": "Active Defenses",
+        "failures": "Failures",
+        "blocked": "Blocked"
       },
       "recentWeddings": {
-        "title": "Recent Weddings",
-        "subtitle": "Latest user registrations",
+        "title": "Recent Hirers",
+        "subtitle": "Latest wedding platform activations",
         "viewAll": "View All",
-        "empty": "No weddings registered yet",
         "table": {
-          "name": "Couple Name",
+          "name": "Project Name",
           "plan": "Plan",
           "status": "Status",
           "created": "Created"
@@ -25,45 +41,241 @@
       },
       "systemHealth": {
         "title": "System Health",
-        "ipFirewalls": "IP Firewall",
-        "cdn": "Cloudflare CDN",
+        "ipFirewalls": "IP Firewalls",
+        "cdn": "CDN (Cloudinary)",
         "database": "Database",
         "security": "Security",
+        "diagnostics": "System Diagnostics",
+        "export": "Export Data",
+        "healthy": "HEALTHY",
         "active": "Active",
         "connected": "Connected",
-        "protected": "Protected",
-        "export": "Export Data"
+        "protected": "Protected"
       },
       "actions": {
         "title": "Security Actions",
         "paymentCenter": "Payment Center",
         "userDirectory": "User Directory",
+        "broadcastCenter": "Broadcast Center",
+        "auditExplorer": "Audit Explorer",
+        "revenueGrowth": "Revenue & Growth",
         "supportDesk": "Support Desk",
         "broadcast": "Broadcast",
-        "audit": "Audit Logs",
+        "audit": "Audit",
         "revenue": "Revenue"
       }
     },
-    "support": {
-      "title": "Customer Support Tickets",
-      "subtitle": "Manage inquiries and support tickets from users nationwide",
-      "refresh": "Refresh",
-      "syncing": "Syncing tickets...",
-      "noTickets": "No support tickets found",
-      "return": "Return to Settings",
-      "ticket": {
-        "masterControl": "LIVE SUPPORT DESK",
-        "unknown": "Unknown User",
-        "affiliated": "Affiliated Wedding",
-        "resolved": "Resolved",
-        "reopen": "Re-open"
-      }
+    "header": {
+      "portal": "Admin Dashboard Portal",
+      "version": "Intelligence v2.1",
+      "role": "Command Center",
+      "platform": "Platform Owner"
+    },
+    "logout": {
+      "title": "Sign Out",
+      "description": "Are you sure you want to sign out? You will need to sign in again to access the dashboard.",
+      "confirm": "Sign Out",
+      "cancel": "Stay"
+    },
+    "settings": {
+      "securityAuthority": "Security & Platform Authority",
+      "masterController": "Master Controller",
+      "logsHistory": "Logs & History",
+      "saveSuccess": "System Synchronized",
+      "saveBtn": "Save All Configurations",
+      "saveFailed": "Save Failed",
+      "saveFailedDesc": "Could not update system config.",
+      "pricingTitle": "Platform Economics",
+      "pricingSubtitle": "Tier-based subscription management",
+      "activeSince": "Active Since Alpha 1.0",
+      "standardTier": "Standard",
+      "standardBadge": "Public Tier 02",
+      "proTier": "Pro Master",
+      "proBadge": "Premium White Label",
+      "2faTitle": "Access Guardian",
+      "2faSubtitle": "Protect the SuperAdmin identity with mandatory TOTP verification.",
+      "2faActive": "Enhanced Identity Active",
+      "2faInit": "Initialize 2FA Protocol",
+      "2faPlaceholder": "6-Digit Verification Code",
+      "2faVerify": "Verify",
+      "2faInvalid": "Invalid Token",
+      "2faCheckCode": "Please check your code and try again.",
+      "lockoutTitle": "Entry Lockout",
+      "lockoutSubtitle": "Global Scan Killswitch",
+      "statusTitle": "System Status",
+      "statusHalt": "System Halted",
+      "statusOnline": "System Online",
+      "maintenanceDesc": "Platform activity is frozen. Users will see a maintenance screen.",
+      "onlineDesc": "Platform is fully operational and accepting requests.",
+      "onboardingTitle": "New Signups",
+      "onboardingSubtitle": "Toggle platform registration",
+      "engineTitle": "Platform Engine",
+      "engineVersion": "v1.4.2",
+      "engineVersionBadge": "Enterprise",
+      "security": {
+        "title": "Security Monitoring",
+        "subtitle": "Threat Detection & Access Control",
+        "return": "Return to Master Audit Command Center",
+        "sync": "Sync Stats",
+        "revokeBtn": "Revoke ALL Sessions",
+        "revokeConfirm": "Are you sure you want to revoke ALL staff and user sessions? This will logout everyone immediately.",
+        "revokeSuccess": "All sessions revoked successfully.",
+        "stats": {
+          "locked": "Locked Accounts",
+          "blacklisted": "Blacklisted IPs",
+          "failedLogins": "Failed Logins (Active)"
+        },
+        "blacklist": {
+          "title": "IP Access Control",
+          "placeholder": "IP Address (e.g. 192.168.1.1)",
+          "reason": "Reason for blocking",
+          "addBtn": "Block IP",
+          "unblock": "Unblock",
+          "unblocking": "Unblocking..."
+        },
+        "tables": {
+          "failedAccounts": "Accounts with Failed Logins",
+          "blacklistedIps": "Blacklisted IPs",
+          "noFailed": "No accounts with recent failed logins.",
+          "noBlacklisted": "No blacklisted IPs found.",
+          "lockedBadge": "Locked"
+        }
+      },
+      "support": {
+        "title": "Support Desk",
+        "subtitle": "Manage and resolve user assistance requests",
+        "refresh": "Refresh Desk",
+        "return": "View Master Performance Logs",
+        "noTickets": "No active tickets found",
+        "syncing": "Syncing Database...",
+        "ticket": {
+          "resolved": "Mark Resolved",
+          "reopen": "Re-open Ticket",
+          "affiliated": "Affiliated Party",
+          "unknown": "Unknown User",
+          "masterControl": "Master Control"
+        }
+      },
+      "overrideTitle": "Security Override Protocol",
+      "overrideDesc": "These settings affect platform-wide availability and security. Use extreme caution when modifying live configurations. All changes are logged in the Security Audit Feed."
+    },
+    "payments": {
+      "title": "Payment Verification Center",
+      "subtitle": "Pending Activations",
+      "awaitingApproval": "{count} Awaiting Approval",
+      "loading": "Loading Payment Requests...",
+      "empty": "No Pending Payments",
+      "emptyDesc": "All wedding projects are currently activated.",
+      "request": "{type} Plan Request",
+      "registrationDate": "Registration Date",
+      "weddingId": "Wedding ID",
+      "planCost": "Plan Cost",
+      "awaitingVerification": "Awaiting Verification",
+      "approve": "Approve Payment",
+      "preview": "Preview Wedding Context",
+      "syncing": "Syncing Payments...",
+      "success": "Payment Approved",
+      "successDesc": "The wedding has been successfully activated.",
+      "return": "Return to Master Center"
     }
   },
   "common": {
     "upgrade": {
-      "page_title": "Choose the right plan for you",
-      "page_subtitle": "Optimize your event management with our powerful features"
+      "special_offer": "Special Offer: 50% Off",
+      "subtitle": "Upgrade for professional features and a premium experience.",
+      "title": "Choose Your Power",
+      "planLoadLoading": "Loading your current plan and prices...",
+      "planLoadError": "Couldn't load plans",
+      "planLoadErrorDescription": "We couldn't retrieve your plan details and current prices. Check your connection and try again.",
+      "planLoadRetry": "Try again",
+      "free_name": "FREE MASTER",
+      "pro_name": "PRO MASTER",
+      "premium_name": "PREMIUM MASTER",
+      "current_plan": "Current Plan",
+      "best_value": "Best Value",
+      "already_active": "Already Active",
+      "upgrade_now": "Upgrade Now",
+      "unlock_elite": "Unlock Elite",
+      "secure_payment": "Secure Payment",
+      "scan_khqr": "Scan with your banking app using KHQR",
+      "payable_amount": "Payable Amount",
+      "time_remaining": "Time Remaining",
+      "do_not_close": "Please do not close this window until the payment is detected.",
+      "payment_received": "Payment Received!",
+      "upgrading_wait": "Upgrading your system, please wait...",
+      "digital_receipt": "Digital Receipt",
+      "trans_success": "Transaction Successful",
+      "receipt_order": "Order ID",
+      "receipt_package": "Package",
+      "receipt_amount": "Amount Paid",
+      "continue_btn": "Continue to Dashboard",
+      "check_payment": "I have paid",
+      "payment_not_found": "Payment not found yet. Please try again in a few seconds.",
+      "qr_expired": "This QR Code has expired",
+      "regenerate_qr": "Regenerate QR Code",
+      "generating_qr": "Generating secure KHQR...",
+      "free_label": "Free Forever",
+      "single_event": "Single Event",
+      "unlimited_events": "Unlimited Events",
+      "free_desc": "Essential tools to get started.",
+      "pro_desc": "Professional features for unforgettable events.",
+      "premium_desc": "Full control, white-label, and priority support.",
+      "choose_plan": "Choose a plan",
+      "planCards": {
+        "perEvent": "event",
+        "perYear": "year",
+        "free": {
+          "description": "Create a basic digital invitation for a small event.",
+          "features": {
+            "1": "Create a basic digital invitation",
+            "2": "Download a standard image",
+            "3": "MONEA branding appears on the invitation",
+            "4": "Use a limited selection of templates"
+          },
+          "select": "Free Plan"
+        },
+        "pro": {
+          "description": "Enjoy unlimited design access with advanced templates.",
+          "features": {
+            "1": "Unlock all invitation templates",
+            "2": "Download high-resolution HD images",
+            "3": "No MONEA branding on invitations",
+            "4": "Customize dimensions, colors, and fonts",
+            "5": "Access animated invitation designs"
+          },
+          "select": "Choose Standard"
+        },
+        "premium": {
+          "description": "A complete design experience for professional event organizers.",
+          "features": {
+            "1": "Everything included in the Standard plan",
+            "2": "Create invitations for unlimited events",
+            "3": "Get early access to new templates",
+            "4": "Save completed designs to your account",
+            "5": "Get priority technical support, 24/7"
+          },
+          "select": "Choose Premium"
+        }
+      },
+      "features": {
+        "basic_invite": "Basic digital invitation",
+        "std_gallery": "Standard photo gallery",
+        "gift_list": "Digital gift registry",
+        "one_event": "1 Wedding / Event",
+        "branding": "Includes MONEA branding",
+        "qr_checkin": "Unlimited QR check-in",
+        "analytics": "Live guest analytics",
+        "gift_track": "Digital gift tracking",
+        "team_3": "Team collaboration (3 staff)",
+        "public_gallery": "Public gallery access",
+        "everything_pro": "Everything in PRO included",
+        "unlimited_staff": "Unlimited staff members",
+        "custom_engine": "Custom template editor",
+        "priority_support": "Priority technical support",
+        "data_export": "Data export (Excel/PDF)",
+        "no_branding": "No MONEA branding"
+      },
+      "live_checking": "Checking live status..."
     },
     "auth": {
       "signIn": "Sign In",
@@ -91,12 +303,12 @@
       "signInNow": "Sign in to your account",
       "back": "Back",
       "forgotPasswordTitle": "FORGET PW ?",
-      "forgotPasswordSubtitle": "Enter your email to receive a password reset link",
+      "forgotPasswordSubtitle": "Enter your account email. If Telegram is linked, the recovery code will be sent to your Telegram.",
       "sendLink": "Send Reset Link",
       "rememberPassword": "Remember your password?",
       "backToSignIn": "Back to Sign In",
       "backToHome": "Back to Home",
-      "resetLinkSent": "A password reset link has been sent to your email. Please check!",
+      "resetLinkSent": "If your account has Telegram linked, a password reset code will be sent to your Telegram bot chat.",
       "resetPasswordTitle": "Reset Password",
       "resetPasswordSubtitle": "Please enter your new password below.",
       "newPassword": "New Password",
@@ -121,6 +333,7 @@
       "fetching": "Loading..."
     },
     "success": {
+      "title": "Success",
       "saved": "Saved successfully",
       "thankYou": "Thank you!",
       "responseReceived": "Response received"
@@ -342,37 +555,7 @@
         "phone": "Phone: +855 (0) 12 345 678"
       }
     },
-    "upgrade": {
-      "special_offer": "Special Offer: 50% Off",
-      "subtitle": "Upgrade for professional features and a premium experience.",
-      "title": "Choose Your Power",
-      "free_name": "FREE MASTER",
-      "pro_name": "PRO MASTER",
-      "premium_name": "PREMIUM MASTER",
-      "current_plan": "Current Plan",
-      "best_value": "Best Value",
-      "already_active": "Already Active",
-      "upgrade_now": "Upgrade Now",
-      "unlock_elite": "Unlock Elite",
-      "secure_payment": "Secure Payment",
-      "scan_khqr": "Scan with your banking app using KHQR",
-      "payable_amount": "Payable Amount",
-      "time_remaining": "Time Remaining",
-      "do_not_close": "Please do not close this window until the payment is detected.",
-      "payment_received": "Payment Received!",
-      "upgrading_wait": "Upgrading your system, please wait...",
-      "digital_receipt": "Digital Receipt",
-      "trans_success": "Transaction Successful",
-      "receipt_order": "Order ID",
-      "receipt_package": "Package",
-      "receipt_amount": "Amount Paid",
-      "continue_btn": "Continue to Dashboard",
-      "check_payment": "I have paid",
-      "payment_not_found": "Payment not found yet. Please try again in a few seconds.",
-      "qr_expired": "This QR Code has expired",
-      "regenerate_qr": "Regenerate QR Code",
-      "generating_qr": "Generating secure KHQR..."
-    }
+    "all": "All"
   },
   "support": {
     "title": "Support Center",
@@ -446,7 +629,9 @@
     "step3Title": "Add Details",
     "step3Desc": "Input guest details, event schedule, and location coordinates.",
     "step4Title": "Share Invitation",
-    "step4Desc": "Send your invitation link to guests and await their responses."
+    "step4Desc": "Send your invitation link to guests and await their responses.",
+    "card5Title": "Engagement Templates",
+    "card5Desc": "Specially crafted for engagement ceremonies with elegant designs."
   },
   "stats": {
     "couples": "Happy Couples",
@@ -480,7 +665,8 @@
     "bizF2": "API Access",
     "bizF3": "Priority Support",
     "priceSuffix": "Per Month",
-    "cta": "Subscribe Now"
+    "cta": "Subscribe Now",
+    "bizF4": "Access to all current and future MONEA templates"
   },
   "testimonials": {
     "badge": "Testimonials",
@@ -511,7 +697,8 @@
     "title1": "Ready to create your",
     "title2": "digital invitation?",
     "description": "Join hundreds of happy couples who chose MONEA to make their special day even more unforgettable.",
-    "button": "Start Your Wedding Invitation"
+    "button": "Start Your Wedding Invitation",
+    "badge": "MONEA"
   },
   "wizard": {
     "title": "Design Your Invitation",
@@ -527,8 +714,8 @@
         "popularTemplates": "Popular Templates",
         "templates": {
           "khmer-legacy": {
-            "title": "M-01",
-            "description": ""
+            "title": "Khmer Legacy",
+            "description": "Traditional Khmer invitation design for weddings and engagements"
           },
           "modern-minimal": {
             "title": "M-02",
@@ -539,13 +726,12 @@
             "description": ""
           }
         },
-        "title": "Choose Template",
         "subtitle": "Select a template for your special day"
       },
       "2": {
         "title": "Personal Details",
         "coupleTitle": "Couple Information",
-        "coupleSubtitle": "Details of the bride and groom",
+        "coupleSubtitle": "Enter the couple's names. You can add photos in the next step.",
         "groomName": "Groom's Name",
         "groomPlaceholder": "Enter groom's name",
         "brideName": "Bride's Name",
@@ -581,6 +767,7 @@
       "3": {
         "title": "Date & Venue",
         "description": "Set the schedule and location for your guests.",
+        "requiredIntro": "Enter the event date, venue, and Google Maps link. The start time is optional.",
         "datetimeTitle": "Date & Location",
         "datetimeSubtitle": "When and where the magic happens",
         "eventDate": "Event Date",
@@ -590,6 +777,11 @@
         "venuePlaceholder": "e.g. Grand Ballroom, Rosewood Hotel",
         "mapLabel": "Google Maps Location",
         "mapHowTo": "How to get link?",
+        "mapOpen": "Open Google Maps",
+        "mapStep1": "Open Google Maps and search for your event venue.",
+        "mapStep2": "Select the venue pin, then choose Share.",
+        "mapStep3": "Choose Copy link and paste it into the field below.",
+        "mapRequiredHint": "A Google Maps link is required before you can continue or save.",
         "mapPlaceholder": "Paste Google Maps 'Share' link here...",
         "bannerLabel": "Invitation Banner (16:9)",
         "locationQr": "Location QR Code (Optional)",
@@ -604,6 +796,9 @@
         "addActivity": "Add New Activity"
       },
       "4": {
+        "navTitle": "Photos",
+        "mobileTitle": "Photos",
+        "header": "Step 4: Photos and Media (Optional)",
         "title": "Gallery & Media",
         "description": "Upload your beautiful photos and background music.",
         "mediaNote": "Please upload your photos. Template slots are fixed design elements, while the General Gallery is for additional photos.",
@@ -642,10 +837,15 @@
           "sig2": "Signature Photo 2",
           "sig3": "Signature Photo 3",
           "groom": "Groom's Portrait",
-          "bride": "Bride's Portrait"
+          "bride": "Bride's Portrait",
+          "husband": "Husband Portrait",
+          "wife": "Wife Portrait"
         }
       },
       "5": {
+        "navTitle": "Design",
+        "mobileTitle": "Design",
+        "header": "Step 5: Design and Extras (Optional)",
         "title": "Advanced Settings",
         "subtitle": "Social sharing and premium configurations",
         "socialTitle": "Social Media Preview",
@@ -764,6 +964,12 @@
     "guestbook": {
       "title": "Guestbook",
       "subtitle": "Warm wishes from our loved ones",
+      "recentMessages": "Recent wishes",
+      "sending": "Sending...",
+      "submitSuccess": "Thank you! Your wish has been sent.",
+      "submitError": "Your wish could not be sent. Please try again.",
+      "loadError": "Wishes could not be loaded.",
+      "retry": "Try again",
       "name": "Name",
       "message": "Message",
       "submit": "Send Blessing",
@@ -871,33 +1077,106 @@
     "user": {
       "profile": "User Profile",
       "accountSettings": "Account Settings",
-      "designSettings": "Design Settings",
+      "designSettings": "Invitation Design",
       "helpSupport": "Help & Support"
     },
     "summary": "View your wedding summary data.",
     "actions": {
-      "addGuest": "Add New Guest"
+      "addGuest": "Add New Guest",
+      "designNow": "Design invitation"
     },
     "empty": {
-      "message": "Please wait a moment to start creating your wedding program."
+      "message": "Please wait a moment to start creating your wedding program.",
+      "noTemplateTitle": "Your invitation isn't ready yet",
+      "noTemplateDesc": "Design and save your invitation first. Then MONEA can create a link and QR code for sharing."
+    },
+    "coupleGroomFallback": "Groom",
+    "coupleBrideFallback": "Bride",
+    "eventType": {
+      "wedding": "Wedding",
+      "anniversary": "Engagement"
+    },
+    "daysLeft": "{count} days left",
+    "today": "Today",
+    "eventPassed": "Event passed",
+    "cardDescriptions": {
+      "design": "Customize your invitation template and photos.",
+      "guests": "Add guest names and manage invitation links.",
+      "schedule": "Organize your event timeline."
+    },
+    "invitationPreview": {
+      "title": "Live invitation preview",
+      "description": "See how your digital invitation appears to guests on their phones."
+    },
+    "quickstart": {
+      "title": "Welcome to MONEA!",
+      "description": "Follow these three simple steps to prepare and manage your event.",
+      "designTitle": "1. Design your invitation",
+      "designDescription": "Choose a template and customize your invitation details.",
+      "addGuestsTitle": "2. Add your guests",
+      "addGuestsDescription": "Add guest names and create a personal invitation link for each guest.",
+      "shareTitle": "3. Share your invitation",
+      "shareDescription": "Open the invitation center to copy or share your event link.",
+      "finishDesignTitle": "3. Finish your invitation design",
+      "finishDesignDescription": "Save an invitation design first, then return here to share it."
+    },
+    "installPrompt": {
+      "title": "Install MONEA as an app",
+      "description": "Open MONEA faster and use it easily on your phone.",
+      "install": "Install",
+      "installing": "Opening...",
+      "dismiss": "Dismiss install prompt",
+      "errorTitle": "Could not start installation",
+      "errorDescription": "Please try again later or use your browser's install option."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "subtitle": "System broadcasts",
+      "clear": "Clear",
+      "loading": "Loading notifications...",
+      "loadError": "Couldn't load notifications",
+      "retryHint": "Check your connection and try again.",
+      "retry": "Try again",
+      "emptyTitle": "No notifications",
+      "emptyDescription": "No pending broadcasts"
     },
     "nav": {
       "overview": "Overview",
       "home": "Home",
       "menu": "Menu",
       "design": "Design",
+      "designShort": "Design",
+      "settingsShort": "Account",
       "guests": "Manage Guests",
+      "guestsShort": "Guests",
       "gifts": "Gift List",
       "schedule": "Event Schedule",
+      "scheduleShort": "Schedule",
+      "timeline": "Event Schedule",
       "settings": "Settings",
-      "generalInfo": "General Information"
+      "generalInfo": "General Information",
+      "checkin": "Guest Check-in",
+      "checkinShort": "Check-in",
+      "reports": "Reports",
+      "notes": "Notes",
+      "staff": "Staff",
+      "display": "Live Display",
+      "guide": "How to Use",
+      "account": "Account & Profile",
+      "support": "Help & Support",
+      "upgrade": "Upgrade Plan"
     },
     "cards": {
       "inviteCenter": "Invite Center",
       "dataExport": "Data Export",
-      "quickActions": "Quick Actions"
+      "quickActions": "Quick Actions",
+      "giftsDesc": "Record guest gifts and follow the gift report in real time.",
+      "checkinDesc": "Scan guest QR codes to check them in and watch arrivals live.",
+      "guestsDesc": "Add guests, generate personal links and track attendance.",
+      "timelineDesc": "Set the morning ceremony and the evening reception schedule."
     },
     "menu": {
+      "invitation": "Digital Invitation",
       "guests": "Manage Guests",
       "gifts": "Gift List",
       "schedule": "Event Schedule",
@@ -906,7 +1185,9 @@
       "staff": "Staff",
       "general": "General",
       "setup": "Setup",
-      "others": "Others"
+      "others": "Others",
+      "eventDay": "Event Day",
+      "insights": "Reports & Team"
     },
     "stats": {
       "guests": "Guests",
@@ -914,14 +1195,20 @@
       "cashKHR": "Cash ៛",
       "guestUnit": "Person",
       "analysis": "Results Analysis",
-      "openRate": "Open Rate",
-      "openedCount": "{count} people opened",
-      "confirmedRSVPs": "Confirmed RSVPs",
-      "respondedCount": "{count} people responded"
+      "loadError": "Unable to load dashboard statistics",
+      "loadErrorSub": "Check your connection and try again.",
+      "retry": "Try again",
+      "checkInRate": "Guest check-in rate",
+      "checkedInCount": "{count} of {total} guests checked in",
+      "guestMessages": "Guestbook messages",
+      "guestMessagesCount": "{count} messages received"
     },
     "analytics": {
       "noData": "No Data Available",
       "noDataSub": "Data will appear once views are recorded",
+      "loadError": "Unable to load analytics data",
+      "loadErrorSub": "Check your connection and try again.",
+      "retry": "Try again",
       "totalViews": "Total Views",
       "totalViewsSub": "Total Unique Views",
       "mapClicks": "Map Clicks",
@@ -969,12 +1256,18 @@
       "inviteTitle": "Share Your Link",
       "copyLink": "Copy Link",
       "copied": "Copied!",
+      "copyError": "Unable to copy the link. Please try again.",
+      "shareButton": "Share",
+      "downloadInvitationQr": "Download invitation QR code",
       "qrTitle": "Invitation QR",
       "qrDescription": "Scan to view your digital invitation",
       "downloadQR": "Download QR",
       "guests": "Guest List",
       "gifts": "Gift List",
-      "shareInvite": "Send Invitation",
+      "shareInvite": "Invitation",
+      "invitationCenterTitle": "Your Wedding Invitation",
+      "invitationCenterDescription": "After saving, return here to view your invitation or copy its share link.",
+      "shareDesc": "Send this link to your honored guests or let them scan the QR code to view the invitation.",
       "viewPublic": "View Public Invitation",
       "liveInvitation": "Live Invitation link"
     },
@@ -993,6 +1286,9 @@
       "emptyTitle": "No activities yet",
       "emptySubtitle": "Start planning your wedding schedule now.",
       "createNew": "Create New",
+      "loadError": "Unable to load the schedule",
+      "loadErrorSub": "Check your connection and try again.",
+      "retry": "Try again",
       "form": {
         "time": "Time",
         "timePlaceholder": "07:00 AM",
@@ -1037,6 +1333,7 @@
         "removeLogo": "Want to remove MONEA logo?",
         "moreFeatures": "Want more features?",
         "description": "Upgrade your plan now for a great experience and unlimited features.",
+        "premiumActive": "Your Premium plan is active with access to all features.",
         "toUpperPlan": "Upgrade to Premium",
         "cta": "Upgrade Now"
       },
@@ -1097,6 +1394,40 @@
         "auto": "Automatic Upgrade",
         "autoTitle": "Automatic Upgrade",
         "autoDesc": "Your account will receive features immediately after successful payment.",
+        "slipRequiredTitle": "Receipt details required",
+        "slipRequiredDescription": "Upload a receipt image or enter the transaction reference (TxID/Ref).",
+        "slipReferenceTooLongTitle": "Reference is too long",
+        "slipReferenceTooLongDescription": "Transaction references and notes must be 200 characters or fewer.",
+        "paymentPendingTitle": "Payment not received yet",
+        "statusCheckFailedTitle": "Couldn't check payment",
+        "statusCheckErrorDescription": "Payment status could not be verified. Please try again.",
+        "checkAgainIn": "Check again in {seconds}s",
+        "qrGenerationFailedTitle": "Couldn't generate QR code",
+        "invalidQrResponse": "The payment service returned incomplete QR details. Please try again.",
+        "networkError": "A connection problem occurred. Please try again.",
+        "tryAgain": "Please try again.",
+        "sessionSaveWarningTitle": "Payment QR created",
+        "sessionSaveWarningDescription": "Keep this page open until payment is complete. The QR code may not be restored if you refresh or leave.",
+        "resumeTitle": "Payment is still in progress",
+        "resumeDescription": "Amount: ${amount} · QR expires in {time}",
+        "resumeAction": "Continue payment",
+        "expiredTitle": "This payment QR has expired",
+        "expiredDescription": "Generate a new QR code to continue payment.",
+        "slipTitle": "Or submit a payment receipt",
+        "slipDescription": "For payment verification by our team",
+        "slipHint": "Upload a JPEG, PNG, or WebP receipt image (up to 10 MB), or enter a transaction reference to request manual review.",
+        "slipImage": "Payment receipt image",
+        "slipInvalidType": "Choose a JPEG, PNG, or WebP image.",
+        "slipInvalidSize": "The receipt image must be smaller than 10 MB.",
+        "slipReadError": "We couldn't read this image. Please choose another file.",
+        "removeSlip": "Remove receipt image",
+        "slipReference": "Transaction reference or note",
+        "slipReferencePlaceholder": "Transaction ID / reference or note...",
+        "submitSlip": "Submit receipt for review",
+        "submittingSlip": "Submitting...",
+        "slipSubmittedTitle": "Receipt submitted for review",
+        "slipSubmittedDescription": "We received your payment details. Our team will verify them and update your plan shortly.",
+        "slipSubmittedContinue": "Back to Dashboard",
         "confirm": "I have paid",
         "paid": "I have paid",
         "cancel": "Cancel Payment",
@@ -1112,7 +1443,8 @@
       },
       "noWedding": {
         "title": "Ready to start?",
-        "desc": "It looks like you haven't created a wedding program yet. Let's get started!"
+        "desc": "It looks like you haven't created a wedding program yet. Create one first so payment can be linked to your event and verified correctly.",
+        "cta": "Create your event"
       }
     },
     "notes": {
@@ -1129,7 +1461,8 @@
       "error": {
         "fetch": "Unable to fetch data.",
         "save": "Save failed.",
-        "connection": "Connection problem."
+        "connection": "Connection problem.",
+        "retry": "Try again"
       },
       "workspace": "Important Information Workspace",
       "persistence": {
@@ -1199,7 +1532,12 @@
     "title": "Design Wizard",
     "publish": "Publish",
     "saving": "Saving...",
-    "success": "Saved successfully",
+    "success": {
+      "title": "Saved successfully!",
+      "description": "Your changes have been saved. View your public invitation now, or return to the dashboard to find it later.",
+      "viewInvitation": "View Public Invitation",
+      "backToDashboard": "Back to dashboard to find your invitation later"
+    },
     "locked": {
       "title": "Editing Locked",
       "description": "Your Free Plan has expired its 3-day editing period. Please update your plan to continue creating your amazing invitation or contact the MONEA team.",
@@ -1275,6 +1613,9 @@
     },
     "total": "Total",
     "search": "Search by name or location...",
+    "searchEmptyTitle": "No guests match your search",
+    "searchEmptyDescription": "Try another term or clear your search.",
+    "clearSearch": "Clear search",
     "form": {
       "title": "Add/Edit Guest",
       "description": "Fill in guest details",
@@ -1283,6 +1624,7 @@
       "sectionSubtitle": "Guest Identity Details",
       "nameLabel": "Guest Name",
       "namePlaceholder": "Dara Sok...",
+      "prefixLabel": "Name prefix",
       "locationLabel": "From / Location",
       "locationPlaceholder": "Phnom Penh, Friend of bride...",
       "saveBtn": "Save Guest Info",
@@ -1428,6 +1770,8 @@
     "title": "Reports & Stats",
     "subtitle": "Track and analyze your wedding data in real-time.",
     "analytics": "Platform Analytics",
+    "loadError": "Unable to load report data. Check your connection and try again.",
+    "retry": "Try again",
     "stats": {
       "totalGuests": "Total Guests",
       "checkIn": "Check-in: {count}",
@@ -1469,8 +1813,8 @@
     }
   },
   "account": {
-    "badge": "Account Settings",
-    "title": "Account Settings",
+    "badge": "Account & Profile",
+    "title": "Account & Profile",
     "subtitle": "Manage your profile, security settings, and preferences.",
     "tabs": {
       "profile": "Profile",
@@ -1489,10 +1833,40 @@
     },
     "profile": {
       "title": "General Information",
-      "description": "Basic information about your account.",
+      "description": "Update your name and phone number. Your sign-in email cannot be changed here.",
+      "avatarHelp": "Use a clear photo of yourself to help identify your account. Optional.",
+      "accountId": "Account ID",
+      "save": "Save changes",
+      "saved": "Profile saved successfully!",
+      "validation": {
+        "name": "Enter a name between 1 and 100 characters.",
+        "phone": "Phone numbers must contain 7–15 digits and may include +, spaces, parentheses, or hyphens."
+      },
+      "errors": {
+        "avatarSave": "Could not save your profile photo.",
+        "avatarType": "Choose a JPG, PNG, or WEBP image.",
+        "avatarSize": "Profile photos cannot be larger than 10 MB.",
+        "avatarUpload": "Profile photo upload failed. Please try again."
+      },
+      "avatar": {
+        "add": "Add photo",
+        "change": "Change photo",
+        "deleteConfirm": "Are you sure you want to remove your profile photo?"
+      },
+      "telegram": {
+        "title": "Telegram account recovery",
+        "connected": "Telegram connected",
+        "notConnected": "Telegram not connected",
+        "description": "Connect Telegram and allow MONEA to send messages so you can receive password reset codes.",
+        "reconnect": "Reconnect / Allow messages",
+        "connect": "Connect Telegram",
+        "linkedSuccess": "Telegram was connected successfully."
+      },
+      "telegramLinkError": "Could not connect Telegram. Please try again.",
       "labels": {
-        "username": "Username",
-        "email": "Email Address"
+        "username": "Full name",
+        "email": "Email Address",
+        "phone": "Phone number"
       },
       "changePassword": {
         "title": "Change Password",
@@ -1503,6 +1877,7 @@
     "security": {
       "title": "Security Configuration",
       "description": "Keep your account secure with 2FA and session management.",
+      "passwordRequired": "A password is required first",
       "twoFactor": {
         "title": "Two-Factor Authentication (2FA)",
         "description": "Add an extra layer of security to your account.",
@@ -1523,6 +1898,8 @@
         "title": "Security Log Activity",
         "description": "Recent security events related to your account.",
         "loading": "Loading logs...",
+        "error": "Unable to load security activity.",
+        "retry": "Try again",
         "empty": "No security logs available.",
         "types": {
           "LOGIN_SUCCESS": "Successful Login",
@@ -1603,186 +1980,6 @@
           "tech": "Technical error occurred"
         }
       }
-    }
-  },
-  "admin": {
-    "sidebar": {
-      "governance": "Governance",
-      "overview": "Intelligence Hub",
-      "weddings": "Weddings",
-      "users": "Users",
-      "pricing": "Platform Pricing",
-      "settings": "Settings",
-      "logout": "Logout",
-      "pulse": "Platform Pulse",
-      "pulseStatus": "99.9% Up"
-    },
-    "overview": {
-      "title": "Master Control",
-      "subtitle": "System Administration",
-      "systemLogs": "System Logs",
-      "globalSettings": "Global Settings",
-      "stats": {
-        "totalProjects": "Total Projects",
-        "activeProjects": "Active Projects",
-        "activeHirers": "Active Hirers",
-        "totalRevenue": "Total Revenue (USD)",
-        "globalGuests": "Global Guests",
-        "ipBlacklist": "IP Blacklist",
-        "securityAudit": "Security Audit",
-        "activeDefenses": "Active Defenses",
-        "failures": "Failures",
-        "blocked": "Blocked"
-      },
-      "recentWeddings": {
-        "title": "Recent Hirers",
-        "subtitle": "Latest wedding platform activations",
-        "viewAll": "View All",
-        "table": {
-          "name": "Project Name",
-          "plan": "Plan",
-          "status": "Status",
-          "created": "Created"
-        }
-      },
-      "systemHealth": {
-        "title": "System Health",
-        "ipFirewalls": "IP Firewalls",
-        "cdn": "CDN (Cloudinary)",
-        "database": "Database",
-        "security": "Security",
-        "diagnostics": "System Diagnostics",
-        "export": "Export Data",
-        "healthy": "HEALTHY",
-        "active": "Active",
-        "connected": "Connected",
-        "protected": "Protected"
-      },
-      "actions": {
-        "title": "Security Actions",
-        "paymentCenter": "Payment Center",
-        "userDirectory": "User Directory",
-        "broadcastCenter": "Broadcast Center",
-        "auditExplorer": "Audit Explorer",
-        "revenueGrowth": "Revenue & Growth",
-        "supportDesk": "Support Desk",
-        "broadcast": "Broadcast",
-        "audit": "Audit",
-        "revenue": "Revenue"
-      }
-    },
-    "header": {
-      "portal": "Admin Dashboard Portal",
-      "version": "Intelligence v2.1",
-      "role": "Command Center",
-      "platform": "Platform Owner"
-    },
-    "logout": {
-      "title": "Sign Out",
-      "description": "Are you sure you want to sign out? You will need to sign in again to access the dashboard.",
-      "confirm": "Sign Out",
-      "cancel": "Stay"
-    },
-    "settings": {
-      "securityAuthority": "Security & Platform Authority",
-      "masterController": "Master Controller",
-      "logsHistory": "Logs & History",
-      "saveSuccess": "System Synchronized",
-      "saveBtn": "Save All Configurations",
-      "saveFailed": "Save Failed",
-      "saveFailedDesc": "Could not update system config.",
-      "pricingTitle": "Platform Economics",
-      "pricingSubtitle": "Tier-based subscription management",
-      "activeSince": "Active Since Alpha 1.0",
-      "standardTier": "Standard",
-      "standardBadge": "Public Tier 02",
-      "proTier": "Pro Master",
-      "proBadge": "Premium White Label",
-      "2faTitle": "Access Guardian",
-      "2faSubtitle": "Protect the SuperAdmin identity with mandatory TOTP verification.",
-      "2faActive": "Enhanced Identity Active",
-      "2faInit": "Initialize 2FA Protocol",
-      "2faPlaceholder": "6-Digit Verification Code",
-      "2faVerify": "Verify",
-      "2faInvalid": "Invalid Token",
-      "2faCheckCode": "Please check your code and try again.",
-      "lockoutTitle": "Entry Lockout",
-      "lockoutSubtitle": "Global Scan Killswitch",
-      "statusTitle": "System Status",
-      "statusHalt": "System Halted",
-      "statusOnline": "System Online",
-      "maintenanceDesc": "Platform activity is frozen. Users will see a maintenance screen.",
-      "onlineDesc": "Platform is fully operational and accepting requests.",
-      "onboardingTitle": "New Signups",
-      "onboardingSubtitle": "Toggle platform registration",
-      "engineTitle": "Platform Engine",
-      "engineVersion": "v1.4.2",
-      "engineVersionBadge": "Enterprise",
-      "security": {
-        "title": "Security Monitoring",
-        "subtitle": "Threat Detection & Access Control",
-        "return": "Return to Master Audit Command Center",
-        "sync": "Sync Stats",
-        "revokeBtn": "Revoke ALL Sessions",
-        "revokeConfirm": "Are you sure you want to revoke ALL staff and user sessions? This will logout everyone immediately.",
-        "revokeSuccess": "All sessions revoked successfully.",
-        "stats": {
-          "locked": "Locked Accounts",
-          "blacklisted": "Blacklisted IPs",
-          "failedLogins": "Failed Logins (Active)"
-        },
-        "blacklist": {
-          "title": "IP Access Control",
-          "placeholder": "IP Address (e.g. 192.168.1.1)",
-          "reason": "Reason for blocking",
-          "addBtn": "Block IP",
-          "unblock": "Unblock",
-          "unblocking": "Unblocking..."
-        },
-        "tables": {
-          "failedAccounts": "Accounts with Failed Logins",
-          "blacklistedIps": "Blacklisted IPs",
-          "noFailed": "No accounts with recent failed logins.",
-          "noBlacklisted": "No blacklisted IPs found.",
-          "lockedBadge": "Locked"
-        }
-      },
-      "support": {
-        "title": "Support Desk",
-        "subtitle": "Manage and resolve user assistance requests",
-        "refresh": "Refresh Desk",
-        "return": "View Master Performance Logs",
-        "noTickets": "No active tickets found",
-        "syncing": "Syncing Database...",
-        "ticket": {
-          "resolved": "Mark Resolved",
-          "reopen": "Re-open Ticket",
-          "affiliated": "Affiliated Party",
-          "unknown": "Unknown User",
-          "masterControl": "Master Control"
-        }
-      },
-      "overrideTitle": "Security Override Protocol",
-      "overrideDesc": "These settings affect platform-wide availability and security. Use extreme caution when modifying live configurations. All changes are logged in the Security Audit Feed."
-    },
-    "payments": {
-      "title": "Payment Verification Center",
-      "subtitle": "Pending Activations",
-      "awaitingApproval": "{count} Awaiting Approval",
-      "loading": "Loading Payment Requests...",
-      "empty": "No Pending Payments",
-      "emptyDesc": "All wedding projects are currently activated.",
-      "request": "{type} Plan Request",
-      "registrationDate": "Registration Date",
-      "weddingId": "Wedding ID",
-      "planCost": "Plan Cost",
-      "awaitingVerification": "Awaiting Verification",
-      "approve": "Approve Payment",
-      "preview": "Preview Wedding Context",
-      "syncing": "Syncing Payments...",
-      "success": "Payment Approved",
-      "successDesc": "The wedding has been successfully activated.",
-      "return": "Return to Master Center"
     }
   }
 }

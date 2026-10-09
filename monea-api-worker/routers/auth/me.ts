@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { getServerUser } from "@/lib/auth";
 import { getDb } from "@/lib/drizzle";
+import { isValidProfileName, isValidProfilePhone } from "@/lib/validations/profile";
 import { users, weddings } from "@/drizzle/schema";
 import { eq, desc } from "drizzle-orm";
 
@@ -64,7 +65,12 @@ router.get('/', async (c) => {
                 id: users.id,
                 name: users.name,
                 email: users.email,
+                phone: users.phone,
+                avatar: users.avatar,
+                password: users.password,
                 role: users.role,
+                googleId: users.googleId,
+                telegramId: users.telegramId,
                 createdAt: users.createdAt,
                 twoFactorEnabled: users.twoFactorEnabled,
             })
@@ -105,8 +111,10 @@ router.get('/', async (c) => {
 
         console.log(`[Auth /me] Database queries successful for user: ${dbUser.id}`);
 
+        const { password, ...safeDbUser } = dbUser;
         const userData = {
-            ...dbUser,
+            ...safeDbUser,
+            hasPassword: Boolean(password),
             type: "user",
             weddingId: firstWedding?.id ?? null,
             wedding: firstWedding ?? null,
@@ -136,13 +144,18 @@ router.put('/', async (c) => {
         }
 
         const body = await c.req.json();
-        const { name, email } = body;
+        const { name, email, phone, avatar } = body;
         const targetUserId = user.userId || user.id;
 
         const db = getDb(c.env);
 
         const updateData: any = {};
-        if (name && typeof name === "string") updateData.name = name.trim();
+        if (name !== undefined) {
+            if (!isValidProfileName(name)) {
+                return createCorsResponse(c, { error: "ឈ្មោះត្រូវមានពី 1 ដល់ 100 តួអក្សរ" }, 400);
+            }
+            updateData.name = name.trim();
+        }
         if (email && typeof email === "string" && email.includes("@")) {
             const cleanEmail = email.toLowerCase().trim();
             const existing = await db.select()
@@ -156,6 +169,18 @@ router.put('/', async (c) => {
             }
             updateData.email = cleanEmail;
         }
+        if (phone !== undefined) {
+            if (!isValidProfilePhone(phone)) {
+                return createCorsResponse(c, { error: "លេខទូរស័ព្ទត្រូវមាន 7–15 ខ្ទង់ និងអាចប្រើ +, ដកឃ្លា ឬសញ្ញា - បាន" }, 400);
+            }
+            updateData.phone = phone.trim();
+        }
+        if (avatar === null) updateData.avatar = null;
+        if (typeof avatar === "string" && avatar.length <= 2048) updateData.avatar = avatar.trim();
+
+        if (Object.keys(updateData).length === 0) {
+            return createCorsResponse(c, { error: "No profile fields to update" }, 400);
+        }
 
         const updatedUser = await db.update(users)
             .set(updateData)
@@ -164,6 +189,8 @@ router.put('/', async (c) => {
                 id: users.id,
                 name: users.name,
                 email: users.email,
+                phone: users.phone,
+                avatar: users.avatar,
                 role: users.role
             })
             .then((r: any) => r[0]);

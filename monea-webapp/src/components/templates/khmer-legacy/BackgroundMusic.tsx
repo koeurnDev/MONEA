@@ -25,9 +25,6 @@ export function BackgroundMusic({ wedding, isPlaying, setIsPlaying, audioRef }: 
 
         const audio = audioRef.current;
         
-        // When URL changes, we should load it
-        audio.load();
-
         if (isPlaying) {
             audio.volume = 0.6;
             const playPromise = audio.play();
@@ -107,7 +104,7 @@ export function BackgroundMusic({ wedding, isPlaying, setIsPlaying, audioRef }: 
                     ref={audioRef}
                     src={audioUrl}
                     loop
-                    preload="auto"
+                    preload="none"
                     crossOrigin="anonymous"
                 />
             </m.div>

@@ -28,7 +28,7 @@ export const ThankYouSection: React.FC<ThankYouSectionProps> = ({ wedding, prima
                 </div>
 
                 <div className="py-3">
-                    <span className="text-lg font-serif italic text-rose-800 font-bold">
+                    <span className="m05-font-name text-lg font-serif italic text-rose-800 font-bold">
                         {groomName} & {brideName}
                     </span>
                 </div>

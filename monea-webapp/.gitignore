@@ -29,6 +29,7 @@ yarn-error.log*
 .env
 .env.*
 .env*.local
+!.env.example
 
 # Cloudflare secrets (DO NOT COMMIT)
 cloudflare-env.json

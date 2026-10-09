@@ -29,6 +29,10 @@ class MemoryLimiter {
 
 const memoryLimiter = new MemoryLimiter();
 
+function isProductionEnvironment() {
+  return process.env.NODE_ENV === "production" || process.env.ENVIRONMENT === "production";
+}
+
 export class ResilientRatelimit {
   private redisLimiter: any = null;
 
@@ -36,14 +40,18 @@ export class ResilientRatelimit {
 
   private async getRedisLimiter() {
     if (this.redisLimiter) return this.redisLimiter;
-    if (process.env.NODE_ENV !== "production" || !process.env.UPSTASH_REDIS_REST_URL) {
+    if (!isProductionEnvironment() || !process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
       return null;
     }
     try {
       const { Ratelimit } = await import("@upstash/ratelimit");
-      const redis = (await import("./redis")).default;
+      const { Redis } = await import("@upstash/redis");
+      const redis = new Redis({
+        url: process.env.UPSTASH_REDIS_REST_URL,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN,
+      });
       this.redisLimiter = new Ratelimit({
-        redis: redis as any,
+        redis,
         limiter: Ratelimit.slidingWindow(this.max, `${Math.ceil(this.windowMs / 1000)} s` as any),
         prefix: this.prefix
       });
@@ -54,7 +62,7 @@ export class ResilientRatelimit {
   }
 
   async limit(key: string) {
-    if (process.env.NODE_ENV !== "production" || !process.env.UPSTASH_REDIS_REST_URL) {
+    if (!isProductionEnvironment() || !process.env.UPSTASH_REDIS_REST_URL) {
       return await memoryLimiter.limit(key, this.max, this.windowMs);
     }
 
@@ -71,6 +79,22 @@ export class ResilientRatelimit {
     } catch {
       return await memoryLimiter.limit(key, this.max, this.windowMs);
     }
+  }
+
+  async limitStrict(key: string) {
+    if (!isProductionEnvironment()) {
+      return await memoryLimiter.limit(key, this.max, this.windowMs);
+    }
+
+    if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
+      throw new Error("Distributed rate limiting is not configured.");
+    }
+
+    const limiter = await this.getRedisLimiter();
+    if (!limiter) {
+      throw new Error("Distributed rate limiting is unavailable.");
+    }
+    return await limiter.limit(key);
   }
 }
 

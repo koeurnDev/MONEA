@@ -8,6 +8,22 @@ import { ROLES } from "@/lib/constants"
 import { ResilientRatelimit } from "@/lib/ratelimit"
 
 const paymentRouter = new Hono()
+function isReceiptImageForWedding(receiptUrl: string, weddingId: string): boolean {
+    try {
+        const url = new URL(receiptUrl);
+        if (url.protocol !== "https:" || url.hostname !== "res.cloudinary.com") return false;
+
+        const segments = url.pathname.split("/").filter(Boolean);
+        const uploadIndex = segments.indexOf("upload");
+        if (uploadIndex < 0) return false;
+
+        const pathAfterUpload = segments.slice(uploadIndex + 1);
+        const versionIndex = pathAfterUpload.findIndex((segment) => /^v\d+$/.test(segment));
+        return versionIndex >= 0 && pathAfterUpload[versionIndex + 1] === weddingId;
+    } catch {
+        return false;
+    }
+}
 
 // ── Rate limiters (Upstash Redis in prod, in-memory fallback in dev) ─────────
 const checkStatusLimiter  = new ResilientRatelimit("@monea/payment/check-status",  10, 10_000) // 10 per 10s
@@ -26,14 +42,20 @@ paymentRouter.post('/check-status', async (c) => {
     if (!rl.success) return c.json({ error: "Too many requests. Please wait." }, 429)
 
     try {
-        const { md5, orderId, packageType: reqPackageType, weddingId: bodyWeddingId } = await c.req.json()
+        const body = await c.req.json()
+        const request = z.object({
+            md5: z.string().regex(/^[a-f0-9]{32}$/i),
+            orderId: z.string().regex(/^UPG-(PRO|PREMIUM)-[a-z0-9]+-[a-z0-9]+$/i),
+        }).safeParse(body)
+        if (!request.success) return c.json({ error: "Invalid payment identifiers" }, 400)
+        const { md5, orderId } = request.data
 
         const wedding = await prisma.wedding.findFirst({
             where: user.weddingId
                 ? { id: user.weddingId }
                 : { userId: user.userId },
             orderBy: { createdAt: 'desc' },
-            select: { id: true, packageType: true, paymentStatus: true, paymentHash: true, paymentInfo: true }
+            select: { id: true, packageType: true, paymentStatus: true, paymentHash: true, paymentInfo: true, paymentOrderId: true }
         })
 
         if (!wedding) return c.json({ error: "Wedding not found" }, 404)
@@ -43,27 +65,24 @@ paymentRouter.post('/check-status', async (c) => {
             return c.json({ status: "PAID", packageType: wedding.packageType, alreadyPaid: true })
         }
 
-        // IDOR / replay protection — validate client-supplied hashes against DB
-        if (md5     && wedding.paymentHash && md5     !== wedding.paymentHash)  return c.json({ error: "Invalid transaction hash" }, 400)
-        if (orderId && wedding.paymentInfo && orderId !== wedding.paymentInfo)   return c.json({ error: "Invalid order ID" }, 400)
-
-        const dbMd5      = wedding.paymentHash || md5     || ""
-        const dbOrderId  = wedding.paymentInfo || orderId || ""
-
-        // Extract true packageType from orderId to prevent price manipulation
-        let actualPackage = reqPackageType || "PRO"
-        if (dbOrderId.startsWith("UPG-")) {
-            const parts = dbOrderId.split("-")
-            if (parts[1] === "PRO" || parts[1] === "PREMIUM") actualPackage = parts[1]
+        // Only verify the identifiers persisted when this wedding's upgrade QR was created.
+        const storedOrderId = wedding.paymentOrderId
+            || (wedding.paymentInfo?.startsWith("UPG-") ? wedding.paymentInfo : null);
+        if (!wedding.paymentHash || !storedOrderId) {
+            return c.json({ error: "No active payment attempt found" }, 409)
         }
+        if (md5 !== wedding.paymentHash) return c.json({ error: "Invalid transaction hash" }, 400)
+        if (orderId !== storedOrderId) return c.json({ error: "Invalid order ID" }, 400)
+
+        const actualPackage = orderId.split("-")[1]
 
         const config    = await prisma.systemConfig.findUnique({ where: { id: "GLOBAL" } })
         const accountID = (config?.bakongConfig as any)?.accountID || process.env.BAKONG_ACCOUNT_ID || ""
 
         const result = await PaymentService.verifyBakongTransaction(
             wedding.id,
-            dbMd5,
-            dbOrderId,
+            md5,
+            orderId,
             actualPackage,
             accountID,
         )
@@ -144,7 +163,20 @@ paymentRouter.post('/submit-slip', async (c) => {
 
     try {
         const body = await c.req.json()
-        const { packageType, receiptImage, txRef, note, weddingId } = body
+        const request = z.object({
+            packageType: z.enum(["PRO", "PREMIUM"]),
+            receiptImage: z.string().max(2048).url().nullable().optional(),
+            txRef: z.string().trim().max(200).optional().nullable(),
+            note: z.string().trim().max(200).optional().nullable(),
+            weddingId: z.string().min(1).optional(),
+        }).safeParse(body);
+        if (!request.success) return c.json({ error: "Invalid receipt submission" }, 400);
+        const { packageType, receiptImage, txRef, note, weddingId } = request.data
+        const normalizedTxRef = typeof txRef === "string" ? txRef.trim() : ""
+        const normalizedNote = typeof note === "string" ? note.trim() : ""
+        if (receiptImage == null && !normalizedTxRef && !normalizedNote) {
+            return c.json({ error: "Submit a receipt image or transaction reference" }, 400)
+        }
 
         let targetWeddingId = weddingId
         if (!targetWeddingId) {
@@ -156,15 +188,29 @@ paymentRouter.post('/submit-slip', async (c) => {
             targetWeddingId = wedding.id
         }
 
+        const wedding = await prisma.wedding.findUnique({
+            where: { id: targetWeddingId },
+            select: { id: true, userId: true },
+        })
+        if (!wedding) return c.json({ error: "Wedding not found" }, 404)
+        if (user.role !== ROLES.PLATFORM_OWNER && user.role !== "SUPERADMIN" && wedding.userId !== (user.userId || user.id)) {
+            return c.json({ error: "Forbidden" }, 403)
+        }
+        if (receiptImage && !isReceiptImageForWedding(receiptImage, wedding.id)) {
+            return c.json({ error: "Receipt image must be uploaded to the wedding's Cloudinary folder" }, 400)
+        }
+
         const expiresAt = new Date()
         expiresAt.setDate(expiresAt.getDate() + 30)
 
         const updated = await prisma.wedding.update({
             where: { id: targetWeddingId },
             data: {
-                packageType: packageType || "PRO",
+                packageType,
                 paymentStatus: "AWAITING_VERIFICATION",
                 paymentInfo: receiptImage || null,
+                paymentOrderId: null,
+                paymentRejectedAt: null,
                 paymentHash: txRef || (note ? `NOTE: ${note}` : `SLIP_SUBMITTED_${Date.now()}`),
                 expiresAt,
                 status: "ACTIVE"
@@ -200,9 +246,11 @@ paymentRouter.post('/generate-qr', async (c) => {
             orderBy: { createdAt: 'desc' },
         })
 
+        if (!wedding) return c.json({ error: "Wedding not found" }, 404)
+
         const config = await prisma.systemConfig.findUnique({ where: { id: "GLOBAL" } })
-        const stadPrice    = config?.stadPrice  ?? 9.00
-        const proPrice     = config?.proPrice   ?? 19.00
+        const stadPrice    = Number(config?.stadPrice ?? 9.00)
+        const proPrice     = Number(config?.proPrice  ?? 19.00)
         const bakongCfg    = (config?.bakongConfig as any) || {}
         const MERCHANT_NAME = bakongCfg.merchantName || process.env.BAKONG_MERCHANT_NAME || "MONEA"
         const ACCOUNT_ID    = bakongCfg.accountID    || process.env.BAKONG_ACCOUNT_ID
@@ -213,6 +261,10 @@ paymentRouter.post('/generate-qr', async (c) => {
         }
 
         const amount  = packageType === "PRO" ? stadPrice : proPrice
+        if (!Number.isFinite(amount) || amount < 0) {
+            console.error("[payment/generate-qr] Invalid configured package price:", { packageType })
+            return c.json({ error: "Configured package price is invalid" }, 503)
+        }
         // Server-side orderId encodes packageType — prevents client price manipulation
         const orderId = `UPG-${packageType}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 5)}`
 
@@ -225,7 +277,7 @@ paymentRouter.post('/generate-qr', async (c) => {
             weddingId:    wedding?.id,
         })
 
-        return c.json({ qr: result.qr, orderId: result.orderId, md5: result.md5, success: true })
+        return c.json({ qr: result.qr, orderId: result.orderId, md5: result.md5, amount, expiresAt: result.expiresAt, success: true })
     } catch (e: any) {
         console.error("[payment/generate-qr]", e)
         return c.json({ error: e.message || "Internal Server Error" }, 500)
@@ -294,30 +346,31 @@ paymentRouter.post('/manual-verify', async (c) => {
     if (!rl.success) return c.json({ error: "Please wait before verifying again." }, 429)
 
     try {
-        const { packageType } = await c.req.json()
-
         const wedding = await prisma.wedding.findFirst({
-            where:  { userId: user.userId },
-            select: { id: true, paymentHash: true, paymentStatus: true, paymentInfo: true },
+            where: user.weddingId
+                ? { id: user.weddingId }
+                : { userId: user.userId },
+            orderBy: { createdAt: 'desc' },
+            select: { id: true, packageType: true, paymentHash: true, paymentStatus: true, paymentInfo: true, paymentOrderId: true },
         })
 
         if (!wedding)             return c.json({ error: "Wedding not found" }, 404)
-        if (wedding.paymentStatus === "PAID") return c.json({ status: "PAID", alreadyPaid: true })
-        if (!wedding.paymentHash) return c.json({ status: "AWAITING_PAYMENT", message: "No recent payment attempt found." })
-
-        const orderId = wedding.paymentInfo || `MANUAL_REFRESH_${Date.now()}`
+        if (wedding.paymentStatus === "PAID") {
+            return c.json({ status: "PAID", packageType: wedding.packageType, alreadyPaid: true })
+        }
+        const orderId = wedding.paymentOrderId
+            || (wedding.paymentInfo?.startsWith("UPG-") ? wedding.paymentInfo : null)
+        if (!orderId || !/^UPG-(PRO|PREMIUM)-[a-z0-9]+-[a-z0-9]+$/i.test(orderId)
+            || !wedding.paymentHash || !/^[a-f0-9]{32}$/i.test(wedding.paymentHash)) {
+            return c.json({ status: "AWAITING_PAYMENT", message: "No active KHQR payment attempt found." })
+        }
 
         const config    = await prisma.systemConfig.findUnique({ where: { id: "GLOBAL" } })
         const accountID = (config?.bakongConfig as any)?.accountID || process.env.BAKONG_ACCOUNT_ID
 
         if (!accountID) return c.json({ error: "System misconfiguration: Missing Bakong ID" }, 500)
 
-        // Extract true packageType from orderId
-        let actualPackage = packageType || "PRO"
-        if (orderId.startsWith("UPG-")) {
-            const parts = orderId.split("-")
-            if (parts[1] === "PRO" || parts[1] === "PREMIUM") actualPackage = parts[1]
-        }
+        const actualPackage = orderId.split("-")[1]
 
         const result: any = await PaymentService.verifyBakongTransaction(
             wedding.id,
@@ -329,9 +382,10 @@ paymentRouter.post('/manual-verify', async (c) => {
 
         if (result.status === "PAID") {
             result.orderId = orderId
-            result.amount  = actualPackage === "PREMIUM"
-                ? (config?.proPrice   ?? 19)
-                : (config?.stadPrice  ?? 9)
+            result.packageType = actualPackage
+            result.amount = Number(actualPackage === "PREMIUM"
+                ? (config?.proPrice ?? 19)
+                : (config?.stadPrice ?? 9))
         }
 
         return c.json(result)

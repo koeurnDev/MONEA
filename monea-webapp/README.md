@@ -9,18 +9,18 @@ MONEA is a premium, cinematic digital wedding invitation platform designed to pr
 - **Smart Color Extraction**: Automatically adapts invitation themes based on the primary colors of the couple's hero image.
 - **Multi-step RSVP**: Integrated guest response system with real-time dashboard notifications.
 - **QR & Payments**: Seamless integration for gift scanning (KHQR) and location mapping.
-- **Production Grade**: Built with Next.js, Prisma, SWR, and Cloudinary for resilience and speed.
+- **Production Grade**: Includes typed frontend code, API-backed data, Cloudinary media, and Sentry monitoring.
 
-## 🛠 Tech Stack
+## Tech Stack
 
-- **Frontend**: Next.js (App Router), Tailwind CSS, Framer Motion.
-- **Backend**: Hono API, Prisma ORM.
-- **Runtime**: Cloudflare Workers.
-- **Database**: PostgreSQL (Neon).
-- **Storage**: Cloudinary.
+- **Frontend**: React, TypeScript, Vite, React Router, Tailwind CSS, and Framer Motion.
+- **Frontend hosting**: Cloudflare Pages.
+- **API**: Hono on Cloudflare Workers (maintained in the sibling `monea-api-worker` project).
+- **Database**: PostgreSQL on Neon; Prisma is used by the application.
+- **Media**: Cloudinary.
 - **Monitoring**: Sentry.
 
-## 🚀 Getting Started
+## Getting Started
 
 1. **Environment Setup**:
    Copy `.env.example` to `.env` and fill in your Cloudinary and Database credentials.
@@ -30,33 +30,33 @@ MONEA is a premium, cinematic digital wedding invitation platform designed to pr
    npm install
    ```
 
-3. **Database Migration**:
+3. **Generate Prisma Client**:
    ```bash
    npx prisma generate
-   npx prisma db push
    ```
 
-4. **Launch Application**:
+   Apply database migrations only in the intended environment and follow the database deployment process; do not use `prisma db push` as an automatic setup step against a shared or production database.
+
+4. **Launch the frontend**:
    ```bash
    npm run dev
    ```
 
-## 🏗 Architecture Overview
+## Template Development
+
+To add an invitation design, follow the current [Template Creation Guide](./docs/TEMPLATE_CREATION_GUIDE.md). A template must be added to both the selection catalog and the lazy component registry; the guide also lists the editor, preview, and mobile checks.
+
+## Architecture Overview
 
 ```
 MONEA
-├── Next.js App (Frontend + API Routes)
-│   ├── App Router (Pages, Layouts, Invitations)
-│   ├── Prisma ORM (Database)
-│   └── Cloudinary (Media Storage)
-│
-└── bakong-worker (Cloudflare Workers)
-    └── Hono
-        └── Backend API
-            ├── POST /api/pay          — Generate KHQR code
-            ├── GET  /api/orders       — List all orders
-            ├── GET  /api/orders/:id   — Check order status
-            └── POST /api/admin/confirm/:id — Mark order as paid
+├── monea-webapp
+│   ├── React + Vite frontend (Cloudflare Pages)
+│   ├── Invitation templates and design wizard
+│   └── Prisma client
+└── monea-api-worker
+    └── Hono API (Cloudflare Workers)
+        └── Neon PostgreSQL
 ```
 
 ---

@@ -3,8 +3,8 @@
  * 
  * Terminology for Developers & UI:
  * - PLATFORM_OWNER (SUPERADMIN): Controls the entire platform, manages all events and users.
+ * - EVENT_STAFF (STAFF): Support Staff or Admin Assistant who helps manage the platform.
  * - EVENT_MANAGER (ADMIN): The user who owns/manages a specific wedding/event.
- * - EVENT_STAFF (STAFF): Personnel hired for a specific wedding (e.g., check-in, donation management).
  */
 
 export const ROLES = {
@@ -14,9 +14,9 @@ export const ROLES = {
 } as const;
 
 export const ROLE_LABELS: Record<Role, string> = {
-    [ROLES.PLATFORM_OWNER]: "Platform Owner",
-    [ROLES.EVENT_MANAGER]: "Event Manager",
-    [ROLES.EVENT_STAFF]: "Event Staff"
+    [ROLES.PLATFORM_OWNER]: "Superadmin",
+    [ROLES.EVENT_STAFF]: "Support Staff",
+    [ROLES.EVENT_MANAGER]: "User"
 };
 
 export type Role = typeof ROLES[keyof typeof ROLES];

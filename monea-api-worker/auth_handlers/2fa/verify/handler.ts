@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
 import { SystemGovernance, GOVERNANCE_ACTIONS } from "@/lib/governance";
 import { getIP, formatCambodiaDate } from "@/lib/utils";
+import { decryptAndMigrateTotpSecret } from "@/lib/totp-secret";
 
 // Configure TOTP tolerance (Window 1 allows +-30s clock drift)
 authenticator.options = { window: 1 };
@@ -50,7 +51,13 @@ export async function POST(req: Request) {
         }
 
         // 3. Verify TOTP Token
-        const isValid = authenticator.check(token, dbUser.twoFactorSecret);
+        const secret = await decryptAndMigrateTotpSecret(
+            dbUser.twoFactorSecret,
+            encryptedSecret => user.type === "admin"
+                ? prisma.user.update({ where: { id: user.userId }, data: { twoFactorSecret: encryptedSecret } })
+                : prisma.staff.update({ where: { id: user.userId }, data: { twoFactorSecret: encryptedSecret } }),
+        );
+        const isValid = authenticator.check(token, secret);
         const ip = getIP(req);
         const userAgent = req.headers.get("user-agent") || "unknown";
 

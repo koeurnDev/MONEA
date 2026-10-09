@@ -7,6 +7,7 @@ interface PageHeaderProps {
   icon?: LucideIcon;
   iconColor?: string;
   action?: React.ReactNode;
+  stackActionOnMobile?: boolean;
   className?: string;
 }
 
@@ -19,30 +20,37 @@ export function PageHeader({
   icon: Icon,
   iconColor = "text-primary",
   action,
+  stackActionOnMobile = false,
   className,
 }: PageHeaderProps) {
   return (
     <div
       className={cn(
-        "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-border/50",
+        "flex flex-row items-center justify-between gap-3 border-b border-white/10 bg-transparent pb-4 pt-1",
+        stackActionOnMobile && "flex-col items-stretch sm:flex-row sm:items-center",
         className
       )}
     >
       {/* Left: Icon + Title */}
-      <div className="flex items-center gap-3">
+      <div className="flex min-w-0 items-center gap-3">
         {Icon && (
-          <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-muted/60 shrink-0">
-            <Icon className={cn("w-4 h-4", iconColor)} />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-teal-600/20 bg-teal-600/10 shadow-sm shadow-teal-600/10 shrink-0">
+            <Icon className={cn("h-5 w-5", iconColor)} />
           </div>
         )}
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground font-kantumruy leading-tight">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-foreground font-kantumruy leading-tight tracking-tight break-words">
           {title}
         </h1>
       </div>
 
       {/* Right: Action slot */}
       {action && (
-        <div className="flex items-center gap-2 shrink-0">{action}</div>
+        <div className={cn(
+          "flex shrink-0 items-center gap-2",
+          stackActionOnMobile && "w-full flex-wrap justify-start sm:w-auto sm:justify-end"
+        )}>
+          {action}
+        </div>
       )}
     </div>
   );

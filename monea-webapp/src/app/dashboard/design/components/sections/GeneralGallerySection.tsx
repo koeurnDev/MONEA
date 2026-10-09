@@ -1,8 +1,9 @@
 import React from 'react';
 import { Label } from "@/components/ui/label";
 import { m, Reorder } from "framer-motion";
-import { Plus, Trash2, Loader2, ImageIcon, LayoutGrid, SlidersHorizontal, Film } from "lucide-react";
+import { Plus, Trash2, Loader2, ImageIcon, LayoutGrid, SlidersHorizontal, Film, Eye, EyeOff } from "lucide-react";
 import clsx from "clsx";
+import { getGalleryPhotoKey } from "@/components/templates/photo-visibility";
 
 interface GeneralGallerySectionProps {
     wedding: any;
@@ -33,15 +34,25 @@ export const GeneralGallerySection: React.FC<GeneralGallerySectionProps> = ({
     updateGalleryOrder,
     t
 }) => {
+    const toggleGalleryPhotoVisibility = (photoKey: string, visible: boolean) => {
+        const hiddenPhotos = new Set(wedding.themeSettings?.hiddenGalleryPhotoKeys || []);
+        if (visible) hiddenPhotos.delete(photoKey);
+        else hiddenPhotos.add(photoKey);
+        updateTheme("hiddenGalleryPhotoKeys", [...hiddenPhotos]);
+    };
+
     return (
         <section className="space-y-6 font-kantumruy">
             <div className="space-y-1 border-b border-slate-200/80 dark:border-white/10 pb-2">
                 <h4 className="text-xs font-bold text-foreground flex items-center gap-2">
-                    <ImageIcon className="w-4 h-4 text-rose-500" />
+                    <ImageIcon className="w-4 h-4 text-teal-500" />
                     <span>កម្រងរូបភាពវិចិត្រសាលបន្ថែម (Photo Album Gallery)</span>
                 </h4>
                 <p className="text-[11px] text-muted-foreground">
                     បញ្ចូលរូបភាព Pre-wedding បន្ថែមបានច្រើនសន្លឹក (ភ្ញៀវអាចចុចពង្រីកមើលបានទាំងអស់)
+                </p>
+                <p className="text-[11px] font-bold text-teal-500">
+                    {wedding.galleryItems?.slice(layout ? layout.slots : 0).filter((item: any) => item.url).length || 0} រូបក្នុងវិចិត្រសាល
                 </p>
             </div>
 
@@ -65,6 +76,8 @@ export const GeneralGallerySection: React.FC<GeneralGallerySectionProps> = ({
                             {generalItems.map((item: any, localIdx: number) => {
                                 const globalIdx = slotCount + localIdx;
                                 const uniqueKey = item.publicId ? `${item.publicId}-${localIdx}` : `${item.url || 'gallery'}-${localIdx}`;
+                                const photoKey = getGalleryPhotoKey(item);
+                                const isVisible = !wedding.themeSettings?.hiddenGalleryPhotoKeys?.includes(photoKey);
                                 return (
                                     <Reorder.Item 
                                         key={uniqueKey} 
@@ -73,7 +86,24 @@ export const GeneralGallerySection: React.FC<GeneralGallerySectionProps> = ({
                                         animate={{ opacity: 1, scale: 1 }}
                                         className="relative aspect-square rounded-2xl overflow-hidden group shadow-sm border border-slate-200/80 dark:border-white/10 cursor-grab active:cursor-grabbing bg-slate-100 dark:bg-black/20"
                                     >
-                                        <img src={item.url} alt="Extra Gallery" className="w-full h-full object-cover transition-transform group-hover:scale-105 pointer-events-none" />
+                                        <img src={item.url} alt="Extra Gallery" loading="lazy" decoding="async" className="w-full h-full object-cover transition-transform group-hover:scale-105 pointer-events-none" />
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                toggleGalleryPhotoVisibility(photoKey, !isVisible);
+                                            }}
+                                            aria-pressed={isVisible}
+                                            aria-label={isVisible ? "លាក់រូបនេះពីធៀប" : "បង្ហាញរូបនេះក្នុងធៀប"}
+                                            title={isVisible ? "លាក់រូបនេះពីធៀប" : "បង្ហាញរូបនេះក្នុងធៀប"}
+                                            className={clsx(
+                                                "absolute top-2 left-2 z-10 inline-flex min-h-8 items-center gap-1 rounded-lg px-2 text-[10px] font-bold text-white shadow-md backdrop-blur-sm",
+                                                isVisible ? "bg-teal-700/90" : "bg-slate-700/90"
+                                            )}
+                                        >
+                                            {isVisible ? <EyeOff size={13} /> : <Eye size={13} />}
+                                            <span>{isVisible ? "លាក់" : "បង្ហាញ"}</span>
+                                        </button>
                                         
                                         {/* Mobile Direct Delete Button */}
                                         <button
@@ -107,24 +137,26 @@ export const GeneralGallerySection: React.FC<GeneralGallerySectionProps> = ({
                                 type="button"
                                 onClick={() => generalInputRef.current?.click()} 
                                 disabled={galleryUploading}
+                                aria-label="បន្ថែមរូបភាពទៅវិចិត្រសាល"
                                 onDragOver={(e) => { e.preventDefault(); setIsDraggingGallery(true); }}
                                 onDragLeave={() => setIsDraggingGallery(false)}
                                 onDrop={(e) => { e.preventDefault(); setIsDraggingGallery(false); handleGalleryDirectUpload(e.dataTransfer.files); }}
                                 className={clsx(
                                     "flex flex-col items-center justify-center gap-2.5 transition-all duration-300 relative border-2 border-dashed rounded-2xl p-6 outline-none",
                                     hasGeneralItems 
-                                        ? "col-span-full min-h-[120px] " + (isDraggingGallery ? "border-rose-500 bg-rose-50 dark:bg-rose-950/20" : "bg-slate-50/50 dark:bg-white/[0.02] border-slate-300 dark:border-white/10 hover:border-rose-400 hover:bg-rose-50/30")
-                                        : "w-full min-h-[180px] " + (isDraggingGallery ? "border-rose-500 bg-rose-50 dark:bg-rose-950/20" : "bg-slate-50/50 dark:bg-white/[0.02] border-slate-300 dark:border-white/10 hover:border-rose-400 hover:bg-rose-50/30")
+                                        ? "col-span-full min-h-[120px] " + (isDraggingGallery ? "border-teal-500 bg-teal-50 dark:bg-teal-950/20" : "bg-slate-50/50 dark:bg-white/[0.02] border-slate-300 dark:border-white/10 hover:border-teal-400 hover:bg-teal-50/30")
+                                        : "w-full min-h-[180px] " + (isDraggingGallery ? "border-teal-500 bg-teal-50 dark:bg-teal-950/20" : "bg-slate-50/50 dark:bg-white/[0.02] border-slate-300 dark:border-white/10 hover:border-teal-400 hover:bg-teal-50/30")
                                 )}
                             >
                                 {galleryUploading ? (
                                     <div className="flex flex-col items-center gap-2">
-                                        <Loader2 className="w-7 h-7 animate-spin text-rose-500" />
-                                        <span className="text-xs font-bold text-rose-600">{galleryProgress}%</span>
+                                        <Loader2 className="w-7 h-7 animate-spin text-teal-500" />
+                                        <span className="text-xs font-bold text-foreground">កំពុងបញ្ចូលរូបភាព...</span>
+                                        <span className="text-[11px] font-bold text-teal-600">{galleryProgress}%</span>
                                     </div>
                                 ) : (
                                     <>
-                                        <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center">
+                                        <div className="w-10 h-10 rounded-xl bg-teal-500/10 text-teal-600 flex items-center justify-center">
                                             <Plus size={20} strokeWidth={2.5} />
                                         </div>
                                         <div className="text-center space-y-0.5">
@@ -161,7 +193,7 @@ export const GeneralGallerySection: React.FC<GeneralGallerySectionProps> = ({
                             className={clsx(
                                 "p-3 rounded-xl text-xs font-bold transition-all flex flex-col items-center justify-center gap-1.5 border outline-none",
                                 (wedding.themeSettings as any)?.galleryStyle === style.id || (style.id === 'masonry' && !(wedding.themeSettings as any)?.galleryStyle)
-                                    ? "bg-rose-600 text-white border-rose-600 shadow-md shadow-rose-600/20"
+                                    ? "bg-teal-600 text-white border-teal-600 shadow-md shadow-teal-600/20"
                                     : "bg-white dark:bg-white/[0.02] text-muted-foreground border-slate-200/80 dark:border-white/10 hover:border-slate-300"
                             )}
                         >

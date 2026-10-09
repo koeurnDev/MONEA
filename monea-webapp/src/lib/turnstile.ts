@@ -5,7 +5,16 @@ export async function verifyTurnstile(
     const secretKey =
         process.env.TURNSTILE_SECRET_KEY ||
         process.env.TURNSTILE_SECRET ||
-        "1x0000000000000000000000000000000AA";
+        "";
+
+    // Fail closed: never fall back to Cloudflare's "always pass" test secret,
+    // which would make every CAPTCHA verification succeed unconditionally.
+    if (!secretKey || secretKey === "1x0000000000000000000000000000000AA") {
+        console.error(
+            "[Turnstile] TURNSTILE_SECRET_KEY is missing or set to the always-pass test key. Refusing to verify."
+        );
+        return false;
+    }
 
     if (!token || typeof token !== "string" || token.length > 2048) {
         return false;

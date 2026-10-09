@@ -1,6 +1,8 @@
-﻿import { useState } from "react";
-import { Users, DollarSign, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { Users, Loader2 } from "lucide-react";
 import { useTranslation } from "@/i18n/LanguageProvider";
+import { useToast } from "@/components/ui/Toast";
+import { cn } from "@/lib/utils";
 
 interface QuickExportCardsProps {
     weddingId: string;
@@ -8,7 +10,8 @@ interface QuickExportCardsProps {
 
 export function QuickExportCards({ weddingId }: QuickExportCardsProps) {
     const { t, locale } = useTranslation();
-    const [loading, setLoading] = useState<"guests" | "gifts" | null>(null);
+    const { showToast } = useToast();
+    const [loading, setLoading] = useState<"guests" | null>(null);
 
     const formatKhmerDate = (date: Date | string | undefined) => {
         if (!date) return "";
@@ -31,7 +34,8 @@ export function QuickExportCards({ weddingId }: QuickExportCardsProps) {
 
             if (!guestsRes.ok || !weddingRes.ok) throw new Error("Failed to fetch data");
 
-            const guests = await guestsRes.json();
+            const guestsData = await guestsRes.json();
+            const guests = Array.isArray(guestsData) ? guestsData : (guestsData.items || []);
             const wedding = await weddingRes.json();
             const XLSX = await import("xlsx");
 
@@ -59,86 +63,34 @@ export function QuickExportCards({ weddingId }: QuickExportCardsProps) {
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, t("dashboard.export.guestSheetName"));
             XLSX.writeFile(workbook, `MONEA_GuestList_${wedding?.groomName || 'Wedding'}.xlsx`);
+
+            showToast({
+                title: "ទាញយកបញ្ជីភ្ញៀវជោគជ័យ!",
+                description: `ឯកសារ Excel ចំនួន ${guests.length} នាក់ត្រូវបានទាញយក។`,
+                type: "success"
+            });
         } catch (e) {
             console.error(e);
-            alert(t("dashboard.export.error"));
-        } finally {
-            setLoading(null);
-        }
-    };
-
-    const exportGifts = async () => {
-        if (!weddingId) return;
-        setLoading("gifts");
-        try {
-            const [giftsRes, weddingRes] = await Promise.all([
-                fetch(`/api/gifts?weddingId=${weddingId}`),
-                fetch(`/api/wedding?weddingId=${weddingId}`)
-            ]);
-
-            if (!giftsRes.ok || !weddingRes.ok) throw new Error("Failed to fetch data");
-
-            const gifts = await giftsRes.json();
-            const wedding = await weddingRes.json();
-            const XLSX = await import("xlsx");
-
-            // Calculate totals
-            const totals = gifts.reduce((acc: any, g: any) => {
-                if (g.currency === "USD") acc.usd += g.amount;
-                else acc.khr += g.amount;
-                return acc;
-            }, { usd: 0, khr: 0 });
-
-            const title = t("dashboard.export.giftListTitle", {
-                groom: wedding?.groomName || '...',
-                bride: wedding?.brideName || '...'
+            showToast({
+                title: "បរាជ័យក្នុងការទាញយក",
+                description: t("dashboard.export.error", { defaultValue: "មានបញ្ហាក្នុងការទាញយក សូមព្យាយាមម្ដងទៀត។" }),
+                type: "error"
             });
-            const dateStr = locale === 'km' ? formatKhmerDate(wedding?.date) : new Date(wedding?.date).toLocaleDateString('en-US', { dateStyle: 'full' });
-            const summary = t("dashboard.export.summary", { date: dateStr, count: gifts.length });
-            const moneySummary = t("dashboard.export.moneySummary", {
-                usd: `$${totals.usd.toLocaleString()}`,
-                khr: `${totals.khr.toLocaleString()} ៛`
-            });
-
-            const headers = [
-                t("dashboard.export.cols.no"),
-                t("dashboard.export.cols.name"),
-                t("dashboard.export.cols.location"),
-                t("dashboard.export.cols.amount"),
-                t("dashboard.export.cols.currency"),
-                t("dashboard.export.cols.method"),
-                t("dashboard.export.cols.date")
-            ];
-            const rows = gifts.sort((a: any, b: any) => (a.sequenceNumber || 0) - (b.sequenceNumber || 0)).map((g: any, idx: number) => [
-                g.sequenceNumber || (idx + 1),
-                g.guest?.name || t("dashboard.export.unknown"),
-                g.guest?.group && g.guest.group !== "None" ? g.guest.group : (g.guest?.source && g.guest.source !== "GIFT_ENTRY" && g.guest.source !== "None" ? g.guest.source : t("dashboard.export.general")),
-                g.amount.toLocaleString(),
-                g.currency,
-                g.method || t("dashboard.export.cash"),
-                new Date(g.createdAt).toLocaleDateString(locale === 'km' ? 'km-KH' : 'en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })
-            ]);
-
-            const worksheet = XLSX.utils.aoa_to_sheet([[title], [], [summary], [moneySummary], [], headers, ...rows]);
-            worksheet["!cols"] = [{ wpx: 50 }, { wpx: 200 }, { wpx: 150 }, { wpx: 100 }, { wpx: 80 }, { wpx: 100 }, { wpx: 120 }];
-
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, t("dashboard.export.giftSheetName"));
-            XLSX.writeFile(workbook, `MONEA_GiftList_${wedding?.groomName || 'Wedding'}.xlsx`);
-        } catch (e) {
-            console.error(e);
-            alert(t("dashboard.export.error"));
         } finally {
             setLoading(null);
         }
     };
 
     return (
-        <div className="grid grid-cols-2 gap-3 md:gap-4">
+        <div className="grid grid-cols-1 gap-3 md:gap-4">
             <button
+                type="button"
                 onClick={exportGuests}
                 disabled={loading !== null}
-                className="flex flex-col items-center justify-center gap-2.5 p-4 md:p-5 rounded-2xl md:rounded-3xl bg-blue-50/50 dark:bg-blue-950/10 hover:bg-blue-100/70 dark:hover:bg-blue-950/30 active:scale-95 transition-all border border-border/40 hover:border-blue-200 group outline-none"
+                className={cn(
+                    "flex flex-col items-center justify-center gap-2.5 p-4 md:p-5 rounded-2xl md:rounded-3xl bg-blue-50/50 dark:bg-blue-950/10 hover:bg-blue-100/70 dark:hover:bg-blue-950/30 active:scale-95 transition-all border border-border/40 hover:border-blue-200 group outline-none",
+                    loading !== null && "cursor-not-allowed opacity-60 pointer-events-none"
+                )}
             >
                 {loading === "guests" ? (
                     <Loader2 className="w-5 h-5 md:w-6 md:h-6 text-blue-600 animate-spin" />
@@ -146,19 +98,6 @@ export function QuickExportCards({ weddingId }: QuickExportCardsProps) {
                     <Users className="w-5 h-5 md:w-6 md:h-6 text-blue-600 group-hover:scale-110 transition-transform" />
                 )}
                 <span className="font-bold font-kantumruy text-xs md:text-sm text-foreground">{t("dashboard.quickActions.guests")}</span>
-            </button>
-
-            <button
-                onClick={exportGifts}
-                disabled={loading !== null}
-                className="flex flex-col items-center justify-center gap-2.5 p-4 md:p-5 rounded-2xl md:rounded-3xl bg-emerald-50/50 dark:bg-emerald-950/10 hover:bg-emerald-100/70 dark:hover:bg-emerald-950/30 active:scale-95 transition-all border border-border/40 hover:border-emerald-200 group outline-none"
-            >
-                {loading === "gifts" ? (
-                    <Loader2 className="w-5 h-5 md:w-6 md:h-6 text-emerald-600 animate-spin" />
-                ) : (
-                    <DollarSign className="w-5 h-5 md:w-6 md:h-6 text-emerald-600 group-hover:scale-110 transition-transform" />
-                )}
-                <span className="font-bold font-kantumruy text-xs md:text-sm text-foreground">{t("dashboard.quickActions.gifts")}</span>
             </button>
         </div>
     );

@@ -50,7 +50,7 @@ export function QRCodeCard({ weddingId }: { weddingId: string }) {
                     <p className="text-[11px] font-medium text-muted-foreground/50 break-all leading-relaxed bg-muted/30 p-3 rounded-xl border border-border/30">
                         {url}
                     </p>
-                    <Link to={`/invite/${weddingId}`} target="_blank" className="inline-flex items-center gap-2 text-sm font-bold text-rose-600 hover:text-rose-700 transition-colors font-kantumruy group">
+                    <Link to={`/invite/${weddingId}`} target="_blank" className="inline-flex items-center gap-2 text-sm font-bold text-teal-700 hover:text-teal-800 dark:text-teal-400 dark:hover:text-teal-300 transition-colors font-kantumruy group">
                         {t("dashboard.quickActions.viewPublic")}
                         <ExternalLink className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                     </Link>

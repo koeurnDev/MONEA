@@ -1,20 +1,20 @@
 import React, { lazy, useEffect, useState, useCallback, useRef, Suspense } from "react";
 import { createPortal } from "react-dom";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { m, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Palette, Smartphone, LayoutTemplate, Settings2, Loader2, ArrowRight, ArrowLeft, CheckCircle2, ExternalLink, Lock, Type, Clock, Image as ImageIcon, Settings, Save, Share2, Copy } from "lucide-react";
+import { Palette, Smartphone, LayoutTemplate, Settings2, Loader2, ArrowRight, ArrowLeft, CheckCircle2, ExternalLink, Lock, Save, Share2, Copy, CircleHelp } from "lucide-react";
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import SafeQRCode from "@/components/ui/SafeQRCode";
-import confetti from "canvas-confetti";
 // @ts-ignore
 import { Joyride, Step } from "react-joyride";
 import clsx from "clsx";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { useMobileDetection } from "@/hooks/useMobileDetection";
+import { useAuth } from "@/hooks/useAuth";
 
 import { StepWizard } from "./components/StepWizard";
 import { PreviewSync, MobilePreviewWrapper } from "./components/PreviewSync";
@@ -33,6 +33,15 @@ const Step5Extra    = lazy(() => import("./components/Step5Extra"));
 
 export default function DesignPage() {
     const { t } = useTranslation();
+    const { user, isLoading } = useAuth();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!isLoading && !user?.weddingId) {
+            navigate('/dashboard/create', { replace: true });
+        }
+    }, [isLoading, user?.weddingId, navigate]);
+
     return (
         <Suspense fallback={
             <div className="flex h-screen w-full flex-col items-center justify-center gap-4 bg-background">
@@ -49,6 +58,10 @@ function DesignContent() {
     const { t } = useTranslation();
     const { isMobile } = useMobileDetection();
     const [isSheetOpen, setIsSheetOpen] = useState(true);
+    const [isMediaUploading, setIsMediaUploading] = useState(false);
+    const [copiedShareLink, setCopiedShareLink] = useState(false);
+    const [copyLinkError, setCopyLinkError] = useState(false);
+    const [previewError, setPreviewError] = useState(false);
     const {
         mounted,
         wedding,
@@ -80,6 +93,8 @@ function DesignContent() {
         iframeRef,
         galleryUploading,
         galleryProgress,
+        loadError,
+        retryLoad,
         updateWedding,
         updateTheme,
         updateLabel,
@@ -99,48 +114,56 @@ function DesignContent() {
         handleDeleteVersion,
         confirmDeleteVersion,
         nextStep,
-        prevStep
+        prevStep,
+        isDirty,
+        lastSavedAt
     } = useDesignWizard();
-
-    // Confetti effect when progress hits 100%
-    const [hasFiredConfetti, setHasFiredConfetti] = useState(false);
-    useEffect(() => {
-        if (progress === 100 && !hasFiredConfetti) {
-            confetti({
-                particleCount: 150,
-                spread: 70,
-                origin: { y: 0.6 },
-                colors: ['#f43f5e', '#ec4899', '#f9a8d4', '#ffffff'] // Rose/Pink themed
-            });
-            setHasFiredConfetti(true);
-        }
-    }, [progress, hasFiredConfetti]);
 
     // Joyride Tour
     const [runTour, setRunTour] = useState(false);
-    useEffect(() => {
-        if (mounted && !localStorage.getItem("monea-tour-seen")) {
-            setRunTour(true);
-        }
-    }, [mounted]);
 
     const tourSteps: Step[] = [
         {
+            target: '.tour-step-content',
+            content: 'នៅទីនេះ អ្នកអាចបំពេញ ឬកែព័ត៌មានរបស់សំបុត្រ។ ចាប់ផ្តើមពីប្រភេទកម្មវិធី និងឈ្មោះសិន។',
+            placement: 'auto'
+        },
+        {
+            target: '.tour-next',
+            content: 'ចុចប៊ូតុងនេះ ដើម្បីទៅជំហានបន្ទាប់។ ជំហានដែលមានស្លាកអាចរំលងបាន មិនចាំបាច់បំពេញទាំងអស់ទេ។',
+            placement: 'auto'
+        },
+        {
             target: '.tour-preview',
             content: 'ចុចទីនេះដើម្បីមើលលទ្ធផលពិតនៃធៀបការរបស់អ្នកទាំងលើទូរស័ព្ទនិងកុំព្យូទ័រ។',
-            placement: 'bottom'
+            placement: 'auto'
         }
     ];
 
     const handleJoyrideCallback = (data: any) => {
-        const { status } = data;
-        if (status === "finished" || status === "skipped") {
+        const { action, status } = data;
+        if (action === "close" || status === "finished" || status === "skipped") {
             setRunTour(false);
-            localStorage.setItem("monea-tour-seen", "true");
         }
     };
 
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+
+    if (!wedding && loadError) return (
+        <div className="flex min-h-screen w-full flex-col items-center justify-center gap-4 bg-background px-6 text-center">
+            <div role="alert" className="max-w-md space-y-3">
+                <h1 className="font-kantumruy text-lg font-black text-foreground">
+                    {t("design.wizard.loadErrorTitle", { defaultValue: "មិនអាចបើកទិន្នន័យធៀបបានទេ" })}
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                    {t("design.wizard.loadErrorDescription", { defaultValue: "សូមពិនិត្យការតភ្ជាប់អ៊ីនធឺណិត ហើយព្យាយាមម្តងទៀត។" })}
+                </p>
+            </div>
+            <Button onClick={() => void retryLoad()} className="font-kantumruy">
+                {t("common.actions.retry", { defaultValue: "ព្យាយាមម្តងទៀត" })}
+            </Button>
+        </div>
+    );
 
     if (!wedding) return (
         <div className="flex h-screen w-full flex-col items-center justify-center gap-4 bg-background">
@@ -164,19 +187,15 @@ function DesignContent() {
                         updateTheme={updateTheme} 
                         updateParent={updateParent}
                         updateLabel={updateLabel}
-                        addGalleryItem={addGalleryItem}
-                        removeGalleryItem={removeGalleryItem}
                     />
                 );
             case 3:
                 return (
-                    <Step3Time 
-                        wedding={wedding} 
-                        updateWedding={updateWedding} 
-                        updateTheme={updateTheme} 
-                        setWedding={setWedding} 
-                        addGalleryItem={addGalleryItem}
-                        removeGalleryItem={removeGalleryItem}
+                    <Step3Time
+                        wedding={wedding}
+                        updateWedding={updateWedding}
+                        updateTheme={updateTheme}
+                        setWedding={setWedding}
                     />
                 );
             case 4:
@@ -194,6 +213,7 @@ function DesignContent() {
                         setIsDraggingGallery={setIsDraggingGallery}
                         TEMPLATE_LAYOUTS={TEMPLATE_LAYOUTS}
                         updateGalleryOrder={updateGalleryOrder}
+                        onUploadingChange={setIsMediaUploading}
                     />
                 );
             case 5:
@@ -218,6 +238,7 @@ function DesignContent() {
                         packageType={wedding.packageType}
                         addGalleryItem={addGalleryItem}
                         removeGalleryItem={removeGalleryItem}
+                        removeThemeAsset={removeThemeAsset}
                     />
                 );
             default:
@@ -244,19 +265,72 @@ function DesignContent() {
                         exit={{ opacity: 0, y: -20, x: "-50%" }}
                         className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-red-500 text-white px-4 py-2 rounded-full shadow-lg shadow-red-500/20 text-xs font-bold flex items-center gap-2 font-kantumruy"
                     >
-                        {saveToast === "error" 
-                            ? "មិនអាចរក្សាទុកបានទេ សូមពិនិត្យមើលព័ត៌មាន (ឈ្មោះ, ថ្ងៃខែ) ឡើងវិញ"
-                            : saveToast}
+                        {saveToast === "map-link-required"
+                            ? t("wizard.steps.3.mapRequiredHint", { defaultValue: "ត្រូវបញ្ចូល Google Maps link មុនពេលបន្ត ឬរក្សាទុក។" })
+                            : saveToast === "error"
+                                ? "មិនអាចរក្សាទុកបានទេ សូមពិនិត្យមើលព័ត៌មាន (ឈ្មោះ, ថ្ងៃខែ) ឡើងវិញ"
+                                : saveToast}
                     </m.div>
                 )}
             </AnimatePresence>
-            <StepWizard currentStep={currentStep} onSave={saveChanges} loading={loading} setStep={setCurrentStep} progress={progress}>
+            <StepWizard
+                currentStep={currentStep}
+                weddingId={wedding?.id}
+                onSave={saveChanges}
+                loading={loading}
+                setStep={setCurrentStep}
+                progress={progress}
+                isDirty={isDirty}
+                lastSavedAt={lastSavedAt}
+                canContinue={
+                    currentStep === 1
+                        ? Boolean(wedding.eventType)
+                        : currentStep === 2
+                            ? Boolean(wedding.groomName?.trim() && wedding.brideName?.trim())
+                            : currentStep >= 3
+                                ? Boolean(wedding.date && wedding.location?.trim() && (wedding.themeSettings?.mapLink?.trim() || wedding.mapUrl?.trim()))
+                            : true
+                }
+                canContinueHint={
+                    currentStep === 1
+                        ? "សូមជ្រើសរើសប្រភេទកម្មវិធី ដើម្បីបន្ត។"
+                        : currentStep === 2 && !(wedding.groomName?.trim() && wedding.brideName?.trim())
+                            ? "សូមបញ្ចូលឈ្មោះគូទាំងពីរ ដើម្បីបន្ត។"
+                            : currentStep >= 3 && !(wedding.date && wedding.location?.trim())
+                                ? "សូមបំពេញថ្ងៃ និងឈ្មោះទីតាំងកម្មវិធី មុនបន្ត។"
+                                : currentStep >= 3 && !(wedding.themeSettings?.mapLink?.trim() || wedding.mapUrl?.trim())
+                                    ? t("wizard.steps.3.mapRequiredHint", { defaultValue: "ត្រូវបញ្ចូល Google Maps link មុនពេលបន្ត ឬរក្សាទុក។" })
+                            : undefined
+                }
+                isUploading={isMediaUploading || galleryUploading}
+            >
                 {renderStepContent()}
             </StepWizard>
         </div>
     );
 
-    const shareUrl = wedding ? `https://monea.app/invite/${wedding.id}` : "";
+    const shareUrl = wedding ? `${window.location.origin}/w/${wedding.id}` : "";
+    const openSavedPreview = async () => {
+        setPreviewError(false);
+        const previewWindow = window.open("about:blank", "_blank");
+        if (!previewWindow) {
+            setPreviewError(true);
+            return;
+        }
+        previewWindow.opener = null;
+        try {
+            const saved = await saveChanges();
+            if (!saved) {
+                previewWindow.close();
+                return;
+            }
+            previewWindow.location.href = `/w/${encodeURIComponent(wedding.id)}`;
+        } catch (error) {
+            console.error("Failed to save before opening invitation preview:", error);
+            previewWindow.close();
+            setPreviewError(true);
+        }
+    };
     
     const ShareModal = () => (
         <Dialog open={isShareModalOpen} onOpenChange={setIsShareModalOpen}>
@@ -280,14 +354,27 @@ function DesignContent() {
                         <Button 
                             size="sm" 
                             className="rounded-xl px-4 font-bold active:scale-95 transition-transform"
-                            onClick={() => {
-                                navigator.clipboard.writeText(shareUrl);
-                                // could use a local toast here if needed
+                            onClick={async () => {
+                                setCopyLinkError(false);
+                                try {
+                                    await navigator.clipboard.writeText(shareUrl);
+                                    setCopiedShareLink(true);
+                                    window.setTimeout(() => setCopiedShareLink(false), 2000);
+                                } catch (error) {
+                                    console.error("Failed to copy invitation link:", error);
+                                    setCopiedShareLink(false);
+                                    setCopyLinkError(true);
+                                }
                             }}
                         >
-                            <Copy size={14} className="mr-2" /> ចម្លង
+                            <Copy size={14} className="mr-2" /> {copiedShareLink ? "បានចម្លង" : "ចម្លង"}
                         </Button>
                     </div>
+                    {copyLinkError && (
+                        <p role="alert" className="w-full text-center text-xs text-red-600">
+                            មិនអាចចម្លងតំណបានទេ។ សូមជ្រើសរើសតំណខាងលើ ហើយចម្លងដោយដៃ។
+                        </p>
+                    )}
                 </div>
             </DialogContent>
         </Dialog>
@@ -308,7 +395,7 @@ function DesignContent() {
 
     // DESKTOP LAYOUT (In-flow, managed by DashboardLayout)
     const desktopLayout = (
-        <div className="hidden md:flex flex-row overflow-hidden bg-background h-screen w-full">
+        <div className="hidden md:flex flex-row overflow-hidden bg-background h-full w-full">
             {/* 1. EDITOR PANEL (Left Sidebar) */}
             <div className="flex-none w-[520px] flex flex-col z-20 bg-card shadow-[0_0_40px_rgba(0,0,0,0.05)] dark:shadow-none h-full">
                 {editorPanel}
@@ -318,7 +405,7 @@ function DesignContent() {
             <div className="flex-1 bg-slate-50/50 dark:bg-black/20 flex items-center justify-center p-4 sm:p-6 md:p-8 relative overflow-hidden">
                 {/* Subtle Background Accent */}
                 <div className="absolute inset-0 z-0 pointer-events-none">
-                    <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-rose-500/5 rounded-full blur-[120px]"></div>
+                    <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-teal-500/5 rounded-full blur-[120px]"></div>
                     <div className="absolute bottom-[20%] right-[-5%] w-[30%] h-[30%] bg-amber-500/5 rounded-full blur-[100px]"></div>
                 </div>
 
@@ -361,7 +448,7 @@ function DesignContent() {
                                 {/* Iframe Content */}
                                 <iframe
                                     ref={iframeRef}
-                                    src="/preview"
+                                    src="/preview?mode=editor"
                                     onLoad={() => {
                                         if (iframeRef.current?.contentWindow && wedding) {
                                             iframeRef.current.contentWindow.postMessage({ type: "UPDATE_PREVIEW", payload: wedding }, "*");
@@ -379,7 +466,7 @@ function DesignContent() {
                         /* Desktop Mode Direct Iframe */
                         <iframe
                             ref={iframeRef}
-                            src="/preview"
+                            src="/preview?mode=editor"
                             onLoad={() => {
                                 if (iframeRef.current?.contentWindow && wedding) {
                                     iframeRef.current.contentWindow.postMessage({ type: "UPDATE_PREVIEW", payload: wedding }, "*");
@@ -395,15 +482,20 @@ function DesignContent() {
 
                 {/* View Toggle Toolbar (Desktop Only) */}
                 <div className="absolute top-4 right-4 z-30 bg-white/95 dark:bg-[#141419]/95 backdrop-blur-md p-1.5 rounded-2xl shadow-lg border border-slate-200/80 dark:border-white/10 gap-1.5 flex items-center">
-                    <a
-                        href="/preview"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-2 rounded-xl text-slate-600 hover:text-rose-600 hover:bg-rose-50 dark:text-slate-300 dark:hover:bg-rose-950/30 transition-all"
-                        title={t("design.wizard.viewPublic", { defaultValue: "មើលពេញអេក្រង់ (Open Fullscreen)" })}
+                    <button
+                        type="button"
+                        onClick={() => void openSavedPreview()}
+                        disabled={isMediaUploading || galleryUploading}
+                        className="p-2 rounded-xl text-slate-600 hover:text-teal-600 hover:bg-teal-50 dark:text-slate-300 dark:hover:bg-teal-950/30 transition-all"
+                        title={t("design.wizard.viewPublic", { defaultValue: "រក្សាទុក រួចមើលធៀបពេញអេក្រង់" })}
                     >
                         <ExternalLink size={16} />
-                    </a>
+                    </button>
+                    {previewError && (
+                        <span role="alert" className="absolute right-0 top-full mt-2 w-56 rounded-lg bg-red-600 px-3 py-2 text-xs text-white shadow-lg">
+                            មិនអាចបើកផ្ទាំងមើលបានទេ។ សូមអនុញ្ញាត pop-up ហើយព្យាយាមម្តងទៀត។
+                        </span>
+                    )}
                     <div className="w-[1px] h-4 bg-border/60 mx-0.5" />
                     <button
                         onClick={() => setPreviewMode('mobile')}
@@ -433,12 +525,24 @@ function DesignContent() {
                         {/* Auto-save Indicator */}
                         <div className="flex items-center text-xs font-kantumruy font-bold text-foreground">
                             {loading ? (
-                                <><Loader2 size={13} className="animate-spin text-rose-500 mr-1.5" /> <span>រក្សាទុក...</span></>
+                                <><Loader2 size={13} className="animate-spin text-teal-500 mr-1.5" /> <span>រក្សាទុក...</span></>
+                            ) : isDirty ? (
+                                <><span className="w-2 h-2 rounded-full bg-amber-500 mr-1.5 animate-pulse" /> <span className="text-amber-600 dark:text-amber-400">មិនទាន់រក្សាទុក</span></>
                             ) : (
                                 <><CheckCircle2 size={14} className="text-emerald-500 mr-1.5" /> <span>រក្សាទុករួចរាល់</span></>
                             )}
                         </div>
                     </div>
+                    <div className="w-[1px] h-4 bg-border/60 mx-0.5" />
+                    <button
+                        onClick={() => setRunTour(true)}
+                        className="inline-flex items-center gap-1.5 rounded-xl px-2 py-2 text-teal-700 hover:text-teal-800 hover:bg-teal-50 dark:text-teal-300 dark:hover:bg-teal-950/30 transition-all"
+                        title="មើលការណែនាំ"
+                        aria-label="មើលការណែនាំ"
+                    >
+                        <CircleHelp size={16} />
+                        <span className="hidden lg:inline text-xs font-kantumruy font-semibold">របៀបប្រើ</span>
+                    </button>
                     <div className="w-[1px] h-4 bg-border/60 mx-0.5" />
                     <button
                         onClick={() => setIsShareModalOpen(true)}
@@ -450,130 +554,86 @@ function DesignContent() {
                 </div>
                 <ShareModal />
             </div>
-            {mounted && <Joyride 
-                steps={tourSteps} 
-                run={runTour} 
-                // @ts-ignore
-                callback={handleJoyrideCallback}
-                continuous 
-                showProgress 
-                showSkipButton 
-                locale={{ back: 'ថយក្រោយ', close: 'បិទ', last: 'បញ្ចប់', next: 'បន្ទាប់', skip: 'រំលង' }}
-            />}
         </div>
     );
 
     // MOBILE LAYOUT (Portal to Body, Full Screen Overlay)
     const mobileLayout = mounted ? createPortal(
-        <div className="md:hidden fixed inset-0 w-screen h-[100dvh] z-[99999] bg-background flex flex-col overflow-hidden" role="dialog" aria-label="Mobile Design Editor">
-            {/* MOBILE HEADER */}
+        <div className="md:hidden fixed inset-0 z-40 flex h-[100dvh] w-[100vw] max-w-none min-w-0 flex-col overflow-hidden bg-background" role="dialog" aria-label="Mobile Design Editor">
+            {/* MOBILE HEADER — min 56px height for comfortable touch targets */}
             <div className={clsx(
-                "h-[48px] bg-white/95 dark:bg-[#0a0a0a]/95 backdrop-blur-xl border-b border-slate-200/60 dark:border-white/10 flex items-center justify-between px-3 z-50 transition-all shadow-xs",
+                "h-[52px] bg-white/95 dark:bg-[#0a0a0a]/95 backdrop-blur-xl border-b border-slate-200/60 dark:border-white/10 flex items-center justify-between px-3 z-50 transition-all shadow-xs",
                 isSheetOpen ? "flex-none relative" : "absolute top-0 left-0 w-full"
             )}>
                 <div className="flex-1 flex justify-start items-center">
                     {isSheetOpen ? (
-                        <Link to="/dashboard" className="p-1.5 -ml-1 text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors flex items-center gap-1">
-                            <ArrowLeft size={20} strokeWidth={2.5} />
-                            <span className="text-xs font-bold font-kantumruy">Dashboard</span>
+                        <Link to="/dashboard" aria-label="ត្រឡប់ទៅ Dashboard" className="h-9 w-9 px-2 -ml-1 text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors flex items-center justify-center rounded-xl active:bg-slate-100 dark:active:bg-white/10 active:scale-95">
+                            <ArrowLeft size={18} strokeWidth={2.5} />
                         </Link>
                     ) : (
                         <button 
                             onClick={() => setIsSheetOpen(true)} 
-                            className="px-2.5 py-1 text-slate-700 dark:text-white bg-slate-100 dark:bg-white/10 hover:bg-slate-200 rounded-full flex items-center gap-1.5 transition-all font-bold text-xs font-kantumruy active:scale-95"
+                            className="h-10 px-3 -ml-1 text-slate-700 dark:text-white bg-slate-100 dark:bg-white/10 hover:bg-slate-200 rounded-xl flex items-center gap-1.5 transition-all font-bold text-sm font-kantumruy active:scale-95"
                         >
-                            <ArrowLeft size={16} strokeWidth={2.5} />
-                            <span>កែសម្រួល</span>
+                            <ArrowLeft size={18} strokeWidth={2.5} />
+                            <span>កែប្រែ</span>
                         </button>
                     )}
                 </div>
                 
-                <div className="flex-none flex justify-center items-center scale-95">
+                <div className="flex-none flex justify-center items-center">
                     <MoneaLogo size="sm" showText={true} />
                 </div>
                 
-                <div className="flex-1 flex justify-end items-center gap-1.5 pr-0.5">
-                    <button
-                        onClick={() => setIsShareModalOpen(true)}
-                        className="text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400 h-8 w-8 flex items-center justify-center rounded-full transition-all"
-                        title="ចែករំលែក (Share)"
-                    >
-                        <Share2 size={15} />
-                    </button>
+                <div className="flex-1 flex justify-end items-center gap-2">
+                    {isSheetOpen && (
+                        <button
+                            onClick={() => setRunTour(true)}
+                            className="flex h-9 w-9 items-center justify-center rounded-xl text-teal-700 hover:bg-teal-50 dark:text-teal-300 dark:hover:bg-teal-950/30"
+                            title="មើលការណែនាំ"
+                            aria-label="មើលការណែនាំ"
+                        >
+                            <CircleHelp size={18} />
+                        </button>
+                    )}
+                    {/* Auto-save Indicator (Mobile) */}
+                    <div className="flex items-center justify-center h-10 px-1 text-slate-400 dark:text-slate-500" title={loading ? "កំពុងរក្សាទុក..." : isDirty ? "មិនទាន់រក្សាទុក" : "បានរក្សាទុក"}>
+                        {loading ? (
+                            <Loader2 size={18} className="animate-spin text-teal-500" />
+                        ) : isDirty ? (
+                            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
+                        ) : (
+                            <CheckCircle2 size={18} className="text-emerald-500" />
+                        )}
+                    </div>
                     {isSheetOpen ? (
                         <button
                             onClick={() => setIsSheetOpen(false)}
-                            className="tour-preview text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 h-8 px-2.5 flex items-center justify-center rounded-full transition-all font-kantumruy font-bold text-xs gap-1 active:scale-95"
+                            className="tour-preview h-9 px-2.5 text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 flex items-center justify-center rounded-xl transition-all font-kantumruy font-bold text-sm gap-1.5 active:scale-95"
                             title={t("design.wizard.preview", { defaultValue: "មើលលទ្ធផល" })}
                         >
-                            <ExternalLink size={14} />
+                            <ExternalLink size={16} />
                             <span>មើលគំរូ</span>
                         </button>
                     ) : (
                         <Link
                             to="/dashboard"
-                            className="text-slate-600 dark:text-slate-300 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 h-8 px-2.5 flex items-center justify-center rounded-full transition-all font-kantumruy font-bold text-xs"
+                            className="h-9 px-2.5 text-emerald-700 dark:text-emerald-400 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 flex items-center justify-center rounded-xl transition-all font-kantumruy font-bold text-sm active:scale-95"
                         >
                             រួចរាល់
                         </Link>
                     )}
-                    {/* Auto-save Indicator (Mobile) */}
-                    <div className="flex items-center justify-center h-8 pl-1 text-slate-400 dark:text-slate-500">
-                        {loading ? <Loader2 size={16} className="animate-spin text-rose-500" /> : <CheckCircle2 size={16} className="text-emerald-500" />}
-                    </div>
                 </div>
             </div>
-            {/* Progress Bar */}
-            <div className={clsx(
-                "h-1 w-full bg-slate-100 dark:bg-white/5 relative overflow-hidden z-50 transition-all",
-                isSheetOpen ? "flex-none" : "absolute top-[48px] left-0 w-full"
-            )}>
-                <div className="absolute top-0 left-0 h-full bg-rose-500 transition-all duration-500 rounded-r-full" style={{ width: `${progress}%` }} />
-            </div>
-
             {/* TABS FOR MOBILE */}
-            <div className="flex-1 flex flex-col min-h-0 bg-background relative">
+            <div className="relative flex min-h-0 min-w-0 flex-1 w-full max-w-none flex-col bg-background">
                 {isSheetOpen ? (
                     // EDITOR MODE
-                    <div className="flex-1 flex flex-col min-h-0 relative">
+                    <div className="relative flex min-h-0 min-w-0 flex-1 w-full max-w-none flex-col">
                         <div className="flex-1 flex flex-col overflow-hidden relative">
                             {editorPanel}
                         </div>
 
-                        {/* Floating Quick Preview Button in Mobile Editor Mode */}
-                        <div className="absolute bottom-[72px] right-3 z-40 pointer-events-auto">
-                            <button
-                                onClick={() => setIsSheetOpen(false)}
-                                className="flex items-center gap-1.5 px-4 py-2.5 bg-slate-900/95 dark:bg-white/95 text-white dark:text-slate-900 font-bold text-xs font-kantumruy rounded-full shadow-xl shadow-black/25 backdrop-blur-md active:scale-95 transition-all border border-white/20"
-                            >
-                                <ExternalLink size={14} />
-                                <span>មើលគំរូ (Preview)</span>
-                            </button>
-                        </div>
-
-                        {/* BOTTOM TABS FOR EDITOR */}
-                        <div className="flex-none min-h-[64px] pb-[env(safe-area-inset-bottom,8px)] pt-1.5 bg-card border-t border-slate-200/80 dark:border-white/10 flex items-center justify-around px-2 font-khmer shadow-[0_-10px_30px_rgba(0,0,0,0.08)] gap-1">
-                            {[1,2,3,4,5].map((stepId) => {
-                                const stepTitles = ["ទម្រង់", "ព័ត៌មាន", "ពេលវេលា", "រូបភាព", "ការកំណត់"];
-                                const icons = [LayoutTemplate, Type, Clock, ImageIcon, Settings];
-                                const Icon = icons[stepId - 1];
-                                return (
-                                    <button
-                                        key={stepId}
-                                        onClick={() => setCurrentStep(stepId)}
-                                        className={clsx(
-                                            "flex-1 flex flex-col items-center justify-center h-[52px] rounded-xl transition-all duration-200 gap-1 active:scale-95",
-                                            currentStep === stepId
-                                                ? "bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400 shadow-xs border border-rose-200/60 dark:border-rose-500/30 font-bold" 
-                                                : "text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5"
-                                        )}
-                                    >
-                                        <Icon className={clsx("w-5 h-5", currentStep === stepId ? "stroke-[2.5]" : "stroke-2")} />
-                                        <span className="text-[10px] font-bold font-kantumruy leading-none tracking-wide">{stepTitles[stepId - 1]}</span>
-                                    </button>
-                                )
-                            })}
-                        </div>
                     </div>
                 ) : (
                     // PREVIEW MODE
@@ -581,14 +641,14 @@ function DesignContent() {
                         <div className="flex-1 relative overflow-hidden">
                             <MobilePreviewWrapper wedding={wedding} currentStep={currentStep} />
                         </div>
-                        {/* Floating Edit Button in Preview Mode */}
-                        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-auto">
+                        {/* Preview action bar keeps the edit/finish choices visible. */}
+                        <div className="absolute bottom-4 left-3 right-3 z-50 pointer-events-auto flex items-center rounded-2xl border border-white/10 bg-black/75 p-2 backdrop-blur-md">
                             <button
                                 onClick={() => setIsSheetOpen(true)}
-                                className="flex items-center gap-2 px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-xs sm:text-sm font-kantumruy rounded-full shadow-2xl active:scale-95 transition-all border border-white/20"
+                                className="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-bold text-slate-900 font-kantumruy shadow-lg active:scale-95 transition-all"
                             >
                                 <Palette size={16} />
-                                <span>ត្រឡប់ទៅកែប្រែវិញ (Edit)</span>
+                                <span>កែប្រែ</span>
                             </button>
                         </div>
                     </div>
@@ -599,12 +659,32 @@ function DesignContent() {
     ) : null;
 
     return (
-        <div className="relative h-[calc(100vh)] w-full overflow-hidden flex flex-col">
+        <div className="relative h-[100dvh] w-full flex flex-col">
             {!isMobile && desktopLayout}
             {isMobile && mobileLayout}
+            {mounted && <Joyride
+                steps={tourSteps}
+                run={runTour}
+                // @ts-ignore
+                callback={handleJoyrideCallback}
+                continuous
+                showProgress
+                showSkipButton
+                disableOverlayClose
+                spotlightClicks={false}
+                locale={{ back: 'ថយក្រោយ', close: 'បិទ', last: 'បញ្ចប់', next: 'បន្ទាប់', skip: 'រំលង' }}
+                styles={{
+                    floater: { zIndex: 10000 },
+                    tooltip: {
+                        width: 'min(320px, calc(100vw - 32px))',
+                        maxWidth: 'calc(100vw - 32px)',
+                        boxSizing: 'border-box'
+                    }
+                }}
+            />}
 
             {isLocked && (
-                <div className="absolute inset-0 z-[100001] bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-500">
+                <div className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-500">
                     <div className="bg-card p-10 rounded-[3rem] shadow-2xl border-2 border-dashed border-primary/20 max-w-md w-full flex flex-col items-center">
                         <div className="w-20 h-20 rounded-3xl bg-red-50 dark:bg-red-950/30 flex items-center justify-center mb-6">
                             <Lock className="w-10 h-10 text-red-600" />

@@ -176,23 +176,23 @@ export default function UserManagementPage() {
                     <ArrowLeft size={14} /> Back to Users
                 </Button>
 
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 bg-card border border-border p-8 rounded-[2.5rem] shadow-sm overflow-hidden relative group">
+                <div className="relative flex flex-col justify-between gap-4 overflow-hidden rounded-[2rem] border border-border bg-card p-5 shadow-sm group sm:flex-row sm:items-center sm:gap-6 sm:rounded-[2.5rem] sm:p-8">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/5 rounded-full -mr-16 -mt-16 blur-3xl transition-all group-hover:bg-red-600/10" />
                     
-                    <div className="flex items-center gap-6 relative z-10">
-                        <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-red-500 to-rose-600 text-white flex items-center justify-center shadow-xl shadow-red-500/20 rotate-3 group-hover:rotate-0 transition-transform duration-500">
-                            <User size={40} strokeWidth={2.5} />
+                    <div className="relative z-10 flex min-w-0 items-center gap-4 sm:gap-6">
+                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 text-white shadow-xl shadow-red-500/20 transition-transform duration-500 group-hover:rotate-0 sm:h-20 sm:w-20 sm:rounded-3xl">
+                            <User size={30} strokeWidth={2.5} className="sm:h-10 sm:w-10" />
                         </div>
-                        <div className="space-y-1">
-                            <h2 className="text-3xl font-black tracking-tight text-foreground font-kantumruy">គ្រប់គ្រងគណនី</h2>
-                            <div className="flex items-center gap-2 text-muted-foreground font-mono text-xs bg-muted/50 px-3 py-1 rounded-full w-fit">
+                        <div className="min-w-0 space-y-1">
+                            <h2 className="text-xl font-black tracking-tight text-foreground font-kantumruy sm:text-3xl">គ្រប់គ្រងគណនី</h2>
+                            <div className="flex w-fit max-w-full items-center gap-2 break-all rounded-full bg-muted/50 px-3 py-1 font-mono text-[10px] text-muted-foreground sm:text-xs">
                                 <Mail size={12} />
                                 {user.email}
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex flex-col items-end gap-2 relative z-10">
+                    <div className="relative z-10 flex flex-wrap items-center justify-between gap-2 sm:flex-col sm:items-end">
                         {user.deletedAt ? (
                             <Badge className="bg-red-600 text-white border-red-600 px-4 py-1.5 rounded-xl text-xs font-black tracking-widest uppercase shadow-lg shadow-red-500/20 animate-pulse">
                                 DEACTIVATED
@@ -218,7 +218,7 @@ export default function UserManagementPage() {
                 {/* Main Content Area */}
                 <div className="lg:col-span-2 space-y-8">
                     {/* Settings Box */}
-                    <div className="bg-card rounded-[2.5rem] border border-border p-10 shadow-sm relative overflow-hidden">
+                    <div className="bg-card rounded-[2rem] border border-border p-5 shadow-sm relative overflow-hidden sm:rounded-[2.5rem] sm:p-10">
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 to-rose-600 opacity-50" />
                         <h3 className="text-xl font-black text-foreground font-kantumruy mb-8 flex items-center gap-3">
                             <Fingerprint size={24} className="text-red-500" />
@@ -269,12 +269,12 @@ export default function UserManagementPage() {
                                 )}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
                                     <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 dark:bg-slate-900/50 dark:border-slate-800">
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Event Manager</p>
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">User</p>
                                         <p className="text-xs font-medium text-slate-600 dark:text-slate-400 leading-tight">អាចគ្រប់គ្រងមង្គលការ និងភ្ញៀវទាំងអស់។</p>
                                     </div>
                                     <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 dark:bg-slate-900/50 dark:border-slate-800">
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Event Staff</p>
-                                        <p className="text-xs font-medium text-slate-600 dark:text-slate-400 leading-tight">ស្កេនសំបុត្រ និងកត់ត្រាអំណោយប៉ុណ្ណោះ។</p>
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Support Staff</p>
+                                        <p className="text-xs font-medium text-slate-600 dark:text-slate-400 leading-tight">ជំនួយការ Admin អាចមើលទិន្នន័យបាន។</p>
                                     </div>
                                 </div>
                             </div>
@@ -282,7 +282,7 @@ export default function UserManagementPage() {
                     </div>
 
                     {/* Associated Weddings */}
-                    <div className="bg-card rounded-[2.5rem] border border-border p-10 shadow-sm relative overflow-hidden">
+                    <div className="bg-card rounded-[2rem] border border-border p-5 shadow-sm relative overflow-hidden sm:rounded-[2.5rem] sm:p-10">
                         <h3 className="text-xl font-black text-foreground font-kantumruy mb-8 flex items-center justify-between">
                             <span className="flex items-center gap-3">
                                 <Globe size={24} className="text-blue-500" />
@@ -335,7 +335,7 @@ export default function UserManagementPage() {
 
                 {/* Sidebar Info */}
                 <div className="space-y-6">
-                    <div className="bg-card rounded-[2.5rem] border border-border p-8 shadow-sm">
+                    <div className="bg-card rounded-[2rem] border border-border p-5 shadow-sm sm:rounded-[2.5rem] sm:p-8">
                         <h3 className="text-xs font-black text-muted-foreground font-kantumruy mb-6 uppercase tracking-widest">System Metadata</h3>
 
                         <div className="space-y-6">
@@ -376,7 +376,7 @@ export default function UserManagementPage() {
 
                     {/* Action Zone (Recovery/Danger) */}
                     <div className={cn(
-                        "rounded-[2.5rem] border p-8 shadow-2xl transition-all duration-500",
+                        "rounded-[2rem] border p-5 shadow-2xl transition-all duration-500 sm:rounded-[2.5rem] sm:p-8",
                         user.deletedAt 
                             ? "bg-emerald-500 border-emerald-400 text-white shadow-emerald-500/20" 
                             : "bg-white border-red-100 shadow-red-500/5 dark:bg-slate-900 dark:border-red-950/30"

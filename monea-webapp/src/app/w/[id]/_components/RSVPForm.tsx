@@ -29,6 +29,7 @@ export function RSVPForm({ weddingId, guestId, primaryColor, theme = 'dark' }: R
     const [website, setWebsite] = React.useState(""); // Honeypot field
     const [loading, setLoading] = React.useState(false);
     const [turnstileToken, setTurnstileToken] = React.useState("");
+    const [submitError, setSubmitError] = React.useState("");
 
     React.useEffect(() => {
         // Track when RSVP modal/section is viewed
@@ -37,13 +38,20 @@ export function RSVPForm({ weddingId, guestId, primaryColor, theme = 'dark' }: R
         }
     }, []);
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (nextStatus: 'CONFIRMED' | 'DECLINED' | null = status) => {
+        if (!nextStatus) return;
+        if (!turnstileToken) {
+            setSubmitError("សូមផ្ទៀងផ្ទាត់ CAPTCHA មុនពេលបញ្ជូនចម្លើយ។");
+            return;
+        }
+
+        setSubmitError("");
         setLoading(true);
         try {
             const res = await moneaClient.post("/api/wedding/rsvp", {
                 weddingId,
                 guestId,
-                rsvpStatus: status,
+                rsvpStatus: nextStatus,
                 adultsCount: adults,
                 childrenCount: children,
                 rsvpNotes: notes,
@@ -57,9 +65,11 @@ export function RSVPForm({ weddingId, guestId, primaryColor, theme = 'dark' }: R
                 (window as any).trackMoneaEvent("RSVP_SUBMIT");
             }
             
+            setStatus(nextStatus);
             setStep('success');
         } catch (e) {
-            console.error(e);
+            console.error("[RSVPForm] Failed to submit response:", e);
+            setSubmitError("មិនអាចបញ្ជូនចម្លើយរបស់អ្នកបានទេ។ សូមព្យាយាមម្តងទៀត។");
         } finally {
             setLoading(false);
         }
@@ -99,7 +109,7 @@ export function RSVPForm({ weddingId, guestId, primaryColor, theme = 'dark' }: R
                         <h3 className={`text-2xl md:text-4xl font-black font-khmer text-center leading-tight ${isLight ? 'text-stone-800' : 'text-white/95'}`}>{t("invitation.rsvp.title")}</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
                             <button
-                                onClick={() => { setStatus('CONFIRMED'); setStep('details'); }}
+                                onClick={() => { setStatus('CONFIRMED'); setSubmitError(""); setStep('details'); }}
                                 className="flex flex-col items-center gap-6 p-10 md:p-14 rounded-[3rem] bg-emerald-500/10 hover:bg-emerald-500/20 border-2 border-emerald-500/20 hover:border-emerald-500/40 transition-all group relative overflow-hidden"
                             >
                                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -109,7 +119,7 @@ export function RSVPForm({ weddingId, guestId, primaryColor, theme = 'dark' }: R
                                 <span className="text-xl font-bold text-emerald-500 font-khmer relative z-10">{t("invitation.rsvp.confirm")}</span>
                             </button>
                             <button
-                                onClick={() => { setStatus('DECLINED'); handleSubmit(); }}
+                                onClick={() => { setStatus('DECLINED'); setSubmitError(""); setStep('details'); }}
                                 className="flex flex-col items-center gap-6 p-10 md:p-14 rounded-[3rem] bg-red-500/10 hover:bg-red-500/20 border-2 border-red-500/20 hover:border-red-500/40 transition-all group relative overflow-hidden"
                             >
                                 <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -129,7 +139,16 @@ export function RSVPForm({ weddingId, guestId, primaryColor, theme = 'dark' }: R
                         className={`p-8 md:p-12 rounded-[3.5rem] border shadow-3xl max-w-4xl mx-auto ${isLight ? 'bg-white border-lux' : 'bg-white/[0.03] backdrop-blur-3xl border-white/10'}`}
                     >
                         <div className="grid md:grid-cols-2 gap-10">
-                            <div className="space-y-8">
+                            <div className={status === 'CONFIRMED' ? "space-y-8" : "space-y-6"}>
+                                {status === 'DECLINED' && (
+                                    <div className="rounded-3xl border border-red-500/20 bg-red-500/10 p-6 text-center">
+                                        <p className="font-khmer text-lg font-bold text-red-400">
+                                            {t("invitation.rsvp.decline")}
+                                        </p>
+                                    </div>
+                                )}
+                                {status === 'CONFIRMED' && (
+                                <>
                                 <div className="space-y-6">
                                     <div className="flex items-center gap-4 text-white/80">
                                         <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center">
@@ -184,6 +203,8 @@ export function RSVPForm({ weddingId, guestId, primaryColor, theme = 'dark' }: R
                                         />
                                     </div>
                                 </div>
+                                </>
+                                )}
                             </div>
 
                             <div className="flex flex-col justify-center gap-6">
@@ -200,16 +221,25 @@ export function RSVPForm({ weddingId, guestId, primaryColor, theme = 'dark' }: R
                                         theme={isLight ? 'light' : 'dark'}
                                     />
                                 </div>
+                                {submitError && (
+                                    <p role="alert" className="text-center text-sm font-bold text-rose-400">
+                                        {submitError}
+                                    </p>
+                                )}
                                 <Button
                                     disabled={loading || !turnstileToken}
-                                    onClick={handleSubmit}
+                                    onClick={() => handleSubmit()}
                                     className="w-full h-16 md:h-20 rounded-[2rem] text-xl font-black font-khmer shadow-2xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all text-white hover:text-white"
                                     style={{ backgroundColor: primaryColor }}
                                 >
                                     {loading ? <Loader2 className="animate-spin mr-2" /> : t("invitation.rsvp.submit")}
                                 </Button>
                                 <button
-                                    onClick={() => setStep('status')}
+                                    onClick={() => {
+                                        setSubmitError("");
+                                        setTurnstileToken("");
+                                        setStep('status');
+                                    }}
                                     className="w-full text-white/30 text-xs font-black font-kantumruy uppercase tracking-[0.3em] hover:text-white/60 transition-colors"
                                 >
                                     {t("invitation.rsvp.back")}

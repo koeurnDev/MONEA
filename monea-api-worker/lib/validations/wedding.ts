@@ -4,7 +4,7 @@ export const weddingSchema = z.object({
   groomName: z.string().min(1, "Groom name is required").max(50),
   brideName: z.string().min(1, "Bride name is required").max(50),
   date: z.string().refine((date) => !isNaN(Date.parse(date)), "Invalid date format"),
-  location: z.string().min(1, "Location is required").max(200),
+  location: z.string().max(200).optional().nullable().or(z.literal("")),
   eventType: z.enum(["wedding", "birthday", "anniversary", "graduation", "other"]).default("wedding"),
   paymentInfo: z.string().optional(),
   themeSettings: z.any().optional(),

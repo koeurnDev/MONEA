@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { errorResponse } from "@/lib/api-utils";
 import { sendPasswordResetEmail } from "@/lib/mail";
+import { hashPasswordResetToken } from "@/lib/password-reset-token";
 // Use Web Crypto API (available in CF Workers — no Node.js crypto needed)
 function randomHex(bytes: number): string {
     const arr = new Uint8Array(bytes);
@@ -47,11 +48,12 @@ export async function POST(req: Request) {
         }
 
         const token = randomHex(32);
+        const tokenHash = await hashPasswordResetToken(token);
 
         await prisma.passwordResetToken.create({
             data: {
                 email,
-                token,
+                token: tokenHash,
                 expiresAt: new Date(Date.now() + 1000 * 60 * 60), // 1 hour
             },
         });

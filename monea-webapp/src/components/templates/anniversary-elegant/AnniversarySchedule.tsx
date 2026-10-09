@@ -1,55 +1,34 @@
 import React from 'react';
 import { m } from 'framer-motion';
-import { Clock, Sparkles } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import type { WeddingData } from '../types';
 
-export default function AnniversarySchedule({ wedding }: { wedding: WeddingData }) {
-    const defaultActivities = [
-        {
-            title: "ពិធីហែជំនូន",
-            time: "០៧:០០ ព្រឹក",
-            description: "ជួបជុំសាច់ញាតិ និងភ្ញៀវកិត្តិយស ហែជំនូនចូលរោងជ័យ"
-        },
-        {
-            title: "ពិធីសំពះផ្ទឹម និងចងដៃ",
-            time: "០៨:៣០ ព្រឹក",
-            description: "ពិធីសិរីសួស្តីកាត់សក់ និងចងដៃជូនពរជ័យដល់គូស្វាមីភរិយាថ្មី"
-        },
-        {
-            title: "ពិសារភោជនាហារថ្ងៃត្រង់",
-            time: "១១:០០ ថ្ងៃត្រង់",
-            description: "ទទួលទានអាហារថ្ងៃត្រង់ជួបជុំបងប្អូន និងភ្ញៀវកិត្តិយស"
-        },
-        {
-            title: "ពិធីជប់លៀង និងពិសារភោជនាហារពេលល្ងាច",
-            time: "០៥:០០ ល្ងាច",
-            description: "ទទួលស្វាគមន៍ភ្ញៀវកិត្តិយស និងពិសារភោជនាហារពេលល្ងាច"
-        }
-    ];
+export default function AnniversarySchedule({ wedding, title: customTitle }: { wedding: WeddingData; title?: string }) {
+    const activities = (wedding.activities || []).filter((activity) =>
+        activity.title?.trim() || activity.time?.trim() || activity.description?.trim(),
+    );
+    if (activities.length === 0) return null;
 
-    const rawActivities = wedding.activities || [];
-    const activities = rawActivities.length > 0 ? rawActivities : defaultActivities;
-
-    const settings = wedding.themeSettings as any;
-    const title = settings?.customLabels?.scheduleTitle || "កម្មវិធីសិរីមង្គល";
+    const title = customTitle
+        || (wedding.eventType === "wedding" ? "កម្មវិធីសិរីមង្គលអាពាហ៍ពិពាហ៍" : "កម្មវិធីសិរីមង្គលភ្ជាប់ពាក្យ");
 
     return (
-        <section className="py-14 px-4 bg-white font-kantumruy relative overflow-hidden" id="schedule">
+        <section className="py-16 px-4 bg-[#FBF9F5] font-kantumruy relative overflow-hidden" id="schedule">
             <div className="max-w-xl mx-auto space-y-8">
                 
                 {/* Header */}
                 <div className="flex flex-col items-center gap-1.5 text-center">
-                    <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 mb-1 shadow-sm">
+                        <div className="w-10 h-10 rounded-full bg-[#F0E3D1] flex items-center justify-center text-[#966B4E] mb-1 shadow-sm">
                         <Clock className="w-5 h-5" />
                     </div>
-                    <h2 className="text-xl sm:text-2xl font-khmer-moul text-[#3B0764] leading-relaxed">
+                    <h2 className="text-xl sm:text-2xl font-khmer-moul text-[#633E42] leading-relaxed">
                         {title}
                     </h2>
-                    <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto mt-1" />
+                    <div className="w-16 h-px bg-gradient-to-r from-transparent via-[#CBAF78] to-transparent mx-auto mt-1" />
                 </div>
 
                 {/* Timeline Activities List */}
-                <div className="space-y-3.5">
+                <div className="relative space-y-3.5 before:absolute before:bottom-6 before:left-[19px] before:top-6 before:w-px before:bg-[#D8C2A0]">
                     {activities.map((activity, idx) => (
                         <m.div
                             key={idx}
@@ -57,18 +36,18 @@ export default function AnniversarySchedule({ wedding }: { wedding: WeddingData 
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.5, delay: idx * 0.08 }}
-                            className="bg-[#FAF7F2] p-4 sm:p-5 rounded-2xl border border-purple-100/90 shadow-sm hover:shadow-md transition-all space-y-2 text-left"
+                            className="relative ml-2 bg-[#F1ECE5] p-4 pl-12 sm:p-5 sm:pl-14 rounded-2xl border border-[#D9C6AA] shadow-sm hover:shadow-md transition-all space-y-2 text-left"
                         >
                             {/* Top Time Badge */}
                             {activity.time && (
                                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-purple-900 border border-purple-200/90 font-mono text-xs font-bold shadow-xs">
-                                    <Clock size={12} className="text-purple-600" />
+                                    <Clock size={12} className="text-[#966B4E]" />
                                     <span>{activity.time}</span>
                                 </div>
                             )}
 
                             {/* Activity Title */}
-                            <h4 className="font-khmer-moul text-sm sm:text-base text-[#3B0764] leading-relaxed">
+                            <h4 className="font-khmer-moul text-sm sm:text-base text-[#633E42] leading-relaxed">
                                 {activity.title}
                             </h4>
 

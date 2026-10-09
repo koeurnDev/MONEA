@@ -37,8 +37,22 @@ export function getSecret(name: string, fallback?: string, env?: Record<string, 
  * Predefined synchronous helpers for common MONEA secrets
  */
 export const secrets = {
+  /**
+   * JWT signing secret.
+   *
+   * SECURITY: this used to fall back to the literal
+   * "monea_fallback_jwt_secret_key_change_in_production", which is public source
+   * code — anyone could forge tokens whenever JWT_SECRET was unset. Fail closed
+   * instead of signing with a published key.
+   */
   getJwtSecret: (env?: any): string => {
-    return getSecret("JWT_SECRET", "monea_fallback_jwt_secret_key_change_in_production", env);
+    const secret = getSecret("JWT_SECRET", undefined, env);
+    if (secret.length < 32) {
+      throw new Error(
+        `[CRITICAL SECURITY RISK] JWT_SECRET must be at least 32 characters (got ${secret.length}).`
+      );
+    }
+    return secret;
   },
 
   getEncryptionKey: (env?: any): string => {

@@ -6,7 +6,7 @@ const router = new Hono();
 router.post('/', async (c) => {
   try {
     // Standard Web API call passing the raw request to Next.js route handler
-    return await nextRoute.POST(c.req.raw);
+    return await nextRoute.POST(c.req.raw, c.env);
   } catch (error: any) {
     console.error('[Hono Forgot Password Route Error]:', error?.message || error);
     

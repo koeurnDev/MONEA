@@ -3,18 +3,28 @@ import { useGuests } from "./hooks/useGuests";
 import { GuestListHeader } from "./components/GuestListHeader";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Plus, Users } from "lucide-react";
+import { Search, Plus, Users, X, AlertCircle, RefreshCw } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
-import { Dialog, DialogTrigger, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useTranslation } from "@/i18n/LanguageProvider";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 const MobileGuestList = lazy<React.ComponentType<any>>(() => import("./components/MobileGuestList").then(m => ({ default: (m as any).MobileGuestList })));
 const DesktopGuestTable = lazy<React.ComponentType<any>>(() => import("./components/DesktopGuestTable").then(m => ({ default: (m as any).DesktopGuestTable })));
 const GuestDeleteDialog = lazy<React.ComponentType<any>>(() => import("./components/GuestDeleteDialog").then(m => ({ default: (m as any).GuestDeleteDialog })));
-const GuestForm = lazy<React.ComponentType<any>>(() => import("./guest-form").then(m => ({ default: (m as any).GuestForm })));
 
 export default function GuestPage() {
     const { t, locale } = useTranslation();
+    const { user, isLoading } = useAuth();
+    const navigate = useNavigate();
+
+    React.useEffect(() => {
+        if (!isLoading && !user?.weddingId) {
+            navigate('/dashboard/create', { replace: true });
+        }
+    }, [isLoading, user?.weddingId, navigate]);
+
     const {
         filteredGuests,
         wedding,
@@ -23,7 +33,9 @@ export default function GuestPage() {
         open,
         setOpen,
         loading,
+        loadError,
         loadingMore,
+        loadMoreError,
         fetchMoreGuests,
         hasMore,
         visibleCount,
@@ -38,6 +50,7 @@ export default function GuestPage() {
         updateGuestOptimistic,
         exportCSV,
         copyLink,
+        shareTelegram,
         handlePrint,
         confirmDelete,
         isArchived,
@@ -73,7 +86,7 @@ export default function GuestPage() {
     };
 
     return (
-        <div className="space-y-8 pb-10 print:p-0 print:m-0 print:bg-white print:text-black">
+        <div className="space-y-5 sm:space-y-8 pb-10 print:p-0 print:m-0 print:bg-white print:text-black">
             <style dangerouslySetInnerHTML={{
                 __html: `
                 @media print {
@@ -121,8 +134,8 @@ export default function GuestPage() {
 
             {/* --- PRINT ONLY HEADER --- */}
             <div className="hidden print:block text-center pt-8 mb-2">
-                <h1 className="text-3xl font-black tracking-[0.25em] text-rose-600 font-sans">MONEA</h1>
-                <div className="h-0.5 w-12 bg-rose-200 mx-auto mt-3 opacity-50" />
+                <h1 className="text-3xl font-black tracking-[0.25em] text-teal-600 font-sans">MONEA</h1>
+                <div className="h-0.5 w-12 bg-teal-200 mx-auto mt-3 opacity-50" />
             </div>
 
             <div className="hidden print:block mb-8 text-center pt-4">
@@ -137,8 +150,8 @@ export default function GuestPage() {
 
             <div className="hidden print:block mb-8">
                 <div className="grid grid-cols-2 gap-0 border border-slate-100 rounded-3xl overflow-hidden">
-                    <div className="bg-rose-50/30 p-6 border-r border-slate-100">
-                        <p className="text-[10px] text-rose-400 font-black uppercase tracking-widest mb-1.5 font-kantumruy">{t("guests.print.totalGuests")}</p>
+                    <div className="bg-teal-50/30 p-6 border-r border-slate-100">
+                        <p className="text-[10px] text-teal-400 font-black uppercase tracking-widest mb-1.5 font-kantumruy">{t("guests.print.totalGuests")}</p>
                         <p className="text-2xl font-black text-slate-900 font-kantumruy">{filteredGuests.length} {t("guests.print.personUnit")}</p>
                     </div>
                     <div className="bg-slate-50/50 p-6">
@@ -166,66 +179,124 @@ export default function GuestPage() {
                 onPrintPdf={handlePrint}
             />
 
-            <div className="bg-card rounded-3xl border border-slate-100 dark:border-white/5 overflow-hidden print:shadow-none print:rounded-none">
-                <div className="p-4 md:p-6 flex flex-col sm:flex-row items-center gap-4 print:hidden">
+            <div className="bg-card rounded-2xl sm:rounded-3xl border border-slate-100 dark:border-white/5 overflow-hidden print:shadow-none print:rounded-none">
+                <div className="p-3 sm:p-4 md:p-6 flex flex-col sm:flex-row items-center gap-3 sm:gap-4 print:hidden">
                     {filteredGuests.length > 0 && (
                         <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
                             {t("guests.total")}: {filteredGuests.length} {t("guests.personUnit")}
                         </div>
                     )}
                     <div className="relative w-full sm:max-w-sm sm:ml-auto">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50 pointer-events-none" />
                         <Input
+                            type="search"
+                            aria-label={t("guests.search")}
                             placeholder={t("guests.search")}
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="pl-10 h-10 bg-muted border-transparent focus-visible:ring-primary/20 rounded-xl font-kantumruy text-sm"
+                            className={cn(
+                                "pl-10 h-10 bg-muted border-transparent focus-visible:ring-primary/20 rounded-xl font-kantumruy text-sm",
+                                search ? "pr-10" : ""
+                            )}
                         />
+                        {search && (
+                            <button
+                                type="button"
+                                onClick={() => setSearch("")}
+                                aria-label={t("guests.clearSearch", { defaultValue: "សម្អាតការស្វែងរក" })}
+                                className="absolute right-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-xl text-muted-foreground/60 transition-all hover:bg-background hover:text-foreground active:scale-90"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        )}
                     </div>
                 </div>
 
-                <MobileGuestList
-                    loading={loading}
-                    guests={filteredGuests}
-                    visibleCount={visibleCount}
-                    setVisibleCount={setVisibleCount}
-                    copiedId={copiedId}
-                    isArchived={isArchived}
-                    onCopyLink={copyLink}
-                    onEdit={(g: any) => { setEditingGuest(g); setOpen(true); }}
-                    onDelete={(id: any, name: any) => setDeleteGuest({ id, name })}
-                />
+                {loadError ? (
+                    <div className="flex flex-col items-center gap-3 px-5 py-10 text-center" role="alert">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
+                            <AlertCircle className="h-6 w-6" />
+                        </div>
+                        <div className="space-y-1">
+                            <h2 className="font-kantumruy text-base font-bold text-foreground">
+                                មិនអាចទាញយកបញ្ជីភ្ញៀវបានទេ
+                            </h2>
+                            <p className="font-kantumruy text-sm text-muted-foreground">
+                                សូមពិនិត្យការតភ្ជាប់ រួចសាកល្បងម្ដងទៀត។
+                            </p>
+                        </div>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => void loadData()}
+                            disabled={loading}
+                            className="mt-1 h-11 min-w-36 rounded-xl font-kantumruy text-sm font-bold"
+                        >
+                            <RefreshCw className={cn("mr-2 h-4 w-4", loading && "animate-spin")} />
+                            សាកល្បងម្ដងទៀត
+                        </Button>
+                    </div>
+                ) : (
+                    <>
+                        <MobileGuestList
+                            loading={loading}
+                            guests={filteredGuests}
+                            searchActive={Boolean(search.trim())}
+                            onClearSearch={() => setSearch("")}
+                            visibleCount={visibleCount}
+                            setVisibleCount={setVisibleCount}
+                            copiedId={copiedId}
+                            isArchived={isArchived}
+                            onCopyLink={copyLink}
+                            onShareTelegram={shareTelegram}
+                            onEdit={(g: any) => { setEditingGuest(g); setOpen(true); }}
+                            onDelete={(id: any, name: any) => setDeleteGuest({ id, name })}
+                        />
 
-                <DesktopGuestTable
-                    loading={loading}
-                    guests={filteredGuests}
-                    visibleCount={visibleCount}
-                    setVisibleCount={setVisibleCount}
-                    copiedId={copiedId}
-                    isArchived={isArchived}
-                    onCopyLink={copyLink}
-                    onEdit={(g: any) => { setEditingGuest(g); setOpen(true); }}
-                    onDelete={(id: any, name: any) => setDeleteGuest({ id, name })}
-                />
+                        <DesktopGuestTable
+                            loading={loading}
+                            guests={filteredGuests}
+                            searchActive={Boolean(search.trim())}
+                            onClearSearch={() => setSearch("")}
+                            visibleCount={visibleCount}
+                            setVisibleCount={setVisibleCount}
+                            copiedId={copiedId}
+                            isArchived={isArchived}
+                            onCopyLink={copyLink}
+                            onShareTelegram={shareTelegram}
+                            onEdit={(g: any) => { setEditingGuest(g); setOpen(true); }}
+                            onDelete={(id: any, name: any) => setDeleteGuest({ id, name })}
+                        />
+                    </>
+                )}
 
                 {/* Load More Button for Pagination */}
                 {hasMore && !search && (
-                    <div className="p-6 flex justify-center border-t border-slate-100 dark:border-white/5 print:hidden">
-                        <Button 
-                            variant="outline"
-                            onClick={fetchMoreGuests}
-                            disabled={loadingMore}
-                            className="rounded-xl px-8 h-11 font-kantumruy font-bold border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 shadow-sm"
-                        >
-                            {loadingMore ? (
-                                <span className="flex items-center gap-2">
-                                    <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                                    {t("common.loading.loading", { defaultValue: "កំពុងដំណើរការ..." })}
-                                </span>
-                            ) : (
-                                t("common.actions.loadMore", { defaultValue: "ទាញយកបន្ថែម (Load More)" })
+                    <div className="p-4 sm:p-6 flex justify-center border-t border-slate-100 dark:border-white/5 print:hidden">
+                        <div className="flex flex-col items-center gap-2">
+                            {loadMoreError && (
+                                <p className="font-kantumruy text-sm text-rose-600 dark:text-rose-400" role="alert">
+                                    មិនអាចទាញយកភ្ញៀវបន្ថែមបានទេ។ សូមសាកល្បងម្ដងទៀត។
+                                </p>
                             )}
-                        </Button>
+                            <Button
+                                variant="outline"
+                                onClick={() => void fetchMoreGuests()}
+                                disabled={loadingMore}
+                                className="h-11 rounded-xl border-slate-200 px-8 font-kantumruy font-bold shadow-sm hover:bg-slate-50 dark:border-white/10 dark:hover:bg-white/5"
+                            >
+                                {loadingMore ? (
+                                    <span className="flex items-center gap-2">
+                                        <span className="h-4 w-4 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+                                        {t("common.loading.loading", { defaultValue: "កំពុងដំណើរការ..." })}
+                                    </span>
+                                ) : loadMoreError ? (
+                                    "សាកល្បងម្ដងទៀត"
+                                ) : (
+                                    t("common.actions.loadMore", { defaultValue: "ទាញយកបន្ថែម (Load More)" })
+                                )}
+                            </Button>
+                        </div>
                     </div>
                 )}
             </div>
@@ -262,36 +333,16 @@ export default function GuestPage() {
             {/* Mobile Floating Action Button (FAB) */}
             {!isArchived && filteredGuests.length > 0 && (
                 <div className="md:hidden fixed bottom-24 right-5 z-40 print:hidden">
-                    <Dialog open={open} onOpenChange={(v) => {
-                        setOpen(v);
-                        if (!v) setEditingGuest(null);
-                    }}>
-                        <DialogTrigger asChild>
-                            <Button
-                                className="w-14 h-14 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 backdrop-blur-xl border border-red-500/20 shadow-[0_8px_32px_rgba(239,68,68,0.15)] flex items-center justify-center p-0 transition-all"
-                            >
-                                <Plus size={28} strokeWidth={3} />
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="w-[94vw] max-w-[460px] max-h-[85vh] overflow-y-auto rounded-3xl border border-border/50 shadow-2xl p-6 bg-card">
-                            <div className="sr-only">
-                                <DialogTitle>{t("guests.form.title")}</DialogTitle>
-                                <DialogDescription>
-                                    {t("guests.form.description")}
-                                </DialogDescription>
-                            </div>
-                            <GuestForm
-                                initialData={editingGuest}
-                                onSuccess={loadData}
-                                onDone={() => {
-                                    setOpen(false);
-                                    setEditingGuest(null);
-                                }}
-                                onOptimisticAdd={addGuestOptimistic}
-                                onOptimisticUpdate={updateGuestOptimistic}
-                            />
-                        </DialogContent>
-                    </Dialog>
+                    <Button
+                        onClick={() => {
+                            setEditingGuest(null);
+                            setOpen(true);
+                        }}
+                        className="w-14 h-14 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 backdrop-blur-xl border border-red-500/20 shadow-[0_8px_32px_rgba(239,68,68,0.15)] flex items-center justify-center p-0 transition-all"
+                        aria-label={t("guests.form.addBtn")}
+                    >
+                        <Plus size={28} strokeWidth={3} />
+                    </Button>
                 </div>
             )}
 

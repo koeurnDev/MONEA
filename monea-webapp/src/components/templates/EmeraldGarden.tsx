@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Volume2, VolumeX } from 'lucide-react';
+import { Heart, Volume2, VolumeX } from 'lucide-react';
 import { WeddingData, TemplateProps } from './types';
 import { EntranceEnvelope } from './emerald-garden/EntranceEnvelope';
 import { HeroSection } from './emerald-garden/HeroSection';
@@ -9,8 +9,11 @@ import { LocationSection } from './emerald-garden/LocationSection';
 import { GallerySection } from './emerald-garden/GallerySection';
 import { GiftSection } from './emerald-garden/GiftSection';
 import { ThankYouSection } from './emerald-garden/ThankYouSection';
+import { getTemplatePaletteStyles } from "@/lib/template-color-palette";
+import { isSectionVisible } from "./shared/template-settings";
+import { GuestbookSection } from "./shared/GuestbookSection";
 
-export const EmeraldGarden: React.FC<TemplateProps> = ({ wedding, guestName }) => {
+export const EmeraldGarden: React.FC<TemplateProps> = ({ wedding, guestName, config }) => {
     const [revealed, setRevealed] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -23,10 +26,13 @@ export const EmeraldGarden: React.FC<TemplateProps> = ({ wedding, guestName }) =
 
     const primaryColor = wedding.themeSettings?.primaryColor || "#1B4332";
     const musicUrl = wedding.themeSettings?.musicUrl;
-    const visibility = wedding.themeSettings?.visibility as any;
+    const loveStory = wedding.themeSettings?.loveStory?.trim() || wedding.themeSettings?.story?.kh?.trim() || "";
+    const storyImages = wedding.themeSettings?.storyImages?.filter(Boolean) || [];
+    const storyImage = storyImages[0];
 
     const handleOpenEnvelope = () => {
         setRevealed(true);
+        window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
         if (audioRef.current && musicUrl) {
             audioRef.current.play()
                 .then(() => setIsPlaying(true))
@@ -46,12 +52,12 @@ export const EmeraldGarden: React.FC<TemplateProps> = ({ wedding, guestName }) =
 
     return (
         <div 
-            style={{ "--primary": primaryColor } as React.CSSProperties}
-            className="w-full bg-[#0A1A14] font-kantumruy text-slate-800 relative min-h-screen selection:bg-emerald-600 selection:text-white"
+            style={getTemplatePaletteStyles(wedding.themeSettings, "#1B4332")}
+            className="monea-full-palette w-full bg-[#0A1A14] font-kantumruy text-slate-800 relative min-h-screen selection:bg-emerald-600 selection:text-white"
         >
             {/* Background Audio */}
             {musicUrl && (
-                <audio ref={audioRef} id="bg-music" src={musicUrl} loop preload="auto" />
+                <audio ref={audioRef} id="bg-music" src={musicUrl} loop preload="none" />
             )}
 
             {/* Entrance Envelope Overlay */}
@@ -74,7 +80,7 @@ export const EmeraldGarden: React.FC<TemplateProps> = ({ wedding, guestName }) =
                 </button>
             )}
 
-            {/* Mobile Canvas Stage */}
+            {revealed && (
             <main className="relative max-w-[540px] mx-auto min-h-screen shadow-2xl bg-white flex flex-col">
                 {/* 1. Hero Section */}
                 <HeroSection wedding={wedding} primaryColor={primaryColor} />
@@ -82,29 +88,69 @@ export const EmeraldGarden: React.FC<TemplateProps> = ({ wedding, guestName }) =
                 {/* 2. Parents Formal Invitation Section */}
                 <ParentsSection wedding={wedding} primaryColor={primaryColor} />
 
+                {isSectionVisible(config, "story") && (loveStory || storyImage) && (
+                    <section className="relative isolate overflow-hidden bg-[#0d241a] px-5 py-16 text-center text-emerald-50 sm:py-20">
+                        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,.14),transparent_60%)]" />
+                        <div className="relative mx-auto max-w-md border-y border-emerald-200/20 px-5 py-8 sm:px-8">
+                            <Heart aria-hidden="true" className="mx-auto mb-3 h-6 w-6 fill-emerald-200/30 text-amber-300" />
+                            <h2 className="font-khmer-moul text-xl leading-relaxed text-amber-100 sm:text-2xl">
+                                {wedding.themeSettings?.customLabels?.storyTitle || "រឿងរ៉ាវស្នេហារបស់យើង"}
+                            </h2>
+                            {loveStory && (
+                                <p className="mt-5 whitespace-pre-line break-words text-sm leading-8 text-emerald-50/90 sm:text-base">
+                                    {loveStory}
+                                </p>
+                            )}
+                            {storyImages.length > 0 && (
+                                <div className={`mt-6 grid gap-3 ${storyImages.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
+                                    {storyImages.map((image, index) => (
+                                        <figure key={`${image}-${index}`}>
+                                            <img
+                                                src={image}
+                                                alt={`រូបភាពរឿងរ៉ាវស្នេហាទី ${index + 1}`}
+                                                className="max-h-[28rem] aspect-[4/3] w-full rounded-2xl border border-amber-200/30 object-cover shadow-xl"
+                                                loading="lazy"
+                                                decoding="async"
+                                            />
+                                            {wedding.themeSettings?.storyImageCaptions?.[index]?.trim() && (
+                                                <figcaption className="mt-2 text-sm leading-relaxed text-amber-100/90">
+                                                    {wedding.themeSettings.storyImageCaptions[index]}
+                                                </figcaption>
+                                            )}
+                                        </figure>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </section>
+                )}
+
                 {/* 3. Schedule & Timeline Section */}
-                {visibility?.showSchedule !== false && (
-                    <ScheduleSection wedding={wedding} primaryColor={primaryColor} />
+                {isSectionVisible(config, "timeline") && (
+                    <ScheduleSection wedding={wedding} primaryColor={primaryColor} title={config.labels.scheduleTitle} />
                 )}
 
                 {/* 4. Location & Map Section */}
-                {visibility?.showMap !== false && (
+                {isSectionVisible(config, "map") && (
                     <LocationSection wedding={wedding} primaryColor={primaryColor} />
                 )}
 
                 {/* 5. Memory Photo Gallery */}
-                {visibility?.showGallery !== false && (
+                {isSectionVisible(config, "gallery") && (
                     <GallerySection wedding={wedding} primaryColor={primaryColor} />
                 )}
 
                 {/* 6. Gift & Bank Accounts */}
-                {visibility?.showGift !== false && (
+                {isSectionVisible(config, "gift") && (
                     <GiftSection wedding={wedding} primaryColor={primaryColor} />
                 )}
+
+                {isSectionVisible(config, "guestbook") && <GuestbookSection wedding={wedding} />}
 
                 {/* 7. Thank You & Blessings */}
                 <ThankYouSection wedding={wedding} primaryColor={primaryColor} />
             </main>
+            )}
         </div>
     );
 };

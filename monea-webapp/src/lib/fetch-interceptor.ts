@@ -1,14 +1,69 @@
 /**
  * Global fetch interceptor for static export
- * Automatically redirects /api/* calls to VITE_API_URL and attaches auth tokens
+ * Automatically redirects /api/* calls to VITE_API_URL and includes session cookies
  */
 
 const originalFetch = globalThis.fetch;
 
+let cachedCsrfToken: string | null = null;
+let lastCsrfFetch = 0;
+const CSRF_TTL = 1000 * 60 * 45; // 45 minutes, matches the SPA API client
+
+try {
+  localStorage.removeItem('auth_token');
+} catch {
+  // Storage may be unavailable; authentication uses the HttpOnly session cookie.
+}
+
+/**
+ * Returns a signed CSRF token, fetching one from the API when the cached value is
+ * missing or stale.
+ *
+ * SECURITY: the worker now validates X-CSRF-Token on every state-changing,
+ * cookie-authenticated request (monea-api-worker/lib/csrf.ts). Pages that call
+ * `fetch()` directly instead of the moneaClient therefore need this interceptor to
+ * attach the header, otherwise their writes would be rejected with 403.
+ */
+async function getCsrfToken(apiBase: string): Promise<string | null> {
+  const now = Date.now();
+
+  if (!cachedCsrfToken) {
+    try {
+      cachedCsrfToken = sessionStorage.getItem('csrf_token');
+    } catch {
+      // sessionStorage unavailable (private mode) — fall through to a network fetch
+    }
+  }
+
+  if (cachedCsrfToken && now - lastCsrfFetch < CSRF_TTL) {
+    return cachedCsrfToken;
+  }
+
+  try {
+    const res = await originalFetch(`${apiBase}/api/auth/csrf`, { credentials: 'include' });
+    if (!res.ok) return cachedCsrfToken;
+
+    const data: any = await res.json();
+    if (data?.token) {
+      cachedCsrfToken = data.token;
+      lastCsrfFetch = now;
+      try {
+        sessionStorage.setItem('csrf_token', data.token);
+      } catch {
+        // ignore storage failures
+      }
+    }
+    return cachedCsrfToken;
+  } catch (err) {
+    console.error('[FetchInterceptor] CSRF token fetch failed:', err);
+    return cachedCsrfToken;
+  }
+}
+
 export function setupFetchInterceptor() {
   if (typeof window === 'undefined') return; // Only run in browser
   
-  globalThis.fetch = function (input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  globalThis.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
     const apiBase = (import.meta.env.VITE_API_URL || 'https://monea-api.seabkoeurn64.workers.dev').replace(/\/$/, '');
     const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
     const isDev = import.meta.env.DEV;
@@ -65,15 +120,20 @@ export function setupFetchInterceptor() {
     if (isApiCall) {
       const headers = new Headers(init?.headers || (input instanceof Request ? input.headers : undefined));
       
-      // Auto attach Bearer token from localStorage if present and not already set
-      const token = localStorage.getItem('auth_token');
-      if (token && !headers.has('Authorization')) {
-        headers.set('Authorization', `Bearer ${token}`);
-      }
-
       // Preserve method and body if input was a Request object
       const method = init?.method || (input instanceof Request ? input.method : 'GET');
       const body = init?.body || (input instanceof Request && method !== 'GET' && method !== 'HEAD' ? input.body : undefined);
+
+      // Attach the CSRF token to state-changing calls. The worker validates
+      // X-CSRF-Token for every cookie-authenticated write (lib/csrf.ts), so raw
+      // fetch() callers must present it just like the moneaClient does.
+      const isStateChanging = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method.toUpperCase());
+      if (isStateChanging && !headers.has('X-CSRF-Token')) {
+        const csrfToken = await getCsrfToken(apiBase);
+        if (csrfToken) {
+          headers.set('X-CSRF-Token', csrfToken);
+        }
+      }
 
       const updatedInit: RequestInit = {
         ...init,
@@ -94,4 +154,3 @@ export function setupFetchInterceptor() {
 if (typeof window !== 'undefined') {
   setupFetchInterceptor();
 }
-

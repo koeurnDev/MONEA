@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
 import { WeddingData } from '../types';
+import { getConfiguredPaymentAccounts } from "../shared/weddingPhotos";
 
 interface GiftSectionProps {
     wedding: WeddingData;
@@ -9,7 +10,7 @@ interface GiftSectionProps {
 
 export const GiftSection: React.FC<GiftSectionProps> = ({ wedding, primaryColor }) => {
     const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
-    const bankAccounts = wedding.themeSettings?.bankAccounts || [];
+    const bankAccounts = getConfiguredPaymentAccounts(wedding.themeSettings?.bankAccounts);
 
     const handleCopy = (num: string, idx: number) => {
         navigator.clipboard.writeText(num);
@@ -17,29 +18,29 @@ export const GiftSection: React.FC<GiftSectionProps> = ({ wedding, primaryColor 
         setTimeout(() => setCopiedIndex(null), 2000);
     };
 
-    if (!bankAccounts || bankAccounts.length === 0) return null;
+    if (bankAccounts.length === 0) return null;
 
     return (
-        <section className="py-12 px-4 sm:px-6 bg-[#4A0A12] text-white font-kantumruy relative overflow-hidden text-center">
+        <section className="py-12 px-4 sm:px-6 bg-transparent text-[#2d352b] font-kantumruy relative overflow-hidden text-center">
             <div className="max-w-md mx-auto space-y-6 relative z-10">
                 <div className="space-y-1">
-                    <span className="text-xl sm:text-2xl font-khmer-moul text-amber-300 block">
+                    <span className="text-xl sm:text-2xl font-khmer-moul text-[#4d5649] block">
                         ចំណងដៃអាពាហ៍ពិពាហ៍
                     </span>
-                    <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto" />
+                    <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-[#8ea07a] to-transparent mx-auto" />
                 </div>
 
                 <div className="grid grid-cols-1 gap-4">
                     {bankAccounts.map((acc, idx) => (
                         <div
                             key={idx}
-                            className="bg-[#6B0E1B] border border-amber-400/40 rounded-3xl p-5 shadow-md space-y-4"
+                            className="bg-[#fffdf8]/80 border border-[#d9d1bf] rounded-3xl p-5 shadow-md space-y-4"
                         >
                             <div className="flex items-center justify-between">
-                                <span className="text-xs font-bold text-amber-300 bg-black/40 px-3 py-1 rounded-full border border-amber-400/30">
+                                <span className="text-xs font-bold text-[#4d5649] bg-[#f2eadf] px-3 py-1 rounded-full border border-[#d9d1bf]">
                                     {acc.bankName || "ធនាគារ"}
                                 </span>
-                                <span className="text-xs font-bold text-amber-100">
+                                <span className="text-xs font-bold text-[#2d352b]">
                                     {acc.accountName || "ឈ្មោះគណនី"}
                                 </span>
                             </div>
@@ -57,13 +58,13 @@ export const GiftSection: React.FC<GiftSectionProps> = ({ wedding, primaryColor 
 
                             {/* Account Number with Copy */}
                             {acc.accountNumber && (
-                                <div className="flex items-center justify-between bg-black/40 border border-amber-400/30 px-4 py-2.5 rounded-xl text-xs">
-                                    <span className="font-mono font-bold text-amber-200 tracking-wider">
+                                <div className="flex items-center justify-between bg-[#f5ede1] border border-[#d9d1bf] px-4 py-2.5 rounded-xl text-xs">
+                                    <span className="font-mono font-bold text-[#2d352b] tracking-wider">
                                         {acc.accountNumber}
                                     </span>
                                     <button
-                                        onClick={() => handleCopy(acc.accountNumber, idx)}
-                                        className="text-amber-300 hover:text-amber-200 font-bold flex items-center gap-1 active:scale-95 transition-all"
+                                        onClick={() => acc.accountNumber && handleCopy(acc.accountNumber, idx)}
+                                        className="text-[#4d5649] hover:text-[#2d352b] font-bold flex items-center gap-1 active:scale-95 transition-all"
                                     >
                                         {copiedIndex === idx ? (
                                             <>

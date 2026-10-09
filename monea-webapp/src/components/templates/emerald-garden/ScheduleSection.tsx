@@ -6,31 +6,14 @@ import { WeddingData } from '../types';
 interface ScheduleSectionProps {
     wedding: WeddingData;
     primaryColor: string;
+    title?: string;
 }
 
-export const ScheduleSection: React.FC<ScheduleSectionProps> = ({ wedding, primaryColor }) => {
+export const ScheduleSection: React.FC<ScheduleSectionProps> = ({ wedding, primaryColor, title }) => {
     const isEngagement = wedding.eventType === 'anniversary';
 
-    const defaultWeddingActivities = [
-        { time: "ម៉ោង ០៦:១៥ នាទីព្រឹក", title: "ពិធីសែនក្រុងពាលី", description: "សំពះម្ចាស់ទឹកម្ចាស់ដីសុំសេចក្តីសុខសិរីមង្គល", icon: "🏛️" },
-        { time: "ម៉ោង ០៧:០០ នាទីព្រឹក", title: "ពិធីហែជំនូន (កំលាត់) ចូលរោងជ័យ", description: "ក្បួនហែជំនូនកូនកំលោះចូលកាន់គេហដ្ឋានកូនក្រមុំ", icon: "🎁" },
-        { time: "ម៉ោង ០៧:៣០ នាទីព្រឹក", title: "ពិធីរៀបរាប់ផ្លែឈើ & ពិសាអាហារពេលព្រឹក", description: "ពិធីរាប់ជំនូនផ្លែឈើ និងទទួលទានអាហារពេលព្រឹក", icon: "🍍" },
-        { time: "ម៉ោង ០៨:៣០ នាទីព្រឹក", title: "ពិធីសូត្រមន្តចម្រើនព្រះបរិត្ត", description: "ព្រះសង្ឃចម្រើនព្រះបរិត្តប្រោះព្រំសិរីសួស្តី", icon: "🪷" },
-        { time: "ម៉ោង ០៩:៤៥ នាទីព្រឹក", title: "ពិធីកាត់សក់បង្កក់សិរី", description: "កាត់សក់សិរីមង្គលដល់កូនប្រុស-កូនស្រី", icon: "✂️" },
-        { time: "ម៉ោង ១០:៤៥ នាទីព្រឹក", title: "ពិធីសំពះផ្ទឹម ចងដៃ & បាចផ្កាស្លា", description: "បង្វិលពពិល សែនចងដៃ និងជូនពរជ័យ", icon: "💍" },
-        { time: "ម៉ោង ០៥:០០ នាទីល្ងាច", title: "ពិធីពិសារភោជនាហារ", description: "ទទួលទានអាហារពេលល្ងាច និងរាំកម្សាន្ត", icon: "🥂" },
-    ];
-
-    const defaultEngagementActivities = [
-        { time: "ម៉ោង ០៧:០០ នាទីព្រឹក", title: "ពិធីជួបជុំញាតិមិត្ត & ហែជំនូនភ្ជាប់ពាក្យ", description: "ក្បួនហែជំនូនភ្ជាប់ពាក្យចូលគេហដ្ឋានខាងស្រី", icon: "🎁" },
-        { time: "ម៉ោង ០៧:៣០ នាទីព្រឹក", title: "ពិធីរៀបចំ និងរាប់ផ្លែឈើជំនូន", description: "ពិធីរាប់ផ្លែឈើ និងគ្រឿងអលង្ការបណ្ណាការ", icon: "💍" },
-        { time: "ម៉ោង ០៨:៣០ នាទីព្រឹក", title: "ពិធីពិសារស្លាដក់ និងបំពាក់ចិញ្ចៀន", description: "កូនកំលោះ និងកូនក្រមុំបំពាក់ចិញ្ចៀនភ្ជាប់ពាក្យ", icon: "✨" },
-        { time: "ម៉ោង ០៩:៣០ នាទីព្រឹក", title: "ពិធីសែនព្រេន និងចងដៃជូនពរជ័យ", description: "មាតាបិតា ញាតិមិត្តសែនព្រេន និងចងដៃជូនពរ", icon: "🪷" },
-        { time: "ម៉ោង ១១:៣០ នាទីព្រឹក", title: "ពិធីពិសារអាហារសាមគ្គី", description: "ទទួលទានអាហារសាមគ្គីអបអរសាទរពិធីភ្ជាប់ពាក្យ", icon: "🥂" },
-    ];
-
-    const defaultList = isEngagement ? defaultEngagementActivities : defaultWeddingActivities;
-    const rawActivities = wedding.activities && wedding.activities.length > 0 ? wedding.activities : defaultList;
+    const rawActivities = wedding.activities || [];
+    if (rawActivities.length === 0) return null;
 
     return (
         <section className="py-14 px-4 sm:px-6 bg-[#F4F9F6] font-kantumruy relative overflow-hidden">
@@ -39,8 +22,8 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({ wedding, prima
                 <div className="text-center space-y-2 mb-10">
                     <span className="text-xl sm:text-2xl font-khmer-moul text-[#1B4332] block">
                         {isEngagement 
-                            ? (wedding.themeSettings?.customLabels?.schedule_title || "កម្មវិធីសិរីមង្គលពិធីភ្ជាប់ពាក្យ")
-                            : (wedding.themeSettings?.customLabels?.schedule_title || "កម្មវិធីសិរីមង្គលអាពាហ៍ពិពាហ៍")}
+                            ? (title || "កម្មវិធីសិរីមង្គលភ្ជាប់ពាក្យ")
+                            : (title || "កម្មវិធីសិរីមង្គលអាពាហ៍ពិពាហ៍")}
                     </span>
                     <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-emerald-600 to-transparent mx-auto" />
                 </div>

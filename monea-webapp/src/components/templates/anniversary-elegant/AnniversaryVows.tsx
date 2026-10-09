@@ -15,18 +15,18 @@ export default function AnniversaryVows({ wedding }: { wedding: WeddingData }) {
     const bridePhoto = wedding.bridePhoto || (wedding.galleryItems?.[1]?.url || '/images/couple.webp');
 
     return (
-        <section className="py-16 px-4 bg-[#FAF7F2] font-kantumruy relative overflow-hidden" id="vows">
+        <section className="py-16 px-4 bg-[#F1ECE5] font-kantumruy relative overflow-hidden" id="vows">
             <div className="max-w-xl mx-auto space-y-10 relative z-10">
                 
                 {/* Section Header */}
                 <div className="flex flex-col items-center gap-1.5 text-center">
-                    <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 mb-1 shadow-sm">
-                        <Heart className="w-5 h-5 fill-purple-600" />
+                    <div className="w-10 h-10 rounded-full bg-[#F0E3D1] flex items-center justify-center text-[#966B4E] mb-1 shadow-sm">
+                        <Heart className="w-5 h-5 fill-[#966B4E]" />
                     </div>
-                    <h2 className="text-xl sm:text-2xl font-khmer-moul text-[#3B0764] leading-relaxed">
+                    <h2 className="text-xl sm:text-2xl font-khmer-moul text-[#633E42] leading-relaxed">
                         {vowsTitle}
                     </h2>
-                    <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto mt-1" />
+                    <div className="w-16 h-px bg-gradient-to-r from-transparent via-[#CBAF78] to-transparent mx-auto mt-1" />
                 </div>
 
                 {/* Vows Grid Cards */}
@@ -37,7 +37,7 @@ export default function AnniversaryVows({ wedding }: { wedding: WeddingData }) {
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.8 }}
-                        className="bg-white rounded-3xl p-6 border border-purple-200/70 shadow-md relative overflow-hidden"
+                        className="bg-[#FBF9F5] rounded-3xl p-6 border border-[#D9C6AA] shadow-md relative overflow-hidden"
                     >
                         <Quote className="absolute top-4 right-4 w-10 h-10 text-purple-100 -rotate-6 pointer-events-none" />
                         
@@ -64,7 +64,7 @@ export default function AnniversaryVows({ wedding }: { wedding: WeddingData }) {
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.8, delay: 0.1 }}
-                        className="bg-white rounded-3xl p-6 border border-purple-200/70 shadow-md relative overflow-hidden"
+                        className="bg-[#FBF9F5] rounded-3xl p-6 border border-[#D9C6AA] shadow-md relative overflow-hidden"
                     >
                         <Quote className="absolute top-4 right-4 w-10 h-10 text-purple-100 -rotate-6 pointer-events-none" />
 

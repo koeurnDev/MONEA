@@ -29,7 +29,6 @@ import { MoneaLogo } from "@/components/ui/MoneaLogo";
 import { ROLES, AUTH_URLS } from "@/lib/constants";
 import { khmerToEnglishNumbers } from "@/lib/utils";
 import { useTranslation } from "@/i18n/LanguageProvider";
-import { LanguageToggle } from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Turnstile } from "@marsidev/react-turnstile";
 import { moneaClient } from "@/lib/api-client";
@@ -61,11 +60,22 @@ export default function SignInPage() {
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [captchaToken, setCaptchaToken] = useState<string>("");
+    const [captchaState, setCaptchaState] = useState<"loading" | "ready" | "error" | "expired">(
+        () => import.meta.env.VITE_TURNSTILE_SITE_KEY ? "loading" : "ready",
+    );
+    const [captchaWidgetKey, setCaptchaWidgetKey] = useState(0);
     const [twoFactorToken, setTwoFactorToken] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [show2FA, setShow2FA] = useState(false);
+    const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
     const hint = searchParams.get('hint');
     const registered = searchParams.get('registered');
+
+    function retryCaptcha() {
+        setCaptchaToken("");
+        setCaptchaState("loading");
+        setCaptchaWidgetKey((key) => key + 1);
+    }
 
     const loginSchema = z.object({
         email: z.string().email({ message: "សូមបញ្ចូលអ៊ីមែលឱ្យបានត្រឹមត្រូវ" }),
@@ -78,26 +88,24 @@ export default function SignInPage() {
     });
 
     async function onSubmit(values: z.infer<typeof loginSchema>) {
-        if (!captchaToken && import.meta.env.VITE_TURNSTILE_SITE_KEY) {
-            setError("សូមផ្ទៀងផ្ទាត់សុវត្ថិភាព CAPTCHA");
+        if (turnstileSiteKey && !captchaToken) {
             return;
         }
 
         setError("");
         setIsLoading(true);
+        const turnstileToken = captchaToken;
+        if (turnstileSiteKey) retryCaptcha();
         try {
             const body = {
                 ...values,
-                turnstileToken: captchaToken || undefined,
+                turnstileToken: turnstileToken || undefined,
                 twoFactorToken: show2FA ? twoFactorToken : undefined
             };
             const res = await moneaClient.post<{ user?: any; require2FA?: boolean; requireCaptcha?: boolean }>("/api/auth/signin", body);
             const data = res.data;
 
             if (!res.error && data) {
-                if ((data as any).token) {
-                    localStorage.setItem('auth_token', (data as any).token);
-                }
                 await mutate("/api/auth/me");
                 mutate(() => true, undefined, { revalidate: true });
                 
@@ -119,39 +127,35 @@ export default function SignInPage() {
             }
 
             if (res.error) {
-                let errorMsg = res.error;
-                if (res.details) {
-                    errorMsg += `\n[MONEA DEBUG] ${res.details}`;
-                }
-                setError(errorMsg);
+                setError(res.error);
             }
         } catch (e: any) {
-            setError(e?.message || "មិនអាចភ្ជាប់ទៅកាន់ Server បានទេ");
+            console.error("[SignIn] Request failed:", e);
+            setError("មិនអាចភ្ជាប់ទៅកាន់ Server បានទេ។ សូមព្យាយាមម្តងទៀត។");
         } finally {
             setIsLoading(false);
         }
     }
 
     return (
-        <div className="relative w-full min-h-[100dvh] flex flex-col font-kantumruy bg-gradient-to-br from-[#FFF5F7] via-[#FDF8FF] to-[#FFF8F0] dark:from-[#09090B] dark:via-[#130E1B] dark:to-[#09090B] items-center justify-center py-4 px-3 sm:px-4 overflow-x-hidden transition-colors duration-300">
+        <div className="relative w-full min-h-[100dvh] flex flex-col font-kantumruy bg-gradient-to-br from-[#F0FDFA] via-[#F8FAFC] to-[#FFFBEB] dark:from-[#09090B] dark:via-[#0C1716] dark:to-[#09090B] items-center justify-center py-4 px-3 sm:px-4 overflow-x-hidden transition-colors duration-300">
             {/* Ambient Glows */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute -top-[15%] -left-[10%] w-[50vw] h-[50vw] rounded-full bg-rose-400/15 dark:bg-rose-600/10 blur-[130px]" />
-                <div className="absolute -bottom-[15%] -right-[10%] w-[45vw] h-[45vw] rounded-full bg-pink-300/15 dark:bg-pink-900/10 blur-[130px]" />
+                <div className="absolute -top-[15%] -left-[10%] w-[50vw] h-[50vw] rounded-full bg-teal-400/15 dark:bg-teal-600/10 blur-[130px]" />
+                <div className="absolute -bottom-[15%] -right-[10%] w-[45vw] h-[45vw] rounded-full bg-amber-300/15 dark:bg-amber-900/10 blur-[130px]" />
             </div>
 
             {/* Top Bar Navigation */}
-            <div className="w-full max-w-[400px] flex items-center justify-between mb-3 px-1">
+            <div className="w-full max-w-[420px] flex items-center justify-between mb-3 px-1">
                 <Link
                     to="/"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card hover:bg-muted text-muted-foreground hover:text-foreground border border-border/80 text-xs font-bold transition-all shadow-xs active:scale-95"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-card/80 px-3 py-1.5 text-xs font-bold text-muted-foreground shadow-xs transition-all hover:bg-muted hover:text-foreground active:scale-95"
                 >
                     <ChevronLeft size={15} />
                     <span>{isKm ? "ទំព័រដើម" : "Home"}</span>
                 </Link>
                 <div className="flex items-center gap-2">
-                    <LanguageToggle className="bg-card text-foreground hover:bg-muted border border-border/80 shadow-xs h-8 w-8 text-xs" />
-                    <ThemeToggle className="bg-card text-foreground hover:bg-muted border border-border/80 shadow-xs h-8 w-8" />
+                    <ThemeToggle className="h-8 w-8 border border-border/80 bg-card text-foreground shadow-xs hover:bg-muted" />
                 </div>
             </div>
 
@@ -160,18 +164,21 @@ export default function SignInPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2 }}
-                className="relative z-10 w-full max-w-[400px]"
+                className="relative z-10 w-full max-w-[420px]"
             >
-                <div className="bg-card/95 dark:bg-[#121216]/95 backdrop-blur-2xl border border-border/80 dark:border-white/10 rounded-3xl p-5 sm:p-6 shadow-2xl shadow-slate-900/5 dark:shadow-rose-950/10">
+                <div className="rounded-[28px] border border-border/80 bg-card/95 p-5 shadow-2xl shadow-slate-900/5 backdrop-blur-2xl dark:border-white/10 dark:bg-[#121216]/95 dark:shadow-teal-950/10 sm:p-6">
                     
                     {/* Header */}
-                    <div className="text-center mb-4">
-                        <Link to="/" className="inline-flex justify-center mb-2">
+                    <div className="mb-4 text-center">
+                        <Link to="/" className="mb-2 inline-flex justify-center">
                             <MoneaLogo showText size="sm" />
                         </Link>
-                        <h1 className="text-xl sm:text-2xl font-black text-foreground font-kantumruy">
+                        <h1 className="text-xl font-black text-foreground font-kantumruy sm:text-2xl">
                             {isKm ? "ចូលគណនី" : "Sign In"}
                         </h1>
+                        <p className="mt-1 text-[11px] font-medium text-muted-foreground">
+                            {isKm ? "ប្រើអ៊ីមែល និងពាក្យសម្ងាត់របស់អ្នកដើម្បីបន្ត" : "Use your email and password to continue"}
+                        </p>
                     </div>
 
                     {/* Hint Banners */}
@@ -207,13 +214,13 @@ export default function SignInPage() {
                                                         {isKm ? "អ៊ីមែល" : "Email"}
                                                     </FormLabel>
                                                     <div className="relative group">
-                                                        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-rose-600 transition-colors pointer-events-none z-10">
+                                                        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-teal-700 dark:group-focus-within:text-teal-300 transition-colors pointer-events-none z-10">
                                                             <Mail size={16} />
                                                         </div>
                                                         <Input
                                                             placeholder="name@example.com"
                                                             autoComplete="email"
-                                                            className="h-11 pl-11 bg-background dark:bg-zinc-900/60 border border-input text-foreground rounded-xl focus:border-rose-500 focus-visible:ring-2 focus-visible:ring-rose-500/20 text-sm font-mono transition-all"
+                                                            className="h-11 pl-11 bg-background dark:bg-zinc-900/60 border border-input text-foreground rounded-xl focus:border-teal-600 focus-visible:ring-2 focus-visible:ring-teal-600/20 text-sm font-mono transition-all"
                                                             {...field}
                                                         />
                                                     </div>
@@ -231,19 +238,19 @@ export default function SignInPage() {
                                                         <FormLabel className="text-foreground text-xs font-bold font-kantumruy">
                                                             {isKm ? "ពាក្យសម្ងាត់" : "Password"}
                                                         </FormLabel>
-                                                        <Link to="/forgot-password" className="text-xs text-rose-600 dark:text-rose-400 hover:underline font-bold font-kantumruy">
+                                                        <Link to="/forgot-password" className="text-xs text-teal-800 dark:text-teal-300 hover:underline font-bold font-kantumruy">
                                                             {isKm ? "ភ្លេចពាក្យសម្ងាត់?" : "Forgot?"}
                                                         </Link>
                                                     </div>
                                                     <div className="relative group">
-                                                        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-rose-600 transition-colors pointer-events-none z-10">
+                                                        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-teal-700 dark:group-focus-within:text-teal-300 transition-colors pointer-events-none z-10">
                                                             <Lock size={16} />
                                                         </div>
                                                         <Input
                                                             type={showPassword ? "text" : "password"}
                                                             placeholder="••••••••"
                                                             autoComplete="current-password"
-                                                            className="h-11 pl-11 pr-11 bg-background dark:bg-zinc-900/60 border border-input text-foreground rounded-xl focus:border-rose-500 focus-visible:ring-2 focus-visible:ring-rose-500/20 text-sm transition-all"
+                                                            className="h-11 pl-11 pr-11 bg-background dark:bg-zinc-900/60 border border-input text-foreground rounded-xl focus:border-teal-600 focus-visible:ring-2 focus-visible:ring-teal-600/20 text-sm transition-all"
                                                             {...field}
                                                         />
                                                         <button
@@ -269,7 +276,7 @@ export default function SignInPage() {
                                         className="space-y-3 py-1"
                                     >
                                         <div className="text-center space-y-1 mb-1.5">
-                                            <div className="w-10 h-10 bg-rose-500/10 rounded-xl flex items-center justify-center mx-auto mb-1 text-rose-600 dark:text-rose-400">
+                                            <div className="w-10 h-10 bg-teal-600/10 rounded-xl flex items-center justify-center mx-auto mb-1 text-teal-800 dark:text-teal-300">
                                                 <Key size={18} />
                                             </div>
                                             <h3 className="text-foreground font-bold text-sm font-kantumruy">
@@ -279,7 +286,7 @@ export default function SignInPage() {
 
                                         <div className="space-y-2">
                                             <div className="relative group">
-                                                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-rose-600 pointer-events-none z-10">
+                                                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-teal-700 dark:group-focus-within:text-teal-300 pointer-events-none z-10">
                                                     <Lock size={16} />
                                                 </div>
                                                 <Input
@@ -290,7 +297,7 @@ export default function SignInPage() {
                                                     }}
                                                     placeholder="000000"
                                                     autoComplete="one-time-code"
-                                                    className="pl-11 text-center text-lg font-bold tracking-[0.3em] bg-background border border-input text-foreground rounded-xl focus:border-rose-500 h-11 font-mono"
+                                                    className="pl-11 text-center text-lg font-bold tracking-[0.3em] bg-background border border-input text-foreground rounded-xl focus:border-teal-600 h-11 font-mono"
                                                     maxLength={6}
                                                     autoFocus
                                                     inputMode="numeric"
@@ -310,17 +317,52 @@ export default function SignInPage() {
                             </AnimatePresence>
 
                             {/* Cloudflare Turnstile */}
-                            {import.meta.env.VITE_TURNSTILE_SITE_KEY && (
+                            {turnstileSiteKey && (
                                 <div className="flex justify-center items-center py-0.5 min-h-[58px] w-full">
                                     <Turnstile
-                                        siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+                                        key={captchaWidgetKey}
+                                        siteKey={turnstileSiteKey}
                                         onSuccess={(token: string) => {
                                             setCaptchaToken(token);
-                                            setError("");
+                                            setCaptchaState("ready");
                                         }}
-                                        onError={() => setError("CAPTCHA failed to load.")}
+                                        onError={() => {
+                                            setCaptchaToken("");
+                                            setCaptchaState("error");
+                                        }}
+                                        onExpire={() => {
+                                            setCaptchaToken("");
+                                            setCaptchaState("expired");
+                                        }}
                                         options={{ theme: 'auto', appearance: 'always' }}
                                     />
+                                </div>
+                            )}
+
+                            {turnstileSiteKey && captchaState !== "ready" && (
+                                <div
+                                    className="flex items-center justify-between gap-3 rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-xs text-amber-800 dark:text-amber-200"
+                                    role="status"
+                                    aria-live="polite"
+                                >
+                                    <span>
+                                        {captchaState === "loading"
+                                            ? (isKm ? "កំពុងផ្ទៀងផ្ទាត់សុវត្ថិភាព…" : "Loading security verification…")
+                                            : captchaState === "expired"
+                                                ? (isKm ? "ការផ្ទៀងផ្ទាត់បានផុតកំណត់។ សូមព្យាយាមម្ដងទៀត។" : "Verification expired. Please try again.")
+                                                : (isKm ? "មិនអាចផ្ទុកការផ្ទៀងផ្ទាត់បានទេ។ សូមពិនិត្យការតភ្ជាប់ រួចព្យាយាមម្ដងទៀត។" : "Security verification failed to load. Check your connection and retry.")}
+                                    </span>
+                                    {captchaState !== "loading" && (
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={retryCaptcha}
+                                            className="h-8 shrink-0 border-amber-600/30 px-3 text-amber-900 dark:text-amber-100"
+                                        >
+                                            {isKm ? "ព្យាយាមម្ដងទៀត" : "Retry"}
+                                        </Button>
+                                    )}
                                 </div>
                             )}
 
@@ -331,6 +373,8 @@ export default function SignInPage() {
                                         initial={{ opacity: 0, y: 4 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: 4 }}
+                                        role="alert"
+                                        aria-live="assertive"
                                         className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs text-center font-bold font-kantumruy"
                                     >
                                         {error}
@@ -341,8 +385,8 @@ export default function SignInPage() {
                             {/* Primary Submit Button */}
                             <Button 
                                 type="submit" 
-                                disabled={isLoading} 
-                                className="w-full bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 active:bg-rose-700 text-white font-bold h-11 rounded-xl shadow-md shadow-rose-600/20 transition-all text-sm font-kantumruy mt-1"
+                                disabled={isLoading || (!!turnstileSiteKey && !captchaToken)}
+                                className="w-full bg-gradient-to-r from-teal-700 to-teal-600 hover:from-teal-800 hover:to-teal-700 active:bg-teal-800 text-white font-bold h-11 rounded-xl shadow-md shadow-teal-700/20 transition-all text-sm font-kantumruy mt-1"
                             >
                                 {isLoading ? (
                                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -369,14 +413,14 @@ export default function SignInPage() {
                     </div>
 
                     {/* Footer Switch Link */}
-                    <div className="mt-3.5 text-center pt-2.5 border-t border-border/60 dark:border-white/10">
-                        <p className="text-muted-foreground text-xs font-kantumruy">
-                            {isKm ? "មិនទាន់មានគណនីទេ?" : "Don't have an account?"}{" "}
+                    <div className="mt-3.5 border-t border-border/60 pt-3 text-center dark:border-white/10">
+                        <p className="text-xs text-muted-foreground font-kantumruy">
+                            {isKm ? "មិនទាន់មានគណនីទេ?" : "Need an account?"}{" "}
                             <Link 
                                 to={AUTH_URLS.SIGN_UP} 
-                                className="text-rose-600 dark:text-rose-400 hover:underline font-bold ml-1 font-kantumruy"
+                                className="ml-1 font-bold text-teal-800 hover:underline dark:text-teal-300"
                             >
-                                {isKm ? "ចុះឈ្មោះ" : "Sign Up"}
+                                {isKm ? "ចុះឈ្មោះ" : "Create one"}
                             </Link>
                         </p>
                     </div>

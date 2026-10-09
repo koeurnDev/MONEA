@@ -84,7 +84,7 @@ export async function PUT(req: Request) {
             return Response.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const { name, email } = await req.json();
+        const { name, email, phone, avatar } = await req.json();
         const targetUserId = user.userId || user.id;
 
         const updateData: any = {};
@@ -97,11 +97,14 @@ export async function PUT(req: Request) {
             }
             updateData.email = cleanEmail;
         }
+        if (typeof phone === "string") updateData.phone = phone.trim();
+        if (avatar === null) updateData.avatar = null;
+        if (typeof avatar === "string" && avatar.length <= 2048) updateData.avatar = avatar.trim();
 
         const updatedUser = await prisma.user.update({
             where: { id: targetUserId },
             data: updateData,
-            select: { id: true, name: true, email: true, role: true }
+            select: { id: true, name: true, email: true, phone: true, avatar: true, role: true }
         });
 
         return Response.json({ success: true, user: updatedUser });

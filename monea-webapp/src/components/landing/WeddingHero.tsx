@@ -171,13 +171,15 @@ export function WeddingHero() {
                                 />
                                 
                                 {/* Glass Overlay on Front Card */}
-                                <div className="absolute bottom-3 sm:bottom-5 left-3 sm:left-5 right-3 sm:right-5 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-black/40 backdrop-blur-md border border-white/20 shadow-lg text-white">
-                                    <h3 className="font-bold text-sm sm:text-base tracking-wide drop-shadow-md">
+                                <div className="absolute bottom-3 sm:bottom-5 left-3 sm:left-5 right-3 sm:right-5 p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-black/40 backdrop-blur-md border border-white/20 shadow-lg flex flex-col items-center justify-center">
+                                    <h3 className="font-bold text-sm sm:text-base tracking-wide drop-shadow-md text-white mb-2">
                                         សិរីសួស្តី អាពាហ៍ពិពាហ៍
                                     </h3>
-                                    <p className="text-white/80 text-[11px] sm:text-xs mt-0.5 drop-shadow-sm font-medium">
-                                        ឧត្តម & មុន្នី
-                                    </p>
+                                    <img 
+                                        src="/name/rinaandlin.svg" 
+                                        alt="Rina and Lin" 
+                                        className="h-8 sm:h-12 w-auto object-contain brightness-0 invert drop-shadow-md"
+                                    />
                                 </div>
                             </m.div>
                         </m.div>

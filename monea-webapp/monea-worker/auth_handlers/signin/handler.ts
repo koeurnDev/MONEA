@@ -21,7 +21,17 @@ export async function OPTIONS(req: Request) {
 export async function POST(req: Request) {
     // 1. Rate Limiting Check (Auth Tier)
     const ip = getIP(req);
-    const { success, limit, reset, remaining } = await authLimiter.limit(ip);
+    let rateLimit: Awaited<ReturnType<typeof authLimiter.limitStrict>>;
+    try {
+        rateLimit = await authLimiter.limitStrict(ip);
+    } catch {
+        console.error("[RateLimit] Distributed sign-in protection unavailable; rejecting request.");
+        return Response.json(
+            { error: "Sign-in is temporarily unavailable. Please try again later." },
+            { status: 503 }
+        );
+    }
+    const { success, limit, reset, remaining } = rateLimit;
     
     if (!success) {
         console.warn(`[RateLimit] Auth threshold exceeded for IP: ${ip}`);
@@ -54,25 +64,53 @@ export async function POST(req: Request) {
         const geoIp = req.headers.get("x-vercel-ip-country") || req.headers.get("cf-ipcountry") || "UNKNOWN";
         const userAgent = req.headers.get("user-agent") || "UNKNOWN";
 
-        if (process.env.TURNSTILE_SECRET_KEY !== '1x0000000000000000000000000000000AA') {
+        const TEST_TURNSTILE_SECRET = '1x0000000000000000000000000000000AA';
+        const turnstileSecret = process.env.TURNSTILE_SECRET_KEY || process.env.TURNSTILE_SECRET;
+        const isDevEnvironment =
+            process.env.NODE_ENV === 'development' || process.env.ENVIRONMENT === 'development';
+        const turnstileBypassedForDev =
+            isDevEnvironment && (!turnstileSecret || turnstileSecret === TEST_TURNSTILE_SECRET);
+
+        // Fail closed: a missing/test secret or a siteverify error must never skip the CAPTCHA.
+        if (!turnstileBypassedForDev) {
+            if (!turnstileSecret || turnstileSecret === TEST_TURNSTILE_SECRET) {
+                console.error(
+                    '[Auth Signin] CRITICAL: TURNSTILE_SECRET_KEY is missing or set to the always-pass test key. Refusing to authenticate.'
+                );
+                return Response.json(
+                    { error: "សេវាផ្ទៀងផ្ទាត់ CAPTCHA មិនអាចប្រើប្រាស់បានទេ។ សូមព្យាយាមម្ដងទៀត។" },
+                    { status: 503 }
+                );
+            }
+
             if (!turnstileToken) {
                 return Response.json({ error: "សូមផ្ទៀងផ្ទាត់ CAPTCHA ដើម្បីបន្ត។" }, { status: 428 });
             }
-            const formData = new URLSearchParams();
-            formData.append('secret', process.env.TURNSTILE_SECRET_KEY || '');
-            formData.append('response', turnstileToken);
 
-            const verifyRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-                method: 'POST',
-                body: formData,
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            });
-            const turnstileResult = await verifyRes.json();
-            console.log(`[Auth Signin] Turnstile verification: success=${turnstileResult.success}, ip=${ip}`);
+            try {
+                const formData = new URLSearchParams();
+                formData.append('secret', turnstileSecret);
+                formData.append('response', turnstileToken);
+                formData.append('remoteip', ip);
 
-            if (!turnstileResult.success) {
-                console.warn(`[Auth Signin] 400: Turnstile verification failed. Result: ${JSON.stringify(turnstileResult)}`);
-                return Response.json({ error: "ការផ្ទៀងផ្ទាត់ CAPTCHA បរាជ័យ។ (CAPTCHA verification failed)" }, { status: 400 });
+                const verifyRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                });
+                const turnstileResult = await verifyRes.json();
+                console.log(`[Auth Signin] Turnstile verification: success=${turnstileResult.success}, ip=${ip}`);
+
+                if (!turnstileResult.success) {
+                    console.warn(`[Auth Signin] 400: Turnstile verification failed. Result: ${JSON.stringify(turnstileResult)}`);
+                    return Response.json({ error: "ការផ្ទៀងផ្ទាត់ CAPTCHA បរាជ័យ។ (CAPTCHA verification failed)" }, { status: 400 });
+                }
+            } catch (e) {
+                console.error('[Auth Signin] CRITICAL: Turnstile verification error. Refusing to authenticate.', e);
+                return Response.json(
+                    { error: "សេវាផ្ទៀងផ្ទាត់ CAPTCHA កំពុងរវល់។ សូមព្យាយាមម្ដងទៀត។" },
+                    { status: 503 }
+                );
             }
         }
 

@@ -28,21 +28,10 @@ export function DynamicGallery({
 }: DynamicGalleryProps) {
     const pans = [preWeddingPan1, preWeddingPan2, preWeddingPan3, preWeddingPan4, preWeddingPan5, preWeddingPan6];
     
-    const DEFAULT_GALLERY = [
-        "/assets/khmer-legacy/621811254_905398285378636_5240747682765358044_n.jpg",
-        "/assets/khmer-legacy/621811002_905396558712142_5126771807004187076_n.jpg",
-        "/assets/khmer-legacy/621811942_905392918712506_8600818650624857202_n.jpg",
-        "/assets/khmer-legacy/621813168_905393265379138_2356104923368506186_n.jpg",
-        "/assets/khmer-legacy/622279784_905392782045853_1189842078802821714_n.jpg",
-        "/assets/khmer-legacy/622374686_905392995379165_1001573724208229331_n.jpg",
-    ];
-
     // Aggregate all unique images
     const allRawImages = [...(galleryImages || []), ...(dynamicPool || [])];
     let images = Array.from(new Set(allRawImages.filter(Boolean)));
-    if (images.length === 0) {
-        images = DEFAULT_GALLERY;
-    }
+    if (images.length === 0) return null;
 
     // Group into alternating 2-image pairs
     const imagePairs: { left: string; right?: string; leftIdx: number; rightIdx?: number }[] = [];

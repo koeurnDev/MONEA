@@ -1,4 +1,6 @@
-import { WeddingData, getTemplateComponent } from "@/components/templates";
+import { WeddingData } from "@/components/templates";
+import { TemplateRenderer } from "@/components/templates/TemplateRenderer";
+import { getWeddingWithPhotoVisibility } from "@/components/templates/photo-visibility";
 import { lazy, Suspense } from "react";
 import useSWR from "swr";
 import { useParams, useSearchParams } from "react-router-dom";
@@ -89,13 +91,13 @@ export default function InvitationPage() {
         }
     }
 
-    const weddingForTemplate = {
+    const weddingForTemplate = getWeddingWithPhotoVisibility({
         ...weddingData,
         themeSettings: parsedThemeSettings,
         activities: parsedActivities,
         galleryItems: parsedGalleryItems,
         eventType: weddingData.eventType as "wedding" | "anniversary",
-    };
+    } as WeddingData);
 
     return (
         <>
@@ -103,8 +105,7 @@ export default function InvitationPage() {
             <SafeBoundary name={`Wedding Template (${weddingForTemplate.templateId})`} isSilent={false}>
                 <Suspense fallback={<div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-rose-500" /></div>}>
                     {(() => {
-                        const SelectedTemplate = getTemplateComponent(weddingForTemplate.templateId);
-                        return <SelectedTemplate wedding={weddingForTemplate as any} guestName={guestName} />;
+                        return <TemplateRenderer wedding={weddingForTemplate} guestName={guestName} />;
                     })()}
                 </Suspense>
             </SafeBoundary>

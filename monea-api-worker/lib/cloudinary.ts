@@ -61,7 +61,8 @@ export async function uploadToCloudinary(
     throw new Error(err.error || "Failed to retrieve Cloudinary upload signature");
   }
 
-  const { signature } = await response.json();
+  const { signature, folder } = await response.json();
+  if (!signature || typeof folder !== "string") throw new Error("Invalid upload signature response");
 
   // 2. Determine Resource Type (image vs video/audio)
   const isVideoOrAudio = file.type.startsWith("video/") || file.type.startsWith("audio/");
@@ -74,6 +75,7 @@ export async function uploadToCloudinary(
   formData.append("timestamp", timestamp.toString());
   formData.append("signature", signature);
   formData.append("upload_preset", preset);
+  formData.append("folder", folder);
 
   const uploadRes = await fetch(
     `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,

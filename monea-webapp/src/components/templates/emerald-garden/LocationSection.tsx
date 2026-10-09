@@ -1,6 +1,7 @@
 import React from 'react';
 import { MapPin, Navigation } from 'lucide-react';
 import { WeddingData } from '../types';
+import { getDirectMapUrl, getMapEmbedUrl } from '../shared/mapUtils';
 
 interface LocationSectionProps {
     wedding: WeddingData;
@@ -8,22 +9,16 @@ interface LocationSectionProps {
 }
 
 export const LocationSection: React.FC<LocationSectionProps> = ({ wedding, primaryColor }) => {
-    const location = wedding.location || "រាជធានីភ្នំពេញ";
+    const location = wedding.location?.trim() || "";
+    const mapLink = wedding.themeSettings?.mapLink?.trim() || wedding.mapUrl?.trim() || "";
+    const mapLocation = mapLink || location;
+    if (!mapLocation) return null;
 
-    const getMapEmbedUrl = (loc?: string) => {
-        if (!loc) return null;
-        if (loc.includes("google.com/maps/embed")) return loc;
-        return `https://maps.google.com/maps?q=${encodeURIComponent(loc)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
-    };
-
-    const getDirectMapUrl = (loc?: string) => {
-        if (!loc) return "https://maps.google.com";
-        if (loc.startsWith("http")) return loc;
-        return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc)}`;
-    };
-
-    const embedUrl = getMapEmbedUrl(location);
-    const directUrl = getDirectMapUrl(location);
+    const canEmbedMap = !mapLocation.startsWith("http")
+        || mapLocation.includes("google.com/maps/embed")
+        || (mapLocation.includes("google.com") && mapLocation.includes("q="));
+    const embedUrl = canEmbedMap ? getMapEmbedUrl(mapLocation, location) : null;
+    const directUrl = getDirectMapUrl(mapLocation, location);
 
     return (
         <section className="py-12 px-4 sm:px-6 bg-emerald-50/30 font-kantumruy relative overflow-hidden text-center">
@@ -38,7 +33,7 @@ export const LocationSection: React.FC<LocationSectionProps> = ({ wedding, prima
                 <div className="bg-white/90 border border-emerald-200/80 rounded-3xl p-5 shadow-sm space-y-4">
                     <div className="flex items-center justify-center gap-2 text-emerald-800 font-bold text-sm">
                         <MapPin size={18} />
-                        <span>{location}</span>
+                        <span>{location || mapLink}</span>
                     </div>
 
                     {embedUrl && (

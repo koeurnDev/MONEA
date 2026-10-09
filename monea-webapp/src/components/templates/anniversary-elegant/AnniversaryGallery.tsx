@@ -3,26 +3,23 @@ import { m, AnimatePresence } from 'framer-motion';
 import { Image as ImageIcon, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { WeddingData } from '../types';
 
-const DEFAULT_GALLERY = [
-    { url: "/assets/khmer-legacy/621811254_905398285378636_5240747682765358044_n.jpg" },
-    { url: "/assets/khmer-legacy/621811002_905396558712142_5126771807004187076_n.jpg" },
-    { url: "/assets/khmer-legacy/621811942_905392918712506_8600818650624857202_n.jpg" },
-    { url: "/assets/khmer-legacy/621813168_905393265379138_2356104923368506186_n.jpg" },
-    { url: "/assets/khmer-legacy/622279784_905392782045853_1189842078802821714_n.jpg" },
-    { url: "/assets/khmer-legacy/622374686_905392995379165_1001573724208229331_n.jpg" }
-];
-
 export default function AnniversaryGallery({ wedding }: { wedding: WeddingData }) {
     const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
 
     const rawItems = (wedding.galleryItems || []).filter(i => i && typeof i.url === 'string' && i.url.trim() !== '');
-    const validItems = rawItems.length > 0 ? rawItems : DEFAULT_GALLERY;
+    const userItems = rawItems.filter((item) => {
+        const url = item.url.toLowerCase();
+        return !url.includes('/assets/khmer-legacy/') && !url.includes('/images/');
+    });
+    const validItems = userItems.length > 0 ? userItems : [];
     
     const settings = wedding.themeSettings as any;
     const title = settings?.customLabels?.galleryTitle || "វិចិត្រសាល";
 
     const openLightbox = (idx: number) => setSelectedIdx(idx);
     const closeLightbox = () => setSelectedIdx(null);
+
+    if (validItems.length === 0) return null;
 
     const nextImage = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -37,18 +34,18 @@ export default function AnniversaryGallery({ wedding }: { wedding: WeddingData }
     };
 
     return (
-        <section className="py-16 px-4 bg-[#FAF7F2] font-kantumruy relative overflow-hidden" id="gallery">
+        <section className="py-16 px-4 bg-[#F1ECE5] font-kantumruy relative overflow-hidden" id="gallery">
             <div className="max-w-xl mx-auto space-y-8">
                 
                 {/* Section Header */}
                 <div className="flex flex-col items-center gap-1.5 text-center">
-                    <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 mb-1 shadow-sm">
+                    <div className="w-10 h-10 rounded-full bg-[#F0E3D1] flex items-center justify-center text-[#966B4E] mb-1 shadow-sm">
                         <ImageIcon className="w-5 h-5" />
                     </div>
-                    <h2 className="text-xl sm:text-2xl font-khmer-moul text-[#3B0764] leading-relaxed">
+                    <h2 className="text-xl sm:text-2xl font-khmer-moul text-[#633E42] leading-relaxed">
                         {title}
                     </h2>
-                    <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto mt-1" />
+                    <div className="w-16 h-px bg-gradient-to-r from-transparent via-[#CBAF78] to-transparent mx-auto mt-1" />
                 </div>
 
                 {/* 2-Column Responsive Masonry Collage */}
@@ -61,7 +58,7 @@ export default function AnniversaryGallery({ wedding }: { wedding: WeddingData }
                             viewport={{ once: true }}
                             transition={{ duration: 0.5, delay: idx * 0.06 }}
                             onClick={() => openLightbox(idx)}
-                            className={`relative rounded-2xl overflow-hidden shadow-sm cursor-pointer group border-2 border-white hover:border-amber-300 transition-all ${
+                            className={`relative rounded-2xl overflow-hidden shadow-sm cursor-pointer group border border-white hover:border-[#CBAF78] transition-all ${
                                 idx % 3 === 0 ? 'aspect-[3/4]' : idx % 3 === 1 ? 'aspect-square' : 'aspect-[4/5]'
                             }`}
                         >

@@ -3,9 +3,13 @@ Disallow: /dashboard/
 Disallow: /api/
 Disallow: /preview
 Disallow: /admin
+Disallow: /sign-in
+Disallow: /sign-up
+Disallow: /forgot-password
+Disallow: /reset-password
 Allow: /
 Allow: /w/
 Allow: /templates
 Allow: /pricing
 
-Sitemap: https://monea.app/sitemap.xml
+Sitemap: https://monea-webapp.pages.dev/sitemap.xml

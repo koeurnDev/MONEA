@@ -7,13 +7,15 @@ import { useTranslation } from '@/i18n/LanguageProvider';
 
 export function LoveStorySection({ wedding }: { wedding: WeddingData }) {
     const { t } = useTranslation();
-    const story = wedding.themeSettings?.story;
+    const storyText = wedding.themeSettings?.loveStory || wedding.themeSettings?.story?.kh || "";
+    const storyImages = wedding.themeSettings?.storyImages?.filter(Boolean) || [];
+    const storyImage = storyImages[0];
 
     // Default placeholder text to check against
     const defaultKh = "ដំណើររឿងសេចក្តីស្រឡាញ់របស់យើងខ្ញុំ បានចាប់ផ្តើមឡើងដោយក្តីស្រលាញ់ និងការយោគយល់គ្នា។ យើងខ្ញុំបានសម្រេចចិត្តរួមរស់ជាមួយគ្នា ដើម្បីកសាងគ្រួសារដ៏មានសុភមង្គលមួយ។";
 
     // If story is missing or still exactly the default placeholder, hide the section
-    if (!story || !story.kh || story.kh.trim() === "" || story.kh === defaultKh) {
+    if ((!storyText.trim() || storyText === defaultKh) && !storyImage) {
         return null;
     }
 
@@ -42,15 +44,37 @@ export function LoveStorySection({ wedding }: { wedding: WeddingData }) {
                         </div>
 
                         {/* Full Khmer Text (No broken substring slicing) */}
-                        <p className="font-kantumruy font-normal text-sm sm:text-base md:text-lg leading-relaxed sm:leading-loose text-slate-700 max-w-xl mx-auto whitespace-pre-line">
-                            {story.kh}
-                        </p>
+                        {storyText.trim() && storyText !== defaultKh && (
+                            <p className="font-kantumruy font-normal text-sm sm:text-base md:text-lg leading-relaxed sm:leading-loose text-slate-700 max-w-xl mx-auto whitespace-pre-line">
+                                {storyText}
+                            </p>
+                        )}
+
+                        {storyImages.length > 0 && (
+                            <div className={`mx-auto grid max-w-2xl gap-3 ${storyImages.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
+                                {storyImages.map((image, index) => (
+                                    <figure key={`${image}-${index}`}>
+                                        <img
+                                            src={image}
+                                            alt={`រូបភាពរឿងរ៉ាវស្នេហាទី ${index + 1}`}
+                                            className="max-h-[28rem] aspect-[4/3] w-full rounded-2xl object-cover shadow-md"
+                                            loading="lazy"
+                                        />
+                                        {wedding.themeSettings?.storyImageCaptions?.[index]?.trim() && (
+                                            <figcaption className="mt-2 text-sm leading-relaxed text-slate-700">
+                                                {wedding.themeSettings.storyImageCaptions[index]}
+                                            </figcaption>
+                                        )}
+                                    </figure>
+                                ))}
+                            </div>
+                        )}
 
                         {/* Optional English Quote */}
-                        {story.en && (
+                        {wedding.themeSettings?.story?.en && (
                             <div className="pt-4 border-t border-amber-200/40">
                                 <p className="font-playfair italic text-xs sm:text-sm text-[#9C7A3C] max-w-lg mx-auto">
-                                    &ldquo;{story.en}&rdquo;
+                                    &ldquo;{wedding.themeSettings.story.en}&rdquo;
                                 </p>
                             </div>
                         )}

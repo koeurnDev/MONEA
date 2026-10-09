@@ -87,7 +87,8 @@ export function useCloudinary(options: UseCloudinaryOptions = {}) {
 
                     if (!signRes.ok) throw new Error("Failed to sign upload request");
 
-                    const { signature } = await signRes.json();
+                    const { signature, folder: signedFolder } = await signRes.json();
+                    if (!signature || typeof signedFolder !== 'string') throw new Error("Invalid upload signature response");
 
                     // 3. Upload to Cloudinary
                     const formData = new FormData();
@@ -96,7 +97,7 @@ export function useCloudinary(options: UseCloudinaryOptions = {}) {
                     formData.append("timestamp", timestamp.toString());
                     formData.append("signature", signature);
                     formData.append("upload_preset", "wedding_upload");
-                    if (options.folder) formData.append("folder", options.folder);
+                    formData.append("folder", signedFolder);
 
                     const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
                     if (!cloudName) throw new Error("Cloudinary Cloud Name is missing");

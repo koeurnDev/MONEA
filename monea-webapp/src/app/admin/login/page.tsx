@@ -51,6 +51,12 @@ export default function AdminLoginPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [require2FA, setRequire2FA] = useState(false);
     const [captchaToken, setCaptchaToken] = useState("");
+    const isDev = import.meta.env.DEV;
+
+    // Auto-bypass Turnstile in local dev mode
+    useEffect(() => {
+        if (isDev) setCaptchaToken("dev-bypass");
+    }, [isDev]);
     const [failedAttempts, setFailedAttempts] = useState(0);
     const [lockoutTimer, setLockoutTimer] = useState(0);
 
@@ -293,11 +299,17 @@ export default function AdminLoginPage() {
 
                             {/* Cloudflare Turnstile Bot Defense */}
                             <div className="flex justify-center pt-2">
+                                {isDev ? (
+                                    <div className="px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[11px] font-bold text-center">
+                                        ⚡ Dev Mode — Turnstile Bypassed
+                                    </div>
+                                ) : (
                                 <Turnstile
                                     siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || "0x4AAAAAACqptbDqodh591Td"}
                                     onSuccess={(token) => setCaptchaToken(token)}
                                     options={{ theme: 'dark' }}
                                 />
+                                )}
                             </div>
 
                             <Button

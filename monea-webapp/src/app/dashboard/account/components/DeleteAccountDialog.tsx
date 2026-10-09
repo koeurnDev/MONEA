@@ -35,7 +35,7 @@ export function DeleteAccountDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="w-[92vw] max-w-[440px] rounded-[1.5rem] md:rounded-[2.5rem] border-none shadow-2xl p-6 md:p-10 font-kantumruy">
+            <DialogContent className="w-[92vw] max-w-[440px] max-h-[90dvh] overflow-y-auto rounded-2xl md:rounded-[2.5rem] border-none shadow-2xl p-5 sm:p-6 md:p-10 font-kantumruy">
                 <DialogHeader className="space-y-4">
                     <div className="w-14 h-14 bg-red-50 dark:bg-red-950/20 rounded-2xl flex items-center justify-center text-red-600 mx-auto">
                         <Trash2 size={28} />
@@ -55,7 +55,7 @@ export function DeleteAccountDialog({
                     </AlertDescription>
                 </Alert>
 
-                <form onSubmit={handleSubmit} className="space-y-6 mt-6">
+                <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 mt-5 sm:mt-6">
                     <div className="space-y-3">
                         <Label className="text-[11px] font-bold text-muted-foreground ml-1">
                             {t("account.dialogs.deleteAccount.label", { defaultValue: "បញ្ជាក់ពាក្យសម្ងាត់របស់អ្នក" })}
@@ -65,7 +65,7 @@ export function DeleteAccountDialog({
                                 type={showPassword ? "text" : "password"}
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="h-14 bg-muted/40 border-none rounded-2xl px-5 font-bold focus-visible:ring-2 focus-visible:ring-red-500/20"
+                                className="h-11 sm:h-14 bg-muted/40 border-none rounded-2xl px-4 sm:px-5 font-bold focus-visible:ring-2 focus-visible:ring-red-500/20"
                                 placeholder={t("account.dialogs.deleteAccount.placeholder", { defaultValue: "បញ្ចូលពាក្យសម្ងាត់របស់អ្នកដើម្បីបញ្ជាក់" })}
                                 required
                             />
@@ -87,14 +87,14 @@ export function DeleteAccountDialog({
                             type="button"
                             variant="ghost"
                             onClick={() => onOpenChange(false)}
-                            className="flex-1 h-12 rounded-2xl font-bold font-kantumruy"
+                            className="flex-1 h-11 sm:h-12 rounded-2xl font-bold font-kantumruy"
                         >
                             {t("account.dialogs.deleteAccount.cancel", { defaultValue: "បោះបង់" })}
                         </Button>
                         <Button
                             type="submit"
                             disabled={isDeleting || !password}
-                            className="flex-[1.5] h-12 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-black font-kantumruy shadow-lg shadow-red-500/20"
+                            className="flex-[1.5] h-11 sm:h-12 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-black font-kantumruy shadow-lg shadow-red-500/20"
                         >
                             {isDeleting 
                                 ? t("account.dialogs.deleteAccount.processing", { defaultValue: "កំពុងលុប..." }) 

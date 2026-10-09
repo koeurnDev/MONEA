@@ -1,12 +1,13 @@
 import React from 'react';
 import { Copy, CreditCard, CheckCircle2, X, QrCode, Sparkles } from 'lucide-react';
 import { m, AnimatePresence } from 'framer-motion';
-import { WeddingData, BankAccount } from '../types';
+import { WeddingData } from '../types';
 import { useTranslation } from '@/i18n/LanguageProvider';
+import { ConfiguredPaymentAccount, getConfiguredPaymentAccounts } from "../shared/weddingPhotos";
 
 interface BankCardProps {
-    account: BankAccount;
-    onZoom: (acc: BankAccount) => void;
+    account: ConfiguredPaymentAccount;
+    onZoom: (acc: ConfiguredPaymentAccount) => void;
     customLabels: any;
 }
 
@@ -22,7 +23,7 @@ const BankCard = ({ account, onZoom, customLabels }: BankCardProps) => {
         setTimeout(() => setCopied(false), 2200);
     };
 
-    const qrSrc = account.qrUrl || "/images/qr.webp";
+    const qrSrc = account.qrUrl || account.qrCodeUrl;
 
     return (
         <m.div
@@ -39,17 +40,17 @@ const BankCard = ({ account, onZoom, customLabels }: BankCardProps) => {
             </div>
 
             {/* Account Holder Name */}
-            <div className="space-y-0.5">
-                <h4 className="font-sans font-bold text-slate-800 text-base md:text-lg tracking-wide uppercase px-2">
-                    {account.accountName || "KAB SIN & MEAS CHANMEANA"}
-                </h4>
+            {(account.accountName || customLabels?.giftCheckHint || t("template.khmerLegacy.giftCheckHint")) && <div className="space-y-0.5">
+                {account.accountName && <h4 className="font-sans font-bold text-slate-800 text-base md:text-lg tracking-wide uppercase px-2">
+                    {account.accountName}
+                </h4>}
                 <p className="text-[11px] font-kantumruy text-slate-400">
                     {customLabels?.giftCheckHint || t("template.khmerLegacy.giftCheckHint")}
                 </p>
-            </div>
+            </div>}
 
             {/* QR Code Container */}
-            <div 
+            {qrSrc && <div
                 onClick={() => onZoom(account)}
                 className="relative w-48 h-48 sm:w-52 sm:h-52 bg-white rounded-2xl p-3.5 shadow-inner border border-amber-200/80 flex items-center justify-center cursor-pointer group transition-all duration-300 hover:border-amber-400"
                 title="ចុចដើម្បីពង្រីក (Tap to Zoom)"
@@ -63,19 +64,19 @@ const BankCard = ({ account, onZoom, customLabels }: BankCardProps) => {
                     <QrCode size={28} />
                     <span className="text-xs font-bold font-kantumruy">ចុចដើម្បីពង្រីក</span>
                 </div>
-            </div>
+            </div>}
 
             {/* Account Number Box */}
             <div className="w-full space-y-2.5 pt-1">
-                <div className="w-full bg-white/90 py-2.5 px-4 rounded-xl border border-amber-200/60 shadow-sm flex items-center justify-between">
+                {account.accountNumber && <div className="w-full bg-white/90 py-2.5 px-4 rounded-xl border border-amber-200/60 shadow-sm flex items-center justify-between">
                     <span className="text-[11px] text-slate-400 font-kantumruy font-medium">លេខគណនី</span>
                     <span className="text-base font-bold font-mono tracking-wider text-slate-800">
                         {account.accountNumber}
                     </span>
-                </div>
+                </div>}
 
                 {/* 1-Click Copy Button */}
-                <m.button
+                {account.accountNumber && <m.button
                     whileTap={{ scale: 0.97 }}
                     onClick={handleCopy}
                     className={`w-full py-3 px-4 rounded-xl font-kantumruy font-bold text-xs tracking-wide flex items-center justify-center gap-2 transition-all duration-300 shadow-md ${
@@ -95,14 +96,14 @@ const BankCard = ({ account, onZoom, customLabels }: BankCardProps) => {
                             <span>{customLabels?.giftCopyBtn || t("template.khmerLegacy.giftCopyBtn")}</span>
                         </>
                     )}
-                </m.button>
+                </m.button>}
             </div>
         </m.div>
     );
 };
 
 interface QRModalProps {
-    account: BankAccount | null;
+    account: ConfiguredPaymentAccount | null;
     isOpen: boolean;
     onClose: () => void;
     customLabels: any;
@@ -121,7 +122,8 @@ const QRModal = ({ account, isOpen, onClose, customLabels }: QRModalProps) => {
         setTimeout(() => setCopied(false), 2200);
     };
 
-    const qrSrc = account.qrUrl || "/images/qr.webp";
+    const qrSrc = account.qrUrl || account.qrCodeUrl;
+    if (!qrSrc) return null;
 
     return (
         <AnimatePresence>
@@ -155,9 +157,9 @@ const QRModal = ({ account, isOpen, onClose, customLabels }: QRModalProps) => {
                                 <Sparkles size={13} className="text-[#C5A027]" />
                                 <span>{account.bankName || "KHQR"}</span>
                             </div>
-                            <h3 className="font-sans font-bold text-slate-800 text-lg tracking-wide uppercase pt-1">
+                            {account.accountName && <h3 className="font-sans font-bold text-slate-800 text-lg tracking-wide uppercase pt-1">
                                 {account.accountName}
-                            </h3>
+                            </h3>}
                         </div>
 
                         {/* Large High-Res QR */}
@@ -166,14 +168,14 @@ const QRModal = ({ account, isOpen, onClose, customLabels }: QRModalProps) => {
                         </div>
 
                         <div className="space-y-3">
-                            <div className="bg-slate-50 py-2.5 px-4 rounded-xl border border-slate-200/80 flex items-center justify-between">
+                            {account.accountNumber && <div className="bg-slate-50 py-2.5 px-4 rounded-xl border border-slate-200/80 flex items-center justify-between">
                                 <span className="text-xs font-kantumruy text-slate-400">លេខគណនី</span>
                                 <span className="font-mono text-lg font-bold text-slate-800 tracking-wider">
                                     {account.accountNumber}
                                 </span>
-                            </div>
+                            </div>}
 
-                            <button
+                            {account.accountNumber && <button
                                 onClick={handleCopy}
                                 className={`w-full py-3 rounded-xl font-kantumruy font-bold text-xs flex items-center justify-center gap-2 transition-all ${
                                     copied
@@ -192,7 +194,7 @@ const QRModal = ({ account, isOpen, onClose, customLabels }: QRModalProps) => {
                                         <span>{customLabels?.giftCopyBtn || t("template.khmerLegacy.giftCopyBtn")}</span>
                                     </>
                                 )}
-                            </button>
+                            </button>}
                         </div>
                     </m.div>
                 </div>
@@ -203,20 +205,11 @@ const QRModal = ({ account, isOpen, onClose, customLabels }: QRModalProps) => {
 
 export default function GiftSection({ wedding }: { wedding: WeddingData }) {
     const { t } = useTranslation();
-    const defaultAccounts: BankAccount[] = [
-        {
-            bankName: "ABA Bank (KHQR)",
-            accountName: wedding.groomName && wedding.brideName ? `${wedding.groomName} & ${wedding.brideName}` : "KAB SIN & MEAS CHANMEANA",
-            accountNumber: "001 234 567",
-            qrUrl: "/images/qr.webp",
-            side: "both"
-        }
-    ];
-
-    const rawAccounts = wedding.themeSettings?.bankAccounts || [];
-    const bankAccounts = rawAccounts.length > 0 ? rawAccounts : defaultAccounts;
+    const bankAccounts = getConfiguredPaymentAccounts(wedding.themeSettings?.bankAccounts);
     const isAnniversary = wedding.eventType === 'anniversary';
-    const [zoomAccount, setZoomAccount] = React.useState<BankAccount | null>(null);
+    const [zoomAccount, setZoomAccount] = React.useState<ConfiguredPaymentAccount | null>(null);
+
+    if (bankAccounts.length === 0) return null;
 
     return (
         <section className="py-16 md:py-24 bg-[#FCFAF6] px-6 relative overflow-hidden" id="gift">

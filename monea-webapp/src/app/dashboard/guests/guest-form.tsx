@@ -20,6 +20,26 @@ import { moneaClient } from "@/lib/api-client";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { useToast } from "@/components/ui/Toast";
 
+const GUEST_PREFIXES = [
+    { value: "NONE", label: "ដាក់តែឈ្មោះ" },
+    { value: "MR", label: "លោក" },
+    { value: "MRS", label: "លោកស្រី" },
+    { value: "MISS", label: "កញ្ញា" },
+    { value: "FAMILY", label: "គ្រួសារ" },
+    { value: "EXCELLENCY", label: "ឯកឧត្តម" },
+    { value: "MADAME", label: "លោកជំទាវ" },
+] as const;
+
+function splitGuestName(fullName: string) {
+    const prefix = GUEST_PREFIXES.find(
+        (option) => option.value !== "NONE" && fullName.startsWith(`${option.label} `)
+    );
+
+    return prefix
+        ? { prefix: prefix.value, name: fullName.slice(prefix.label.length).trimStart() }
+        : { prefix: "NONE", name: fullName };
+}
+
 export function GuestForm({
     onSuccess,
     onDone,
@@ -39,13 +59,16 @@ export function GuestForm({
 
     const formSchema = z.object({
         name: z.string().min(1, t("guests.form.validation.name")),
+        prefix: z.string(),
         source: z.string().optional(),
     });
 
+    const initialName = splitGuestName(initialData?.name || "");
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            name: initialData?.name || "",
+            name: initialName.name,
+            prefix: initialName.prefix,
             source: initialData?.source || initialData?.group || "",
         },
     });
@@ -53,12 +76,19 @@ export function GuestForm({
     async function onSubmit(values: z.infer<typeof formSchema>) {
         const isEditing = !!initialData;
         const guestId = initialData?.id;
+        const selectedPrefix = GUEST_PREFIXES.find(option => option.value === values.prefix);
+        const guestData = {
+            source: values.source,
+            name: [selectedPrefix?.value === "NONE" ? "" : selectedPrefix?.label, values.name.trim()]
+                .filter(Boolean)
+                .join(" "),
+        };
 
         // 1. Instant Optimistic UI Update (0ms delay!)
         if (isEditing && guestId) {
-            onOptimisticUpdate?.(guestId, values);
+            onOptimisticUpdate?.(guestId, guestData);
         } else {
-            onOptimisticAdd?.(values);
+            onOptimisticAdd?.(guestData);
         }
 
         // 2. Immediately close modal and reset form
@@ -66,7 +96,7 @@ export function GuestForm({
         form.reset();
 
         showToast({
-            title: t("common.success") || "ជោគជ័យ",
+            title: t("common.success.title", { defaultValue: "ជោគជ័យ" }),
             description: isEditing ? (t("guests.form.editSuccess") || "បានកែប្រែព័ត៌មានភ្ញៀវ") : (t("guests.form.addSuccess") || "បានបញ្ចូលភ្ញៀវដោយជោគជ័យ"),
             type: "success",
         });
@@ -74,7 +104,7 @@ export function GuestForm({
         // 3. Fire background network sync
         try {
             const url = "/api/guests";
-            const body = isEditing ? { ...values, id: guestId } : values;
+            const body = isEditing ? { ...guestData, id: guestId } : guestData;
 
             const res = isEditing 
                 ? await moneaClient.patch(url, body)
@@ -150,14 +180,41 @@ export function GuestForm({
                                     </FormLabel>
                                     <FormControl>
                                         <div className="relative group/input">
-                                            <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within/input:text-rose-500 transition-colors z-20" />
+                                            <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within/input:text-teal-500 transition-colors z-20" />
                                             <Input
                                                 placeholder={t("guests.form.namePlaceholder")}
-                                                className="pl-10 h-11 text-sm rounded-xl font-kantumruy border-border/80 bg-background/80 focus:bg-background focus-visible:ring-rose-500/20 focus-visible:border-rose-500/50 font-bold"
+                                                className="pl-10 h-11 text-sm rounded-xl font-kantumruy border-border/80 bg-background/80 focus:bg-background focus-visible:ring-teal-500/20 focus-visible:border-teal-500/50 font-bold"
                                                 {...field}
                                             />
                                         </div>
                                     </FormControl>
+                                    <FormMessage className="font-kantumruy text-[10px] mt-0.5 text-rose-500" />
+                                </FormItem>
+                            )}
+                        />
+
+                        <FormField
+                            control={form.control}
+                            name="prefix"
+                            render={({ field }) => (
+                                <FormItem className="space-y-1.5">
+                                    <FormLabel className="text-xs font-bold text-foreground font-kantumruy">
+                                        {t("guests.form.prefixLabel")}
+                                    </FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger className="h-11 rounded-xl border-border/80 bg-background/80 font-kantumruy text-sm font-bold focus:ring-teal-500/20">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent className="font-kantumruy">
+                                            {GUEST_PREFIXES.map(option => (
+                                                <SelectItem key={option.value} value={option.value}>
+                                                    {option.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                     <FormMessage className="font-kantumruy text-[10px] mt-0.5 text-rose-500" />
                                 </FormItem>
                             )}
@@ -173,10 +230,10 @@ export function GuestForm({
                                     </FormLabel>
                                     <FormControl>
                                         <div className="relative group/input">
-                                            <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within/input:text-rose-500 transition-colors z-20" />
+                                            <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within/input:text-teal-500 transition-colors z-20" />
                                             <Input
                                                 placeholder={t("guests.form.locationPlaceholder")}
-                                                className="pl-10 h-11 text-sm rounded-xl font-kantumruy border-border/80 bg-background/80 focus:bg-background focus-visible:ring-rose-500/20 focus-visible:border-rose-500/50 font-medium"
+                                                className="pl-10 h-11 text-sm rounded-xl font-kantumruy border-border/80 bg-background/80 focus:bg-background focus-visible:ring-teal-500/20 focus-visible:border-teal-500/50 font-medium"
                                                 {...field}
                                             />
                                         </div>
@@ -196,7 +253,7 @@ export function GuestForm({
                     <Button
                         type="submit"
                         disabled={loading}
-                        className="w-full h-11 rounded-xl text-sm font-bold font-kantumruy transition-all bg-rose-600 hover:bg-rose-700 text-white shadow-lg shadow-rose-600/20 active:scale-98"
+                        className="w-full h-11 rounded-xl text-sm font-bold font-kantumruy transition-all bg-teal-600 hover:bg-teal-700 text-white shadow-lg shadow-teal-600/20 active:scale-98"
                     >
                         <div className="flex items-center justify-center gap-2">
                             {loading ? (

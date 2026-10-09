@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Search, Filter } from "lucide-react";
@@ -73,7 +73,6 @@ export default function AdminLogsPage() {
                                 <SelectItem value="CREATE">បង្កើតថ្មី</SelectItem>
                                 <SelectItem value="UPDATE">កែប្រែ</SelectItem>
                                 <SelectItem value="DELETE">លុប</SelectItem>
-                                <SelectItem value="GIFT">ផ្ញើកាដូ</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -117,8 +116,7 @@ export default function AdminLogsPage() {
                                             <td className="px-8 py-5">
                                                 <span className={`px-2 py-1 rounded-md text-[10px] font-black ${log.action === 'CREATE' ? 'bg-green-50 text-green-600' :
                                                     log.action === 'DELETE' ? 'bg-red-50 text-red-600' :
-                                                        log.action === 'GIFT' ? 'bg-amber-50 text-amber-600' :
-                                                            'bg-blue-50 text-blue-600'
+                                                        'bg-blue-50 text-blue-600'
                                                     }`}>
                                                     {log.action || 'INFO'}
                                                 </span>

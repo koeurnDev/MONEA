@@ -17,6 +17,7 @@ export class PaymentService {
     static async generateKHQR(payload: QRPayload) {
         try {
             const safeBillNumber = (payload.orderId || `BILL-${Date.now().toString(36)}`).slice(0, 24);
+            const expiresAt = Date.now() + 10 * 60 * 1000;
 
             const result = KHQR.generate({
                 tag:                 TAG.INDIVIDUAL,
@@ -26,7 +27,7 @@ export class PaymentService {
                 amount:              Number(payload.amount),
                 currency:            payload.currency === "USD" ? CURRENCY.USD : CURRENCY.KHR,
                 countryCode:         COUNTRY.KH,
-                expirationTimestamp: Date.now() + 10 * 60 * 1000, // 10 minutes
+                expirationTimestamp: expiresAt,
                 additionalData:      { billNumber: safeBillNumber },
             });
 
@@ -40,7 +41,7 @@ export class PaymentService {
 
             if (payload.weddingId && md5Hash) {
                 await executeRaw(
-                    `UPDATE "Wedding" SET "paymentHash" = $1, "paymentInfo" = $2 WHERE "id" = $3`,
+                    `UPDATE "Wedding" SET "paymentHash" = $1, "paymentOrderId" = $2 WHERE "id" = $3`,
                     md5Hash,
                     orderId,
                     payload.weddingId
@@ -50,7 +51,8 @@ export class PaymentService {
             return {
                 qr: qrData,
                 md5: md5Hash,
-                orderId: orderId
+                orderId: orderId,
+                expiresAt
             };
         } catch (error: any) {
             throw error;
@@ -178,6 +180,8 @@ export class PaymentService {
                         "status" = $2, 
                         "bakongTrxId" = $3, 
                         "packageType" = $4::"PackageType",
+                        "paymentOrderId" = NULL,
+                        "paymentRejectedAt" = NULL,
                         "updatedAt" = NOW()
                     WHERE "id" = $5`,
                     "PAID", "ACTIVE", trxHash, packageType, weddingId
@@ -195,6 +199,8 @@ export class PaymentService {
                             paymentStatus: 'PAID',
                             status: 'ACTIVE',
                             bakongTrxId: trxHash,
+                            paymentOrderId: null,
+                            paymentRejectedAt: null,
                             packageType: packageType as any
                         }
                     });
