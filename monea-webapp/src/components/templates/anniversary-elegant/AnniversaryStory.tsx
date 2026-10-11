@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
 import { Heart, Quote } from 'lucide-react';
 import type { WeddingData } from '../types';
-import { getWeddingPhotos } from "../shared/weddingPhotos";
+import { getWeddingSectionPhoto } from "../shared/weddingPhotos";
 
 export const AnniversaryStory = ({ wedding }: { wedding: WeddingData }) => {
     const [likes, setLikes] = useState(128);
@@ -16,9 +16,7 @@ export const AnniversaryStory = ({ wedding }: { wedding: WeddingData }) => {
 
     const storyImages: string[] = Array.isArray(settings?.storyImages) ? settings.storyImages.filter(Boolean) : [];
     const storyPhoto = storyImages[0] || (storyText?.trim()
-        ? getWeddingPhotos(wedding)[6]?.url
-            || getWeddingPhotos(wedding)[1]?.url
-            || getWeddingPhotos(wedding)[0]?.url
+        ? getWeddingSectionPhoto(wedding, 6)?.url
         : undefined);
     const displayedStoryImages = storyImages.length > 0 ? storyImages : storyPhoto ? [storyPhoto] : [];
     if (!storyText?.trim() && storyImages.length === 0) return null;

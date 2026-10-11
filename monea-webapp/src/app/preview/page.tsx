@@ -63,6 +63,32 @@ const DEFAULT_PREVIEW_WEDDING: WeddingData = {
     activities: NEA_M05_DEFAULT_ACTIVITIES
 };
 
+const ANNIVERSARY_PREVIEW_WEDDING: WeddingData = {
+    ...DEFAULT_PREVIEW_WEDDING,
+    eventType: "anniversary",
+    themeSettings: {
+        ...DEFAULT_PREVIEW_WEDDING.themeSettings,
+        welcomeMessage: "យើងខ្ញុំសូមគោរពអញ្ជើញ ឯកឧត្តម លោកជំទាវ លោក លោកស្រី និងភ្ញៀវកិត្តិយស ចូលរួមជាសាក្សីក្នុងពិធីភ្ជាប់ពាក្យរបស់យើងខ្ញុំ។",
+        acknowledgment: "យើងខ្ញុំសូមថ្លែងអំណរគុណចំពោះវត្តមាន និងពរជ័យដ៏ប្រពៃក្នុងពិធីភ្ជាប់ពាក្យរបស់យើងខ្ញុំ។",
+        invitationText: "មានកិត្តិយសសូមគោរពអញ្ជើញចូលរួមជាសាក្សីក្នុងពិធីភ្ជាប់ពាក្យ",
+        customLabels: {
+            ...DEFAULT_PREVIEW_WEDDING.themeSettings?.customLabels,
+            invite_title: "សិរីសួស្តី ពិធីភ្ជាប់ពាក្យ",
+            invitationTitle: "សិរីសួស្តី ពិធីភ្ជាប់ពាក្យ",
+            hero_subtitle: "សិរីមង្គលពិធីភ្ជាប់ពាក្យ",
+            heroSubtitle: "សិរីមង្គលពិធីភ្ជាប់ពាក្យ",
+            timeline_title: "កម្មវិធីពិធីភ្ជាប់ពាក្យ",
+            scheduleTitle: "កម្មវិធីពិធីភ្ជាប់ពាក្យ",
+        },
+    },
+    activities: [
+        { time: "០៧:០០ ព្រឹក", title: "ជួបជុំសាច់ញាតិ", description: "ស្វាគមន៍គ្រួសារ និងភ្ញៀវកិត្តិយស", icon: null, order: 0 },
+        { time: "០៨:០០ ព្រឹក", title: "ពិធីសែនព្រេន", description: "គោរពតាមប្រពៃណីក្នុងពិធីភ្ជាប់ពាក្យ", icon: null, order: 1 },
+        { time: "០៩:០០ ព្រឹក", title: "ពិធីបំពាក់ចិញ្ចៀន", description: "ពិធីភ្ជាប់ពាក្យ និងជូនពរគូអនាគត", icon: null, order: 2 },
+        { time: "១១:០០ ព្រឹក", title: "ពិសាអាហារថ្ងៃត្រង់", description: "ជួបជុំទទួលទានអាហារជាមួយគ្រួសារ និងភ្ញៀវកិត្តិយស", icon: null, order: 3 },
+    ],
+};
+
 function decodeHtmlEntities(str: any): any {
     if (typeof str !== 'string') return str;
     let decoded = str;
@@ -140,9 +166,15 @@ export default function PreviewPage() {
                         activities: [],
                         themeSettings: { primaryColor: "#b18d55" },
                     }
-                : DEFAULT_PREVIEW_WEDDING;
+                : templateIdParam === "anniversary-elegant"
+                    ? ANNIVERSARY_PREVIEW_WEDDING
+                    : DEFAULT_PREVIEW_WEDDING;
             setWedding({
                 ...approvalWedding,
+                templateId: templateIdParam,
+                eventType: templateIdParam === "anniversary-elegant"
+                    ? "anniversary"
+                    : approvalWedding.eventType,
             });
         } else if (!isEditorMode) {
             // Dashboard preview mode - fetch user's wedding data

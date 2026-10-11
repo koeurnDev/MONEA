@@ -29,16 +29,16 @@ export default function LiveSlideshowPage() {
         try {
             const res = await fetch(getApiUrl(`api/gallery/${encodeURIComponent(id)}`), { signal });
             if (!res.ok) throw new Error(`Gallery request failed with status ${res.status}`);
-            const data = await res.json() as { items?: GalleryItem[] };
-            if (!Array.isArray(data.items)) throw new Error("Gallery response was invalid");
+            const payload = await res.json() as { items?: GalleryItem[] };
+            if (!Array.isArray(payload.items)) throw new Error("Gallery response was invalid");
 
             setCurrentIndex(() => {
                 const nextIndex = activeItemId.current
-                    ? data.items!.findIndex((item) => item.id === activeItemId.current)
+                    ? payload.items!.findIndex((item) => item.id === activeItemId.current)
                     : -1;
                 return nextIndex >= 0 ? nextIndex : 0;
             });
-            setItems(data.items);
+            setItems(payload.items);
             setLoadError(false);
         } catch (error) {
             if (error instanceof DOMException && error.name === "AbortError") return;
@@ -47,6 +47,7 @@ export default function LiveSlideshowPage() {
         } finally {
             setIsLoading(false);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
 
     useEffect(() => {

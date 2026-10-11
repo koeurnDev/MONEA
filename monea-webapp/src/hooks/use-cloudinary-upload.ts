@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { moneaClient } from '@/lib/api-client';
 
 interface UseCloudinaryUploadProps {
-    onSuccess: (url: string, publicId?: string) => void;
+    onSuccess: (url: string, publicId?: string, type?: "IMAGE" | "VIDEO") => void;
     onError?: (error: any) => void;
     uploadPreset?: string;
     resourceType?: "auto" | "image" | "video" | "raw";
@@ -69,7 +69,8 @@ export function useCloudinaryUpload({
                     try {
                         if (xhr.status === 200) {
                             const result = JSON.parse(xhr.responseText);
-                            onSuccess(result.secure_url, result.public_id);
+                            const detectedType = result.resource_type === "video" ? "VIDEO" : "IMAGE";
+                            onSuccess(result.secure_url, result.public_id, detectedType);
                         } else {
                             const uploadError = xhr.responseText;
                             console.error("Upload failed", uploadError);

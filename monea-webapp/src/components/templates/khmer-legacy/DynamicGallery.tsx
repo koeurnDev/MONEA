@@ -2,6 +2,7 @@ import * as React from 'react';
 import { m } from 'framer-motion';
 import { WeddingData } from '../types';
 import { RevealSection } from '../shared/CinematicComponents';
+import { getGalleryCardClass, getGalleryContainerClass, getGalleryDisplayStyle, getGalleryImageClass } from "../shared/gallery-layout";
 
 interface DynamicGalleryProps {
     wedding: WeddingData;
@@ -45,6 +46,7 @@ export function DynamicGallery({
     }
 
     const titleText = wedding.themeSettings?.customLabels?.galleryTitle || "វិចិត្រសាល";
+    const galleryStyle = getGalleryDisplayStyle(wedding.themeSettings?.galleryStyle);
 
     return (
         <section id="gallery-sections" className="py-10 md:py-20 px-3 sm:px-6 md:px-12 bg-white relative overflow-hidden font-kantumruy">
@@ -62,7 +64,7 @@ export function DynamicGallery({
                     </div>
                 </RevealSection>
 
-                {/* Alternating 2-Column Photo Collage Grid (Matching User Reference) */}
+                {galleryStyle === "masonry" ? (
                 <div className="space-y-3 sm:space-y-4">
                     {imagePairs.map((pair, pairIdx) => {
                         const isEven = pairIdx % 2 === 0;
@@ -172,6 +174,34 @@ export function DynamicGallery({
                         );
                     })}
                 </div>
+                ) : (
+                    <div className={getGalleryContainerClass(galleryStyle)}>
+                        {images.map((image, index) => {
+                            const pan = pans[index % pans.length];
+                            return (
+                                <div
+                                    key={`${image}-${index}`}
+                                    className={`relative overflow-hidden rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] ${galleryStyle === "polaroid" ? "" : "border border-[#D4AF37]/20"} ${getGalleryCardClass(galleryStyle, index)}`}
+                                >
+                                    <img
+                                        src={image}
+                                        alt={`Gallery ${index + 1}`}
+                                        className={`${getGalleryImageClass(galleryStyle)} cursor-grab`}
+                                        style={{
+                                            objectPosition: `${pan?.localX} ${pan?.localY}`,
+                                            userSelect: "none",
+                                            touchAction: "none",
+                                        }}
+                                        onMouseDown={pan?.onStart}
+                                        onTouchStart={pan?.onStart}
+                                        draggable={false}
+                                        loading="lazy"
+                                    />
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
             </div>
         </section>
     );

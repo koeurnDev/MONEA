@@ -84,8 +84,8 @@ export default function KhmerLegacy({ wedding, guestName, config }: TemplateProp
 
     return (
         <div 
-            style={getTemplatePaletteStyles(wedding.themeSettings, primaryColor)}
-            className="khmer-legacy-template monea-full-palette min-h-screen bg-[#FAF9F6] text-[#333] overflow-x-hidden selection:bg-[#E2D1B3] relative"
+            style={getTemplatePaletteStyles(wedding.themeSettings, primaryColor, "#FAF9F6")}
+            className="khmer-legacy-template monea-full-palette monea-paper-canvas min-h-screen bg-[#FAF9F6] text-[#333] overflow-x-hidden selection:bg-[#E2D1B3] relative"
         >
             <style>{`
                 .khmer-legacy-template {
@@ -283,7 +283,7 @@ export default function KhmerLegacy({ wedding, guestName, config }: TemplateProp
 
             {/* MAIN WEDDING INVITATION CONTENT */}
             {revealed && (
-            <div className="w-full bg-white min-h-screen relative font-serif-elegant overflow-x-hidden">
+            <div className="monea-paper-canvas w-full min-h-screen relative font-serif-elegant overflow-x-hidden">
                 <div className="relative z-10">
                     
                     {/* ១. ផ្ទាំងទំព័រមុខ Hero Section */}

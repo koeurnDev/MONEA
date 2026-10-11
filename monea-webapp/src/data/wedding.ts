@@ -1,4 +1,5 @@
 import type { WeddingData } from "@/components/templates/types";
+import { DEFAULT_WEDDING_ACTIVITIES } from "../lib/wedding-activity-defaults.ts";
 
 export const DEFAULT_WEDDING: WeddingData = {
     id: "",
@@ -60,10 +61,5 @@ export const DEFAULT_WEDDING: WeddingData = {
         { url: "/assets/khmer-legacy/622582548_905399002045231_4147705888928073222_n.jpg", type: "IMAGE" },
         { url: "/assets/khmer-legacy/622629866_905398512045280_817022291532741601_n.jpg", type: "IMAGE" },
     ],
-    activities: [
-        { time: "០៧:០០ ព្រឹក", title: "ពិធីហែជំនូន", description: "ជួបជុំសាច់ញាតិ និងភ្ញៀវកិត្តិយស ហែជំនូនចូលរោងជ័យ", icon: null, order: 0 },
-        { time: "០៨:៣០ ព្រឹក", title: "ពិធីសំពះផ្ទឹម និងចងដៃ", description: "ពិធីសិរីសួស្តីកាត់សក់ និងចងដៃជូនពរជ័យដល់គូស្វាមីភរិយាថ្មី", icon: null, order: 1 },
-        { time: "១១:០០ ថ្ងៃត្រង់", title: "ពិសាភោជនាហារថ្ងៃត្រង់", description: "ទទួលទានអាហារថ្ងៃត្រង់ជួបជុំបងប្អូន និងភ្ញៀវកិត្តិយស", icon: null, order: 2 },
-        { time: "០៥:០០ ល្ងាច", title: "ពិធីជប់លៀង និងពិសាភោជនាហារពេលល្ងាច", description: "ទទួលស្វាគមន៍ភ្ញៀវកិត្តិយស និងពិសាភោជនាហារពេលល្ងាច", icon: null, order: 3 },
-    ],
+    activities: DEFAULT_WEDDING_ACTIVITIES.map((activity) => ({ ...activity })),
 };

@@ -1546,6 +1546,9 @@ const NeaM05: React.FC<TemplateProps> = ({ wedding, guestName, config }) => {
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 transition={{ delay: 0.28, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
                                 className="mt-2"
+                                role="heading"
+                                aria-level={1}
+                                aria-label={`${groomName || text.groomPlaceholder} និង ${brideName || text.bridePlaceholder}`}
                             >
                                 <NameMark
                                     groom={groomName}

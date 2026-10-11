@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 const MobileGuestList = lazy<React.ComponentType<any>>(() => import("./components/MobileGuestList").then(m => ({ default: (m as any).MobileGuestList })));
 const DesktopGuestTable = lazy<React.ComponentType<any>>(() => import("./components/DesktopGuestTable").then(m => ({ default: (m as any).DesktopGuestTable })));
 const GuestDeleteDialog = lazy<React.ComponentType<any>>(() => import("./components/GuestDeleteDialog").then(m => ({ default: (m as any).GuestDeleteDialog })));
+const DigitalPassModal = lazy<React.ComponentType<any>>(() => import("./components/DigitalPassModal").then(m => ({ default: (m as any).DigitalPassModal })));
 
 export default function GuestPage() {
     const { t, locale } = useTranslation();
@@ -56,6 +57,8 @@ export default function GuestPage() {
         isArchived,
         isPremium
     } = useGuests();
+
+    const [passGuest, setPassGuest] = React.useState<any | null>(null);
 
     // Manual Khmer Date Formatter for robustness
     const formatKhmerDate = (date: Date | string | undefined) => {
@@ -249,6 +252,7 @@ export default function GuestPage() {
                             isArchived={isArchived}
                             onCopyLink={copyLink}
                             onShareTelegram={shareTelegram}
+                            onViewPass={(g: any) => setPassGuest(g)}
                             onEdit={(g: any) => { setEditingGuest(g); setOpen(true); }}
                             onDelete={(id: any, name: any) => setDeleteGuest({ id, name })}
                         />
@@ -264,6 +268,7 @@ export default function GuestPage() {
                             isArchived={isArchived}
                             onCopyLink={copyLink}
                             onShareTelegram={shareTelegram}
+                            onViewPass={(g: any) => setPassGuest(g)}
                             onEdit={(g: any) => { setEditingGuest(g); setOpen(true); }}
                             onDelete={(id: any, name: any) => setDeleteGuest({ id, name })}
                         />
@@ -351,6 +356,17 @@ export default function GuestPage() {
                 onOpenChange={(v: any) => !v && setDeleteGuest(null)}
                 onConfirm={confirmDelete}
             />
+
+            <Suspense fallback={null}>
+                <DigitalPassModal
+                    open={Boolean(passGuest)}
+                    onOpenChange={(open: boolean) => {
+                        if (!open) setPassGuest(null);
+                    }}
+                    guest={passGuest}
+                    wedding={wedding}
+                />
+            </Suspense>
         </div>
     );
 }

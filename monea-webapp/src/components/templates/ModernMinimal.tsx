@@ -21,7 +21,7 @@ import { EntranceEnvelope } from './modern-minimal/EntranceEnvelope';
 import { ParallaxDivider } from './modern-minimal/ParallaxDivider';
 
 import { BackgroundMusic } from './modern-minimal/BackgroundMusic';
-import { getWeddingHeroImage, getWeddingPhotos } from "./shared/weddingPhotos";
+import { getWeddingHeroImage, getWeddingSectionPhoto } from "./shared/weddingPhotos";
 import { isSectionVisible } from "./shared/template-settings";
 import { GuestbookSection } from "./shared/GuestbookSection";
 
@@ -39,12 +39,11 @@ export default function ModernMinimal({ wedding, guestName, config }: TemplatePr
     }, []);
 
     const primaryColor = wedding.themeSettings?.primaryColor || "#0A1226";
-    const galleryPhotos = getWeddingPhotos(wedding);
     const heroImage = getWeddingHeroImage(wedding, '/images/bg_tunnel.webp');
     return (
         <div 
-            style={getTemplatePaletteStyles(wedding.themeSettings, "#0A1226")}
-            className="monea-full-palette modern-minimal-invitation m05-type-system relative min-h-screen bg-[#f8f8ec] font-inter text-slate-900 selection:bg-[var(--primary)] selection:text-white"
+            style={getTemplatePaletteStyles(wedding.themeSettings, "#0A1226", "#F8F8EC")}
+            className="monea-full-palette monea-paper-canvas modern-minimal-invitation m05-type-system relative min-h-screen bg-[#f8f8ec] font-inter text-slate-900 selection:bg-[var(--primary)] selection:text-white"
         >
             <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_top,_rgba(147,197,253,0.18),_transparent_35%),radial-gradient(circle_at_bottom,_rgba(59,130,246,0.10),_transparent_38%)]" />
             {!revealed && (
@@ -72,14 +71,14 @@ export default function ModernMinimal({ wedding, guestName, config }: TemplatePr
                 {isSectionVisible(config, "story") && <LoveStorySection wedding={wedding} />}
 
                 <ParallaxDivider 
-                    imageUrl={galleryPhotos[0]?.url || heroImage}
+                    imageUrl={getWeddingSectionPhoto(wedding, 1)?.url || heroImage}
                     text="FOREVER & ALWAYS"
                 />
 
                 {isSectionVisible(config, "timeline") && <ScheduleSection wedding={wedding} title={config.labels.scheduleTitle} />}
 
                 <ParallaxDivider 
-                    imageUrl={galleryPhotos[1]?.url || heroImage}
+                    imageUrl={getWeddingSectionPhoto(wedding, 6)?.url || heroImage}
                     text="THE BEGINNING"
                 />
 

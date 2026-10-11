@@ -91,18 +91,17 @@ export const AnniversaryHero = ({ wedding }: { wedding: WeddingData }) => {
             >
                 {/* Couple Names (Royal Gold Typography) */}
                 <div className="space-y-1.5 w-full px-2">
-                    <h1 className="font-khmer-moul text-2xl sm:text-3xl md:text-4xl text-[#F8E8C5] drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)] tracking-wide leading-relaxed">
-                        {groomName}
-                    </h1>
-                    
-                    <div className="flex items-center justify-center gap-3">
-                        <span className="w-10 h-px bg-[#E7C783]/50" />
-                        <span className="font-khmer-moul text-xs text-[#E7C783] drop-shadow-md">និង</span>
-                        <span className="w-10 h-px bg-[#E7C783]/50" />
-                    </div>
-
-                    <h1 className="font-khmer-moul text-2xl sm:text-3xl md:text-4xl text-[#F8E8C5] drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)] tracking-wide leading-relaxed">
-                        {brideName}
+                    <h1
+                        aria-label={`${groomName} និង ${brideName}`}
+                        className="font-khmer-moul text-2xl sm:text-3xl md:text-4xl text-[#F8E8C5] drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)] tracking-wide leading-relaxed"
+                    >
+                        <span className="block">{groomName}</span>
+                        <span aria-hidden="true" className="my-1 flex items-center justify-center gap-3">
+                            <span className="w-10 h-px bg-[#E7C783]/50" />
+                            <span className="font-khmer-moul text-xs text-[#E7C783] drop-shadow-md">និង</span>
+                            <span className="w-10 h-px bg-[#E7C783]/50" />
+                        </span>
+                        <span className="block">{brideName}</span>
                     </h1>
                 </div>
 

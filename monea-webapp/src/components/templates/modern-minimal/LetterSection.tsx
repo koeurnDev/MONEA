@@ -2,7 +2,7 @@ import React from 'react';
 import { m } from 'framer-motion';
 import { WeddingData } from "../types";
 import { useImagePan } from "../shared/CinematicComponents";
-import { getWeddingPhotos } from "../shared/weddingPhotos";
+import { getWeddingPhotoAtSlot, getWeddingSectionPhoto, getWeddingPhotos } from "../shared/weddingPhotos";
 
 export const LetterSection = ({ wedding, guestName }: { wedding: WeddingData; guestName?: string }) => {
     const validGallery = getWeddingPhotos(wedding);
@@ -13,13 +13,15 @@ export const LetterSection = ({ wedding, guestName }: { wedding: WeddingData; gu
     const brideMother = (parents?.brideMother || wedding.brideMother)?.trim();
     const hasParents = Boolean(groomFather || groomMother || brideFather || brideMother);
 
-    const groomPhoto = 
+    const groomPhoto =
+        getWeddingSectionPhoto(wedding, 9)?.url ||
         validGallery.find(img => img.type === 'groom')?.url ||
-        validGallery[0]?.url;
+        wedding.groomPhoto;
         
-    const bridePhoto = 
+    const bridePhoto =
+        getWeddingSectionPhoto(wedding, 10)?.url ||
         validGallery.find(img => img.type === 'bride')?.url ||
-        validGallery[1]?.url;
+        wedding.bridePhoto;
 
     const groomPan = useImagePan(
         wedding.themeSettings?.groomImageX || '50%',
@@ -45,8 +47,9 @@ export const LetterSection = ({ wedding, guestName }: { wedding: WeddingData; gu
                     viewport={{ once: true }}
                     className="relative mx-auto max-w-4xl space-y-7 border border-[#d6cdb9] px-5 py-10 text-[#37352f] shadow-[0_18px_48px_rgba(48,42,31,0.16),0_2px_5px_rgba(48,42,31,0.08)] sm:space-y-8 sm:px-12 sm:py-14 md:px-16 md:py-16"
                     style={{
-                        backgroundColor: "#f4efdf",
-                        backgroundImage: "url('/khmer-invite-starter-kit/textures/paper-cream.webp')",
+                        backgroundColor: "var(--monea-paper-color, #f4efdf)",
+                        backgroundImage: "var(--monea-paper-texture, url('/khmer-invite-starter-kit/textures/paper-cream.webp'))",
+                        backgroundBlendMode: "multiply",
                         backgroundRepeat: "repeat",
                         backgroundSize: "320px 320px",
                     }}

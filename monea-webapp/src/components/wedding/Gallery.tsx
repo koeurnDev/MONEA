@@ -23,7 +23,6 @@ export default function Gallery({ images, weddingId }: GalleryProps) {
             <div className="grid grid-cols-2 gap-3">
                 {displayImages.map((img) => (
                     <div key={img.id} className="relative aspect-[3/4] overflow-hidden rounded-lg border border-pink-500/20 group">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                             src={img.url}
                             alt="Wedding" 

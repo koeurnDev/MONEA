@@ -37,11 +37,16 @@ export function useKhmerLegacy(wedding: WeddingData) {
     const musicUrl = wedding.themeSettings?.musicUrl;
     const galleryImages = useMemo(() => {
         const items = (wedding?.galleryItems || []).map(item => isDemoPhoto(item?.url) ? "" : item?.url || "");
+        const couplePhoto = items[1] || items[0] || "";
+        const hiddenSlots = new Set(wedding.themeSettings?.hiddenPhotoSlots || []);
+        const withFallbacks = items.map((url, index) => (
+            url || index === 0 || hiddenSlots.has(index) ? url : couplePhoto
+        ));
         // Pad with empty strings if needed to ensure stable indices for the 11 special slots
-        const padded = [...items];
+        const padded = [...withFallbacks];
         while (padded.length < 11) padded.push("");
         return padded;
-    }, [wedding?.galleryItems]);
+    }, [wedding?.galleryItems, wedding.themeSettings?.hiddenPhotoSlots]);
 
     const dynamicPool = useMemo(() => {
         const items = (wedding?.galleryItems || [])

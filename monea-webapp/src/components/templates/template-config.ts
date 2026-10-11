@@ -151,3 +151,21 @@ export const getTemplatesForEventType = (
 
 export const getTemplateConfig = (templateId?: string | null) =>
     templateId ? TEMPLATE_DEFINITIONS[templateId as keyof typeof TEMPLATE_DEFINITIONS] || null : null;
+
+const TEMPLATE_IMPORTERS: Record<string, () => Promise<unknown>> = {
+    "khmer-legacy": () => import("./KhmerLegacy"),
+    "modern-minimal": () => import("./ModernMinimal"),
+    "fortune-harmony": () => import("./FortuneHarmony"),
+    "blossom-romance": () => import("./BlossomRomance"),
+    "emerald-garden": () => import("./EmeraldGarden"),
+    "nea-m05": () => import("./NeaM05"),
+    "anniversary-elegant": () => import("./AnniversaryElegant"),
+};
+
+export function preloadTemplate(templateId?: string | null): void {
+    if (!templateId) return;
+    const importer = TEMPLATE_IMPORTERS[templateId];
+    if (importer) {
+        importer().catch(() => {});
+    }
+}

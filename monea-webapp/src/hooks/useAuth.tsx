@@ -100,6 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!retryScheduled) setIsLoading(false);
       fetchingRef.current = false;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isBypassMode])
 
   useEffect(() => {
@@ -107,7 +108,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Debounce initial fetch for mobile
     const timer = setTimeout(fetchUser, 100);
     return () => clearTimeout(timer);
-  }, []) // Remove fetchUser from deps to prevent loops
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Mount-only fetch with debounce to prevent loops
 
   const logout = useCallback(async () => {
     setUser(null);

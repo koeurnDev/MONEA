@@ -789,8 +789,9 @@ weddingRouter.get('/:id', async (c) => {
             return c.json({ error: "Wedding not found" }, 404);
         }
 
-        // Enable short edge caching (10 seconds) to prevent DB overload but allow quick updates
-        c.header('Cache-Control', 'public, max-age=10, s-maxage=10, stale-while-revalidate=60');
+        // Edge caching: enable CDN edge cache (120s with 600s stale-while-revalidate) to ensure instant responses for guests
+        c.header('Cache-Control', 'public, max-age=30, s-maxage=120, stale-while-revalidate=600');
+        c.header('CDN-Cache-Control', 'max-age=120, stale-while-revalidate=600');
 
         let parsedThemeSettings: any = wedding.themeSettings;
         if (typeof parsedThemeSettings === 'string') {

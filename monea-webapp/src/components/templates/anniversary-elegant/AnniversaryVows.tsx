@@ -2,6 +2,7 @@ import React from 'react';
 import { m } from 'framer-motion';
 import { Heart, Quote } from 'lucide-react';
 import type { WeddingData } from '../types';
+import { getWeddingSectionPhoto } from "../shared/weddingPhotos";
 
 export default function AnniversaryVows({ wedding }: { wedding: WeddingData }) {
     const settings = wedding.themeSettings as any;
@@ -11,8 +12,8 @@ export default function AnniversaryVows({ wedding }: { wedding: WeddingData }) {
     const groomVows = settings?.groomVows || "អរគុណដែលបានចូលមកក្នុងជីវិតបង និងតែងតែជាកម្លាំងចិត្តដ៏រឹងមាំសម្រាប់បងគ្រប់ពេលវេលា។";
     const brideVows = settings?.brideVows || "អរគុណសម្រាប់ការស្រលាញ់ ការមើលថែ និងភាពកក់ក្តៅដែលបងតែងតែផ្តល់ឱ្យអូនជារៀងរាល់ថ្ងៃ។";
 
-    const groomPhoto = wedding.groomPhoto || (wedding.galleryItems?.[0]?.url || '/images/couple.webp');
-    const bridePhoto = wedding.bridePhoto || (wedding.galleryItems?.[1]?.url || '/images/couple.webp');
+    const groomPhoto = getWeddingSectionPhoto(wedding, 9)?.url || wedding.groomPhoto || '/images/couple.webp';
+    const bridePhoto = getWeddingSectionPhoto(wedding, 10)?.url || wedding.bridePhoto || '/images/couple.webp';
 
     return (
         <section className="py-16 px-4 bg-[#F1ECE5] font-kantumruy relative overflow-hidden" id="vows">

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Plus, CheckCircle2, Copy, Edit, Trash2, Users, MoreVertical, Send } from "lucide-react";
+import { Plus, CheckCircle2, Copy, Edit, Trash2, Users, MoreVertical, Send, Ticket } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/i18n/LanguageProvider";
@@ -15,6 +15,7 @@ interface MobileGuestListProps {
     isArchived: boolean;
     onCopyLink: (name: string, id: string) => void;
     onShareTelegram?: (name: string, id: string) => void;
+    onViewPass?: (guest: any) => void;
     onEdit: (guest: any) => void;
     onDelete: (id: string, name: string) => void;
 }
@@ -30,6 +31,7 @@ export function MobileGuestList({
     isArchived,
     onCopyLink,
     onShareTelegram,
+    onViewPass,
     onEdit,
     onDelete
 }: MobileGuestListProps) {
@@ -125,6 +127,13 @@ export function MobileGuestList({
                                     <DropdownMenuItem onClick={() => onShareTelegram(g.name, g.id)} className="gap-3 py-3 rounded-xl cursor-pointer text-[#229ED9] focus:bg-[#229ED9]/10 focus:text-[#229ED9]">
                                         <Send size={16} />
                                         <span className="font-bold">ផ្ញើតាម Telegram</span>
+                                    </DropdownMenuItem>
+                                )}
+
+                                {onViewPass && (
+                                    <DropdownMenuItem onClick={() => onViewPass(g)} className="gap-3 py-3 rounded-xl cursor-pointer text-amber-700 dark:text-amber-300 focus:bg-amber-500/10 focus:text-amber-700">
+                                        <Ticket size={16} className="text-amber-600" />
+                                        <span className="font-bold">សំបុត្រឌីជីថល</span>
                                     </DropdownMenuItem>
                                 )}
                                 

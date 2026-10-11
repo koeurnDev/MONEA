@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, Clock, Heart } from 'lucide-react';
 import { WeddingData } from '../types';
+import { getWeddingSectionPhoto } from "../shared/weddingPhotos";
+import { PhotoImage } from "../shared/PhotoImage";
 
 interface HeroSectionProps {
     wedding: WeddingData;
@@ -13,6 +15,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
     const groomName = wedding.groomName || "កូនកំលោះ";
     const brideName = wedding.brideName || "កូនក្រមុំ";
     const eventDate = wedding.date ? new Date(wedding.date) : new Date();
+    const couplePhoto = getWeddingSectionPhoto(wedding, 0)?.url;
 
     // Countdown State
     const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number }>({
@@ -23,8 +26,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
     });
 
     useEffect(() => {
+        const targetDate = wedding.date ? new Date(wedding.date) : new Date();
         const calculateTime = () => {
-            const difference = +eventDate - +new Date();
+            const difference = +targetDate - +new Date();
             if (difference > 0) {
                 setTimeLeft({
                     days: Math.floor(difference / (1000 * 60 * 60 * 24)),
@@ -64,6 +68,23 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
                     <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-[#9ea58a] to-transparent mx-auto mt-1" />
                 </motion.div>
 
+                {couplePhoto && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.96 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.7, delay: 0.15 }}
+                        className="relative w-full max-w-[220px] overflow-hidden rounded-[7rem] border-4 border-white/90 shadow-xl"
+                    >
+                        <PhotoImage
+                            src={couplePhoto}
+                            alt={`${groomName} និង ${brideName}`}
+                            className="aspect-[4/5] w-full object-cover"
+                            loading="eager"
+                            decoding="async"
+                        />
+                    </motion.div>
+                )}
+
                 {/* Monogram / Crest */}
                 <motion.div
                     initial={{ scale: 0.8, opacity: 0 }}
@@ -84,16 +105,17 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
                     transition={{ duration: 0.6, delay: 0.3 }}
                     className="space-y-2 py-2"
                 >
-                    <h1 className="m05-font-name text-3xl sm:text-4xl font-khmer-moul text-[#2d352b]">
-                        {groomName}
-                    </h1>
-                    <div className="flex items-center justify-center gap-3">
-                        <span className="h-px w-10 bg-[#98a78e]" />
-                        <Heart size={16} className="text-[#5b6a53] fill-[#5b6a53]" />
-                        <span className="h-px w-10 bg-[#98a78e]" />
-                    </div>
-                    <h1 className="m05-font-name text-3xl sm:text-4xl font-khmer-moul text-[#2d352b]">
-                        {brideName}
+                    <h1
+                        aria-label={`${groomName} និង ${brideName}`}
+                        className="m05-font-name text-3xl sm:text-4xl font-khmer-moul text-[#2d352b]"
+                    >
+                        <span className="block">{groomName}</span>
+                        <span aria-hidden="true" className="my-2 flex items-center justify-center gap-3">
+                            <span className="h-px w-10 bg-[#98a78e]" />
+                            <Heart size={16} className="text-[#5b6a53] fill-[#5b6a53]" />
+                            <span className="h-px w-10 bg-[#98a78e]" />
+                        </span>
+                        <span aria-hidden="true" className="block">{brideName}</span>
                     </h1>
                 </motion.div>
 

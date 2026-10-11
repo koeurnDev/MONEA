@@ -122,7 +122,7 @@ const Step1Template: React.FC<Step1TemplateProps> = ({ wedding, updateEventType,
 
     return (
         <div className="space-y-4 sm:space-y-6 md:space-y-8">
-            <div className="hidden sm:block bg-slate-50 dark:bg-white/5 p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm relative overflow-hidden group">
+            <div className="bg-slate-50 dark:bg-white/5 p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-3 sm:p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                     <Palette className="w-9 h-9 sm:w-12 sm:h-12 text-slate-800 dark:text-white" />
                 </div>
@@ -131,7 +131,7 @@ const Step1Template: React.FC<Step1TemplateProps> = ({ wedding, updateEventType,
                     <span className="sm:hidden">ជ្រើសរើសគំរូ</span>
                     <span className="hidden sm:inline">{t("wizard.steps.1.header")}</span>
                 </h3>
-                <p className="hidden sm:block text-[11px] sm:text-[13px] text-slate-500 dark:text-white/50 leading-relaxed font-medium">
+                <p className="text-[11px] sm:text-[13px] text-slate-500 dark:text-white/50 leading-relaxed font-medium">
                     {t("wizard.steps.1.description")}
                 </p>
             </div>
@@ -187,14 +187,14 @@ const Step1Template: React.FC<Step1TemplateProps> = ({ wedding, updateEventType,
                 ប្រភេទកម្មវិធីកំណត់គំរូដែលអាចជ្រើសរើសបាន។ ការប្តូរប្រភេទនឹងប្តូរគំរូ ប្រសិនបើគំរូបច្ចុប្បន្នមិនត្រូវគ្នា។
             </p>
 
-            <div className="space-y-3 sm:space-y-4">
+            <div className="space-y-2.5 sm:space-y-3">
                 <div className="flex items-center justify-between mb-1.5 sm:mb-2">
                     <Label className="text-[10px] sm:text-[11px] font-black uppercase text-slate-400 dark:text-white/30 tracking-[0.2em] ml-2">
                         {t("wizard.steps.1.popularTemplates", { defaultValue: "Templates" })}
                     </Label>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3 sm:gap-4">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
                     {visibleTemplates.map((tmpl) => {
                         const isSelected = wedding.templateId === tmpl.id || (!wedding.templateId && tmpl.id === 'modern-minimal');
                         const isWrongEventType = tmpl.eventType !== "both" && tmpl.eventType !== activeEventType;
@@ -208,7 +208,7 @@ const Step1Template: React.FC<Step1TemplateProps> = ({ wedding, updateEventType,
                                 aria-pressed={isSelected}
                                 onClick={() => handleSelectTemplate(tmpl)}
                                 className={clsx(
-                                    "w-full text-left rounded-[1.35rem] sm:rounded-[1.75rem] p-2.5 sm:p-4 transition-all duration-300 relative overflow-hidden border-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2",
+                                    "w-full min-w-0 rounded-2xl p-2.5 text-left transition-all duration-200 relative overflow-hidden border-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2 sm:p-3",
                                     tmpl.comingSoon 
                                         ? "cursor-not-allowed opacity-60 bg-slate-50 dark:bg-white/5 border-transparent grayscale" 
                                         : "cursor-pointer group",
@@ -217,84 +217,50 @@ const Step1Template: React.FC<Step1TemplateProps> = ({ wedding, updateEventType,
                                         : "border-slate-200/70 dark:border-white/10 bg-white dark:bg-card hover:bg-slate-50/50 hover:border-slate-400/50 hover:shadow-md hover:-translate-y-0.5"
                                 )}
                             >
-                                <div className="flex items-stretch gap-3 sm:gap-5">
-                                    {/* Template Thumbnail Image — Larger & taller */}
-                                    <div className="w-24 sm:w-28 md:w-28 aspect-[9/16] bg-slate-100 dark:bg-slate-900 rounded-xl sm:rounded-2xl overflow-hidden relative shadow-md shrink-0 border border-slate-200/50">
+                                <div className="relative aspect-[4/5] w-full overflow-hidden rounded-xl border border-slate-200/70 bg-slate-100 dark:border-white/10 dark:bg-slate-900">
                                         {tmpl.image ? (
                                             <img
                                                 src={tmpl.image}
                                                 alt={tmpl.title} 
-                                                className="w-full h-full object-contain"
+                                                className="h-full w-full object-cover"
                                                 loading={isSelected ? "eager" : "lazy"}
                                                 decoding="async"
                                             />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center text-slate-400">
-                                                <Palette size={28} />
+                                                <Palette size={20} />
                                             </div>
                                         )}
-                                        {/* Selected overlay badge on the image */}
                                         {isSelected && (
-                                            <div className="absolute inset-0 bg-slate-900/30 rounded-2xl flex items-center justify-center">
-                                                <div className="bg-white rounded-full p-2 shadow-lg">
-                                                    <Check size={18} strokeWidth={3.5} className="text-slate-900" />
-                                                </div>
+                                            <div className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-md ring-1 ring-black/5">
+                                                <Check size={13} strokeWidth={3.5} className="text-teal-700" />
                                             </div>
                                         )}
-                                    </div>
-
-                                    {/* Template Info */}
-                                    <div className="flex-1 flex flex-col justify-between py-0.5">
-                                        {/* Top: Code & Badges */}
-                                        <div className="flex items-center gap-2 flex-wrap">
-                                            <span className={clsx(
-                                                "px-2.5 sm:px-3.5 py-1 rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-black tracking-wider font-mono shadow-sm transition-colors",
-                                                isSelected 
-                                                    ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900" 
-                                                    : "bg-slate-100 text-slate-800 dark:bg-white/10 dark:text-white group-hover:bg-slate-900 group-hover:text-white"
-                                            )}>
-                                                {tmpl.code}
+                                        {(tmpl.comingSoon || unavailableForNewSelection) && (
+                                            <span className="absolute bottom-2 left-2 rounded-full bg-slate-950/75 px-2 py-1 font-kantumruy text-[9px] font-bold text-white backdrop-blur-sm">
+                                                {tmpl.comingSoon ? "ឆាប់ៗនេះ" : "មិនទទួលថ្មី"}
                                             </span>
-                                            {tmpl.isFree && !tmpl.comingSoon && (
-                                                <span className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 text-[9px] sm:text-[10px] font-black uppercase tracking-wider">
-                                                    {t("common.labels.free")}
-                                                </span>
-                                            )}
-                                            {tmpl.comingSoon && (
-                                                <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[9px] sm:text-[10px] font-black uppercase tracking-wider">
-                                                    Coming Soon
-                                                </span>
-                                            )}
-                                            {unavailableForNewSelection && isSelected && (
-                                                <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
-                                                    មិនទទួលការជ្រើសរើសថ្មី
-                                                </span>
-                                            )}
-                                        </div>
+                                        )}
+                                </div>
 
-                                        {/* Bottom: Category pill + Click hint */}
-                                        <div className="mt-2 space-y-1">
-                                            <p className="font-kantumruy text-sm font-black leading-snug text-foreground sm:text-base">
+                                <div className="min-w-0 px-0.5 pt-2.5">
+                                    <div className="mb-1 flex min-w-0 items-center justify-between gap-2">
+                                        <span className={clsx(
+                                            "inline-flex min-h-5 items-center rounded-md px-1.5 text-[9px] font-black tracking-wide font-mono transition-colors sm:text-[10px]",
+                                            isSelected
+                                                ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900"
+                                                : "bg-slate-100 text-slate-800 dark:bg-white/10 dark:text-white group-hover:bg-slate-900 group-hover:text-white"
+                                        )}>
+                                            {tmpl.code}
+                                        </span>
+                                    </div>
+                                    <div className="min-w-0">
+                                            <p className="line-clamp-2 min-h-[2.5rem] break-words font-kantumruy text-xs font-black leading-5 text-foreground sm:text-sm">
                                                 {t(`wizard.steps.1.templates.${tmpl.id}.title`, { defaultValue: tmpl.title })}
                                             </p>
-                                            <p className="font-kantumruy text-[11px] leading-relaxed text-muted-foreground">
-                                                {t(`wizard.steps.1.templates.${tmpl.id}.description`, { defaultValue: tmpl.description })}
-                                            </p>
-                                            <p className="text-[10px] sm:text-[11px] font-bold text-muted-foreground font-kantumruy uppercase tracking-wider">
+                                            <p className="mt-1 truncate font-kantumruy text-[10px] font-semibold leading-4 text-muted-foreground sm:text-[11px]">
                                                 {activeEventType === 'anniversary' ? t("wizard.steps.1.anniversary") : t("wizard.steps.1.wedding")}
                                             </p>
-                                            {!tmpl.comingSoon && (
-                                                <p className={clsx(
-                                                    "text-[10px] sm:text-[11px] font-semibold font-kantumruy transition-colors",
-                                                    isSelected ? "text-slate-900 dark:text-white" : "text-slate-400 dark:text-white/30 group-hover:text-slate-700 dark:group-hover:text-white/70"
-                                                )}>
-                                                    {isSelected 
-                                                        ? (t("wizard.steps.1.selectedLabel", { defaultValue: "✓ ជ្រើសហើយ" }))
-                                                        : (t("wizard.steps.1.clickToSelect", { defaultValue: "ចុចដើម្បីជ្រើស" }))
-                                                    }
-                                                </p>
-                                            )}
-                                        </div>
                                     </div>
                                 </div>
                             </button>

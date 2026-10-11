@@ -52,8 +52,8 @@ export const BlossomRomance: React.FC<TemplateProps> = ({ wedding, guestName, co
 
     return (
         <div 
-            style={getTemplatePaletteStyles(wedding.themeSettings, "#B45309")}
-            className="monea-full-palette m05-type-system w-full bg-[#F5EBE6] font-kantumruy text-slate-800 relative min-h-screen selection:bg-rose-500 selection:text-white"
+            style={getTemplatePaletteStyles(wedding.themeSettings, "#B45309", "#F5EBE6")}
+            className="monea-full-palette monea-paper-canvas m05-type-system w-full bg-[#F5EBE6] font-kantumruy text-slate-800 relative min-h-screen selection:bg-rose-500 selection:text-white"
         >
             {/* Background Audio */}
             {musicUrl && (
@@ -82,7 +82,7 @@ export const BlossomRomance: React.FC<TemplateProps> = ({ wedding, guestName, co
 
             {/* Mount invitation sections only after the guest opens the envelope. */}
             {revealed && (
-            <main className="relative max-w-[540px] mx-auto min-h-screen bg-transparent flex flex-col">
+            <main className="monea-paper-canvas relative max-w-[540px] mx-auto min-h-screen bg-transparent flex flex-col">
                 {/* 1. Hero Section */}
                 <HeroSection wedding={wedding} primaryColor={primaryColor} />
 

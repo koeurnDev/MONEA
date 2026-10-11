@@ -20,6 +20,7 @@ import { HistorySection } from "./sections/HistorySection";
 import { NEA_M05_COLOR_PRESETS } from "@/lib/nea-m05-colors";
 import { NEA_M05_FONT_OPTIONS } from "@/lib/nea-m05-fonts";
 import { getTemplateConfig } from "@/components/templates/template-config";
+import { getTemplateDefaultPaperColor, TEMPLATE_PAPER_TEXTURES } from "@/lib/template-paper";
 
 interface Step5ExtraProps {
     wedding: WeddingData;
@@ -80,6 +81,13 @@ const Step5Extra: React.FC<Step5ExtraProps> = ({
 
     const isPremium = packageType === "PREMIUM";
     const isNeaM05 = wedding.templateId === "nea-m05";
+    const supportsPaperCustomization = [
+        "khmer-legacy",
+        "modern-minimal",
+        "fortune-harmony",
+        "blossom-romance",
+        "anniversary-elegant",
+    ].includes(wedding.templateId || "");
     const selectedM05Color = wedding.themeSettings?.m05ColorPreset || "olive-gold";
     const selectedM05Palette = NEA_M05_COLOR_PRESETS.find((preset) => preset.id === selectedM05Color) || NEA_M05_COLOR_PRESETS[0];
     const templateDefaultColor = getTemplateConfig(wedding.templateId)?.primaryColor || "#f43f5e";
@@ -152,9 +160,6 @@ const Step5Extra: React.FC<Step5ExtraProps> = ({
     const selectedSectionId = activeAccordion || 'theme';
     const openSection = (sectionId: string) => {
         setActiveAccordion(sectionId);
-        window.requestAnimationFrame(() => {
-            document.getElementById(`step5-${sectionId}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        });
     };
 
     return (
@@ -266,7 +271,7 @@ const Step5Extra: React.FC<Step5ExtraProps> = ({
                                     />
                                 </label>
                                 <p className="col-span-2 text-[10px] leading-5 text-muted-foreground">
-                                    ពណ៌អក្សរតុបតែងត្រូវបានកែសម្រួលសម្រាប់ភាពងាយអាន។ ពណ៌ស្រោម និងផ្ទៃខ្លះអាចងងឹតជាងពណ៌ដែលបានជ្រើស ដើម្បីរក្សាស្ទីល; Preview បង្ហាញលទ្ធផលចុងក្រោយ។
+                                    ពណ៌អក្សររក្សាតាមស្ទីលដើមរបស់ Template ដើម្បីងាយអាន។ ប៊ូតុងប្រើពណ៌អក្សរដែលផ្ទុយច្បាស់; Preview បង្ហាញលទ្ធផលចុងក្រោយ។
                                 </p>
                             </div>
                         ) : (
@@ -389,6 +394,61 @@ const Step5Extra: React.FC<Step5ExtraProps> = ({
                                     title={color}
                                 />
                             ))}
+                        </div>
+                        )}
+                        {supportsPaperCustomization && (
+                        <div className="mt-5 space-y-3 rounded-xl border border-amber-200/80 bg-amber-50/50 p-3 dark:border-amber-300/15 dark:bg-amber-100/[0.03]">
+                            <div className="flex items-center justify-between gap-3">
+                                <div>
+                                    <p className="text-xs font-bold text-foreground">ផ្ទៃក្រដាស</p>
+                                    <p className="mt-1 text-[10px] text-muted-foreground">ប្តូរវាយនភាព និងពណ៌ក្រដាសក្នុង Preview</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => updateTheme({ paperTexture: "cream", paperColor: "" })}
+                                    className="text-[10px] font-semibold text-teal-700 underline-offset-2 hover:underline dark:text-teal-300"
+                                >
+                                    កំណត់ឡើងវិញ
+                                </button>
+                            </div>
+                            <div className="grid grid-cols-3 gap-2">
+                                {TEMPLATE_PAPER_TEXTURES.map((texture) => {
+                                    const selected = (wedding.themeSettings?.paperTexture || "cream") === texture.id;
+                                    return (
+                                        <button
+                                            key={texture.id}
+                                            type="button"
+                                            aria-pressed={selected}
+                                            onClick={() => updateTheme("paperTexture", texture.id)}
+                                            className={clsx(
+                                                "flex min-h-16 flex-col items-center justify-center gap-1.5 rounded-xl border p-2 text-center transition",
+                                                selected
+                                                    ? "border-teal-500 ring-1 ring-teal-500"
+                                                    : "border-slate-200/80 hover:border-teal-300 dark:border-white/10",
+                                            )}
+                                            style={{
+                                                backgroundColor: wedding.themeSettings?.paperColor || getTemplateDefaultPaperColor(wedding.templateId),
+                                                backgroundImage: texture.image === "none" ? undefined : `url("${texture.image}")`,
+                                                backgroundBlendMode: "multiply",
+                                                backgroundRepeat: "repeat",
+                                                backgroundSize: "64px 64px",
+                                            }}
+                                        >
+                                            <span className="rounded bg-white/80 px-2 py-0.5 text-[10px] font-bold text-slate-800">{texture.label}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <label className="flex items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-white/70 px-3 py-2 dark:border-white/10 dark:bg-black/20">
+                                <span className="text-[11px] font-bold text-muted-foreground">ពណ៌ក្រដាស</span>
+                                <input
+                                    type="color"
+                                    value={wedding.themeSettings?.paperColor || getTemplateDefaultPaperColor(wedding.templateId)}
+                                    onChange={(event) => updateTheme("paperColor", event.target.value)}
+                                    className="h-8 w-12 cursor-pointer rounded-lg border-0 bg-transparent p-0"
+                                    aria-label="ជ្រើសរើសពណ៌ក្រដាស"
+                                />
+                            </label>
                         </div>
                         )}
                     </div>

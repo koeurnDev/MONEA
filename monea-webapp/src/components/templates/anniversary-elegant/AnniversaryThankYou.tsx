@@ -2,11 +2,10 @@ import React from 'react';
 import { m } from 'framer-motion';
 import { Heart, Sparkles } from 'lucide-react';
 import type { WeddingData } from '../types';
-import { getWeddingHeroImage, getWeddingPhotos } from "../shared/weddingPhotos";
+import { getWeddingSectionPhoto } from "../shared/weddingPhotos";
 
 export const AnniversaryThankYou = ({ wedding }: { wedding: WeddingData }) => {
-    const photos = getWeddingPhotos(wedding);
-    const thankYouPhoto = photos[4]?.url || photos[0]?.url || getWeddingHeroImage(wedding);
+    const thankYouPhoto = getWeddingSectionPhoto(wedding, 4)?.url;
 
     return (
         <section className="relative w-full overflow-hidden bg-gradient-to-b from-[#24191B] via-[#3A2527] to-[#1B1415] text-white py-16 sm:py-20 px-4 text-center font-kantumruy">

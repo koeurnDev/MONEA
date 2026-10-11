@@ -18,11 +18,31 @@ export const isDemoPhoto = (url?: string) => {
 };
 
 export const getWeddingPhotos = (wedding: WeddingData) => {
-    const photos = (wedding.galleryItems || []).filter(
-        (item) => item.url?.trim() && item.type?.toUpperCase() !== "VIDEO" && !isDemoPhoto(item.url),
-    );
-    const uploadedPhotos = photos.filter((item) => item.publicId);
-    return uploadedPhotos.length ? uploadedPhotos : photos;
+    return (wedding.galleryItems || []).filter((item) => {
+        if (!item || typeof item !== "object") return false;
+        const url = typeof item.url === "string" ? item.url.trim() : "";
+        if (!url) return false;
+        if (item.type?.toUpperCase() === "VIDEO") return false;
+        return !isDemoPhoto(url);
+    });
+};
+
+export const getWeddingPhotoAtSlot = (wedding: WeddingData, index: number) => {
+    const item = wedding.galleryItems?.[index];
+    if (!item || typeof item !== "object") return undefined;
+    const url = typeof item.url === "string" ? item.url.trim() : "";
+    if (!url) return undefined;
+    if (item.type?.toUpperCase() === "VIDEO" || isDemoPhoto(url)) return undefined;
+    return item;
+};
+
+export const getWeddingSectionPhoto = (wedding: WeddingData, index: number) => {
+    const hiddenSlots = new Set(wedding.themeSettings?.hiddenPhotoSlots || []);
+    if (hiddenSlots.has(index)) return undefined;
+
+    return getWeddingPhotoAtSlot(wedding, index)
+        || (index !== 1 && !hiddenSlots.has(1) ? getWeddingPhotoAtSlot(wedding, 1) : undefined)
+        || (index !== 0 && !hiddenSlots.has(0) ? getWeddingPhotoAtSlot(wedding, 0) : undefined);
 };
 
 export type ConfiguredPaymentAccount = {
@@ -58,11 +78,9 @@ export const getConfiguredPaymentAccounts = (accounts: unknown): ConfiguredPayme
 };
 
 export const getWeddingHeroImage = (wedding: WeddingData, fallback = "") => {
-    const uploadedPhoto = getWeddingPhotos(wedding).find((item) => item.publicId)?.url;
-    return uploadedPhoto
+    return getWeddingPhotoAtSlot(wedding, 0)?.url
         || (wedding.themeSettings?.heroImagePublicId && !isDemoPhoto(wedding.themeSettings.heroImage) ? wedding.themeSettings.heroImage : undefined)
         || (!isDemoPhoto(wedding.themeSettings?.heroImage) ? wedding.themeSettings?.heroImage : undefined)
         || (!isDemoPhoto(wedding.themeSettings?.coverImageUrl) ? wedding.themeSettings?.coverImageUrl : undefined)
-        || getWeddingPhotos(wedding)[0]?.url
         || (!isDemoPhoto(fallback) ? fallback : "");
 };

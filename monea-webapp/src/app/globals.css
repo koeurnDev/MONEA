@@ -6,6 +6,28 @@
   --primary: var(--monea-palette-primary);
 }
 
+.monea-paper-canvas {
+  background-color: var(--monea-paper-color, #f5f0e5) !important;
+  background-image: var(--monea-paper-texture, url("/khmer-invite-starter-kit/textures/paper-cream.webp"));
+  background-repeat: repeat;
+  background-size: 512px 512px;
+}
+
+.monea-paper-canvas section[class*="bg-white"],
+.monea-paper-canvas section[class*="bg-slate-50"],
+.monea-paper-canvas section[class*="bg-[#E"],
+.monea-paper-canvas section[class*="bg-[#e"],
+.monea-paper-canvas section[class*="bg-[#F"],
+.monea-paper-canvas section[class*="bg-[#f"],
+.monea-paper-canvas section[class*="bg-gradient-to-b"][class*="from-white"],
+.monea-paper-canvas section[class*="bg-gradient-to-b"][class*="from-[#F"] {
+  background-color: var(--monea-paper-color, #f5f0e5) !important;
+  background-image: var(--monea-paper-texture, url("/khmer-invite-starter-kit/textures/paper-cream.webp")) !important;
+  background-blend-mode: multiply !important;
+  background-repeat: repeat !important;
+  background-size: 512px 512px !important;
+}
+
 .monea-full-palette [class*="bg-rose-500"]:not([class*="/"]),
 .monea-full-palette [class*="bg-rose-600"]:not([class*="/"]),
 .monea-full-palette [class*="bg-rose-700"]:not([class*="/"]),
@@ -24,6 +46,7 @@
 .monea-full-palette [class*="bg-purple-500"]:not([class*="/"]),
 .monea-full-palette [class*="bg-pink-500"]:not([class*="/"]) {
   background-color: var(--monea-palette-primary) !important;
+  color: var(--monea-palette-on-primary) !important;
 }
 
 .monea-full-palette [class*="border-rose-"],

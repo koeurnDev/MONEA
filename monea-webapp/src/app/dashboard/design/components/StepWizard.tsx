@@ -183,8 +183,8 @@ export const StepWizard = ({ children, currentStep, weddingId, onSave, loading, 
                 </div>
 
                 {/* Main Content with visible subtle scrollbar */}
-                <div className="flex-1 overflow-y-auto p-2.5 sm:p-5 md:p-6 bg-slate-50/30 dark:bg-[#101014]/50 relative overscroll-contain [scrollbar-width:thin] [scrollbar-color:rgba(156,163,175,0.4)_transparent]">
-                    <div className="tour-step-content w-full max-w-[420px] mx-auto pb-5 sm:pb-8 space-y-3 sm:space-y-5">
+                <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-5 md:p-6 bg-slate-50/30 dark:bg-[#101014]/50 relative overscroll-contain [scrollbar-width:thin] [scrollbar-color:rgba(156,163,175,0.4)_transparent]">
+                    <div className="tour-step-content w-full max-w-[420px] mx-auto pb-[calc(env(safe-area-inset-bottom)+7rem)] sm:pb-8 space-y-3 sm:space-y-5">
                         {children}
 
                         {/* Mobile in-flow Action Navigation */}

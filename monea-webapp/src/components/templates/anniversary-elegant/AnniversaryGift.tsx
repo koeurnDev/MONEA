@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { m } from 'framer-motion';
 import { Copy, Check, QrCode, Gift, Sparkles } from 'lucide-react';
 import type { WeddingData } from '../types';
-import { getConfiguredPaymentAccounts, getWeddingHeroImage, getWeddingPhotos } from "../shared/weddingPhotos";
+import { getConfiguredPaymentAccounts, getWeddingSectionPhoto } from "../shared/weddingPhotos";
 
 export const AnniversaryGift = ({ wedding }: { wedding: WeddingData }) => {
     const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
@@ -17,11 +17,7 @@ export const AnniversaryGift = ({ wedding }: { wedding: WeddingData }) => {
         setTimeout(() => setCopiedIndex(null), 2000);
     };
 
-    const galleryPhotos = getWeddingPhotos(wedding);
-    const couplePhoto = galleryPhotos[3]?.url
-        || galleryPhotos[2]?.url
-        || galleryPhotos[0]?.url
-        || getWeddingHeroImage(wedding);
+    const couplePhoto = getWeddingSectionPhoto(wedding, 3)?.url;
 
     return (
         <section className="py-16 px-4 bg-[#F1ECE5] font-kantumruy relative overflow-hidden text-center" id="gifts">

@@ -75,6 +75,8 @@ export interface WeddingData {
     themeSettings?: {
         primaryColor?: string;
         colorPalettePreset?: string;
+        paperTexture?: string;
+        paperColor?: string;
         coverImageUrl?: string;
         loveStory?: string;
         nameFont?: string;

@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { m } from 'framer-motion';
 import { Label } from "@/components/ui/label";
 import { DebouncedInput } from "@/components/ui/debounced-input";
 import { DebouncedTextarea } from "@/components/ui/debounced-textarea";
@@ -16,9 +15,9 @@ const LABEL_SECTIONS = [
     {
         title: "ក្បាលទំព័រ និងការអញ្ជើញ",
         fields: [
-            { key: 'invite_title', label: "ចំណងជើងធៀបការ", type: 'input', placeholder: "ឧ. សិរីសួស្តី អាពាហ៍ពិពាហ៍" },
-            { key: 'hero_subtitle', label: "ពាក្យស្វាគមន៍លើរូបភាព", type: 'input', placeholder: "ឧ. យើងខ្ញុំសូមគោរពអញ្ជើញ..." },
-            { key: 'hero_button', label: "ប៊ូតុងបើកសំបុត្រ", type: 'input', placeholder: "ឧ. បើកសំបុត្រអញ្ជើញ" },
+            { key: 'invitationTitle', legacyKey: 'invite_title', label: "ចំណងជើងធៀបការ", type: 'input', placeholder: "ឧ. សិរីសួស្តី អាពាហ៍ពិពាហ៍" },
+            { key: 'heroSubtitle', legacyKey: 'hero_subtitle', label: "ពាក្យស្វាគមន៍លើរូបភាព", type: 'input', placeholder: "ឧ. យើងខ្ញុំសូមគោរពអញ្ជើញ..." },
+            { key: 'heroButton', legacyKey: 'hero_button', label: "ប៊ូតុងបើកសំបុត្រ", type: 'input', placeholder: "ឧ. បើកសំបុត្រអញ្ជើញ" },
             { key: 'invitationText', label: "ខ្លឹមសារលិខិតអញ្ជើញ", type: 'textarea', placeholder: "ខ្លឹមសារលម្អិតនៃលិខិតអញ្ជើញ..." }
         ]
     },
@@ -33,7 +32,7 @@ const LABEL_SECTIONS = [
     {
         title: "រូបថត និងការជូនពរ",
         fields: [
-            { key: 'gallery_title', label: "ចំណងជើងរូបថត", type: 'input', placeholder: "ឧ. កម្រងរូបភាពអនុស្សាវរីយ៍" },
+            { key: 'galleryTitle', legacyKey: 'gallery_title', label: "ចំណងជើងរូបថត", type: 'input', placeholder: "ឧ. កម្រងរូបភាពអនុស្សាវរីយ៍" },
             { key: 'guestbookTitle', label: "ចំណងជើងសៀវភៅជូនពរ", type: 'input', placeholder: "ឧ. សៀវភៅជូនពរ" },
             { key: 'giftTitle', label: "ចំណងជើងចំណងដៃ", type: 'input', placeholder: "ឧ. ចូលរួមជូនពរ & ចំណងដៃ" },
             { key: 'giftBadge', label: "ស្លាកលើ QR", type: 'input', placeholder: "ឧ. ស្កេន KHQR ដើម្បីចងដៃ" }
@@ -42,13 +41,12 @@ const LABEL_SECTIONS = [
 ];
 
 export function LabelsSection({ wedding, updateTheme, updateLabel, t }: LabelsSectionProps) {
+    const customLabels = wedding.themeSettings?.customLabels;
+
     return (
         <div className="space-y-6 pt-2 font-kantumruy">
             {LABEL_SECTIONS.map((section, sIdx) => (
-                <m.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: sIdx * 0.05 }}
+                <div
                     key={sIdx}
                     className="space-y-3"
                 >
@@ -64,14 +62,16 @@ export function LabelsSection({ wedding, updateTheme, updateLabel, t }: LabelsSe
                                 {field.type === 'textarea' ? (
                                     <DebouncedTextarea
                                         placeholder={field.placeholder}
-                                        value={field.key === 'invitationText' ? (wedding.themeSettings?.invitationText || "") : ((wedding.themeSettings?.customLabels as any)?.[field.key] || "")}
+                                        value={field.key === 'invitationText'
+                                            ? (wedding.themeSettings?.invitationText || "")
+                                            : (customLabels?.[field.key] || (field.legacyKey ? customLabels?.[field.legacyKey] : "") || "")}
                                         onDebouncedChange={(val) => field.key === 'invitationText' ? updateTheme('invitationText', val) : updateLabel(field.key, val)}
                                         className="min-h-[75px] rounded-xl border border-slate-200/80 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 p-3 text-xs font-medium text-foreground focus-visible:ring-2 focus-visible:ring-teal-500/20 placeholder:text-muted-foreground/60 shadow-sm"
                                     />
                                 ) : (
                                     <DebouncedInput
                                         placeholder={field.placeholder}
-                                        value={(wedding.themeSettings?.customLabels as any)?.[field.key] || ""}
+                                        value={customLabels?.[field.key] || (field.legacyKey ? customLabels?.[field.legacyKey] : "") || ""}
                                         onDebouncedChange={(val) => updateLabel(field.key, val as string)}
                                         className="h-10 rounded-xl border border-slate-200/80 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 px-3.5 text-xs font-medium text-foreground focus-visible:ring-2 focus-visible:ring-teal-500/20 placeholder:text-muted-foreground/60 shadow-sm"
                                     />
@@ -79,7 +79,7 @@ export function LabelsSection({ wedding, updateTheme, updateLabel, t }: LabelsSe
                             </div>
                         ))}
                     </div>
-                </m.div>
+                </div>
             ))}
         </div>
     );

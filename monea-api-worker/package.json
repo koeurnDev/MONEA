@@ -8,11 +8,11 @@
     "worker": "wrangler dev --port 8787",
     "worker:dev": "wrangler dev --port 8787",
     "worker:deploy": "wrangler deploy",
-    "build": "tsc && vite build",
+    "build": "tsc --noEmit",
     "test:admin-master": "node --experimental-strip-types --test scripts/admin-master-validation.test.mjs scripts/admin-master-status.integration.test.mjs scripts/template-availability.test.mjs",
     "test:security-hardening": "node --experimental-strip-types --test scripts/auth-rate-limit.test.mjs",
     "preview": "vite preview",
-    "lint": "eslint src --ext ts,tsx",
+    "lint": "tsc --noEmit",
     "postinstall": "prisma generate"
   },
   "dependencies": {

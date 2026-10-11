@@ -58,11 +58,16 @@ for (const file of files) {
   const source = read(file);
   for (const pattern of SOURCES) {
     for (const match of source.matchAll(pattern)) {
-      const url = match[1];
+      const rawUrl = match[1];
       const next = source[match.index + match[0].length];
       // A template literal (`/dashboard?w=${id}`) is not a static target, and
       // `/api/...` is an endpoint rather than a route.
-      if (next === '{' || url.includes('$') || url.includes('{') || url.startsWith('/api/')) continue;
+      if (next === '{' || rawUrl.includes('$') || rawUrl.includes('{') || rawUrl.startsWith('/api/')) continue;
+      // Skip static assets (images, SVGs, textures, fonts, etc.)
+      if (/\.(?:svg|webp|png|jpe?g|gif|ico|css|js|mp3|mp4|webm|json)$/i.test(rawUrl) ||
+          /^\/(?:assets|images|khmer-invite-starter-kit|element)\//.test(rawUrl)) continue;
+
+      const url = rawUrl.split('#')[0] || '/';
       if (!links.has(url)) links.set(url, new Set());
       links.get(url).add(path.relative(SRC, file));
     }
@@ -104,6 +109,10 @@ section('Dashboard routes with no in-app entry point');
 const INTENTIONAL_REDIRECTS = {
   '/dashboard/settings': 'legacy alias -> /dashboard/account',
   '/staff/dashboard': 'legacy entry -> /dashboard/gifts (staff sign in to /dashboard)',
+  '/dashboard/schedule': 'legacy redirect -> /dashboard',
+  '/dashboard/notes': 'legacy redirect -> /dashboard',
+  '/dashboard/reports': 'legacy redirect -> /dashboard',
+  '/dashboard/guide': 'legacy redirect -> /dashboard',
 };
 
 const dashboardRoutes = routes.filter((r) => r.startsWith('/dashboard') || r.startsWith('/staff'));

@@ -52,8 +52,8 @@ export const FortuneHarmony: React.FC<TemplateProps> = ({ wedding, guestName, co
 
     return (
         <div 
-            style={getTemplatePaletteStyles(wedding.themeSettings, "#D4AF37")}
-            className="monea-full-palette m05-type-system w-full font-kantumruy bg-[#FDFBF7] text-[#2d352b] relative min-h-screen selection:bg-amber-400 selection:text-red-950"
+            style={getTemplatePaletteStyles(wedding.themeSettings, "#D4AF37", "#FDFBF7")}
+            className="monea-full-palette monea-paper-canvas m05-type-system w-full font-kantumruy bg-[#FDFBF7] text-[#2d352b] relative min-h-screen selection:bg-amber-400 selection:text-red-950"
         >
             {/* Background Audio */}
             {musicUrl && (
@@ -81,7 +81,7 @@ export const FortuneHarmony: React.FC<TemplateProps> = ({ wedding, guestName, co
             )}
 
             {revealed && (
-            <main className="relative z-10 mx-auto flex min-h-screen max-w-[540px] flex-col overflow-hidden bg-transparent shadow-2xl">
+            <main className="monea-paper-canvas relative z-10 mx-auto flex min-h-screen max-w-[540px] flex-col overflow-hidden bg-transparent shadow-2xl">
                 <div className="absolute inset-0 bg-[#f7f2eb]/5" />
                 {/* 1. Hero Section */}
                 <HeroSection wedding={wedding} primaryColor={primaryColor} />

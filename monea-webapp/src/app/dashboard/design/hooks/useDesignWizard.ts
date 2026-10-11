@@ -7,6 +7,13 @@ import type { WeddingData } from "@/components/templates/types";
 import { moneaClient } from "@/lib/api-client";
 import { getTemplateConfig, getTemplatesForEventType } from "@/components/templates/template-config";
 import { DEFAULT_WEDDING } from "@/data/wedding";
+import { createSerialTaskQueue } from "@/lib/serial-task-queue";
+import { normalizeWeddingActivities } from "@/lib/wedding-activities";
+import {
+    DEFAULT_WEDDING_ACTIVITIES,
+    getDefaultActivitiesForEventType,
+    matchesDefaultActivities,
+} from "@/lib/wedding-activity-defaults";
 
 export { DEFAULT_WEDDING } from "@/data/wedding";
 
@@ -66,6 +73,22 @@ export const TEMPLATE_LAYOUTS: Record<string, { slots: number, labels: string[] 
             "wizard.steps.4.slots.bride"
         ] 
     },
+    "fortune-harmony": {
+        slots: 11,
+        labels: [
+            "wizard.steps.4.slots.hero",
+            "wizard.steps.4.slots.editorial1",
+            "wizard.steps.4.slots.editorial2",
+            "wizard.steps.4.slots.editorial3",
+            "wizard.steps.4.slots.editorial4",
+            "wizard.steps.4.slots.map",
+            "wizard.steps.4.slots.sig1",
+            "wizard.steps.4.slots.sig2",
+            "wizard.steps.4.slots.sig3",
+            "wizard.steps.4.slots.groom",
+            "wizard.steps.4.slots.bride"
+        ]
+    },
     "anniversary-elegant": { 
         slots: 11, 
         labels: [
@@ -114,6 +137,22 @@ export const TEMPLATE_LAYOUTS: Record<string, { slots: number, labels: string[] 
             "wizard.steps.4.slots.bride"
         ]
     },
+    "emerald-garden": {
+        slots: 11,
+        labels: [
+            "wizard.steps.4.slots.hero",
+            "wizard.steps.4.slots.editorial1",
+            "wizard.steps.4.slots.editorial2",
+            "wizard.steps.4.slots.editorial3",
+            "wizard.steps.4.slots.editorial4",
+            "wizard.steps.4.slots.map",
+            "wizard.steps.4.slots.sig1",
+            "wizard.steps.4.slots.sig2",
+            "wizard.steps.4.slots.sig3",
+            "wizard.steps.4.slots.groom",
+            "wizard.steps.4.slots.bride"
+        ]
+    },
 };
 
 const getEditorDefaults = (isPlatformAdmin: boolean): WeddingData => {
@@ -133,7 +172,7 @@ const getEditorDefaults = (isPlatformAdmin: boolean): WeddingData => {
             parents: {},
         },
         galleryItems: [],
-        activities: DEFAULT_WEDDING.activities.map((activity) => ({ ...activity })),
+        activities: DEFAULT_WEDDING_ACTIVITIES.map((activity) => ({ ...activity })),
     };
 };
 
@@ -144,6 +183,53 @@ export const STEPS = [
     { id: 4 },
     { id: 5 }
 ];
+
+function decodeHtmlEntities(str: any): any {
+    if (typeof str !== 'string') return str;
+    let decoded = str;
+    for (let i = 0; i < 5; i++) {
+        const next = decoded
+            .replace(/&amp;/g, '&')
+            .replace(/&#x2F;/g, '/')
+            .replace(/&#x27;/g, "'")
+            .replace(/&quot;/g, '"')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>');
+        if (next === decoded) break;
+        decoded = next;
+    }
+    return decoded;
+}
+
+function deepDecodeEntities(obj: any): any {
+    if (!obj || typeof obj !== 'object') {
+        return typeof obj === 'string' ? decodeHtmlEntities(obj) : obj;
+    }
+    if (Array.isArray(obj)) {
+        return obj.map(deepDecodeEntities);
+    }
+    const res: any = {};
+    for (const k of Object.keys(obj)) {
+        res[k] = deepDecodeEntities(obj[k]);
+    }
+    return res;
+}
+
+function getPayloadSnapshot(data: WeddingData | null) {
+    if (!data) return null;
+    return JSON.stringify({
+        id: data.id,
+        templateId: data.templateId,
+        groomName: data.groomName,
+        brideName: data.brideName,
+        date: data.date,
+        location: data.location,
+        themeSettings: data.themeSettings,
+        galleryItems: data.galleryItems,
+        activities: data.activities,
+        eventType: data.eventType
+    });
+}
 
 export function useDesignWizard() {
     // --- State Initialization ---
@@ -185,7 +271,14 @@ export function useDesignWizard() {
 
     // Refs & Hooks
     const iframeRef = useRef<HTMLIFrameElement>(null);
-    const { uploadFiles, uploading: galleryUploading, progress: galleryProgress } = useCloudinary({
+    const {
+        uploadFiles,
+        retryFailedUploads,
+        uploading: galleryUploading,
+        progress: galleryProgress,
+        error: galleryUploadError,
+        failedFileCount: failedGalleryFileCount,
+    } = useCloudinary({
         folder: wedding?.id || idFromUrl || ""
     });
 
@@ -208,37 +301,6 @@ export function useDesignWizard() {
         if (authLoading) return;
         const editorDefaults = getEditorDefaults(isPlatformAdmin);
         if (isLoadedRef.current) return;
-
-function decodeHtmlEntities(str: any): any {
-    if (typeof str !== 'string') return str;
-    let decoded = str;
-    for (let i = 0; i < 5; i++) {
-        const next = decoded
-            .replace(/&amp;/g, '&')
-            .replace(/&#x2F;/g, '/')
-            .replace(/&#x27;/g, "'")
-            .replace(/&quot;/g, '"')
-            .replace(/&lt;/g, '<')
-            .replace(/&gt;/g, '>');
-        if (next === decoded) break;
-        decoded = next;
-    }
-    return decoded;
-}
-
-function deepDecodeEntities(obj: any): any {
-    if (!obj || typeof obj !== 'object') {
-        return typeof obj === 'string' ? decodeHtmlEntities(obj) : obj;
-    }
-    if (Array.isArray(obj)) {
-        return obj.map(deepDecodeEntities);
-    }
-    const res: any = {};
-    for (const k of Object.keys(obj)) {
-        res[k] = deepDecodeEntities(obj[k]);
-    }
-    return res;
-}
 
         if (swrWedding) {
             if (swrWedding.id) {
@@ -273,6 +335,7 @@ function deepDecodeEntities(obj: any): any {
                     data.galleryItems = reconstructed;
                 }
 
+                const savedActivities = Array.isArray(data.activities) ? data.activities : [];
                 const loadedWedding = {
                     ...editorDefaults,
                     ...data,
@@ -286,10 +349,13 @@ function deepDecodeEntities(obj: any): any {
                         ...(data.themeSettings || {})
                     },
                     galleryItems: data.galleryItems || [],
-                    activities: data.activities || []
+                    activities: normalizeWeddingActivities(savedActivities)
                 };
                 setWedding(loadedWedding);
-                lastSavedSnapshotRef.current = getPayloadSnapshot(loadedWedding);
+                lastSavedSnapshotRef.current = getPayloadSnapshot({
+                    ...loadedWedding,
+                    activities: savedActivities,
+                });
                 isLoadedRef.current = true;
             } else {
                 // No wedding yet — use default, apply templateId from URL if provided
@@ -308,7 +374,7 @@ function deepDecodeEntities(obj: any): any {
         } else {
             setLoading(true);
         }
-    }, [swrWedding, swrError, authLoading, isPlatformAdmin]);
+    }, [swrWedding, swrError, authLoading, isPlatformAdmin, templateIdFromUrl]);
 
     // --- Progress Calculation ---
     useEffect(() => {
@@ -318,7 +384,7 @@ function deepDecodeEntities(obj: any): any {
         if (wedding.date) p += 20;
         if (wedding.location?.trim()) p += 20;
         if (wedding.themeSettings?.heroImage) p += 20;
-        const galleryCount = wedding.galleryItems?.filter(i => i.url && !i.url.includes('cover')).length || 0;
+        const galleryCount = (wedding.galleryItems || []).filter((i) => i && typeof i === 'object' && typeof i.url === 'string' && i.url.trim() && !i.url.includes('cover')).length;
         if (galleryCount > 0) p += 20;
         setProgress(p);
     }, [wedding]);
@@ -328,22 +394,6 @@ function deepDecodeEntities(obj: any): any {
     const lastSavedSnapshotRef = useRef<string | null>(null);
     const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
     weddingRef.current = wedding;
-
-    const getPayloadSnapshot = useCallback((data: WeddingData | null) => {
-        if (!data) return null;
-        return JSON.stringify({
-            id: data.id,
-            templateId: data.templateId,
-            groomName: data.groomName,
-            brideName: data.brideName,
-            date: data.date,
-            location: data.location,
-            themeSettings: data.themeSettings,
-            galleryItems: data.galleryItems,
-            activities: data.activities,
-            eventType: data.eventType
-        });
-    }, []);
 
     // Dirty state: true when active wedding state differs from the last saved snapshot
     const isDirty = Boolean(
@@ -365,7 +415,7 @@ function deepDecodeEntities(obj: any): any {
     }, [isDirty, loading]);
 
     // --- Save Logic ---
-    const saveChanges = useCallback(async (manualData?: WeddingData, options: { silent?: boolean } = {}): Promise<boolean> => {
+    const performSaveChanges = useCallback(async (manualData?: WeddingData, options: { silent?: boolean } = {}): Promise<boolean> => {
         const { silent = false } = options;
         const data = manualData || weddingRef.current;
         if (!data) return false;
@@ -454,16 +504,20 @@ function deepDecodeEntities(obj: any): any {
         } finally {
             if (!silent) setLoading(false);
         }
-    }, [mutate, getPayloadSnapshot]);
+    }, [mutate]);
+
+    const saveQueueRef = useRef(createSerialTaskQueue());
+    const saveChanges = useCallback((manualData?: WeddingData, options: { silent?: boolean } = {}): Promise<boolean> => {
+        return saveQueueRef.current(() => performSaveChanges(manualData, options))
+            .catch((error) => {
+                console.error("Previous wedding save failed unexpectedly:", error);
+                return false;
+            });
+    }, [performSaveChanges]);
 
     // Auto-save: Every time wedding state changes, automatically save to database after 1000ms debounce
-    const isInitialMount = useRef(true);
     useEffect(() => {
         if (!mounted || !wedding) return;
-        if (isInitialMount.current) {
-            isInitialMount.current = false;
-            return;
-        }
 
         const timer = setTimeout(() => {
             saveChanges(wedding, { silent: true });
@@ -584,6 +638,14 @@ function deepDecodeEntities(obj: any): any {
             if (!prev) return null;
 
             const normalizedType = type === 'anniversary' ? 'anniversary' : 'wedding';
+            const previousType = prev.eventType === "anniversary" ? "anniversary" : "wedding";
+            const previousDefaults = getDefaultActivitiesForEventType(previousType);
+            const shouldUpdateDefaultActivities = prev.eventType === undefined
+                ? matchesDefaultActivities(prev.activities, DEFAULT_WEDDING_ACTIVITIES)
+                : matchesDefaultActivities(prev.activities, previousDefaults);
+            const activities = shouldUpdateDefaultActivities
+                ? getDefaultActivitiesForEventType(normalizedType).map((activity) => ({ ...activity }))
+                : prev.activities;
             const allowedTemplates = allowedTemplateIds
                 ? [...allowedTemplateIds]
                 : getTemplatesForEventType(normalizedType).map((template) => template.id);
@@ -592,7 +654,7 @@ function deepDecodeEntities(obj: any): any {
             const isCurrentTemplateAllowed = !!currentTemplate && allowedTemplates.includes(currentTemplate);
             const nextTemplate = isCurrentTemplateAllowed ? currentTemplate : (allowedTemplates[0] || currentTemplate);
             if (!nextTemplate) {
-                return { ...prev, eventType: normalizedType };
+                return { ...prev, eventType: normalizedType, activities };
             }
 
             const config = getTemplateConfig(nextTemplate);
@@ -600,6 +662,7 @@ function deepDecodeEntities(obj: any): any {
                 ...prev,
                 eventType: normalizedType,
                 templateId: nextTemplate,
+                activities,
                 themeSettings: {
                     ...(prev.themeSettings || {}),
                     ...(config?.primaryColor ? { primaryColor: config.primaryColor } : {}),
@@ -696,7 +759,7 @@ function deepDecodeEntities(obj: any): any {
         });
     }, [mutate, deleteCloudinaryAsset, saveChanges]);
 
-    const handleGalleryDirectUpload = async (files: FileList) => {
+    const handleGalleryDirectUpload = async (files: FileList | File[]) => {
         const fileArray = Array.from(files);
         const uploadedItems = await uploadFiles(fileArray);
         if (uploadedItems.length > 0) {
@@ -706,7 +769,11 @@ function deepDecodeEntities(obj: any): any {
                     ...prev,
                     galleryItems: [
                         ...(prev.galleryItems || []),
-                        ...uploadedItems.map(item => ({ url: item.url, publicId: item.publicId, type: 'IMAGE' }))
+                        ...uploadedItems.map(item => ({
+                            url: item.url,
+                            publicId: item.publicId,
+                            type: item.type || 'IMAGE',
+                        }))
                     ]
                 };
                 mutate(updated, false);
@@ -819,7 +886,7 @@ function deepDecodeEntities(obj: any): any {
         templateVersions, fetchingVersions, newVersionTitle, setNewVersionTitle,
         isSavingVersion, rollbackConfirm, setRollbackConfirm, rollbackLoading,
         deleteVersionConfirm, setDeleteVersionConfirm, saveToast, versionToast,
-        iframeRef, galleryUploading, galleryProgress,
+        iframeRef, galleryUploading, galleryProgress, galleryUploadError, failedGalleryFileCount, retryGalleryUpload: retryFailedUploads,
         loadError: swrError,
         retryLoad: () => mutate(),
         updateWedding, updateTheme, removeThemeAsset, updateLabel, updateParent,

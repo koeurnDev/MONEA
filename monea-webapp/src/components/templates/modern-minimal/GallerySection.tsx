@@ -2,10 +2,13 @@ import React, { useState } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
 import { WeddingData } from "../types";
 import { getWeddingPhotos } from "../shared/weddingPhotos";
+import { getGalleryCardClass, getGalleryContainerClass, getGalleryDisplayStyle, getGalleryImageClass } from "../shared/gallery-layout";
+import { PhotoImage } from "../shared/PhotoImage";
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const GallerySection = ({ wedding }: { wedding: WeddingData }) => {
     const validImages = getWeddingPhotos(wedding).map((item) => item.url.trim());
+    const galleryStyle = getGalleryDisplayStyle(wedding.themeSettings?.galleryStyle);
 
     const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
 
@@ -31,12 +34,8 @@ export const GallerySection = ({ wedding }: { wedding: WeddingData }) => {
                 </m.div>
 
                 {/* Clean Masonry Collage Grid without blank grey boxes */}
-                <div className="columns-2 md:columns-3 gap-3 md:gap-5 space-y-3 md:space-y-5">
+                <div className={getGalleryContainerClass(galleryStyle)}>
                     {validImages.map((url, idx) => {
-                        const aspectClass = idx % 3 === 0 ? "aspect-[3/4]" 
-                                          : idx % 2 === 0 ? "aspect-[4/5]" 
-                                          : "aspect-square";
-                        
                         return (
                             <m.div
                                 key={idx}
@@ -46,12 +45,12 @@ export const GallerySection = ({ wedding }: { wedding: WeddingData }) => {
                                 viewport={{ once: true }}
                                 whileTap={{ scale: 0.98 }}
                                 onClick={() => setSelectedIdx(idx)}
-                                className={`relative w-full overflow-hidden rounded-2xl cursor-pointer group shadow-sm hover:shadow-lg transition-all duration-300 break-inside-avoid ${aspectClass}`}
+                                className={`relative overflow-hidden rounded-2xl cursor-pointer group shadow-sm hover:shadow-lg transition-all duration-300 ${getGalleryCardClass(galleryStyle, idx)}`}
                             >
-                                <img
+                                <PhotoImage
                                     src={url}
                                     alt={`Gallery ${idx + 1}`} 
-                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                    className={`${getGalleryImageClass(galleryStyle)} transition-transform duration-700 group-hover:scale-105`}
                                     loading="lazy"
                                 />
                             </m.div>
@@ -108,7 +107,7 @@ export const GallerySection = ({ wedding }: { wedding: WeddingData }) => {
                             className="max-w-5xl max-h-[85vh] w-full flex items-center justify-center p-2"
                             onClick={(e) => e.stopPropagation()}
                         >
-                            <img
+                            <PhotoImage
                                 src={validImages[selectedIdx]}
                                 alt="Full preview"
                                 className="max-w-full max-h-[82vh] object-contain rounded-xl shadow-2xl"

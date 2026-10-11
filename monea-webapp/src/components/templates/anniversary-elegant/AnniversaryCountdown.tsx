@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { m } from 'framer-motion';
 import { Clock, Heart } from 'lucide-react';
 import type { WeddingData } from '../types';
+import { getWeddingSectionPhoto } from "../shared/weddingPhotos";
 
 export const AnniversaryCountdown = ({ wedding }: { wedding: WeddingData }) => {
     const { date } = wedding;
@@ -45,8 +46,7 @@ export const AnniversaryCountdown = ({ wedding }: { wedding: WeddingData }) => {
         return () => clearInterval(interval);
     }, [date]);
 
-    const countdownPhoto = wedding.galleryItems?.[1]?.url || 
-                           wedding.galleryItems?.[0]?.url || 
+    const countdownPhoto = getWeddingSectionPhoto(wedding, 1)?.url ||
                            '/assets/khmer-legacy/621811002_905396558712142_5126771807004187076_n.jpg';
 
     if (!date) return null;

@@ -157,7 +157,7 @@ export const DashboardSidebar = memo(function DashboardSidebar({ onCloseMobile, 
                 ],
             },
         ];
-    }, [isStaff, isSuperAdmin, canAccessWeddingFeatures, t]);
+    }, [isStaff, isSuperAdmin, canAccessWeddingFeatures, t, user?.email, user?.name]);
 
     return (
         <div className="flex flex-col h-full bg-card relative">

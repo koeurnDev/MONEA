@@ -81,7 +81,7 @@ const Step3Time: React.FC<Step3TimeProps> = ({ wedding, updateWedding, updateThe
         if (lunarDate && lunarDate !== wedding.themeSettings?.lunarDate) {
             updateTheme("lunarDate", lunarDate);
         }
-    }, [wedding.date]);
+    }, [wedding.date, wedding.themeSettings?.lunarDate, updateTheme]);
 
     const handleDateChange = (dateVal: string) => {
         if (!dateVal) return;
@@ -159,22 +159,22 @@ const Step3Time: React.FC<Step3TimeProps> = ({ wedding, updateWedding, updateThe
     };
 
     return (
-        <div className="space-y-6 font-kantumruy">
-            <div className="rounded-2xl border border-teal-200/70 bg-teal-50/60 p-4 dark:border-teal-500/20 dark:bg-teal-500/5">
+        <div className="space-y-3 sm:space-y-6 font-kantumruy">
+            <div className="rounded-2xl border border-teal-200/70 bg-teal-50/60 p-3 sm:p-4 dark:border-teal-500/20 dark:bg-teal-500/5">
                 <div className="flex flex-wrap items-center gap-2">
                     <h3 className="text-sm font-black text-foreground">ថ្ងៃ និងទីតាំងកម្មវិធី</h3>
                     <span className="rounded-full bg-rose-500/10 px-2 py-0.5 text-[10px] font-bold text-rose-600 dark:text-rose-400">ត្រូវបំពេញ</span>
                 </div>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground sm:text-xs">
                     {t("wizard.steps.3.requiredIntro", { defaultValue: "សូមបញ្ចូលថ្ងៃ ទីតាំង និង Google Maps link។ ម៉ោងអាចរំលងបាន។" })}
                 </p>
             </div>
 
             {/* Date & Location Fields */}
-            <div className="space-y-5">
+            <div className="space-y-3 sm:space-y-5">
                 {/* Event Date & Time Grid */}
-                <div className="space-y-2.5 bg-slate-50/50 dark:bg-white/[0.02] p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-white/10">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div className="space-y-2.5 bg-slate-50/50 dark:bg-white/[0.02] p-3 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-white/10">
+                    <div className="grid grid-cols-2 gap-2 sm:gap-3.5">
                         {/* 1. Date Picker */}
                         <div className="space-y-1.5">
                             <Label className="block text-xs font-bold text-foreground">
@@ -221,7 +221,7 @@ const Step3Time: React.FC<Step3TimeProps> = ({ wedding, updateWedding, updateThe
                     )}
                 </div>
 
-                <div className="space-y-2.5 bg-slate-50/50 dark:bg-white/[0.02] p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-white/10">
+                <div className="space-y-2.5 bg-slate-50/50 dark:bg-white/[0.02] p-3 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-white/10">
                     <Label className="block text-xs font-bold text-foreground">
                         ឈ្មោះទីតាំងកម្មវិធី <span className="text-teal-500">*</span>
                     </Label>
@@ -236,7 +236,7 @@ const Step3Time: React.FC<Step3TimeProps> = ({ wedding, updateWedding, updateThe
                 </div>
 
                 {/* Required Google Maps link */}
-                <section className="space-y-3 rounded-2xl border border-teal-200/80 bg-teal-50/40 p-4 dark:border-teal-500/20 dark:bg-teal-500/[0.03] sm:p-5">
+                <section className="space-y-2.5 rounded-2xl border border-teal-200/80 bg-teal-50/40 p-3 dark:border-teal-500/20 dark:bg-teal-500/[0.03] sm:space-y-3 sm:p-5">
                     <div className="flex items-center justify-between gap-3">
                         <Label htmlFor="wedding-map-link" className="text-xs font-bold text-foreground">
                             {t("wizard.steps.3.mapLabel", { defaultValue: "ទីតាំងលើ Google Maps" })}
@@ -252,7 +252,17 @@ const Step3Time: React.FC<Step3TimeProps> = ({ wedding, updateWedding, updateThe
                             {t("wizard.steps.3.mapOpen", { defaultValue: "បើក Google Maps" })}
                         </a>
                     </div>
-                    <ol className="list-decimal space-y-1 pl-5 text-[11px] leading-relaxed text-muted-foreground">
+                    <details className="rounded-xl border border-teal-200/60 bg-white/70 px-3 py-2 text-[11px] text-muted-foreground dark:border-teal-500/20 dark:bg-black/10 sm:hidden">
+                        <summary className="cursor-pointer font-bold text-teal-700 dark:text-teal-300">
+                            របៀបយក Link ពី Google Maps
+                        </summary>
+                        <ol className="mt-2 list-decimal space-y-1 pl-5 leading-relaxed">
+                            <li>{t("wizard.steps.3.mapStep1", { defaultValue: "បើក Google Maps ហើយស្វែងរកឈ្មោះទីតាំងកម្មវិធី។" })}</li>
+                            <li>{t("wizard.steps.3.mapStep2", { defaultValue: "ចុច ឬចុចឲ្យជាប់លើទីតាំង រួចជ្រើសរើស «ចែករំលែក» (Share)។" })}</li>
+                            <li>{t("wizard.steps.3.mapStep3", { defaultValue: "ចុច «ចម្លងតំណ» (Copy link) ហើយយកមកបិទភ្ជាប់ក្នុងប្រអប់ខាងក្រោម។" })}</li>
+                        </ol>
+                    </details>
+                    <ol className="hidden list-decimal space-y-1 pl-5 text-[11px] leading-relaxed text-muted-foreground sm:block">
                         <li>{t("wizard.steps.3.mapStep1", { defaultValue: "បើក Google Maps ហើយស្វែងរកឈ្មោះទីតាំងកម្មវិធី។" })}</li>
                         <li>{t("wizard.steps.3.mapStep2", { defaultValue: "ចុច ឬចុចឲ្យជាប់លើទីតាំង រួចជ្រើសរើស «ចែករំលែក» (Share)។" })}</li>
                         <li>{t("wizard.steps.3.mapStep3", { defaultValue: "ចុច «ចម្លងតំណ» (Copy link) ហើយយកមកបិទភ្ជាប់ក្នុងប្រអប់ខាងក្រោម។" })}</li>
@@ -273,18 +283,18 @@ const Step3Time: React.FC<Step3TimeProps> = ({ wedding, updateWedding, updateThe
                     )}
                 </section>
 
-                <section className="space-y-4 rounded-2xl border border-slate-200/80 bg-white p-4 dark:border-white/10 dark:bg-white/[0.02] sm:p-5">
+                <section className="space-y-3 rounded-2xl border border-slate-200/80 bg-white p-3 dark:border-white/10 dark:bg-white/[0.02] sm:space-y-4 sm:p-5">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <div className="flex min-w-0 items-start gap-3">
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-500/10 text-teal-700 dark:text-teal-300">
-                                <CalendarDays className="h-5 w-5" />
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-teal-500/10 text-teal-700 dark:text-teal-300 sm:h-10 sm:w-10">
+                            <CalendarDays className="h-4 w-4 sm:h-5 sm:w-5" />
                             </div>
                             <div>
                                 <h3 className="text-sm font-black text-foreground">
                                     {isAnniv ? "កម្មវិធីសិរីមង្គលភ្ជាប់ពាក្យ" : "កម្មវិធីសិរីមង្គលអាពាហ៍ពិពាហ៍"}
                                 </h3>
                                 <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                                    មានកម្មវិធីគំរូស្រាប់។ អ្នកអាចកែចំណងជើង ម៉ោង និងព័ត៌មាន ឬបន្ថែមកម្មវិធីថ្មីបាន។
+                                    នេះជាកម្មវិធីគំរូប៉ុណ្ណោះ។ សូមកែម៉ោង និងពិធីឱ្យត្រូវនឹងកម្មវិធីគ្រួសារអ្នក ឬលុបវគ្គដែលមិនប្រើ។
                                 </p>
                             </div>
                         </div>
@@ -294,7 +304,7 @@ const Step3Time: React.FC<Step3TimeProps> = ({ wedding, updateWedding, updateThe
                     </div>
 
                     {wedding.activities.map((activity, index) => (
-                        <div key={index} className="space-y-3 rounded-xl border border-slate-200/80 bg-slate-50/70 p-3.5 dark:border-white/10 dark:bg-black/10 sm:p-4">
+                        <div key={index} className="space-y-2.5 rounded-xl border border-slate-200/80 bg-slate-50/70 p-2.5 dark:border-white/10 dark:bg-black/10 sm:space-y-3 sm:p-4">
                             <div className="flex items-center justify-between gap-3">
                                 <div className="flex min-w-0 items-center gap-2">
                                     <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-teal-600 text-xs font-black text-white">

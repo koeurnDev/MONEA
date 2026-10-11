@@ -6,6 +6,7 @@ import { km } from 'date-fns/locale';
 import { WeddingData } from "../types";
 import { useImagePan } from '../shared/CinematicComponents';
 import { getWeddingHeroImage } from "../shared/weddingPhotos";
+import { PhotoImage } from "../shared/PhotoImage";
 
 export const HeroSection = ({ wedding }: { wedding: WeddingData }) => {
     const { date, groomName, brideName } = wedding;
@@ -53,7 +54,7 @@ export const HeroSection = ({ wedding }: { wedding: WeddingData }) => {
                 onTouchStart={heroPan.onStart}
                 title="អូសដើម្បីតម្រឹមរូប (Drag to adjust)"
             >
-                <img 
+                <PhotoImage
                     src={heroImage}
                     alt="Cover" 
                     className="w-full h-full object-cover opacity-90 transform scale-[1.04] transition-transform duration-1000 pointer-events-none"
@@ -81,12 +82,15 @@ export const HeroSection = ({ wedding }: { wedding: WeddingData }) => {
                 className="relative z-10 text-center px-4 pb-10 sm:pb-14 flex flex-col items-center space-y-5 max-w-lg mx-auto"
             >
                 <div className="flex max-w-full flex-col items-center gap-2 text-slate-900 drop-shadow-[0_2px_12px_rgba(255,255,255,0.9)]">
-                    <h1 className="m05-font-name max-w-full break-words text-3xl sm:text-4xl">
-                        {groomName}
-                    </h1>
-                    <Heart size={18} className="fill-[#9b8055] text-[#9b8055]" aria-hidden="true" />
-                    <h1 className="m05-font-name max-w-full break-words text-3xl sm:text-4xl">
-                        {brideName}
+                    <h1
+                        aria-label={`${groomName} និង ${brideName}`}
+                        className="m05-font-name max-w-full break-words text-3xl sm:text-4xl"
+                    >
+                        <span className="block">{groomName}</span>
+                        <span aria-hidden="true" className="my-2 flex justify-center">
+                            <Heart size={18} className="fill-[#9b8055] text-[#9b8055]" />
+                        </span>
+                        <span aria-hidden="true" className="block">{brideName}</span>
                     </h1>
                 </div>
 

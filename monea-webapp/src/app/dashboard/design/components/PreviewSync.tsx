@@ -55,6 +55,8 @@ export function PreviewSync({ wedding, iframeRef, currentStep, enableScrollSync 
     const customMonogramY = settings?.customMonogramY;
     const customMonogramDropShadow = settings?.customMonogramDropShadow;
     const primaryColor = settings?.primaryColor;
+    const paperTexture = settings?.paperTexture;
+    const paperColor = settings?.paperColor;
     const m05ColorPreset = settings?.m05ColorPreset;
     const m05EnvelopeColor = settings?.m05EnvelopeColor;
     const m05SealColor = settings?.m05SealColor;
@@ -100,6 +102,8 @@ export function PreviewSync({ wedding, iframeRef, currentStep, enableScrollSync 
                 customMonogramY: currentSettings.customMonogramY,
                 customMonogramDropShadow: currentSettings.customMonogramDropShadow,
                 primaryColor: currentSettings.primaryColor,
+                paperTexture: currentSettings.paperTexture,
+                paperColor: currentSettings.paperColor,
                 colorPalettePreset: currentSettings.colorPalettePreset,
                 m05ColorPreset: currentSettings.m05ColorPreset,
                 m05EnvelopeColor: currentSettings.m05EnvelopeColor,
@@ -156,6 +160,8 @@ export function PreviewSync({ wedding, iframeRef, currentStep, enableScrollSync 
         customMonogramY,
         customMonogramDropShadow,
         primaryColor,
+        paperTexture,
+        paperColor,
         m05ColorPreset,
         m05EnvelopeColor,
         m05SealColor,
@@ -207,7 +213,15 @@ export function PreviewSync({ wedding, iframeRef, currentStep, enableScrollSync 
     return null;
 }
 
-export function MobilePreviewWrapper({ wedding, currentStep }: { wedding: WeddingData | null, currentStep: number }) {
+export function MobilePreviewWrapper({
+    wedding,
+    currentStep,
+    onReadyChange,
+}: {
+    wedding: WeddingData | null;
+    currentStep: number;
+    onReadyChange: (ready: boolean) => void;
+}) {
     const mobileIframeRef = useRef<HTMLIFrameElement>(null);
     const [previewState, setPreviewState] = useState<'loading' | 'ready' | 'error'>('loading');
     const [reloadKey, setReloadKey] = useState(0);
@@ -216,6 +230,7 @@ export function MobilePreviewWrapper({ wedding, currentStep }: { wedding: Weddin
 
     useEffect(() => {
         setPreviewState('loading');
+        onReadyChange(false);
         previewTimeoutRef.current = window.setTimeout(() => setPreviewState('error'), 30000);
         return () => {
             if (previewTimeoutRef.current !== null) {
@@ -223,7 +238,7 @@ export function MobilePreviewWrapper({ wedding, currentStep }: { wedding: Weddin
                 previewTimeoutRef.current = null;
             }
         };
-    }, [reloadKey]);
+    }, [onReadyChange, reloadKey]);
 
     const retryPreview = () => {
         setRetryCount((count) => count + 1);
@@ -242,6 +257,7 @@ export function MobilePreviewWrapper({ wedding, currentStep }: { wedding: Weddin
                         previewTimeoutRef.current = null;
                     }
                     setPreviewState('ready');
+                    onReadyChange(true);
                     if (mobileIframeRef.current?.contentWindow && wedding) {
                         mobileIframeRef.current.contentWindow.postMessage({
                             type: "UPDATE_PREVIEW",
@@ -251,9 +267,11 @@ export function MobilePreviewWrapper({ wedding, currentStep }: { wedding: Weddin
                 }}
                 onError={() => {
                     if (retryCount < 2) {
+                        onReadyChange(false);
                         window.setTimeout(retryPreview, 1000);
                     } else {
                         setPreviewState('error');
+                        onReadyChange(false);
                     }
                 }}
                 className="h-full w-full border-none bg-background"

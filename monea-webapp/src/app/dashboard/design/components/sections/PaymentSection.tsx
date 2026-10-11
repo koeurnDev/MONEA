@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { m } from 'framer-motion';
 import { Label } from "@/components/ui/label";
 import { DebouncedInput } from "@/components/ui/debounced-input";
 import { CreditCard, Trash2, Info } from "lucide-react";
@@ -14,9 +13,12 @@ interface PaymentSectionProps {
 }
 
 export function PaymentSection({ wedding, updateTheme, t }: PaymentSectionProps) {
-    const bankAccounts = wedding.themeSettings?.bankAccounts?.length
-        ? wedding.themeSettings.bankAccounts
-        : [{ bankName: "KHQR", accountName: "", accountNumber: "", qrUrl: "", side: "both" }];
+    const rawBankAccounts = wedding.themeSettings?.bankAccounts;
+    const bankAccounts = React.useMemo(() => (
+        rawBankAccounts?.length
+            ? rawBankAccounts
+            : [{ bankName: "KHQR", accountName: "", accountNumber: "", qrUrl: "", side: "both" }]
+    ), [rawBankAccounts]);
     const bankAccountsRef = React.useRef(bankAccounts);
 
     React.useEffect(() => {
@@ -41,12 +43,9 @@ export function PaymentSection({ wedding, updateTheme, t }: PaymentSectionProps)
             </div>
             <div className="space-y-4">
                 {bankAccounts.map((acc: any, idx: number) => (
-                    <m.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: idx * 0.05 }}
+                    <div
                         key={idx}
-                        className="bg-white dark:bg-white/[0.02] p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-sm relative group space-y-4"
+                        className="bg-white dark:bg-white/[0.02] p-3 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-sm relative group space-y-4"
                     >
                         <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-white/10 pb-3">
                             <div className="flex items-center gap-2 text-xs font-bold text-foreground">
@@ -110,7 +109,7 @@ export function PaymentSection({ wedding, updateTheme, t }: PaymentSectionProps)
 
                             </div>
                         </div>
-                    </m.div>
+                    </div>
                 ))}
 
             </div>

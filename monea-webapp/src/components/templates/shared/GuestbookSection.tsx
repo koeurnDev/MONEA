@@ -45,10 +45,12 @@ const fetchEntries = async (url: string): Promise<GuestbookEntry[]> => {
 
 export function GuestbookSection({ wedding, tone = "light" }: GuestbookSectionProps) {
     const { locale, t } = useTranslation();
-    const requestKey = wedding.id
+    const isSamplePreview = wedding.id === "preview-default" || wedding.id === "approval-preview";
+    const requestKey = wedding.id && !isSamplePreview
         ? `/api/guestbook?weddingId=${encodeURIComponent(wedding.id)}`
         : null;
-    const { data: entries, error, isLoading, mutate } = useSWR(requestKey, fetchEntries);
+    const { data, error, isLoading, mutate } = useSWR<GuestbookEntry[]>(requestKey, fetchEntries);
+    const entries = data ?? (isSamplePreview ? [] : undefined);
     const [guestName, setGuestName] = useState("");
     const [message, setMessage] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -120,21 +122,26 @@ export function GuestbookSection({ wedding, tone = "light" }: GuestbookSectionPr
                 <header className="mb-7 text-center">
                     <BookHeart className="mx-auto mb-3 h-7 w-7" style={{ color: accentColor }} aria-hidden="true" />
                     <h2 id="guestbook-title" className="font-khmer-moul text-xl leading-relaxed sm:text-2xl" style={{ color: accentColor }}>
-                        {wedding.themeSettings?.customLabels?.guestbookTitle || t("guestbook.title")}
+                        {wedding.themeSettings?.customLabels?.guestbookTitle || t("invitation.guestbook.title")}
                     </h2>
                     <p className={`mt-2 text-sm leading-7 ${dark ? "text-[#d9cfb9]" : "text-slate-600"}`}>
-                        {t("guestbook.subtitle")}
+                        {t("invitation.guestbook.subtitle")}
                     </p>
                     <div className="mx-auto mt-4 h-px w-16" style={{ backgroundColor: accentColor }} />
                 </header>
 
+                {isSamplePreview ? (
+                    <p className={`rounded-xl border px-4 py-3 text-center text-sm leading-7 ${dark ? "border-white/10 bg-black/15 text-white/65" : "border-stone-200 bg-stone-50 text-slate-600"}`}>
+                        {t("invitation.guestbook.previewOnly")}
+                    </p>
+                ) : (
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="hidden" aria-hidden="true">
                         <input name="website" type="text" tabIndex={-1} autoComplete="off" />
                     </div>
                     <div>
                         <label htmlFor="guestbook-name" className="mb-1.5 block text-sm font-semibold">
-                            {t("guestbook.name")}
+                            {t("invitation.guestbook.name")}
                         </label>
                         <input
                             id="guestbook-name"
@@ -145,13 +152,13 @@ export function GuestbookSection({ wedding, tone = "light" }: GuestbookSectionPr
                             maxLength={50}
                             required
                             className={`min-h-12 w-full rounded-xl border px-4 py-3 text-sm outline-none transition focus-visible:ring-2 ${dark ? "border-white/15 bg-black/20 text-white placeholder:text-white/45 focus-visible:ring-white/50" : "border-stone-300 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-slate-400"}`}
-                            placeholder={t("guestbook.namePlaceholder")}
+                            placeholder={t("invitation.guestbook.namePlaceholder")}
                         />
                     </div>
 
                     <div>
                         <label htmlFor="guestbook-message" className="mb-1.5 block text-sm font-semibold">
-                            {t("guestbook.message")}
+                            {t("invitation.guestbook.message")}
                         </label>
                         <textarea
                             id="guestbook-message"
@@ -162,18 +169,18 @@ export function GuestbookSection({ wedding, tone = "light" }: GuestbookSectionPr
                             rows={4}
                             required
                             className={`w-full resize-y rounded-xl border px-4 py-3 text-sm leading-7 outline-none transition focus-visible:ring-2 ${dark ? "border-white/15 bg-black/20 text-white placeholder:text-white/45 focus-visible:ring-white/50" : "border-stone-300 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-slate-400"}`}
-                            placeholder={t("guestbook.msgPlaceholder")}
+                            placeholder={t("invitation.guestbook.msgPlaceholder")}
                         />
                     </div>
 
                     {submitError && (
                         <p role="alert" className={`rounded-xl px-4 py-3 text-sm ${dark ? "bg-red-950/50 text-red-200" : "bg-red-50 text-red-700"}`}>
-                            {t("guestbook.submitError")}
+                            {t("invitation.guestbook.submitError")}
                         </p>
                     )}
                     {submitted && (
                         <p role="status" className={`rounded-xl px-4 py-3 text-sm ${dark ? "bg-emerald-950/50 text-emerald-200" : "bg-emerald-50 text-emerald-800"}`}>
-                            {t("guestbook.submitSuccess")}
+                            {t("invitation.guestbook.submitSuccess")}
                         </p>
                     )}
 
@@ -184,27 +191,28 @@ export function GuestbookSection({ wedding, tone = "light" }: GuestbookSectionPr
                         style={{ borderColor: accentColor, color: accentColor }}
                     >
                         {isSubmitting
-                            ? <><LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />{t("guestbook.sending")}</>
-                            : <><Send className="h-4 w-4" aria-hidden="true" />{t("guestbook.submit")}</>}
+                            ? <><LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />{t("invitation.guestbook.sending")}</>
+                            : <><Send className="h-4 w-4" aria-hidden="true" />{t("invitation.guestbook.submit")}</>}
                     </button>
                 </form>
+                )}
 
                 <div className="mt-9">
                     <h3 className="mb-4 flex items-center gap-2 font-bold">
                         <MessageCircleHeart className="h-5 w-5" style={{ color: accentColor }} aria-hidden="true" />
-                        {t("guestbook.recentMessages")}
+                        {t("invitation.guestbook.recentMessages")}
                     </h3>
 
                     {isLoading && (
                         <p className={`flex items-center justify-center gap-2 py-6 text-sm ${dark ? "text-white/65" : "text-slate-500"}`}>
                             <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />
-                            {t("guestbook.loading")}
+                            {t("invitation.guestbook.loading")}
                         </p>
                     )}
 
                     {error && (
                         <div className={`rounded-xl border p-4 text-center ${dark ? "border-red-300/20 bg-red-950/30" : "border-red-200 bg-red-50"}`}>
-                            <p role="alert" className="text-sm">{t("guestbook.loadError")}</p>
+                            <p role="alert" className="text-sm">{t("invitation.guestbook.loadError")}</p>
                             <button
                                 type="button"
                                 onClick={() => void mutate()}
@@ -212,14 +220,14 @@ export function GuestbookSection({ wedding, tone = "light" }: GuestbookSectionPr
                                 style={{ borderColor: accentColor, color: accentColor }}
                             >
                                 <RefreshCw className="h-4 w-4" aria-hidden="true" />
-                                {t("guestbook.retry")}
+                                {t("invitation.guestbook.retry")}
                             </button>
                         </div>
                     )}
 
                     {!isLoading && !error && entries?.length === 0 && (
                         <p className={`rounded-xl border border-dashed px-4 py-6 text-center text-sm leading-7 ${dark ? "border-white/15 text-white/60" : "border-stone-300 text-slate-500"}`}>
-                            {t("guestbook.noWishes")}
+                            {t("invitation.guestbook.noWishes")}
                         </p>
                     )}
 

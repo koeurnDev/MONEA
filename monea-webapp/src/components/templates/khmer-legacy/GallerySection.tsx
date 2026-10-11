@@ -4,6 +4,7 @@ import { m, AnimatePresence } from 'framer-motion';
 import { WeddingData } from '../types';
 import { RevealSection, CinematicPlaceholder } from '../shared/CinematicComponents';
 import { useTranslation } from '@/i18n/LanguageProvider';
+import { PhotoImage } from '../shared/PhotoImage';
 
 interface GallerySectionProps {
     wedding: WeddingData;
@@ -65,7 +66,7 @@ export function GallerySection({ wedding, galleryImages, groomPan, bridePan, gal
                                         className="absolute inset-0"
                                     >
                                     {galleryImages[index] ? (
-                                        <img 
+                                        <PhotoImage
                                             src={galleryImages[index]}  
                                              
                                             className={`object-cover transition-transform duration-1000 ${galleryPan.isDragging ? 'cursor-grabbing' : 'cursor-grab'}`} 

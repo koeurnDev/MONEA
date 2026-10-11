@@ -1,6 +1,8 @@
 import { SWRConfig } from "swr";
 import { ReactNode } from "react";
 
+const isMobileDevice = typeof window !== "undefined" && window.innerWidth <= 768;
+
 const swrConfig = {
     fetcher: async (url: string) => {
         const res = await fetch(url);
@@ -10,9 +12,11 @@ const swrConfig = {
         }
         return res.json();
     },
-    revalidateOnFocus: true,
+    // Mobile-optimized configuration to conserve cellular data and battery
+    mobileOptimized: isMobileDevice,
+    revalidateOnFocus: !isMobileDevice,
     revalidateOnReconnect: true,
-    dedupingInterval: 10000,
+    dedupingInterval: isMobileDevice ? 20000 : 10000,
     shouldRetryOnError: false,
 };
 

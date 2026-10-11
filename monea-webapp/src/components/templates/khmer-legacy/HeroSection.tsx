@@ -2,6 +2,7 @@ import { m } from 'framer-motion';
 import { Calendar, Clock } from 'lucide-react';
 import { WeddingData } from '../types';
 import { useTranslation } from '@/i18n/LanguageProvider';
+import { PhotoImage } from '../shared/PhotoImage';
 import { useState, useEffect } from 'react';
 
 interface HeroSectionProps {
@@ -46,7 +47,7 @@ export function HeroSection({ wedding, heroImage, smartColors, heroPan, formatte
                         {heroImage && (
                             <div className="absolute inset-0 bg-[#1a1a1a]">
                                 {/* Main Image - responsive fit */}
-                                <img
+                                <PhotoImage
                                     src={heroImage} 
                                     className={`w-full h-full transition-none ${heroPan.isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
                                     style={{
@@ -120,17 +121,28 @@ export function HeroSection({ wedding, heroImage, smartColors, heroPan, formatte
                         </div>
                     ) : (
                         <>
-                            {wedding.groomName && <h1 className="text-3xl sm:text-4xl md:text-5xl font-khmer-moul text-gold-gradient text-gold-embossed drop-shadow-[0_4px_20px_rgba(0,0,0,0.95)] tracking-[0.08em] leading-tight py-0.5">
-                                {wedding.groomName}
-                            </h1>}
-                            
-                            {wedding.groomName && wedding.brideName && <p className="text-xs sm:text-sm text-[#D4AF37] font-khmer-moul drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] py-0.5 tracking-[0.32em] uppercase">
-                                {wedding.themeSettings?.customLabels?.andLabel || "និង"}
-                            </p>}
-
-                            {wedding.brideName && <h1 className="text-3xl sm:text-4xl md:text-5xl font-khmer-moul text-gold-gradient text-gold-embossed drop-shadow-[0_4px_20px_rgba(0,0,0,0.95)] tracking-[0.08em] leading-tight py-0.5">
-                                {wedding.brideName}
-                            </h1>}
+                            {(wedding.groomName || wedding.brideName) && (
+                                <>
+                                    <h1
+                                        aria-label={[
+                                            wedding.groomName,
+                                            wedding.groomName && wedding.brideName
+                                                ? wedding.themeSettings?.customLabels?.andLabel || "និង"
+                                                : undefined,
+                                            wedding.brideName,
+                                        ].filter(Boolean).join(" ")}
+                                        className="text-3xl sm:text-4xl md:text-5xl font-khmer-moul text-gold-gradient text-gold-embossed drop-shadow-[0_4px_20px_rgba(0,0,0,0.95)] tracking-[0.08em] leading-tight py-0.5"
+                                    >
+                                        {wedding.groomName && <span className="block">{wedding.groomName}</span>}
+                                        {wedding.groomName && wedding.brideName && (
+                                            <span aria-hidden="true" className="block text-xs sm:text-sm text-[#D4AF37] tracking-[0.32em] py-0.5">
+                                                {wedding.themeSettings?.customLabels?.andLabel || "និង"}
+                                            </span>
+                                        )}
+                                        {wedding.brideName && <span aria-hidden="true" className="block">{wedding.brideName}</span>}
+                                    </h1>
+                                </>
+                            )}
                         </>
                     )}
                 </div>

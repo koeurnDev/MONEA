@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Heart, Sparkles } from 'lucide-react';
 import { WeddingData } from '../types';
+import { getWeddingSectionPhoto } from "../shared/weddingPhotos";
+import { PhotoImage } from "../shared/PhotoImage";
 
 interface HeroSectionProps {
     wedding: WeddingData;
@@ -12,7 +14,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
     const isEngagement = wedding.eventType === 'anniversary';
     const groomName = wedding.groomName || "កូនកំលោះ";
     const brideName = wedding.brideName || "កូនក្រមុំ";
-    const eventDate = wedding.date ? new Date(wedding.date) : new Date();
+    const eventDate = useMemo(
+        () => wedding.date ? new Date(wedding.date) : new Date(),
+        [wedding.date],
+    );
+    const couplePhoto = getWeddingSectionPhoto(wedding, 0)?.url;
 
     const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
@@ -65,6 +71,23 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
                             </span>
                         </motion.div>
 
+                        {couplePhoto && (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.96 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.7, delay: 0.15 }}
+                                className="relative mx-auto mb-5 w-full max-w-[240px] overflow-hidden rounded-[7rem] border-4 border-amber-200/70 shadow-xl"
+                            >
+                                <PhotoImage
+                                    src={couplePhoto}
+                                    alt={`${groomName} និង ${brideName}`}
+                                    className="aspect-[4/5] w-full object-cover"
+                                    loading="eager"
+                                    decoding="async"
+                                />
+                            </motion.div>
+                        )}
+
                         <motion.div
                             initial={{ scale: 0.8, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
@@ -83,7 +106,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
                             transition={{ duration: 0.6, delay: 0.3 }}
                             className="space-y-3"
                         >
-                            <h1 className="m05-font-name text-[37px] tracking-[0.04em] text-[#2d352b] sm:text-[52px]">
+                            <h1
+                                aria-label={`${groomName} និង ${brideName}`}
+                                className="m05-font-name text-[37px] tracking-[0.04em] text-[#2d352b] sm:text-[52px]"
+                            >
                                 {groomName}
                             </h1>
 
@@ -93,9 +119,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
                                 <span className="h-px w-11 bg-[#8ea07a]" />
                             </div>
 
-                            <h1 className="m05-font-name text-[37px] tracking-[0.04em] text-[#2d352b] sm:text-[52px]">
+                            <p aria-hidden="true" className="m05-font-name text-[37px] tracking-[0.04em] text-[#2d352b] sm:text-[52px]">
                                 {brideName}
-                            </h1>
+                            </p>
                         </motion.div>
 
                         <motion.div

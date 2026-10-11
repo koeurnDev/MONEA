@@ -80,35 +80,44 @@ const Step2Info: React.FC<Step2InfoProps> = ({
     const isPlatformAdmin = user?.role === 'SUPERADMIN' || user?.role === 'PLATFORM_OWNER';
     const { t } = useTranslation();
     const isAnniv = wedding.eventType === 'anniversary';
+    const [showParents, setShowParents] = React.useState(() => Boolean(
+        wedding.themeSettings?.parents?.groomFather
+        || wedding.themeSettings?.parents?.groomMother
+        || wedding.themeSettings?.parents?.brideFather
+        || wedding.themeSettings?.parents?.brideMother
+        || wedding.groomFather
+        || wedding.groomMother
+        || wedding.brideFather
+        || wedding.brideMother
+    ));
 
     return (
-        <div className="space-y-8 font-kantumruy">
+        <div className="space-y-4 sm:space-y-8 font-kantumruy">
             {/* Header info banner */}
-            <div className="bg-teal-500/5 p-5 rounded-3xl border border-teal-500/10 shadow-sm relative overflow-hidden">
+            <div className="bg-teal-500/5 p-3 sm:p-5 rounded-2xl sm:rounded-3xl border border-teal-500/10 shadow-sm relative overflow-hidden">
                 <h3 className="text-sm font-bold text-foreground mb-1 flex items-center gap-2">
                     <Heart className="w-4 h-4 text-teal-600 fill-teal-600" />
                     {t("wizard.steps.2.coupleTitle", { defaultValue: "ព័ត៌មានរបស់គូស្នេហ៍" })}
                 </h3>
-                <p className="text-xs text-muted-foreground leading-relaxed">
+                <p className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">
                     {isAnniv 
                         ? t("wizard.steps.2.coupleSubtitleAnniv", { defaultValue: "បញ្ចូលឈ្មោះគូស្វាមីភរិយាទាំងពីរ។ រូបភាពអាចបន្ថែមនៅជំហានបន្ទាប់។" })
                         : t("wizard.steps.2.coupleSubtitle", { defaultValue: "បញ្ចូលឈ្មោះកូនកំលោះ និងកូនក្រមុំ។ រូបភាពអាចបន្ថែមនៅជំហានបន្ទាប់។" })}
                 </p>
-                <div className="mt-3 inline-flex items-center rounded-full bg-white/80 px-3 py-1.5 text-[11px] font-black text-teal-700 shadow-sm dark:bg-white/10 dark:text-teal-300">
+                <div className="mt-2 sm:mt-3 inline-flex items-center rounded-full bg-white/80 px-2.5 py-1.5 text-[10px] sm:text-[11px] font-black text-teal-700 shadow-sm dark:bg-white/10 dark:text-teal-300">
                     ត្រូវបំពេញឈ្មោះទាំងពីរ។ ព័ត៌មានមាតាបិតាអាចរំលងបាន។
                 </div>
             </div>
 
             {/* 1. Couple Information */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-5">
                 {/* Groom / Husband */}
-                <div className="space-y-4 bg-slate-50/50 dark:bg-white/[0.02] p-4 rounded-2xl border border-slate-200/80 dark:border-white/10">
-                    <div className="space-y-2">
+                <div className="space-y-2.5 sm:space-y-4 bg-slate-50/50 dark:bg-white/[0.02] p-3 sm:p-4 rounded-2xl border border-slate-200/80 dark:border-white/10">
+                    <div className="space-y-1.5 sm:space-y-2">
                         <Label className="text-xs font-bold text-foreground block">
                             {isAnniv ? t("wizard.steps.2.husbandName", { defaultValue: "ឈ្មោះគូដណ្តឹង (ខាងប្រុស)" }) : t("wizard.steps.2.groomName", { defaultValue: "ឈ្មោះកូនកំលោះ" })} <span className="text-teal-500">*</span>
                         </Label>
                         <DebouncedInput
-                            autoFocus
                             aria-required="true"
                             value={wedding.groomName}
                             onDebouncedChange={(val) => updateWedding("groomName", val)}
@@ -119,8 +128,8 @@ const Step2Info: React.FC<Step2InfoProps> = ({
                 </div>
 
                 {/* Bride / Wife */}
-                <div className="space-y-4 bg-slate-50/50 dark:bg-white/[0.02] p-4 rounded-2xl border border-slate-200/80 dark:border-white/10">
-                    <div className="space-y-2">
+                <div className="space-y-2.5 sm:space-y-4 bg-slate-50/50 dark:bg-white/[0.02] p-3 sm:p-4 rounded-2xl border border-slate-200/80 dark:border-white/10">
+                    <div className="space-y-1.5 sm:space-y-2">
                         <Label className="text-xs font-bold text-foreground block">
                             {isAnniv ? t("wizard.steps.2.wifeName", { defaultValue: "ឈ្មោះគូដណ្តឹង (ខាងស្រី)" }) : t("wizard.steps.2.brideName", { defaultValue: "ឈ្មោះកូនក្រមុំ" })} <span className="text-teal-500">*</span>
                         </Label>
@@ -282,19 +291,28 @@ const Step2Info: React.FC<Step2InfoProps> = ({
             )}
 
             {/* 3. Family / Parents Information */}
-            <div className="space-y-4 pt-2">
-                    <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5 uppercase tracking-wider">
-                        <Users className="w-4 h-4 text-teal-500" />
-                        <span>
-                            {t("wizard.steps.2.parentsTitle", { defaultValue: "ព័ត៌មានមាតាបិតាទាំងសងខាង" })}
-                        </span>
-                    </h4>
+            <details
+                className="group rounded-2xl border border-slate-200/80 bg-white dark:border-white/10 dark:bg-white/[0.02]"
+                open={showParents}
+                onToggle={(event) => setShowParents(event.currentTarget.open)}
+            >
+                <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-3 py-2.5 [&::-webkit-details-marker]:hidden">
+                    <span className="flex min-w-0 items-center gap-2 text-xs font-bold text-foreground">
+                        <Users className="h-4 w-4 shrink-0 text-teal-500" />
+                        <span className="truncate">{t("wizard.steps.2.parentsTitle", { defaultValue: "ព័ត៌មានមាតាបិតាទាំងសងខាង" })}</span>
+                    </span>
+                    <span className="flex shrink-0 items-center gap-2 text-[10px] font-semibold text-muted-foreground">
+                        អាចរំលងបាន
+                        <span className="transition-transform group-open:rotate-180">⌄</span>
+                    </span>
+                </summary>
+                <div className="space-y-3 border-t border-slate-200/80 p-3 dark:border-white/10 sm:space-y-4 sm:p-4">
                     <p className="text-[11px] leading-relaxed text-muted-foreground">
-                        អាចបំពេញឈ្មោះឪពុក ឬម្តាយតាមដែលចង់បាន។ វាលទាំងនេះអាចទុកចោលបាន។
+                        អាចបំពេញឈ្មោះឪពុក ឬម្តាយតាមដែលចង់បាន។
                     </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                         {/* Groom Parents */}
-                        <div className="space-y-3 bg-slate-50/50 dark:bg-white/[0.02] p-4 rounded-2xl border border-slate-200/80 dark:border-white/10">
+                        <div className="space-y-2.5 bg-slate-50/50 dark:bg-white/[0.02] p-3 sm:space-y-3 sm:p-4 rounded-2xl border border-slate-200/80 dark:border-white/10">
                             <span className="text-xs font-bold text-teal-600 dark:text-teal-400 block border-b border-slate-200/80 dark:border-white/10 pb-2">
                                 មាតាបិតាខាងកូនកំលោះ
                             </span>
@@ -317,7 +335,7 @@ const Step2Info: React.FC<Step2InfoProps> = ({
                         </div>
 
                         {/* Bride Parents */}
-                        <div className="space-y-3 bg-slate-50/50 dark:bg-white/[0.02] p-4 rounded-2xl border border-slate-200/80 dark:border-white/10">
+                        <div className="space-y-2.5 bg-slate-50/50 dark:bg-white/[0.02] p-3 sm:space-y-3 sm:p-4 rounded-2xl border border-slate-200/80 dark:border-white/10">
                             <span className="text-xs font-bold text-teal-600 dark:text-teal-400 block border-b border-slate-200/80 dark:border-white/10 pb-2">
                                 មាតាបិតាខាងកូនក្រមុំ
                             </span>
@@ -339,7 +357,8 @@ const Step2Info: React.FC<Step2InfoProps> = ({
                             </div>
                         </div>
                     </div>
-            </div>
+                </div>
+            </details>
         </div>
     );
 };

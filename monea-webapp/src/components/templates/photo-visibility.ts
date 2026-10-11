@@ -9,11 +9,12 @@ export function getGalleryPhotoKey(item: GalleryPhoto): string {
 export function getWeddingWithPhotoVisibility<T extends WeddingData>(wedding: T): T {
     const hiddenSlots = new Set(wedding.themeSettings?.hiddenPhotoSlots || []);
     const hiddenGalleryPhotos = new Set(wedding.themeSettings?.hiddenGalleryPhotoKeys || []);
-    const hidePhotos = (items: GalleryPhoto[]) => items.map((item, index) => {
+    const hidePhotos = (items: GalleryPhoto[]) => items.flatMap((item, index) => {
+        if (!item || typeof item !== "object" || typeof item.url !== "string") return [];
         const isHidden = index < 11
             ? hiddenSlots.has(index)
             : hiddenGalleryPhotos.has(getGalleryPhotoKey(item));
-        return isHidden ? { ...item, url: "" } : item;
+        return [isHidden ? { ...item, url: "" } : item];
     });
     const galleryItems = hidePhotos(wedding.galleryItems || []);
     const themeSettings = {

@@ -1,11 +1,10 @@
 import React from 'react';
 import { m } from 'framer-motion';
 import { WeddingData } from "../types";
-import { getWeddingHeroImage, getWeddingPhotos } from "../shared/weddingPhotos";
+import { getWeddingHeroImage, getWeddingPhotoAtSlot } from "../shared/weddingPhotos";
 
 export const ThankYouSection = ({ wedding }: { wedding: WeddingData }) => {
-    const images = getWeddingPhotos(wedding);
-    const imageUrl = images[images.length - 1]?.url || getWeddingHeroImage(wedding);
+    const imageUrl = getWeddingPhotoAtSlot(wedding, 4)?.url || getWeddingHeroImage(wedding);
 
     return (
         <section className="relative min-h-[min(82svh,680px)] w-full overflow-hidden flex items-center justify-center bg-slate-950">

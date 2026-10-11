@@ -10,7 +10,7 @@
     "worker:deploy": "npm --prefix ..\\monea-api-worker run worker:deploy",
     "build": "tsc && node scripts/build.mjs",
     "preview": "vite preview",
-    "lint": "eslint src --ext ts,tsx",
+    "lint": "eslint src --ext ts,tsx --ignore-pattern \"*.d.ts\"",
     "postinstall": "prisma generate",
     "test:mobile": "node scripts/mobile-performance-test.js",
     "test:sw": "node scripts/sw-contract-check.mjs",
@@ -104,6 +104,8 @@
     "seed": "tsx prisma/seed.ts"
   },
   "devDependencies": {
+    "@babel/eslint-parser": "^8.0.7",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "typescript": "^7.0.2",
     "vercel": "47.0.4",
     "wrangler": "^4.125.0"

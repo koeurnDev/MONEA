@@ -4,6 +4,7 @@ import type {
     WeddingData,
     VisibilityKey,
 } from "../types";
+import { normalizeWeddingActivities } from "../../../lib/wedding-activities.ts";
 
 const sectionVisibilityKeys: Record<TemplateSection, VisibilityKey> = {
     hero: "showHero",
@@ -32,19 +33,29 @@ export const normalizeWeddingForTemplate = (wedding: WeddingData): {
     const rawLabels = settings?.customLabels;
     const { schedule_title: legacyScheduleTitle, ...labels } = rawLabels || {};
     const scheduleTitle = labels.scheduleTitle?.trim() || legacyScheduleTitle?.trim();
+    const labelAliases = {
+        invite_title: "invitationTitle",
+        hero_subtitle: "heroSubtitle",
+        hero_button: "heroButton",
+        gallery_title: "galleryTitle",
+    } as const;
+    const normalizedLabels = { ...labels };
+    for (const [legacyKey, currentKey] of Object.entries(labelAliases)) {
+        const legacyValue = rawLabels?.[legacyKey];
+        if (!normalizedLabels[currentKey] && legacyValue) {
+            normalizedLabels[currentKey] = legacyValue;
+        }
+    }
     const normalizedVisibility = {
         ...visibility,
         showTimeline: visibility.showTimeline ?? legacyShowSchedule,
     };
-    const normalizedLabels = {
-        ...labels,
-        ...(scheduleTitle ? { scheduleTitle } : {}),
-    };
+    if (scheduleTitle) normalizedLabels.scheduleTitle = scheduleTitle;
 
     return {
         wedding: {
             ...wedding,
-            activities: Array.isArray(wedding.activities) ? wedding.activities : [],
+            activities: normalizeWeddingActivities(wedding.activities),
             galleryItems: Array.isArray(wedding.galleryItems) ? wedding.galleryItems : [],
             themeSettings: settings
                 ? {

@@ -63,9 +63,9 @@ export const EntranceEnvelope: React.FC<EntranceEnvelopeProps> = ({
                         className="relative z-10 pt-2 flex items-center justify-center gap-2"
                     >
                         <span className="text-amber-300 text-xs font-bold font-serif">囍</span>
-                        <h1 className="font-khmer-moul text-base sm:text-lg text-amber-200 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] tracking-wider">
+                        <p className="font-khmer-moul text-base sm:text-lg text-amber-200 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] tracking-wider">
                             {isEngagement ? "សិរីមង្គលពិធីភ្ជាប់ពាក្យ" : "សិរីមង្គលអាពាហ៍ពិពាហ៍"}
-                        </h1>
+                        </p>
                         <span className="text-amber-300 text-xs font-bold font-serif">囍</span>
                     </motion.div>
 

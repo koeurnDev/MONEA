@@ -1,7 +1,7 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TableSkeleton } from "../../_components/SkeletonComponents";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2, Plus, Users, Send } from "lucide-react";
+import { Edit, Trash2, Plus, Users, Send, Ticket } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/i18n/LanguageProvider";
 
@@ -16,6 +16,7 @@ interface DesktopGuestTableProps {
     isArchived: boolean;
     onCopyLink: (name: string, id: string) => void;
     onShareTelegram?: (name: string, id: string) => void;
+    onViewPass?: (guest: any) => void;
     onEdit: (guest: any) => void;
     onDelete: (id: string, name: string) => void;
 }
@@ -31,6 +32,7 @@ export function DesktopGuestTable({
     isArchived,
     onCopyLink,
     onShareTelegram,
+    onViewPass,
     onEdit,
     onDelete
 }: DesktopGuestTableProps) {
@@ -152,6 +154,18 @@ export function DesktopGuestTable({
                                             >
                                                 <Send className="w-3.5 h-3.5" />
                                                 <span>Telegram</span>
+                                            </Button>
+                                        )}
+                                        {onViewPass && (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => onViewPass(g)}
+                                                className="h-9 px-3 rounded-xl font-kantumruy font-bold text-[11px] border-amber-500/30 text-amber-800 dark:text-amber-300 hover:bg-amber-500/10 transition-all flex items-center gap-1.5"
+                                                title="មើល ឬទាញយកសំបុត្រឌីជីថល"
+                                            >
+                                                <Ticket className="w-3.5 h-3.5 text-amber-600" />
+                                                <span>សំបុត្រ</span>
                                             </Button>
                                         )}
                                         {!isArchived && (

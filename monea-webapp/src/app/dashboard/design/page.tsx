@@ -3,9 +3,10 @@ import { createPortal } from "react-dom";
 import { Link, useNavigate } from 'react-router-dom';
 import { m, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Palette, Smartphone, LayoutTemplate, Settings2, Loader2, ArrowRight, ArrowLeft, CheckCircle2, ExternalLink, Lock, Save, Share2, Copy, CircleHelp } from "lucide-react";
+import { Palette, Smartphone, LayoutTemplate, Settings2, Loader2, ArrowRight, ArrowLeft, CheckCircle2, ExternalLink, Lock, Save, Share2, Send, Copy, CircleHelp, MoreHorizontal } from "lucide-react";
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import SafeQRCode from "@/components/ui/SafeQRCode";
@@ -57,11 +58,19 @@ export default function DesignPage() {
 function DesignContent() {
     const { t } = useTranslation();
     const { isMobile } = useMobileDetection();
+    const navigate = useNavigate();
     const [isSheetOpen, setIsSheetOpen] = useState(true);
+    const [leaving, setLeaving] = useState(false);
+    const [finishing, setFinishing] = useState(false);
     const [isMediaUploading, setIsMediaUploading] = useState(false);
     const [copiedShareLink, setCopiedShareLink] = useState(false);
     const [copyLinkError, setCopyLinkError] = useState(false);
+    const [shareSaveError, setShareSaveError] = useState(false);
+    const [finishSaveError, setFinishSaveError] = useState(false);
     const [previewError, setPreviewError] = useState(false);
+    const [mobilePreviewReady, setMobilePreviewReady] = useState(false);
+    const shareLinkInputRef = useRef<HTMLInputElement>(null);
+    const supportsNativeShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
     const {
         mounted,
         wedding,
@@ -93,6 +102,9 @@ function DesignContent() {
         iframeRef,
         galleryUploading,
         galleryProgress,
+        galleryUploadError,
+        failedGalleryFileCount,
+        retryGalleryUpload,
         loadError,
         retryLoad,
         updateWedding,
@@ -209,6 +221,9 @@ function DesignContent() {
                         handleGalleryDirectUpload={handleGalleryDirectUpload}
                         galleryUploading={galleryUploading}
                         galleryProgress={galleryProgress}
+                        galleryUploadError={galleryUploadError}
+                        failedGalleryFileCount={failedGalleryFileCount}
+                        retryGalleryUpload={retryGalleryUpload}
                         isDraggingGallery={isDraggingGallery}
                         setIsDraggingGallery={setIsDraggingGallery}
                         TEMPLATE_LAYOUTS={TEMPLATE_LAYOUTS}
@@ -310,6 +325,9 @@ function DesignContent() {
     );
 
     const shareUrl = wedding ? `${window.location.origin}/w/${wedding.id}` : "";
+    const telegramShareUrl = new URL("https://t.me/share/url");
+    telegramShareUrl.searchParams.set("url", shareUrl);
+    telegramShareUrl.searchParams.set("text", t("design.wizard.nativeShareText"));
     const openSavedPreview = async () => {
         setPreviewError(false);
         const previewWindow = window.open("about:blank", "_blank");
@@ -331,29 +349,106 @@ function DesignContent() {
             setPreviewError(true);
         }
     };
+
+    const openShareAfterSave = async () => {
+        if (loading || isMediaUploading || galleryUploading) return;
+        setShareSaveError(false);
+        const saved = await saveChanges();
+        if (saved) {
+            setCopyLinkError(false);
+            setIsShareModalOpen(true);
+        } else {
+            setShareSaveError(true);
+        }
+    };
+
+    const finishEditing = async () => {
+        if (finishing || loading || isMediaUploading || galleryUploading) return;
+        setFinishSaveError(false);
+        setFinishing(true);
+        try {
+            if (await saveChanges()) {
+                navigate("/dashboard");
+            } else {
+                setFinishSaveError(true);
+            }
+        } finally {
+            setFinishing(false);
+        }
+    };
+
+    const leaveEditor = async () => {
+        if (leaving || loading || isMediaUploading || galleryUploading) return;
+        setLeaving(true);
+        try {
+            if (!isDirty || await saveChanges()) {
+                navigate("/dashboard");
+            }
+        } finally {
+            setLeaving(false);
+        }
+    };
+
+    const shareWithDevice = async () => {
+        try {
+            await navigator.share({
+                title: t("design.wizard.shareTitle"),
+                text: t("design.wizard.nativeShareText"),
+                url: shareUrl,
+            });
+        } catch (error) {
+            if (error instanceof DOMException && error.name === "AbortError") return;
+            console.error("Failed to share invitation using the device share sheet:", error);
+        }
+    };
     
     const ShareModal = () => (
         <Dialog open={isShareModalOpen} onOpenChange={setIsShareModalOpen}>
-            <DialogContent className="sm:max-w-md font-khmer p-6 rounded-[2rem]">
+            <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-md font-khmer p-4 sm:p-6 rounded-[2rem] [&>button]:right-3 [&>button]:top-3 [&>button]:h-11 [&>button]:w-11 sm:[&>button]:right-6 sm:[&>button]:top-6">
                 <DialogHeader>
-                    <DialogTitle className="text-center font-black font-kantumruy">ចែករំលែកធៀបការរបស់អ្នក</DialogTitle>
+                    <DialogTitle className="text-center font-black font-kantumruy">
+                        {t("design.wizard.shareTitle")}
+                    </DialogTitle>
                     <DialogDescription className="text-center text-xs">
-                        ស្កេន QR Code ឬថតចម្លងតំណភ្ជាប់ខាងក្រោមដើម្បីផ្ញើទៅកាន់ភ្ញៀវកិត្តិយសរបស់អ្នក។
+                        {t("design.wizard.shareDescription")}
                     </DialogDescription>
                 </DialogHeader>
-                <div className="flex flex-col items-center justify-center p-6 space-y-6">
-                    <div className="p-4 bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100">
-                        {shareUrl && <SafeQRCode value={shareUrl} size={200} fgColor="#0f172a" />}
+                <div className="flex flex-col items-center justify-center p-2 sm:p-4 space-y-4 sm:space-y-6">
+                    <div className="p-3 sm:p-4 bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100">
+                        {shareUrl && <SafeQRCode value={shareUrl} size={180} className="h-auto w-[min(180px,55vw)]" fgColor="#0f172a" />}
                     </div>
+                    {supportsNativeShare && (
+                        <Button
+                            type="button"
+                            className="h-11 w-full rounded-xl font-kantumruy font-bold"
+                            onClick={() => void shareWithDevice()}
+                        >
+                            <Share2 size={16} className="mr-2" />
+                            {t("design.wizard.shareViaDevice")}
+                        </Button>
+                    )}
+                    <Button
+                        asChild
+                        className="h-11 w-full rounded-xl bg-[#229ED9] font-kantumruy font-bold text-white hover:bg-[#1d8fca]"
+                    >
+                        <a href={telegramShareUrl.toString()} target="_blank" rel="noopener noreferrer">
+                            <Send size={16} className="mr-2" />
+                            {t("design.wizard.shareViaTelegram")}
+                        </a>
+                    </Button>
                     <div className="w-full flex items-center gap-2 p-2 bg-slate-50 rounded-2xl border border-slate-100">
                         <input 
+                            ref={shareLinkInputRef}
                             readOnly 
                             value={shareUrl} 
-                            className="flex-1 bg-transparent border-none text-xs font-medium text-slate-500 px-3 outline-none" 
+                            aria-label={t("design.wizard.shareLink")}
+                            onClick={(event) => event.currentTarget.select()}
+                            onFocus={(event) => event.currentTarget.select()}
+                            className="min-w-0 flex-1 bg-transparent border-none text-xs font-medium text-slate-500 px-3 outline-none"
                         />
                         <Button 
-                            size="sm" 
-                            className="rounded-xl px-4 font-bold active:scale-95 transition-transform"
+                            size="sm"
+                            className="h-11 rounded-xl px-4 font-bold active:scale-95 transition-transform"
                             onClick={async () => {
                                 setCopyLinkError(false);
                                 try {
@@ -364,15 +459,20 @@ function DesignContent() {
                                     console.error("Failed to copy invitation link:", error);
                                     setCopiedShareLink(false);
                                     setCopyLinkError(true);
+                                    window.requestAnimationFrame(() => {
+                                        shareLinkInputRef.current?.focus();
+                                        shareLinkInputRef.current?.select();
+                                    });
                                 }
                             }}
                         >
-                            <Copy size={14} className="mr-2" /> {copiedShareLink ? "បានចម្លង" : "ចម្លង"}
+                            <Copy size={14} className="mr-2" />
+                            {copiedShareLink ? t("design.wizard.copied") : t("design.wizard.copy")}
                         </Button>
                     </div>
                     {copyLinkError && (
                         <p role="alert" className="w-full text-center text-xs text-red-600">
-                            មិនអាចចម្លងតំណបានទេ។ សូមជ្រើសរើសតំណខាងលើ ហើយចម្លងដោយដៃ។
+                            {t("design.wizard.copyError")}
                         </p>
                     )}
                 </div>
@@ -414,7 +514,7 @@ function DesignContent() {
                     className={clsx(
                         "relative z-10 transition-all duration-300 ease-in-out flex flex-col group origin-center",
                         previewMode === 'mobile' 
-                            ? "h-[84vh] max-h-[820px] min-h-[580px] aspect-[393/852] max-w-[393px]" 
+                            ? "h-[calc(84vh-48px)] max-h-[772px] min-h-[520px] translate-y-6 aspect-[393/852] max-w-[393px]"
                             : "w-[95%] h-[82vh] rounded-2xl border-4 border-slate-900/10 dark:border-white/10 overflow-hidden bg-background shadow-2xl"
                     )}
                 >
@@ -481,85 +581,94 @@ function DesignContent() {
                 <PreviewSync wedding={wedding} iframeRef={iframeRef} currentStep={currentStep} enableScrollSync={false} />
 
                 {/* View Toggle Toolbar (Desktop Only) */}
-                <div className="absolute top-4 right-4 z-30 bg-white/95 dark:bg-[#141419]/95 backdrop-blur-md p-1.5 rounded-2xl shadow-lg border border-slate-200/80 dark:border-white/10 gap-1.5 flex items-center">
-                    <button
-                        type="button"
-                        onClick={() => void openSavedPreview()}
-                        disabled={isMediaUploading || galleryUploading}
-                        className="p-2 rounded-xl text-slate-600 hover:text-teal-600 hover:bg-teal-50 dark:text-slate-300 dark:hover:bg-teal-950/30 transition-all"
-                        title={t("design.wizard.viewPublic", { defaultValue: "រក្សាទុក រួចមើលធៀបពេញអេក្រង់" })}
-                    >
-                        <ExternalLink size={16} />
-                    </button>
-                    {previewError && (
-                        <span role="alert" className="absolute right-0 top-full mt-2 w-56 rounded-lg bg-red-600 px-3 py-2 text-xs text-white shadow-lg">
-                            មិនអាចបើកផ្ទាំងមើលបានទេ។ សូមអនុញ្ញាត pop-up ហើយព្យាយាមម្តងទៀត។
-                        </span>
-                    )}
-                    <div className="w-[1px] h-4 bg-border/60 mx-0.5" />
-                    <button
-                        onClick={() => setPreviewMode('mobile')}
-                        className={clsx(
-                            "p-2 rounded-xl transition-all font-bold text-xs",
-                            previewMode === 'mobile' 
-                                ? "bg-primary text-primary-foreground shadow-sm font-black" 
-                                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                        )}
-                        title={t("design.wizard.previewMode.mobile")}
-                    >
-                        <Smartphone size={16} />
-                    </button>
-                    <button
-                        onClick={() => setPreviewMode('desktop')}
-                        className={clsx(
-                            "p-2 rounded-xl transition-all font-bold text-xs",
-                            previewMode === 'desktop' 
-                                ? "bg-primary text-primary-foreground shadow-sm font-black" 
-                                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                        )}
-                        title={t("design.wizard.previewMode.desktop")}
-                    >
-                        <LayoutTemplate size={16} />
-                    </button>
-                    <div className="hidden md:flex items-center gap-2 px-2">
+                <div className="absolute top-4 right-4 z-30 flex items-center gap-2 rounded-2xl border border-slate-200/80 bg-white/95 p-1.5 shadow-lg backdrop-blur-md dark:border-white/10 dark:bg-[#141419]/95">
+                    <div role="group" aria-label={t("design.wizard.previewSize")} className="flex items-center rounded-xl bg-slate-100 p-1 dark:bg-white/5">
+                        <button
+                            type="button"
+                            aria-pressed={previewMode === 'mobile'}
+                            onClick={() => setPreviewMode('mobile')}
+                            className={clsx(
+                                "flex h-9 w-9 items-center justify-center rounded-lg transition-all",
+                                previewMode === 'mobile'
+                                    ? "bg-primary text-primary-foreground shadow-sm"
+                                    : "text-muted-foreground hover:bg-white/70 hover:text-foreground dark:hover:bg-white/10"
+                            )}
+                            title={t("design.wizard.previewMode.mobile")}
+                        >
+                            <Smartphone size={16} />
+                        </button>
+                        <button
+                            type="button"
+                            aria-pressed={previewMode === 'desktop'}
+                            onClick={() => setPreviewMode('desktop')}
+                            className={clsx(
+                                "flex h-9 w-9 items-center justify-center rounded-lg transition-all",
+                                previewMode === 'desktop'
+                                    ? "bg-primary text-primary-foreground shadow-sm"
+                                    : "text-muted-foreground hover:bg-white/70 hover:text-foreground dark:hover:bg-white/10"
+                            )}
+                            title={t("design.wizard.previewMode.desktop")}
+                        >
+                            <LayoutTemplate size={16} />
+                        </button>
+                    </div>
+                    <div className="hidden md:flex items-center gap-2 px-1.5">
                         {/* Auto-save Indicator */}
                         <div className="flex items-center text-xs font-kantumruy font-bold text-foreground">
                             {loading ? (
-                                <><Loader2 size={13} className="animate-spin text-teal-500 mr-1.5" /> <span>រក្សាទុក...</span></>
+                                <><Loader2 size={13} className="animate-spin text-teal-500 mr-1.5" /> <span>{t("design.wizard.saving")}</span></>
                             ) : isDirty ? (
-                                <><span className="w-2 h-2 rounded-full bg-amber-500 mr-1.5 animate-pulse" /> <span className="text-amber-600 dark:text-amber-400">មិនទាន់រក្សាទុក</span></>
+                                <><span className="w-2 h-2 rounded-full bg-amber-500 mr-1.5 animate-pulse" /> <span className="text-amber-600 dark:text-amber-400">{t("design.wizard.unsaved")}</span></>
                             ) : (
-                                <><CheckCircle2 size={14} className="text-emerald-500 mr-1.5" /> <span>រក្សាទុករួចរាល់</span></>
+                                <><CheckCircle2 size={14} className="text-emerald-500 mr-1.5" /> <span>{t("design.wizard.saved")}</span></>
                             )}
                         </div>
                     </div>
-                    <div className="w-[1px] h-4 bg-border/60 mx-0.5" />
-                    <button
-                        onClick={() => setRunTour(true)}
-                        className="inline-flex items-center gap-1.5 rounded-xl px-2 py-2 text-teal-700 hover:text-teal-800 hover:bg-teal-50 dark:text-teal-300 dark:hover:bg-teal-950/30 transition-all"
-                        title="មើលការណែនាំ"
-                        aria-label="មើលការណែនាំ"
-                    >
-                        <CircleHelp size={16} />
-                        <span className="hidden lg:inline text-xs font-kantumruy font-semibold">របៀបប្រើ</span>
-                    </button>
-                    <div className="w-[1px] h-4 bg-border/60 mx-0.5" />
-                    <button
-                        onClick={() => setIsShareModalOpen(true)}
-                        className="p-2 rounded-xl text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-all"
-                        title="ចែករំលែក (Share)"
-                    >
-                        <Share2 size={16} />
-                    </button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <button
+                                type="button"
+                                className="flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-slate-100 hover:text-foreground dark:hover:bg-white/10"
+                                aria-label={t("design.wizard.moreActions")}
+                                title={t("design.wizard.moreActions")}
+                            >
+                                <MoreHorizontal size={18} />
+                            </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-56 font-kantumruy">
+                            <DropdownMenuItem
+                                disabled={isMediaUploading || galleryUploading}
+                                onSelect={() => void openSavedPreview()}
+                            >
+                                <ExternalLink />
+                                {t("design.wizard.openPreview")}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => setRunTour(true)}>
+                                <CircleHelp />
+                                {t("design.wizard.help")}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                disabled={loading || isMediaUploading || galleryUploading}
+                                onSelect={() => void openShareAfterSave()}
+                            >
+                                <Share2 />
+                                {t("design.wizard.share")}
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    {previewError && (
+                        <span role="alert" className="absolute right-0 top-full mt-2 w-56 rounded-lg bg-red-600 px-3 py-2 text-xs text-white shadow-lg">
+                            {t("design.wizard.previewError")}
+                        </span>
+                    )}
                 </div>
-                <ShareModal />
             </div>
         </div>
     );
 
     // MOBILE LAYOUT (Portal to Body, Full Screen Overlay)
     const mobileLayout = mounted ? createPortal(
-        <div className="md:hidden fixed inset-0 z-40 flex h-[100dvh] w-[100vw] max-w-none min-w-0 flex-col overflow-hidden bg-background" role="dialog" aria-label="Mobile Design Editor">
+        <div className="md:hidden fixed inset-0 z-40 flex h-[100dvh] w-[100vw] max-w-none min-w-0 flex-col overflow-hidden bg-background pt-[env(safe-area-inset-top)]" role="dialog" aria-modal="true" aria-label={t("design.wizard.mobileEditor")}>
             {/* MOBILE HEADER — min 56px height for comfortable touch targets */}
             <div className={clsx(
                 "h-[52px] bg-white/95 dark:bg-[#0a0a0a]/95 backdrop-blur-xl border-b border-slate-200/60 dark:border-white/10 flex items-center justify-between px-3 z-50 transition-all shadow-xs",
@@ -567,16 +676,26 @@ function DesignContent() {
             )}>
                 <div className="flex-1 flex justify-start items-center">
                     {isSheetOpen ? (
-                        <Link to="/dashboard" aria-label="ត្រឡប់ទៅ Dashboard" className="h-9 w-9 px-2 -ml-1 text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors flex items-center justify-center rounded-xl active:bg-slate-100 dark:active:bg-white/10 active:scale-95">
-                            <ArrowLeft size={18} strokeWidth={2.5} />
-                        </Link>
+                        <button
+                            type="button"
+                            onClick={() => void leaveEditor()}
+                            disabled={leaving || loading || isMediaUploading || galleryUploading}
+                            aria-label={t("design.wizard.backToDashboard")}
+                            className="h-11 w-11 -ml-1 text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors flex items-center justify-center rounded-xl active:bg-slate-100 dark:active:bg-white/10 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                            {leaving ? <Loader2 size={18} className="animate-spin" /> : <ArrowLeft size={18} strokeWidth={2.5} />}
+                        </button>
                     ) : (
                         <button 
-                            onClick={() => setIsSheetOpen(true)} 
-                            className="h-10 px-3 -ml-1 text-slate-700 dark:text-white bg-slate-100 dark:bg-white/10 hover:bg-slate-200 rounded-xl flex items-center gap-1.5 transition-all font-bold text-sm font-kantumruy active:scale-95"
+                            onClick={() => {
+                                setShareSaveError(false);
+                                setFinishSaveError(false);
+                                setIsSheetOpen(true);
+                            }}
+                            className="h-11 px-3 -ml-1 text-slate-700 dark:text-white bg-slate-100 dark:bg-white/10 hover:bg-slate-200 rounded-xl flex items-center gap-1.5 transition-all font-bold text-sm font-kantumruy active:scale-95"
                         >
                             <ArrowLeft size={18} strokeWidth={2.5} />
-                            <span>កែប្រែ</span>
+                            <span>{t("design.wizard.edit")}</span>
                         </button>
                     )}
                 </div>
@@ -589,15 +708,20 @@ function DesignContent() {
                     {isSheetOpen && (
                         <button
                             onClick={() => setRunTour(true)}
-                            className="flex h-9 w-9 items-center justify-center rounded-xl text-teal-700 hover:bg-teal-50 dark:text-teal-300 dark:hover:bg-teal-950/30"
-                            title="មើលការណែនាំ"
-                            aria-label="មើលការណែនាំ"
+                            className="flex h-11 w-11 items-center justify-center rounded-xl text-teal-700 hover:bg-teal-50 dark:text-teal-300 dark:hover:bg-teal-950/30"
+                            title={t("design.wizard.help")}
+                            aria-label={t("design.wizard.help")}
                         >
                             <CircleHelp size={18} />
                         </button>
                     )}
                     {/* Auto-save Indicator (Mobile) */}
-                    <div className="flex items-center justify-center h-10 px-1 text-slate-400 dark:text-slate-500" title={loading ? "កំពុងរក្សាទុក..." : isDirty ? "មិនទាន់រក្សាទុក" : "បានរក្សាទុក"}>
+                    <div
+                        role="status"
+                        aria-label={loading ? t("design.wizard.saving") : isDirty ? t("design.wizard.unsaved") : t("design.wizard.saved")}
+                        className="flex items-center justify-center h-10 px-1 text-slate-400 dark:text-slate-500"
+                        title={loading ? t("design.wizard.saving") : isDirty ? t("design.wizard.unsaved") : t("design.wizard.saved")}
+                    >
                         {loading ? (
                             <Loader2 size={18} className="animate-spin text-teal-500" />
                         ) : isDirty ? (
@@ -608,20 +732,30 @@ function DesignContent() {
                     </div>
                     {isSheetOpen ? (
                         <button
-                            onClick={() => setIsSheetOpen(false)}
-                            className="tour-preview h-9 px-2.5 text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 flex items-center justify-center rounded-xl transition-all font-kantumruy font-bold text-sm gap-1.5 active:scale-95"
+                            onClick={() => {
+                                setMobilePreviewReady(false);
+                                setIsSheetOpen(false);
+                            }}
+                            className="tour-preview h-11 px-2.5 text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 flex items-center justify-center rounded-xl transition-all font-kantumruy font-bold text-sm gap-1.5 active:scale-95"
                             title={t("design.wizard.preview", { defaultValue: "មើលលទ្ធផល" })}
                         >
                             <ExternalLink size={16} />
-                            <span>មើលគំរូ</span>
+                            <span>{t("design.wizard.previewInvitation")}</span>
                         </button>
                     ) : (
-                        <Link
-                            to="/dashboard"
-                            className="h-9 px-2.5 text-emerald-700 dark:text-emerald-400 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 flex items-center justify-center rounded-xl transition-all font-kantumruy font-bold text-sm active:scale-95"
+                        <button
+                            type="button"
+                            onClick={() => void finishEditing()}
+                            disabled={finishing || loading || isMediaUploading || galleryUploading}
+                            className="h-11 min-w-20 px-3 text-emerald-700 dark:text-emerald-400 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 flex items-center justify-center rounded-xl transition-all font-kantumruy font-bold text-sm active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                            រួចរាល់
-                        </Link>
+                            {finishing ? (
+                                <span className="flex items-center gap-1.5">
+                                    <Loader2 size={14} className="animate-spin" />
+                                    {t("design.wizard.finishing")}
+                                </span>
+                            ) : t("design.wizard.done")}
+                        </button>
                     )}
                 </div>
             </div>
@@ -639,18 +773,55 @@ function DesignContent() {
                     // PREVIEW MODE
                     <div className="flex-1 flex flex-col bg-background relative">
                         <div className="flex-1 relative overflow-hidden">
-                            <MobilePreviewWrapper wedding={wedding} currentStep={currentStep} />
+                            <MobilePreviewWrapper
+                                wedding={wedding}
+                                currentStep={currentStep}
+                                onReadyChange={setMobilePreviewReady}
+                            />
                         </div>
                         {/* Preview action bar keeps the edit/finish choices visible. */}
-                        <div className="absolute bottom-4 left-3 right-3 z-50 pointer-events-auto flex items-center rounded-2xl border border-white/10 bg-black/75 p-2 backdrop-blur-md">
+                        <div className="absolute bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] left-3 right-3 z-50 pointer-events-auto flex flex-col gap-2 rounded-2xl border border-white/10 bg-black/75 p-2 backdrop-blur-md">
+                            <p role="status" className="px-2 text-center font-kantumruy text-[11px] leading-relaxed text-white/80">
+                                {mobilePreviewReady
+                                    ? "ពិនិត្យរូប និងព័ត៌មានធៀប រួចចុចចែករំលែក។"
+                                    : "សូមរង់ចាំឲ្យ Preview បើកសិន។"}
+                            </p>
+                            <div className="flex items-center gap-2">
                             <button
                                 onClick={() => setIsSheetOpen(true)}
-                                className="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-bold text-slate-900 font-kantumruy shadow-lg active:scale-95 transition-all"
+                                className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-white px-4 text-xs font-bold text-slate-900 font-kantumruy shadow-lg active:scale-95 transition-all"
                             >
                                 <Palette size={16} />
-                                <span>កែប្រែ</span>
+                                <span>{t("design.wizard.edit")}</span>
                             </button>
+                            <button
+                                type="button"
+                                onClick={() => void openShareAfterSave()}
+                                disabled={!mobilePreviewReady || loading || isMediaUploading || galleryUploading}
+                                title={!mobilePreviewReady ? "សូមរង់ចាំ Preview បើកសិន" : undefined}
+                                className="flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-teal-600 px-4 text-xs font-bold text-white font-kantumruy shadow-lg shadow-teal-950/20 transition-all hover:bg-teal-500 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                <Share2 size={16} />
+                                <span>{t("design.wizard.share")}</span>
+                            </button>
+                            </div>
                         </div>
+                        {shareSaveError && (
+                            <div
+                                role="alert"
+                                className="absolute bottom-[calc(env(safe-area-inset-bottom)+4.75rem)] left-3 right-3 z-50 rounded-xl border border-rose-300/30 bg-rose-950/90 px-3 py-2 text-center font-kantumruy text-xs font-medium leading-relaxed text-white shadow-lg"
+                            >
+                                {t("design.wizard.shareSaveError")}
+                            </div>
+                        )}
+                        {finishSaveError && (
+                            <div
+                                role="alert"
+                                className="absolute bottom-[calc(env(safe-area-inset-bottom)+4.75rem)] left-3 right-3 z-50 rounded-xl border border-rose-300/30 bg-rose-950/90 px-3 py-2 text-center font-kantumruy text-xs font-medium leading-relaxed text-white shadow-lg"
+                            >
+                                {t("design.wizard.finishSaveError")}
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
@@ -662,6 +833,7 @@ function DesignContent() {
         <div className="relative h-[100dvh] w-full flex flex-col">
             {!isMobile && desktopLayout}
             {isMobile && mobileLayout}
+            {mounted && <ShareModal />}
             {mounted && <Joyride
                 steps={tourSteps}
                 run={runTour}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { WeddingData } from '../types';
+import { getWeddingHeroImage } from "../shared/weddingPhotos";
 
 interface EntranceEnvelopeProps {
     wedding: WeddingData;
@@ -20,7 +21,7 @@ export const EntranceEnvelope: React.FC<EntranceEnvelopeProps> = ({
     const isEngagement = wedding.eventType === 'anniversary';
     const groomName = wedding.groomName || "កូនកំលោះ";
     const brideName = wedding.brideName || "កូនក្រមុំ";
-    const heroImage = wedding.themeSettings?.heroImage || wedding.galleryItems?.[0]?.url || '/assets/emerald-garden/emerald-garden-bg.jpg';
+    const heroImage = getWeddingHeroImage(wedding, '/assets/emerald-garden/emerald-garden-bg.jpg');
 
     return (
         <AnimatePresence>

@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { m, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -41,22 +40,13 @@ export const AccordionItem = ({ id, icon: Icon, title, subtitle, children, isOpe
                 </div>
             </button>
         )}
-        <AnimatePresence initial={false}>
-            {isOpen && (
-                <m.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.25, ease: "easeInOut" }}
-                >
-                    <div className={clsx(
-                        "px-3.5 sm:px-5 pb-4 border-t border-stone-100 dark:border-white/5 bg-white/60 dark:bg-white/[0.02]",
-                        hideHeader ? "pt-4" : "pt-1"
-                    )}>
-                        {children}
-                    </div>
-                </m.div>
-            )}
-        </AnimatePresence>
+        {isOpen && (
+            <div className={clsx(
+                "px-3.5 sm:px-5 pb-4 border-t border-stone-100 dark:border-white/5 bg-white/60 dark:bg-white/[0.02]",
+                hideHeader ? "pt-4" : "pt-1"
+            )}>
+                {children}
+            </div>
+        )}
     </div>
 );

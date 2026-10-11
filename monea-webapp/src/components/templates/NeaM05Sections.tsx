@@ -25,6 +25,8 @@ import { formatNeaM05Date, formatNeaM05DateParts } from "@/lib/nea-m05-date";
 import { downloadIcsFile } from "@/lib/calendar";
 import type { ResolvedTemplateConfig, WeddingData } from "./types";
 import { getWeddingHeroImage, getWeddingPhotos } from "./shared/weddingPhotos";
+import { getGalleryCardClass, getGalleryContainerClass, getGalleryDisplayStyle, getGalleryImageClass } from "./shared/gallery-layout";
+import { PhotoImage } from "./shared/PhotoImage";
 import { isSectionVisible } from "./shared/template-settings";
 import { GuestbookSection } from "./shared/GuestbookSection";
 
@@ -122,6 +124,7 @@ export default function NeaM05Sections({
         : copy[locale];
     const gallery = useMemo(() => getWeddingPhotos(wedding), [wedding]);
     const visibleGallery = gallery;
+    const galleryDisplayStyle = getGalleryDisplayStyle(wedding.themeSettings?.galleryStyle);
     const parents = wedding.themeSettings?.parents;
     const groomFather = (parents?.groomFather || wedding.groomFather)?.trim();
     const groomMother = (parents?.groomMother || wedding.groomMother)?.trim();
@@ -308,7 +311,7 @@ export default function NeaM05Sections({
                         <div className="relative overflow-hidden rounded-t-[50%] border border-[#b99b68] p-1.5 shadow-[0_12px_32px_rgba(0,0,0,.22)]">
                             {couplePhoto ? (
                                 <>
-                                    <img src={couplePhoto} alt={text.couplePhotoAlt} className="aspect-[4/5] w-full rounded-t-[50%] border border-[#f3dfb5]/65 object-cover" loading="lazy" decoding="async" />
+                                    <PhotoImage src={couplePhoto} alt={text.couplePhotoAlt} className="aspect-[4/5] w-full rounded-t-[50%] border border-[#f3dfb5]/65 object-cover" loading="lazy" decoding="async" />
                                     <span className="m05-photo-tint pointer-events-none absolute inset-1.5 rounded-t-[50%]" aria-hidden="true" />
                                 </>
                             ) : (
@@ -350,7 +353,7 @@ export default function NeaM05Sections({
                         >
                             {couplePhoto ? (
                                 <>
-                                    <img src={couplePhoto} alt={text.couplePhotoAlt} className="h-full w-full object-cover" loading="lazy" decoding="async" />
+                                    <PhotoImage src={couplePhoto} alt={text.couplePhotoAlt} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                                     <span className="m05-photo-tint pointer-events-none absolute inset-2" aria-hidden="true" />
                                 </>
                             ) : (
@@ -437,7 +440,7 @@ export default function NeaM05Sections({
                         </h2>
                     </div>
 
-                    <div className="m05-programme-list relative mx-auto w-full max-w-2xl pt-2 md:mx-0 md:max-h-[78svh] md:overflow-y-auto md:overscroll-contain md:pr-4 md:pt-0">
+                    <div className="m05-programme-list relative mx-auto w-full max-w-2xl pt-2 md:mx-0 md:pr-4 md:pt-0">
                         <svg aria-hidden="true" className="absolute bottom-8 left-5 top-0 h-[calc(100%-2rem)] w-px overflow-visible sm:left-6" viewBox="0 0 1 1000" preserveAspectRatio="none">
                             <path data-m05-thread="" d="M.5 0V1000" fill="none" stroke="url(#m05-programme-thread)" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
                             <defs>
@@ -504,7 +507,7 @@ export default function NeaM05Sections({
                                     className="w-[82vw] max-w-[760px] min-w-[min(82vw,760px)] snap-start sm:w-[72vw] sm:min-w-[min(72vw,760px)]"
                                 >
                                     <div className="relative overflow-hidden rounded-sm border border-[#c8ad76]/35 bg-[#1d2019] p-1.5 shadow-[0_18px_42px_rgba(0,0,0,.25)]">
-                                        <img src={src} alt={`${text.storyPhotoAlt} ${toKhmerDigits(index + 1, locale)}`} className="h-[clamp(240px,42vw,540px)] w-full object-cover transition-transform duration-700 hover:scale-[1.035]" loading="lazy" decoding="async" />
+                                        <PhotoImage src={src} alt={`${text.storyPhotoAlt} ${toKhmerDigits(index + 1, locale)}`} className="h-[clamp(240px,42vw,540px)] w-full object-cover transition-transform duration-700 hover:scale-[1.035]" loading="lazy" decoding="async" />
                                         <span className="m05-photo-tint pointer-events-none absolute inset-1.5" aria-hidden="true" />
                                     </div>
                                     {wedding.themeSettings?.storyImageCaptions?.[index]?.trim() && (
@@ -616,19 +619,25 @@ export default function NeaM05Sections({
                         )}
                     </div>
                     {visibleGallery.length > 0 ? (
-                        <div className="grid auto-rows-[clamp(135px,18vw,220px)] grid-cols-2 gap-2.5 sm:gap-4 md:grid-cols-12">
+                        <div className={galleryDisplayStyle === "masonry"
+                            ? "grid auto-rows-[clamp(135px,18vw,220px)] grid-cols-2 gap-2.5 sm:gap-4 md:grid-cols-12"
+                            : getGalleryContainerClass(galleryDisplayStyle)}>
                             {visibleGallery.map((item, index) => (
                                 <button
                                     key={`${item.url}-${index}`}
                                     type="button"
                                     onClick={() => setActiveImage(index)}
-                                    className={`group relative block min-h-0 overflow-hidden bg-[#1b1e18] text-left outline-none ring-1 ring-inset ring-[#e3d2ad]/20 focus-visible:ring-2 focus-visible:ring-[#e4c47c] ${index === 0 ? "col-span-2 row-span-2 md:col-span-7" : index < 3 ? "col-span-1 md:col-span-5" : "col-span-1 md:col-span-3"}`}
+                                    className={`group relative block min-h-0 overflow-hidden bg-[#1b1e18] text-left outline-none ring-1 ring-inset ring-[#e3d2ad]/20 focus-visible:ring-2 focus-visible:ring-[#e4c47c] ${galleryDisplayStyle === "masonry"
+                                        ? index === 0 ? "col-span-2 row-span-2 md:col-span-7" : index < 3 ? "col-span-1 md:col-span-5" : "col-span-1 md:col-span-3"
+                                        : getGalleryCardClass(galleryDisplayStyle, index)}`}
                                     aria-label={`${text.openPhoto} ${toKhmerDigits(index + 1, locale)}`}
                                 >
-                                    <img
+                                    <PhotoImage
                                         src={item.url}
                                         alt={`${text.galleryPhotoAlt} ${toKhmerDigits(index + 1, locale)}`}
-                                        className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.035]"
+                                        className={`${galleryDisplayStyle === "polaroid"
+                                            ? getGalleryImageClass(galleryDisplayStyle)
+                                            : "absolute inset-0 h-full w-full object-cover"} transition-transform duration-700 group-hover:scale-[1.035]`}
                                         loading="lazy"
                                         decoding="async"
                                     />

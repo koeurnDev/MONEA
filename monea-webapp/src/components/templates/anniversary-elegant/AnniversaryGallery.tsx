@@ -2,19 +2,18 @@ import React, { useState } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
 import { Image as ImageIcon, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { WeddingData } from '../types';
+import { getWeddingPhotos } from "../shared/weddingPhotos";
+import { getGalleryCardClass, getGalleryContainerClass, getGalleryDisplayStyle, getGalleryImageClass } from "../shared/gallery-layout";
+import { PhotoImage } from "../shared/PhotoImage";
 
 export default function AnniversaryGallery({ wedding }: { wedding: WeddingData }) {
     const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
 
-    const rawItems = (wedding.galleryItems || []).filter(i => i && typeof i.url === 'string' && i.url.trim() !== '');
-    const userItems = rawItems.filter((item) => {
-        const url = item.url.toLowerCase();
-        return !url.includes('/assets/khmer-legacy/') && !url.includes('/images/');
-    });
-    const validItems = userItems.length > 0 ? userItems : [];
+    const validItems = getWeddingPhotos(wedding);
     
     const settings = wedding.themeSettings as any;
     const title = settings?.customLabels?.galleryTitle || "វិចិត្រសាល";
+    const galleryStyle = getGalleryDisplayStyle(settings?.galleryStyle);
 
     const openLightbox = (idx: number) => setSelectedIdx(idx);
     const closeLightbox = () => setSelectedIdx(null);
@@ -49,7 +48,7 @@ export default function AnniversaryGallery({ wedding }: { wedding: WeddingData }
                 </div>
 
                 {/* 2-Column Responsive Masonry Collage */}
-                <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                <div className={getGalleryContainerClass(galleryStyle)}>
                     {validItems.map((item, idx) => (
                         <m.div
                             key={idx}
@@ -58,14 +57,12 @@ export default function AnniversaryGallery({ wedding }: { wedding: WeddingData }
                             viewport={{ once: true }}
                             transition={{ duration: 0.5, delay: idx * 0.06 }}
                             onClick={() => openLightbox(idx)}
-                            className={`relative rounded-2xl overflow-hidden shadow-sm cursor-pointer group border border-white hover:border-[#CBAF78] transition-all ${
-                                idx % 3 === 0 ? 'aspect-[3/4]' : idx % 3 === 1 ? 'aspect-square' : 'aspect-[4/5]'
-                            }`}
+                            className={`relative rounded-2xl overflow-hidden shadow-sm cursor-pointer group border border-white hover:border-[#CBAF78] transition-all ${getGalleryCardClass(galleryStyle, idx)}`}
                         >
-                            <img
+                            <PhotoImage
                                 src={item.url}
                                 alt={`Gallery item ${idx + 1}`}
-                                className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+                                className={`${getGalleryImageClass(galleryStyle)} transform group-hover:scale-105 transition-transform duration-500`}
                                 loading="lazy"
                             />
                         </m.div>
@@ -115,7 +112,7 @@ export default function AnniversaryGallery({ wedding }: { wedding: WeddingData }
                             className="relative max-w-lg max-h-[80vh] flex items-center justify-center"
                             onClick={(e) => e.stopPropagation()}
                         >
-                            <img
+                            <PhotoImage
                                 src={validItems[selectedIdx].url}
                                 alt={`Gallery expanded ${selectedIdx + 1}`}
                                 className="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl"

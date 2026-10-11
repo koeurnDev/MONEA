@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Play, Loader2, ChevronLeft, ChevronRight, Sparkles, Image as ImageIcon, RefreshCw } from "lucide-react";
 import useSWR from "swr";
@@ -28,13 +28,13 @@ export default function GalleryPage() {
     const [selectedVideo, setSelectedVideo] = useState<{ url: string; caption: string | null } | null>(null);
     const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
     const { data: items, error, isLoading, mutate } = useSWR(id ? `/api/gallery?weddingId=${encodeURIComponent(id)}` : null, fetcher);
-    const galleryItems = items?.data || [];
-    const photos = galleryItems.filter((item: any) => item.type !== "VIDEO");
+    const galleryItems = Array.isArray(items?.data) ? items.data : [];
+    const photos = galleryItems.filter((item: any) => item && typeof item === "object" && item.type !== "VIDEO" && typeof item.url === "string" && item.url.trim() !== "");
     const selectedPhoto = selectedPhotoIndex === null ? null : photos[selectedPhotoIndex] ?? null;
-    const changePhoto = (direction: -1 | 1) => {
+    const changePhoto = useCallback((direction: -1 | 1) => {
         if (selectedPhotoIndex === null || photos.length < 2) return;
-        setSelectedPhotoIndex((selectedPhotoIndex + direction + photos.length) % photos.length);
-    };
+        setSelectedPhotoIndex((prev) => prev === null ? null : (prev + direction + photos.length) % photos.length);
+    }, [selectedPhotoIndex, photos.length]);
 
     useEffect(() => {
         if (selectedPhotoIndex !== null && !selectedPhoto) {
@@ -55,7 +55,7 @@ export default function GalleryPage() {
         };
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [selectedVideo, selectedPhotoIndex, photos.length]);
+    }, [selectedVideo, selectedPhotoIndex, changePhoto]);
 
     if (isLoading) return (
         <div className="min-h-screen flex items-center justify-center bg-background">

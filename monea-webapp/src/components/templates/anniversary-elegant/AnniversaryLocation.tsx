@@ -3,7 +3,7 @@ import { m } from 'framer-motion';
 import { MapPin, Navigation } from 'lucide-react';
 import { getDirectMapUrl } from '../shared/mapUtils';
 import type { WeddingData } from '../types';
-import { getWeddingHeroImage, getWeddingPhotos } from "../shared/weddingPhotos";
+import { getWeddingSectionPhoto } from "../shared/weddingPhotos";
 
 export default function AnniversaryLocation({ wedding }: { wedding: WeddingData }) {
     const settings = wedding.themeSettings as any;
@@ -12,11 +12,7 @@ export default function AnniversaryLocation({ wedding }: { wedding: WeddingData 
     if (!locationString && !venueName) return null;
 
     const directMapUrl = getDirectMapUrl(locationString);
-    const galleryPhotos = getWeddingPhotos(wedding);
-    const couplePhoto = galleryPhotos[2]?.url
-        || galleryPhotos[5]?.url
-        || galleryPhotos[0]?.url
-        || getWeddingHeroImage(wedding);
+    const couplePhoto = getWeddingSectionPhoto(wedding, 2)?.url;
 
     // Safe Maps QR code URL
     const mapQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(directMapUrl)}&color=4A154B`;

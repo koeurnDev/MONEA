@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { WeddingData } from '../types';
 import { getWeddingPhotos } from "../shared/weddingPhotos";
+import { getGalleryCardClass, getGalleryContainerClass, getGalleryDisplayStyle, getGalleryImageClass } from "../shared/gallery-layout";
+import { PhotoImage } from "../shared/PhotoImage";
 
 interface GallerySectionProps {
     wedding: WeddingData;
@@ -12,6 +14,7 @@ interface GallerySectionProps {
 export const GallerySection: React.FC<GallerySectionProps> = ({ wedding, primaryColor }) => {
     const photos = getWeddingPhotos(wedding);
     const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
+    const galleryStyle = getGalleryDisplayStyle(wedding.themeSettings?.galleryStyle);
 
     if (photos.length === 0) return null;
 
@@ -25,21 +28,19 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ wedding, primary
                     <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-[#8ea07a] to-transparent mx-auto" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className={getGalleryContainerClass(galleryStyle)}>
                     {photos.map((photo, idx) => (
                         <motion.div
                             key={idx}
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => setSelectedPhoto(idx)}
-                            className={`relative rounded-2xl overflow-hidden cursor-pointer shadow-md border-2 border-amber-400/40 ${
-                                idx % 3 === 0 ? "row-span-2 aspect-[3/4]" : "aspect-square"
-                            }`}
+                            className={`relative rounded-2xl overflow-hidden cursor-pointer shadow-md border-2 border-amber-400/40 ${getGalleryCardClass(galleryStyle, idx)}`}
                         >
-                            <img
+                            <PhotoImage
                                 src={photo.url}
                                 alt={`Photo ${idx + 1}`}
-                                className="w-full h-full object-cover"
+                                className={getGalleryImageClass(galleryStyle)}
                                 loading="lazy"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity flex items-end p-2.5">
@@ -72,7 +73,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ wedding, primary
                             className="max-w-lg w-full max-h-[80vh] flex items-center justify-center"
                             onClick={(e) => e.stopPropagation()}
                         >
-                            <img
+                            <PhotoImage
                                 src={photos[selectedPhoto].url}
                                 alt="Enlarged moment"
                                 className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl border border-amber-400/40"

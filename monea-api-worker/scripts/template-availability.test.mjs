@@ -10,10 +10,10 @@ import {
     TEMPLATE_METADATA_DEFAULTS,
 } from "../lib/template-availability.ts";
 
-test("template availability defaults match the existing selectable catalog", () => {
-    assert.equal(Object.values(TEMPLATE_AVAILABILITY_DEFAULTS).filter(Boolean).length, 5);
-    assert.equal(TEMPLATE_AVAILABILITY_DEFAULTS["emerald-garden"], false);
-    assert.equal(TEMPLATE_AVAILABILITY_DEFAULTS["anniversary-elegant"], false);
+test("template availability defaults enable the full selectable catalog", () => {
+    assert.equal(Object.values(TEMPLATE_AVAILABILITY_DEFAULTS).filter(Boolean).length, 7);
+    assert.equal(TEMPLATE_AVAILABILITY_DEFAULTS["emerald-garden"], true);
+    assert.equal(TEMPLATE_AVAILABILITY_DEFAULTS["anniversary-elegant"], true);
 });
 
 test("normalization preserves defaults for missing and malformed values", () => {

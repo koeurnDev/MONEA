@@ -70,7 +70,8 @@ export function KhmerSchedule({
     const { t } = useTranslation();
     const isEngagement = wedding.eventType === 'anniversary';
 
-    const activities = wedding.activities || [];
+    const rawActivities = wedding.activities;
+    const activities = React.useMemo(() => rawActivities || [], [rawActivities]);
 
     const scheduleTitle = customTitle ||
                           (isEngagement

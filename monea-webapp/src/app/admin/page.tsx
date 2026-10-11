@@ -10,6 +10,20 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 export default function AdminDashboardPage() {
     const { user, isLoading: isUserLoading } = useAuth();
 
+    const isAuthorized = Boolean(
+        user && (user.role === ROLES.EVENT_MANAGER || user.role === ROLES.PLATFORM_OWNER || user.role === ROLES.EVENT_STAFF)
+    );
+
+    // Call SWR hooks unconditionally; pass null when unauthorized or still loading user
+    const { data: statsResponse, isLoading: isStatsLoading } = useSWR(
+        !isUserLoading && isAuthorized ? '/api/admin/stats' : null,
+        fetcher
+    );
+    const { data: logsResponse, isLoading: isLogsLoading } = useSWR(
+        !isUserLoading && isAuthorized ? '/api/admin/logs' : null,
+        fetcher
+    );
+
     // 1. Check user loading first to prevent premature rendering
     if (isUserLoading) {
         return (
@@ -20,13 +34,9 @@ export default function AdminDashboardPage() {
     }
 
     // 2. Check role authorization immediately
-    if (!user || (user.role !== ROLES.EVENT_MANAGER && user.role !== ROLES.PLATFORM_OWNER && user.role !== ROLES.EVENT_STAFF)) {
+    if (!isAuthorized || !user) {
         return <Navigate to="/sign-in" replace />;
     }
-
-    // 3. Only fetch data once user role is verified & authorized
-    const { data: statsResponse, isLoading: isStatsLoading } = useSWR('/api/admin/stats', fetcher);
-    const { data: logsResponse, isLoading: isLogsLoading } = useSWR('/api/admin/logs', fetcher);
 
     if (isStatsLoading || isLogsLoading) {
         return (

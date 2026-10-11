@@ -51,6 +51,17 @@ const ParallaxImage = React.memo(({ src, speed, className = "" }: { src: string;
 });
 ParallaxImage.displayName = 'ParallaxImage';
 
+const DEFAULT_STORY_IMAGES = [
+    "/assets/khmer-legacy/621811254_905398285378636_5240747682765358044_n.jpg",
+    "/assets/khmer-legacy/621811002_905396558712142_5126771807004187076_n.jpg",
+    "/assets/khmer-legacy/621811942_905392918712506_8600818650624857202_n.jpg",
+    "/assets/khmer-legacy/621813168_905393265379138_2356104923368506186_n.jpg",
+    "/assets/khmer-legacy/622279784_905392782045853_1189842078802821714_n.jpg",
+    "/assets/khmer-legacy/622374686_905392995379165_1001573724208229331_n.jpg",
+    "/assets/khmer-legacy/622582548_905399002045231_4147705888928073222_n.jpg",
+    "/assets/khmer-legacy/622629866_905398512045280_817022291532741601_n.jpg"
+];
+
 const CinematicStoryGallery = React.memo(({ items, labels, theme = 'dark' }: CinematicStoryGalleryProps) => {
     const containerRef = React.useRef<HTMLDivElement>(null);
     const horizontalRef = React.useRef<HTMLDivElement>(null);
@@ -58,17 +69,6 @@ const CinematicStoryGallery = React.memo(({ items, labels, theme = 'dark' }: Cin
     const xMove = useTransform(scrollYProgress, [0, 1], ["0%", "-50%"]);
     const springXMove = useSpring(xMove, { stiffness: 100, damping: 30 });
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-
-    const DEFAULT_STORY_IMAGES = [
-        "/assets/khmer-legacy/621811254_905398285378636_5240747682765358044_n.jpg",
-        "/assets/khmer-legacy/621811002_905396558712142_5126771807004187076_n.jpg",
-        "/assets/khmer-legacy/621811942_905392918712506_8600818650624857202_n.jpg",
-        "/assets/khmer-legacy/621813168_905393265379138_2356104923368506186_n.jpg",
-        "/assets/khmer-legacy/622279784_905392782045853_1189842078802821714_n.jpg",
-        "/assets/khmer-legacy/622374686_905392995379165_1001573724208229331_n.jpg",
-        "/assets/khmer-legacy/622582548_905399002045231_4147705888928073222_n.jpg",
-        "/assets/khmer-legacy/622629866_905398512045280_817022291532741601_n.jpg"
-    ];
 
     // Filter for images and ensure we have enough items
     const safeItems = React.useMemo(() => {
