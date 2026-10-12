@@ -257,15 +257,12 @@ export function useGuests() {
         }
         if (!wedding?.id) return;
         const link = `${window.location.origin}/invite/${wedding.id}?to=${encodeURIComponent(name)}&g=${guestId}`;
-        const groomName = wedding.groomName || '';
-        const brideName = wedding.brideName || '';
         const isAnniversary = wedding?.eventType === 'anniversary';
-        const eventCeremony = isAnniversary ? 'ពិធីភ្ជាប់ពាក្យ' : 'ពិធី';
-        const coupleNames = groomName && brideName ? `${groomName} និង ${brideName}` : (groomName || brideName || 'យើងខ្ញុំ');
+        const eventCeremony = isAnniversary ? 'ពិធីភ្ជាប់ពាក្យ' : 'ពិធីមង្គលការ';
 
-        // Short 3-line message — link preview card auto-shows wedding photo & details
+        // Clean message — link preview card auto-shows wedding photo & details
         const message = `សួស្តី ${name} 🤍
-យើងខ្ញុំសូមគោរពអញ្ជើញចូលរួម${eventCeremony} ${coupleNames} 💍
+យើងខ្ញុំសូមគោរពអញ្ជើញចូលរួម${eventCeremony}របស់យើងខ្ញុំ។ សូមចុចតំណភ្ជាប់ខាងក្រោមដើម្បីបើកមើលសំបុត្រអញ្ជើញ៖
 ${link}`;
 
         navigator.clipboard.writeText(message);
@@ -293,16 +290,12 @@ ${link}`;
 
         if (!wedding?.id) return;
         const link = `${window.location.origin}/invite/${wedding.id}?to=${encodeURIComponent(name)}&g=${guestId}`;
-        const groomName = wedding.groomName || '';
-        const brideName = wedding.brideName || '';
         const isAnniversary = wedding?.eventType === 'anniversary';
-        const eventCeremony = isAnniversary ? 'ពិធីភ្ជាប់ពាក្យ' : 'ពិធី';
-        const coupleNames = groomName && brideName ? `${groomName} និង ${brideName}` : (groomName || brideName || 'យើងខ្ញុំ');
+        const eventCeremony = isAnniversary ? 'ពិធីភ្ជាប់ពាក្យ' : 'ពិធីមង្គលការ';
 
-        // Short 3-line text — Telegram Rich Preview Card auto-shows wedding photo & details
+        // Clean text — Telegram Rich Preview Card auto-shows wedding photo & details
         const text = `សួស្តី ${name} 🤍
-យើងខ្ញុំសូមគោរពអញ្ជើញចូលរួម${eventCeremony} ${coupleNames} 💍
-ចុចតំណភ្ជាប់ខាងក្រោមដើម្បីមើលសំបុត្រអញ្ជើញ ➡️`;
+យើងខ្ញុំសូមគោរពអញ្ជើញចូលរួម${eventCeremony}របស់យើងខ្ញុំ។ សូមចុចតំណភ្ជាប់ខាងក្រោមដើម្បីបើកមើលសំបុត្រអញ្ជើញ ⬇️`;
         const tgUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`;
         window.open(tgUrl, '_blank');
     };

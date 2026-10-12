@@ -157,26 +157,32 @@ export async function onRequest(context: PagesFunctionContext): Promise<Response
             .filter(Boolean)
             .join(" & ");
 
-        // Determine event type in Khmer
-        let eventPrefix = "ពិធីមង្គលការ";
-        if (wedding.eventType === "anniversary") {
-            eventPrefix = "ពិធីខួបអាពាហ៍ពិពាហ៍";
-        } else if (wedding.eventType === "engagement") {
-            eventPrefix = "ពិធីភ្ជាប់ពាក្យ";
-        }
+        // Determine event type in Khmer (anniversary maps to ពិធីភ្ជាប់ពាក្យ in MONEA)
+        const isEngagement = wedding.eventType === "anniversary" || wedding.eventType === "engagement";
+        const eventPrefix = isEngagement ? "ពិធីភ្ជាប់ពាក្យ" : "ពិធីមង្គលការ";
 
-        const coupleText = names ? `${eventPrefix} ${names}` : eventPrefix;
+        // Title: Personalized VIP invitation for guest, or elegant couple title
         const title = guestName
-            ? `ធៀបអញ្ជើញ ${guestName} 🤍 | ${coupleText}`
-            : `${coupleText} | MONEA`;
+            ? `ធៀបអញ្ជើញពិសេសជូនចំពោះ ${guestName} 💌`
+            : (names ? `ធៀបអញ្ជើញ៖ ${names} 💍` : `${eventPrefix} | MONEA`);
 
         const parsedDate = typeof wedding.date === "string" ? new Date(wedding.date) : null;
         const date = parsedDate && Number.isFinite(parsedDate.getTime())
             ? formatKhmerDate(parsedDate)
             : "";
-        const description = guestName
-            ? cleanText(`សូមគោរពអញ្ជើញ ${guestName} ចូលរួម${eventPrefix}${names ? ` របស់ ${names}` : ""}${date ? ` នៅថ្ងៃ ${date}` : ""}។`, 300)
-            : cleanText(`សូមគោរពអញ្ជើញចូលរួម${eventPrefix}${names ? ` របស់ ${names}` : ""}${date ? ` នៅថ្ងៃ ${date}` : ""}។`, 300);
+
+        // Description: Event Type + Couple Names + Date + CTA (clean and concise, avoids repeating sentences)
+        const descriptionParts: string[] = [];
+        if (names) {
+            descriptionParts.push(`${eventPrefix} ${names}`);
+        } else {
+            descriptionParts.push(eventPrefix);
+        }
+        if (date) {
+            descriptionParts.push(`ថ្ងៃ ${date}`);
+        }
+        descriptionParts.push("សូមចុចដើម្បីបើកមើលសំបុត្រអញ្ជើញ និងទីតាំង");
+        const description = cleanText(descriptionParts.join(" • "), 300);
 
         const image = getHeroImage(wedding, origin);
 

@@ -459,13 +459,12 @@ export function DigitalPassModal({
         }
     };
 
-    // Share directly to Telegram — short 3-line message; Telegram auto-generates rich preview card
+    // Share directly to Telegram — short personal note; Telegram auto-generates rich preview card
     const handleTelegram = () => {
         if (!guest) return;
-        const eventCeremony = isAnniversary ? "ពិធីភ្ជាប់ពាក្យ" : "ពិធី";
+        const eventCeremony = isAnniversary ? "ពិធីភ្ជាប់ពាក្យ" : "ពិធីមង្គលការ";
         const shareText = `សួស្តី ${guest.name} 🤍
-យើងខ្ញុំសូមគោរពអញ្ជើញចូលរួម${eventCeremony} ${groomName} និង ${brideName} 💍
-ចុចតំណភ្ជាប់ខាងក្រោមដើម្បីមើលសំបុត្រអញ្ជើញ ➡️`;
+យើងខ្ញុំសូមគោរពអញ្ជើញចូលរួម${eventCeremony}របស់យើងខ្ញុំ។ សូមចុចតំណភ្ជាប់ខាងក្រោមដើម្បីបើកមើលសំបុត្រអញ្ជើញ ⬇️`;
         const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(inviteUrl)}&text=${encodeURIComponent(shareText)}`;
         window.open(telegramUrl, "_blank", "noopener,noreferrer");
     };
@@ -474,10 +473,10 @@ export function DigitalPassModal({
     const handleShareOrCopy = async () => {
         if (!guest) return;
 
-        // Short message — link preview card handles all invitation details visually
-        const eventCeremony = isAnniversary ? "ពិធីភ្ជាប់ពាក្យ" : "ពិធី";
+        // Clean message — link preview card handles couple names & date visually
+        const eventCeremony = isAnniversary ? "ពិធីភ្ជាប់ពាក្យ" : "ពិធីមង្គលការ";
         const shareText = `សួស្តី ${guest.name} 🤍
-យើងខ្ញុំសូមគោរពអញ្ជើញចូលរួម${eventCeremony} ${groomName} និង ${brideName} 💍
+យើងខ្ញុំសូមគោរពអញ្ជើញចូលរួម${eventCeremony}របស់យើងខ្ញុំ។ សូមចុចតំណភ្ជាប់ខាងក្រោមដើម្បីបើកមើលសំបុត្រអញ្ជើញ៖
 ${inviteUrl}`;
 
         // Attempt Web Share API with image file if supported
