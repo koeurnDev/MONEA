@@ -257,19 +257,23 @@ export function useGuests() {
         }
         if (!wedding?.id) return;
         const link = `${window.location.origin}/invite/${wedding.id}?to=${encodeURIComponent(name)}&g=${guestId}`;
-        
-        const isAnniversary = wedding.eventType === 'anniversary';
-        const eventName = isAnniversary ? "កម្មវិធីភ្ជាប់ពាក្យ" : "កម្មវិធីមង្គលការ";
-        
-        const message = `សួស្តី ${name} 🤍\nយើងខ្ញុំសូមគោរពអញ្ជើញចូលរួម${eventName}របស់យើងខ្ញុំ។\n\nសូមចុចលីងខាងក្រោមដើម្បីមើលធៀបអញ្ជើញ និងទីតាំងកម្មវិធី៖\n${link}`;
-        
+        const groomName = wedding.groomName || '';
+        const brideName = wedding.brideName || '';
+        const isAnniversary = wedding?.eventType === 'anniversary';
+        const eventCeremony = isAnniversary ? 'ពិធីភ្ជាប់ពាក្យ' : 'ពិធី';
+        const coupleNames = groomName && brideName ? `${groomName} និង ${brideName}` : (groomName || brideName || 'យើងខ្ញុំ');
+
+        // Short 3-line message — link preview card auto-shows wedding photo & details
+        const message = `សួស្តី ${name} 🤍
+យើងខ្ញុំសូមគោរពអញ្ជើញចូលរួម${eventCeremony} ${coupleNames} 💍
+${link}`;
+
         navigator.clipboard.writeText(message);
         setCopiedId(guestId);
-        
-        // Use the toast provider we added earlier to give feedback that the MESSAGE was copied, not just the link
+
         showToast({
             title: t("common.success.title", { defaultValue: "ជោគជ័យ" }),
-            description: "សារអញ្ជើញត្រូវបានថតចម្លង (Copied) រួចរាល់។ លោកអ្នកអាចយកទៅផ្ញើ (Paste) ក្នុង Telegram ជូនភ្ញៀវបាន!",
+            description: "បានថតចម្លងរួចរាល់! សូមយកទំណភ្ជាប់ទៅផ្ញើជូនភ្ញៀវក្នុង Telegram បាន!",
             type: "success",
         });
 
@@ -289,9 +293,16 @@ export function useGuests() {
 
         if (!wedding?.id) return;
         const link = `${window.location.origin}/invite/${wedding.id}?to=${encodeURIComponent(name)}&g=${guestId}`;
-        const isAnniversary = wedding.eventType === 'anniversary';
-        const eventName = isAnniversary ? "កម្មវិធីភ្ជាប់ពាក្យ" : "កម្មវិធីមង្គលការ";
-        const text = `សួស្តី ${name} 🤍\nយើងខ្ញុំសូមគោរពអញ្ជើញចូលរួម${eventName}របស់យើងខ្ញុំ។\n\nសូមចុចលីងខាងក្រោមដើម្បីមើលធៀបអញ្ជើញ និងទីតាំងកម្មវិធី៖`;
+        const groomName = wedding.groomName || '';
+        const brideName = wedding.brideName || '';
+        const isAnniversary = wedding?.eventType === 'anniversary';
+        const eventCeremony = isAnniversary ? 'ពិធីភ្ជាប់ពាក្យ' : 'ពិធី';
+        const coupleNames = groomName && brideName ? `${groomName} និង ${brideName}` : (groomName || brideName || 'យើងខ្ញុំ');
+
+        // Short 3-line text — Telegram Rich Preview Card auto-shows wedding photo & details
+        const text = `សួស្តី ${name} 🤍
+យើងខ្ញុំសូមគោរពអញ្ជើញចូលរួម${eventCeremony} ${coupleNames} 💍
+ចុចតំណភ្ជាប់ខាងក្រោមដើម្បីមើលសំបុត្រអញ្ជើញ ➡️`;
         const tgUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`;
         window.open(tgUrl, '_blank');
     };

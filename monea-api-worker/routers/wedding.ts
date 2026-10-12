@@ -748,6 +748,7 @@ weddingRouter.get('/:id/seo', async (c) => {
             groomName: weddings.groomName,
             brideName: weddings.brideName,
             date: weddings.date,
+            eventType: weddings.eventType,
             themeSettings: weddings.themeSettings,
         })
             .from(weddings)
@@ -770,6 +771,7 @@ weddingRouter.get('/:id/seo', async (c) => {
             groomName: wedding.groomName,
             brideName: wedding.brideName,
             date: wedding.date,
+            eventType: wedding.eventType,
             heroImage: typeof themeSettings.heroImage === "string" ? themeSettings.heroImage : null,
             coverImageUrl: typeof themeSettings.coverImageUrl === "string" ? themeSettings.coverImageUrl : null,
         });

@@ -11,7 +11,14 @@ export default function InvitationPage() {
     if (!id) return null;
 
     const guestNameParam = searchParams.get("to");
-    const guestName = guestNameParam ? decodeURIComponent(guestNameParam) : undefined;
+    let guestName: string | undefined = undefined;
+    if (guestNameParam) {
+        try {
+            guestName = decodeURIComponent(guestNameParam);
+        } catch {
+            guestName = guestNameParam;
+        }
+    }
     const guestId = searchParams.get("g") || searchParams.get("guestId") || undefined;
     const template = searchParams.get("template") || undefined;
 

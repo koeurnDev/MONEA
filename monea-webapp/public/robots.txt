@@ -9,6 +9,7 @@ Disallow: /forgot-password
 Disallow: /reset-password
 Allow: /
 Allow: /w/
+Allow: /invite/
 Allow: /templates
 Allow: /pricing
 

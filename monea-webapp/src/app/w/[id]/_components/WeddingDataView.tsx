@@ -75,7 +75,9 @@ export default function WeddingDataView({
 }: WeddingDataViewProps) {
     const [searchParams] = useSearchParams();
     const guestNameParam = searchParams.get("to");
-    const resolvedGuestName = propGuestName || (guestNameParam ? decodeURIComponent(guestNameParam) : undefined);
+    const resolvedGuestName = propGuestName || (guestNameParam
+        ? (() => { try { return decodeURIComponent(guestNameParam); } catch { return guestNameParam; } })()
+        : undefined);
     const resolvedGuestId = propGuestId || searchParams.get("g") || searchParams.get("guestId") || undefined;
 
     // Check cache synchronously for 0ms reloads

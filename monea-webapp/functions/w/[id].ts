@@ -11,6 +11,7 @@ interface PublicWedding {
     date?: string | null;
     heroImage?: string | null;
     coverImageUrl?: string | null;
+    eventType?: string | null;
 }
 
 interface SocialImage {
@@ -43,27 +44,22 @@ function formatKhmerDate(date: Date): string {
 }
 
 function getHeroImage(wedding: PublicWedding, origin: string): SocialImage {
-    const fallback: SocialImage = { url: new URL("/logo.png", origin).href };
+    const fallback: SocialImage = { url: new URL("/logo.png", origin).href, width: 512, height: 512 };
     const image = [wedding.heroImage, wedding.coverImageUrl]
         .find((candidate) => typeof candidate === "string" && candidate.length <= 2048);
     if (!image) return fallback;
 
     try {
         const imageUrl = new URL(image, origin);
-        const isSameOrigin = imageUrl.origin === origin;
-        const isAllowedHost = allowedImageHosts.has(imageUrl.hostname);
         const hasCredentials = Boolean(imageUrl.username || imageUrl.password);
         const hasUnexpectedPort = imageUrl.port !== "";
-        const safeImage = imageUrl.protocol === "https:" &&
-            (isSameOrigin || isAllowedHost) &&
-            !hasCredentials &&
-            !hasUnexpectedPort;
+        const safeImage = (imageUrl.protocol === "https:" || imageUrl.protocol === "http:") && !hasCredentials && !hasUnexpectedPort;
         if (!safeImage) return fallback;
 
         if (imageUrl.hostname === "res.cloudinary.com" && imageUrl.pathname.includes("/image/upload/")) {
             const marker = "/image/upload/";
             const uploadIndex = imageUrl.pathname.indexOf(marker);
-            const transform = "c_fill,w_1200,h_630,g_auto,q_auto,f_auto";
+            const transform = "c_fill,w_1200,h_630,g_auto,q_auto,f_jpg";
             const transformStart = uploadIndex + marker.length;
             if (!imageUrl.pathname.slice(transformStart).startsWith(`${transform}/`)) {
                 imageUrl.pathname = `${imageUrl.pathname.slice(0, transformStart)}${transform}/${imageUrl.pathname.slice(transformStart)}`;
@@ -76,16 +72,17 @@ function getHeroImage(wedding: PublicWedding, origin: string): SocialImage {
             imageUrl.searchParams.set("h", "630");
             imageUrl.searchParams.set("fit", "crop");
             imageUrl.searchParams.set("auto", "format");
+            imageUrl.searchParams.set("fm", "jpg");
             imageUrl.searchParams.set("q", "80");
             return { url: imageUrl.href, width: 1200, height: 630 };
         }
 
         if (imageUrl.hostname === "ik.imagekit.io") {
-            imageUrl.searchParams.set("tr", "w-1200,h-630,c-at_least,fo-auto");
+            imageUrl.searchParams.set("tr", "w-1200,h-630,c-at_least,fo-auto,f-jpg");
             return { url: imageUrl.href, width: 1200, height: 630 };
         }
 
-        return { url: imageUrl.href };
+        return { url: imageUrl.href, width: 1200, height: 630 };
     } catch {
         return fallback;
     }
@@ -123,7 +120,7 @@ export async function onRequest(context: PagesFunctionContext): Promise<Response
         const apiUrl = `https://monea-api.seabkoeurn64.workers.dev/api/wedding/${encodeURIComponent(weddingId)}/seo`;
         const weddingResponse = await fetch(apiUrl, {
             headers: { Accept: "application/json" },
-            signal: AbortSignal.timeout(2500),
+            signal: AbortSignal.timeout(3000),
         });
         if (!weddingResponse.ok) return pageResponse;
         const contentType = weddingResponse.headers.get("content-type")
@@ -141,25 +138,52 @@ export async function onRequest(context: PagesFunctionContext): Promise<Response
             return pageResponse;
         }
 
-        const origin = new URL(context.request.url).origin;
-        const canonicalUrl = new URL(`/w/${encodeURIComponent(wedding.id)}`, origin).href;
+        const requestUrl = new URL(context.request.url);
+        const origin = requestUrl.origin;
+        const canonicalUrl = requestUrl.href;
+
+        // Parse guest name from query params (?to=...) if present
+        const guestParam = requestUrl.searchParams.get("to");
+        let guestName = "";
+        if (guestParam) {
+            try {
+                guestName = cleanText(decodeURIComponent(guestParam), 80);
+            } catch {
+                guestName = cleanText(guestParam, 80);
+            }
+        }
+
         const names = [cleanText(wedding.groomName, 100), cleanText(wedding.brideName, 100)]
             .filter(Boolean)
             .join(" & ");
-        const title = `${names || "ធៀបអញ្ជើញមង្គលការ"} | MONEA`;
+
+        // Determine event type in Khmer
+        let eventPrefix = "ពិធីមង្គលការ";
+        if (wedding.eventType === "anniversary") {
+            eventPrefix = "ពិធីខួបអាពាហ៍ពិពាហ៍";
+        } else if (wedding.eventType === "engagement") {
+            eventPrefix = "ពិធីភ្ជាប់ពាក្យ";
+        }
+
+        const coupleText = names ? `${eventPrefix} ${names}` : eventPrefix;
+        const title = guestName
+            ? `ធៀបអញ្ជើញ ${guestName} 🤍 | ${coupleText}`
+            : `${coupleText} | MONEA`;
+
         const parsedDate = typeof wedding.date === "string" ? new Date(wedding.date) : null;
         const date = parsedDate && Number.isFinite(parsedDate.getTime())
             ? formatKhmerDate(parsedDate)
             : "";
-        const description = cleanText(
-            `សូមគោរពអញ្ជើញចូលរួមពិធីអាពាហ៍ពិពាហ៍${names ? `របស់ ${names}` : ""}${date ? ` នៅថ្ងៃ ${date}` : ""}។`,
-            300,
-        );
+        const description = guestName
+            ? cleanText(`សូមគោរពអញ្ជើញ ${guestName} ចូលរួម${eventPrefix}${names ? ` របស់ ${names}` : ""}${date ? ` នៅថ្ងៃ ${date}` : ""}។`, 300)
+            : cleanText(`សូមគោរពអញ្ជើញចូលរួម${eventPrefix}${names ? ` របស់ ${names}` : ""}${date ? ` នៅថ្ងៃ ${date}` : ""}។`, 300);
+
         const image = getHeroImage(wedding, origin);
 
         let html = await pageResponse.text();
         html = html.replace(/<title\b[^>]*>[\s\S]*?<\/title>/i, `<title>${escapeHtml(title)}</title>`);
         html = replaceMeta(html, "description", description);
+        html = replaceMeta(html, "og:type", "website", true);
         html = replaceMeta(html, "og:title", title, true);
         html = replaceMeta(html, "og:description", description, true);
         html = replaceMeta(html, "og:url", canonicalUrl, true);
@@ -170,6 +194,7 @@ export async function onRequest(context: PagesFunctionContext): Promise<Response
             html = replaceMeta(html, "og:image:width", String(image.width), true);
             html = replaceMeta(html, "og:image:height", String(image.height), true);
         }
+        html = replaceMeta(html, "twitter:card", "summary_large_image");
         html = replaceMeta(html, "twitter:title", title);
         html = replaceMeta(html, "twitter:description", description);
         html = replaceMeta(html, "twitter:image", image.url);
