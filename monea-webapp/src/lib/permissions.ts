@@ -1,3 +1,14 @@
+export const FREE_TRIAL_DAYS = 14;
+
+export function isFreeTrialExpired(wedding: any): boolean {
+    if (!wedding || wedding.packageType !== "FREE") return false;
+    const created = new Date(wedding.createdAt);
+    if (Number.isNaN(created.getTime())) return true;
+    const limit = new Date(created);
+    limit.setDate(limit.getDate() + FREE_TRIAL_DAYS);
+    return new Date() > limit;
+}
+
 export function isEditingLocked(wedding: any): boolean {
     if (!wedding) return true;
     if (process.env.NODE_ENV === "development") return false; // Unlock for local development
@@ -20,11 +31,13 @@ export function isEditingLocked(wedding: any): boolean {
         return false; // No expiry set for a paid plan means lifetime
     }
 
-    // 3. Free Trial Logic
+    // Free plans can use the M1 template for 14 days.
     if (wedding.packageType === "FREE") {
         const created = new Date(wedding.createdAt);
+        if (Number.isNaN(created.getTime())) return true;
+
         const limit = new Date(created);
-        limit.setDate(limit.getDate() + 3); // 3 days free trial
+        limit.setDate(limit.getDate() + FREE_TRIAL_DAYS);
         return new Date() > limit;
     }
 

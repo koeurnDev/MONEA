@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import { Menu, ShieldCheck } from 'lucide-react'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { isPlatformOwner } from '@/lib/constants'
 
 /**
  * Protected Admin layout — renders Super Admin Sidebar & Shell.
@@ -18,7 +19,7 @@ export default function AdminLayout() {
 
   if (isLoading) return <LoadingScreen />
   if (!user) return <Navigate to="/sign-in" replace />
-  if (user.type !== 'admin' && user.role !== 'PLATFORM_OWNER' && user.role !== 'EVENT_MANAGER' && user.role !== 'ADMIN' && user.role !== 'SUPERADMIN') {
+  if (!isPlatformOwner(user.role)) {
     return <Navigate to="/dashboard" replace />
   }
 
@@ -53,7 +54,7 @@ export default function AdminLayout() {
                 <Menu size={20} />
               </Button>
               <Link to="/admin/master" className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-teal-600/10 border border-teal-600/20 flex items-center justify-center text-teal-800 dark:text-teal-300">
+                <div className="w-8 h-8 rounded-xl bg-accent border border-border flex items-center justify-center text-primary">
                   <ShieldCheck size={18} />
                 </div>
                 <span className="font-bold text-sm">Super Admin</span>

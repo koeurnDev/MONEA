@@ -14,7 +14,7 @@ export const StepWizard = ({ children, currentStep, weddingId, onSave, loading, 
         { id: 1, title: t("wizard.steps.1.navTitle", { defaultValue: "គំរូធៀប" }), fullName: t("wizard.steps.1.header", { defaultValue: "ជ្រើសរើស Template" }), guide: "ជ្រើសរើសរូបរាងធៀបដែលអ្នកចូលចិត្ត។", icon: LayoutTemplate, required: true },
         { id: 2, title: t("wizard.steps.2.navTitle", { defaultValue: "ព័ត៌មាន" }), fullName: t("wizard.steps.2.header", { defaultValue: "ព័ត៌មានផ្ទាល់ខ្លួន" }), guide: "បញ្ចូលឈ្មោះគូស្នេហ៍ និងព័ត៌មានសំខាន់ៗ។", icon: Type, required: true },
         { id: 3, title: t("wizard.steps.3.navTitle", { defaultValue: "ថ្ងៃ និងទីតាំង" }), fullName: t("wizard.steps.3.header", { defaultValue: "ថ្ងៃ និងទីតាំងកម្មវិធី" }), guide: "បំពេញថ្ងៃ និងទីតាំងកម្មវិធី។", icon: Clock, required: true },
-        { id: 4, title: t("wizard.steps.4.navTitle", { defaultValue: "រូបភាព" }), fullName: t("wizard.steps.4.header", { defaultValue: "បន្ថែមរូបភាព និងឯកសារ (អាចរំលងបាន)" }), guide: "បន្ថែមរូបភាពសម្រាប់បង្ហាញក្នុងធៀប។", icon: ImageIcon, required: false },
+        { id: 4, title: t("wizard.steps.4.navTitle", { defaultValue: "រូបភាព" }), fullName: t("wizard.steps.4.header", { defaultValue: "បន្ថែមរូបភាព និងឯកសារ (អាចរំលងបាន)" }), guide: "បន្ថែមរូបភាពសម្រាប់បង្ហាញក្នុងធៀប ឬរំលងជំហាននេះបាន។", icon: ImageIcon, required: false },
         { id: 5, title: t("wizard.steps.5.navTitle", { defaultValue: "រចនា" }), fullName: t("wizard.steps.5.header", { defaultValue: "រចនា និងព័ត៌មានបន្ថែម (អាចរំលងបាន)" }), guide: "កែសម្រួលរចនា និងព័ត៌មានបន្ថែមតាម template ដែលបានជ្រើស។", icon: Settings, required: false }
     ];
 
@@ -74,10 +74,10 @@ export const StepWizard = ({ children, currentStep, weddingId, onSave, loading, 
     };
 
     return (
-        <div className="flex h-full w-full bg-white dark:bg-[#141419] overflow-hidden z-20">
+        <div className="flex h-full w-full bg-background overflow-hidden z-20">
             {/* Left Vertical Sub-Navigation Rail (Desktop Only) */}
-            <div className="hidden md:flex w-[72px] flex-none border-r border-slate-200/80 dark:border-white/10 bg-slate-50/80 dark:bg-[#101014] flex-col items-center py-4 gap-2 z-30">
-                <div className="mb-1 flex h-8 w-8 items-center justify-center rounded-xl bg-teal-500/10 text-teal-600 ring-1 ring-teal-500/20">
+            <div className="hidden md:flex w-[72px] flex-none border-r border-border bg-muted/50 flex-col items-center py-4 gap-2 z-30">
+                <div className="mb-1 flex h-8 w-8 items-center justify-center rounded-xl bg-accent text-primary ring-1 ring-primary/20">
                     <Sparkles className="h-4 w-4" />
                 </div>
 
@@ -95,15 +95,15 @@ export const StepWizard = ({ children, currentStep, weddingId, onSave, loading, 
                                 className={clsx(
                                     "relative flex h-[58px] w-[58px] flex-col items-center justify-center rounded-xl transition-all duration-200 outline-none",
                                     isActive
-                                        ? "bg-white text-teal-600 shadow-sm ring-1 ring-teal-500/25 dark:bg-white/10 dark:text-teal-400"
+                                        ? "bg-card text-primary shadow-sm ring-1 ring-primary/25"
                                         : isPassed
-                                            ? "text-slate-600 hover:bg-slate-200/60 dark:text-white/70 dark:hover:bg-white/5"
-                                            : "cursor-not-allowed text-slate-300 dark:text-white/20"
+                                            ? "text-muted-foreground hover:bg-muted"
+                                            : "cursor-not-allowed text-muted-foreground/40"
                                 )}
                                 title={step.fullName}
                             >
                                 <step.icon className={clsx("h-4 w-4 transition-transform", isActive ? "scale-105 stroke-[2.5]" : "stroke-2")} />
-                                <span className="mt-1 text-[9px] font-black leading-none tracking-tight">
+                                <span className="mt-1 text-xs font-black leading-none tracking-tight">
                                     {step.id}
                                 </span>
                                 {isPassed && !isActive && (
@@ -116,25 +116,25 @@ export const StepWizard = ({ children, currentStep, weddingId, onSave, loading, 
             </div>
 
             {/* Content Area */}
-            <div className="flex-1 flex flex-col min-w-0 h-full relative z-20 bg-white dark:bg-[#141419]">
+            <div className="flex-1 flex flex-col min-w-0 h-full relative z-20 bg-background">
                 {/* Header (Desktop) */}
-                <div className="hidden md:flex flex-none items-center justify-between border-b border-slate-200/80 bg-white/80 px-5 py-3 backdrop-blur-md dark:border-white/10 dark:bg-[#141419]/80 sticky top-0 z-30">
+                <div className="hidden md:flex flex-none items-center justify-between border-b border-border bg-card/80 px-5 py-3 backdrop-blur-md sticky top-0 z-30">
                     <div className="flex min-w-0 items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-teal-500/20 bg-teal-500/10 text-teal-600">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-primary/20 bg-accent text-primary">
                             <CurrentIcon className="h-4 w-4" />
                         </div>
                         <div className="min-w-0">
                             <h2 className="truncate text-base font-black text-foreground font-kantumruy">
                                 {currentStepObj.fullName}
                             </h2>
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                                 Step {currentStep} / {STEPS.length}
                             </span>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <div className={clsx("flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold", saveState.tone)}>
+                        <div className={clsx("flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-bold", saveState.tone)}>
                             {loading ? (
                                 <Loader2 className="h-3 w-3 animate-spin" />
                             ) : isDirty ? (
@@ -148,16 +148,16 @@ export const StepWizard = ({ children, currentStep, weddingId, onSave, loading, 
                 </div>
 
                 {/* Mobile Step Header Banner (cleaner, less noisy) */}
-                <div className="sticky top-0 z-20 flex flex-none items-center justify-between border-b border-slate-200/80 bg-[#121418] px-3 py-2.5 shadow-[0_1px_0_rgba(15,23,42,0.08)] md:hidden">
+                <div className="sticky top-0 z-20 flex flex-none items-center justify-between border-b border-border bg-card px-3 py-2.5 shadow-sm md:hidden">
                     <div className="flex min-w-0 items-center gap-2.5">
-                        <div className="flex h-8 w-8 flex-none items-center justify-center rounded-xl border border-teal-500/20 bg-teal-500/10 text-teal-500">
+                        <div className="flex h-8 w-8 flex-none items-center justify-center rounded-xl border border-primary/20 bg-accent text-primary">
                             <CurrentIcon className="h-4 w-4" />
                         </div>
                         <div className="min-w-0">
-                            <h2 className="truncate text-sm font-black leading-tight text-white font-kantumruy">
+                            <h2 className="truncate text-sm font-black leading-tight text-foreground font-kantumruy">
                                 {mobileStepTitles[currentStep - 1] || currentStepObj.title}
                             </h2>
-                            <p className="text-[10px] font-medium text-slate-400">
+                            <p className="text-xs font-medium text-muted-foreground">
                                 {currentStep}/{STEPS.length}
                             </p>
                         </div>
@@ -183,14 +183,14 @@ export const StepWizard = ({ children, currentStep, weddingId, onSave, loading, 
                 </div>
 
                 {/* Main Content with visible subtle scrollbar */}
-                <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-5 md:p-6 bg-slate-50/30 dark:bg-[#101014]/50 relative overscroll-contain [scrollbar-width:thin] [scrollbar-color:rgba(156,163,175,0.4)_transparent]">
+                <div className="min-h-0 flex-1 overflow-y-auto p-2.5 sm:p-5 md:p-6 bg-muted/20 relative overscroll-contain [scrollbar-width:thin] [scrollbar-color:rgba(156,163,175,0.4)_transparent]">
                     <div className="tour-step-content w-full max-w-[420px] mx-auto pb-[calc(env(safe-area-inset-bottom)+7rem)] sm:pb-8 space-y-3 sm:space-y-5">
                         {children}
 
                         {/* Mobile in-flow Action Navigation */}
-                        <div className="sticky bottom-0 z-30 -mx-2.5 flex flex-col md:hidden items-center justify-between gap-2.5 border-t border-slate-200/80 bg-slate-50/95 px-2.5 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-3 backdrop-blur-sm dark:border-white/10 dark:bg-[#101014]/95">
+                        <div className="sticky bottom-0 z-30 -mx-2.5 flex flex-col md:hidden items-center justify-between gap-2.5 border-t border-border bg-background/95 px-2.5 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-3 backdrop-blur-sm">
                             {!canContinue && canContinueHint && (
-                                <p role="status" className="w-full text-center text-[11px] font-semibold text-rose-600 dark:text-rose-400">
+                                <p role="status" className="w-full text-center text-xs font-semibold text-rose-600 dark:text-rose-400">
                                     {canContinueHint}
                                 </p>
                             )}
@@ -202,7 +202,7 @@ export const StepWizard = ({ children, currentStep, weddingId, onSave, loading, 
                                         setStep && setStep(currentStep - 1);
                                     }}
                                     disabled={savingNext || loading || isUploading}
-                                    className="h-11 flex-1 rounded-xl border-slate-200 bg-white text-xs font-bold text-slate-700 shadow-sm transition-all active:scale-95 dark:border-white/10 dark:bg-[#1a1d22] dark:text-slate-200"
+                                    className="h-11 flex-1 rounded-xl border-border bg-card text-xs font-bold text-foreground shadow-sm transition-all active:scale-95"
                                 >
                                     <ArrowLeft className="mr-1 h-4 w-4" />
                                     {t("common.actions.back", { defaultValue: "ថយ" })}
@@ -213,7 +213,7 @@ export const StepWizard = ({ children, currentStep, weddingId, onSave, loading, 
                                 <Button 
                                     onClick={handleNext}
                                     disabled={savingNext || loading || isUploading || !canContinue}
-                                    className="tour-next h-11 flex-1 rounded-xl bg-teal-600 text-xs font-black text-white shadow-md shadow-teal-600/20 transition-all active:scale-95 hover:bg-teal-700"
+                                    className="tour-next h-11 flex-1 rounded-xl bg-primary text-xs font-black text-primary-foreground shadow-md transition-all active:scale-95 hover:bg-primary/90"
                                 >
                                     {savingNext ? (
                                         <span className="flex items-center justify-center gap-1.5">
@@ -243,21 +243,21 @@ export const StepWizard = ({ children, currentStep, weddingId, onSave, loading, 
                 </div>
                 
                 {/* Sticky Footer Navigation Buttons (Desktop Only) */}
-                <div className="hidden md:flex flex-none items-center justify-between border-t border-slate-200/80 dark:border-white/10 p-4 px-6 bg-white dark:bg-[#141419] z-30 shadow-sm">
+                <div className="hidden md:flex flex-none items-center justify-between border-t border-border p-4 px-6 bg-card z-30 shadow-sm">
                     <div className="flex items-center gap-2">
                     {currentStep > 1 ? (
                         <Button 
                             variant="outline" 
                             onClick={() => setStep && setStep(currentStep - 1)}
                             disabled={savingNext || loading || isUploading}
-                            className="rounded-xl px-5 h-11 font-bold font-kantumruy text-xs text-slate-700 dark:text-slate-300 border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 active:scale-95 transition-all"
+                            className="rounded-xl px-5 h-11 font-bold font-kantumruy text-xs text-foreground border-border hover:bg-muted active:scale-95 transition-all"
                         >
                             <ArrowLeft className="w-4 h-4 mr-1.5" />
                             {t("common.actions.back", { defaultValue: "ថយក្រោយ" })}
                         </Button>
                     ) : <div />}
                     {!canContinue && canContinueHint && (
-                        <p role="status" className="text-[11px] font-semibold text-rose-600 dark:text-rose-400">
+                        <p role="status" className="text-xs font-semibold text-rose-600 dark:text-rose-400">
                             {canContinueHint}
                         </p>
                     )}
@@ -268,7 +268,7 @@ export const StepWizard = ({ children, currentStep, weddingId, onSave, loading, 
                             <Button
                                 onClick={handleNext}
                                 disabled={savingNext || loading || isUploading || !canContinue}
-                                className="tour-next rounded-xl px-6 h-11 font-bold font-kantumruy text-xs bg-teal-600 hover:bg-teal-700 text-white shadow-md shadow-teal-600/20 active:scale-95 transition-all flex items-center gap-1.5"
+                                className="tour-next rounded-xl px-6 h-11 font-bold font-kantumruy text-xs bg-primary hover:bg-primary/90 text-primary-foreground shadow-md active:scale-95 transition-all flex items-center gap-1.5"
                             >
                                 {savingNext ? (
                                     <>
@@ -297,7 +297,7 @@ export const StepWizard = ({ children, currentStep, weddingId, onSave, loading, 
             </div>
 
             <Dialog open={showSuccess} onOpenChange={setShowSuccess}>
-                <DialogContent className="sm:max-w-md bg-white dark:bg-[#141419] border-0 shadow-2xl rounded-3xl overflow-hidden p-0">
+                <DialogContent className="sm:max-w-md bg-card border-0 shadow-2xl rounded-3xl overflow-hidden p-0">
                     <div className="bg-gradient-to-b from-emerald-500/10 to-transparent pt-10 pb-8 px-6 flex flex-col items-center text-center">
                         <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mb-5 shadow-inner">
                             <PartyPopper className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
@@ -312,7 +312,7 @@ export const StepWizard = ({ children, currentStep, weddingId, onSave, loading, 
                         </DialogHeader>
                         <div className="flex w-full flex-col gap-3">
                             {weddingId && (
-                                <Button asChild className="h-12 w-full rounded-2xl bg-teal-700 text-white shadow-lg shadow-teal-700/20 transition-all hover:bg-teal-800 active:scale-95">
+                                <Button asChild className="h-12 w-full rounded-2xl bg-primary text-primary-foreground shadow-lg transition-all hover:bg-primary/90 active:scale-95">
                                     <Link to={`/w/${encodeURIComponent(weddingId)}`} target="_blank" rel="noopener noreferrer">
                                         <Globe className="mr-2 h-4 w-4" />
                                         {t("design.success.viewInvitation", { defaultValue: "មើលធៀបសាធារណៈ" })}
@@ -322,7 +322,7 @@ export const StepWizard = ({ children, currentStep, weddingId, onSave, loading, 
                             <Button asChild className="h-12 w-full rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black shadow-lg shadow-emerald-500/20 active:scale-95 transition-all">
                                 <Link to="/dashboard">{t("design.success.backToDashboard", { defaultValue: "ត្រឡប់ទៅផ្ទាំងគ្រប់គ្រង ដើម្បីមើលធៀបពេលក្រោយ" })}</Link>
                             </Button>
-                            <Button variant="ghost" onClick={() => setShowSuccess(false)} className="h-12 w-full rounded-2xl font-bold font-kantumruy text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">
+                            <Button variant="ghost" onClick={() => setShowSuccess(false)} className="h-12 w-full rounded-2xl font-bold font-kantumruy text-muted-foreground hover:text-foreground">
                                 {t("common.actions.continueEditing", { defaultValue: "កែប្រែបន្ត" })}
                             </Button>
                         </div>

@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { WeddingData } from '../types';
 import { getWeddingHeroImage } from "../shared/weddingPhotos";
+import { OneLineName } from "../shared/OneLineName";
 
 interface EntranceEnvelopeProps {
     wedding: WeddingData;
@@ -31,7 +32,6 @@ export const EntranceEnvelope: React.FC<EntranceEnvelopeProps> = ({
                     exit={{ opacity: 0, scale: 1.05, filter: 'blur(10px)' }}
                     transition={{ duration: 0.8, ease: [0.76, 0, 0.24, 1] }}
                     onClick={onOpen}
-                    onTouchEnd={onOpen}
                     className="fixed inset-0 z-[100] flex flex-col justify-between items-center p-6 py-10 text-center select-none overflow-hidden bg-[#071710] cursor-pointer"
                     style={{ isolation: 'isolate' }}
                 >
@@ -39,21 +39,14 @@ export const EntranceEnvelope: React.FC<EntranceEnvelopeProps> = ({
                     <div className="absolute inset-0 z-0 overflow-hidden">
                         <img
                             src={heroImage}
-                            className="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-70"
-                            style={{ objectPosition: 'center 20%' }}
-                            alt=""
-                            aria-hidden="true"
-                        />
-                        <img
-                            src={heroImage}
-                            className="relative w-full h-full object-cover filter brightness-[0.92] transition-transform duration-1000"
+                            className="absolute inset-0 w-full h-full object-cover object-center brightness-[0.82]"
                             style={{ objectPosition: 'center 20%' }}
                             loading="eager"
                             fetchPriority="high"
                             decoding="async"
                             alt="Pre-wedding Cover"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/85" />
+                        <div className="absolute inset-0 bg-gradient-to-b from-[#06110c]/55 via-[#071710]/20 to-[#06110c]/80" />
                     </div>
 
                     {/* Top: Delicate Title */}
@@ -74,38 +67,38 @@ export const EntranceEnvelope: React.FC<EntranceEnvelopeProps> = ({
                     <motion.div
                         initial={{ opacity: 0, y: 15 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="relative z-10 w-full max-w-xs space-y-4 pb-2"
+                        className="relative z-10 w-full max-w-sm space-y-4 px-2 pb-6 sm:px-4"
                     >
                         {/* Couple Names in Khmer Moul */}
-                        <div className="space-y-0.5">
-                            <h2 className="font-khmer-moul text-2xl sm:text-3xl text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)] tracking-wide">
-                                {groomName}
-                            </h2>
-                            <p className="text-xs text-emerald-300 font-khmer-moul drop-shadow-md">និង</p>
-                            <h2 className="font-khmer-moul text-2xl sm:text-3xl text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)] tracking-wide">
-                                {brideName}
-                            </h2>
+                        <div className="space-y-1">
+                            <OneLineName name={groomName} className="font-khmer-moul text-[clamp(0.875rem,4.5vw,1.5rem)] leading-relaxed text-white drop-shadow-[0_2px_8px_rgba(0,0,0,.8)] sm:text-2xl" />
+                            <p className="flex items-center justify-center gap-3 text-xs text-emerald-200 font-khmer-moul">
+                                <span aria-hidden="true" className="h-px w-8 bg-emerald-200/50" />
+                                និង
+                                <span aria-hidden="true" className="h-px w-8 bg-emerald-200/50" />
+                            </p>
+                            <OneLineName name={brideName} className="font-khmer-moul text-[clamp(0.875rem,4.5vw,1.5rem)] leading-relaxed text-white drop-shadow-[0_2px_8px_rgba(0,0,0,.8)] sm:text-2xl" />
                         </div>
 
-                        {/* Clean One-Line Guest Pill in Khmer Moul */}
-                        <div className="text-xs text-emerald-100 bg-[#0B251B]/85 backdrop-blur-xl border border-emerald-300/40 px-4 py-2.5 rounded-2xl font-khmer-moul shadow-lg drop-shadow-md">
-                            <span className="text-emerald-300/80 mr-1.5">សូមគោរពអញ្ជើញ៖</span>
-                            <span className="text-white">{guestName || "ឯកឧត្តម លោកជំទាវ លោក លោកស្រី"}</span>
+                        <div className="mx-auto h-px w-16 bg-gradient-to-r from-transparent via-amber-200/70 to-transparent" />
+
+                        <div className="px-2 py-1 font-khmer-moul text-xs leading-relaxed text-white/95 sm:text-sm">
+                            <span className="block text-[10px] text-emerald-200 sm:text-xs">សូមគោរពអញ្ជើញ</span>
+                            <span className="mt-1 block">{guestName || "ឯកឧត្តម លោកជំទាវ លោក លោកស្រី"}</span>
                         </div>
 
-                        {/* Emerald Jade Button */}
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
                                 onOpen();
                             }}
-                            className="w-full py-4 px-6 rounded-2xl font-khmer-moul text-white bg-gradient-to-r from-emerald-700 via-teal-700 to-emerald-700 hover:from-emerald-600 hover:to-teal-600 active:scale-95 transition-all text-xs sm:text-sm tracking-wider shadow-[0_4px_25px_rgba(5,150,105,0.4)] flex items-center justify-center gap-2 border border-emerald-400/50 animate-pulse"
+                            className="w-full rounded-xl border border-emerald-200/50 bg-gradient-to-r from-emerald-700 to-teal-700 px-6 py-3.5 font-khmer-moul text-sm text-white shadow-[0_8px_24px_rgba(5,150,105,.24)] transition hover:from-emerald-600 hover:to-teal-600 active:scale-[.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-100 focus-visible:ring-offset-2 focus-visible:ring-offset-[#071710] sm:py-4"
                         >
-                            <span>✨ សូមចុចបើកធៀប</span>
+                            <span>សូមចុចបើកធៀប</span>
                         </button>
 
-                        <p className="text-[10px] text-emerald-200/70 font-kantumruy tracking-wider">
-                            (ចុចត្រង់ណាក៏បាន ឬ អូសឡើងលើដើម្បីបើក)
+                        <p className="text-[10px] text-emerald-100/75 font-kantumruy">
+                            ចុចត្រង់ណាក៏បានដើម្បីបើកធៀប
                         </p>
                     </motion.div>
                 </motion.div>

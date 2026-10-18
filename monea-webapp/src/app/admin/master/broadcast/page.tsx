@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -69,7 +69,7 @@ export default function MasterBroadcastPage() {
             setExpiresAt("");
             loadData();
         } catch (e) {
-            alert("Network error. Please try again.");
+            alert("សូមពិនិត្យសេវាអ៊ីនធឺណិតរបស់អ្នក ហើយព្យាយាមម្ដងទៀត។");
         } finally {
             setSaving(false);
         }
@@ -115,7 +115,7 @@ export default function MasterBroadcastPage() {
                             <Megaphone size={21} />
                         </div>
                         <div className="min-w-0">
-                            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-teal-800 dark:text-teal-300">
+                            <p className="text-xs font-black uppercase tracking-[0.18em] text-teal-800 dark:text-teal-300">
                                 {isKm ? "សេចក្តីប្រកាសផ្លូវការ" : "Platform Announcements"}
                             </p>
                             <h1 className="mt-1 text-xl font-black tracking-tight text-foreground sm:text-2xl">
@@ -199,7 +199,7 @@ export default function MasterBroadcastPage() {
                         <div className="flex items-center justify-between gap-3 px-1">
                             <h3 className="text-sm font-black text-foreground">{isKm ? "សេចក្តីប្រកាសបច្ចុប្បន្ន" : "Active Announcements"}</h3>
                             {!loading && (
-                                <span className="shrink-0 rounded-full border border-border bg-card px-2.5 py-1 text-[11px] font-bold text-muted-foreground">
+                                <span className="shrink-0 rounded-full border border-border bg-card px-2.5 py-1 text-xs font-bold text-muted-foreground">
                                     {broadcasts.length} {isKm ? "សារ" : broadcasts.length === 1 ? "announcement" : "announcements"}
                                 </span>
                             )}
@@ -235,19 +235,19 @@ export default function MasterBroadcastPage() {
                                                     <h4 className="break-words text-sm font-bold tracking-tight text-foreground">{b.title}</h4>
                                                     <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-relaxed text-muted-foreground">{b.message}</p>
                                                     <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
-                                                        <span className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+                                                        <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                                                             <Calendar size={12} /> {new Date(b.createdAt).toLocaleDateString(isKm ? 'km-KH' : 'en-US', { timeZone: 'Asia/Phnom_Penh' })}
                                                         </span>
                                                         {b.scheduledAt && (
                                                             <span className={cn(
-                                                                "flex items-center gap-1.5 text-[11px] font-medium",
+                                                                "flex items-center gap-1.5 text-xs font-medium",
                                                                 new Date(b.scheduledAt) > new Date() ? "text-teal-800 dark:text-teal-300" : "text-muted-foreground"
                                                             )}>
                                                                 <Info size={12} /> {isKm ? "ម៉ោងផ្សាយ៖" : "Scheduled:"} {new Date(b.scheduledAt).toLocaleString(isKm ? 'km-KH' : 'en-US', { timeZone: 'Asia/Phnom_Penh' })}
                                                             </span>
                                                         )}
                                                         <span className={cn(
-                                                            "rounded-md border px-2 py-0.5 text-[9px] font-black uppercase tracking-widest",
+                                                            "rounded-md border px-2 py-0.5 text-xs font-black uppercase tracking-widest",
                                                             b.type === 'WARNING' ? 'border-amber-100 text-amber-600 dark:border-amber-900/50 dark:text-amber-400' :
                                                                 b.type === 'SUCCESS' ? 'border-green-100 text-green-600 dark:border-green-900/50 dark:text-green-400' :
                                                                     'border-blue-100 text-blue-600 dark:border-blue-900/50 dark:text-blue-400'

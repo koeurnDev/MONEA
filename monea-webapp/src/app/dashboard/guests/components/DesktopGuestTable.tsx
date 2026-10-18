@@ -71,8 +71,8 @@ export function DesktopGuestTable({
                         <TableRow>
                             <TableCell colSpan={4} className="h-[400px]">
                                 <div className="flex flex-col items-center justify-center text-center space-y-6 animate-in fade-in zoom-in-95 duration-500">
-                                    <div className="w-24 h-24 bg-teal-50 dark:bg-teal-950/20 rounded-full flex items-center justify-center border border-teal-100 dark:border-teal-900/30">
-                                        <Users className="w-10 h-10 text-teal-300 dark:text-teal-700" />
+                                    <div className="w-24 h-24 bg-accent rounded-full flex items-center justify-center border border-primary/20">
+                                        <Users className="w-10 h-10 text-primary/60" />
                                     </div>
                                     <div className="space-y-2">
                                         <h3 className="text-xl font-black text-foreground font-kantumruy">
@@ -99,7 +99,7 @@ export function DesktopGuestTable({
                                         <Button
                                             type="button"
                                             onClick={() => onEdit(null)}
-                                            className="h-12 px-8 bg-teal-600 hover:bg-teal-700 text-white rounded-2xl shadow-lg shadow-teal-600/20 font-bold font-kantumruy transition-all hover:scale-105 active:scale-95"
+                                            className="h-12 px-8 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl shadow-lg font-bold font-kantumruy transition-all hover:scale-105 active:scale-95"
                                         >
                                             <Plus className="w-5 h-5 mr-2" />
                                             {t("dashboard.actions.addGuest", { defaultValue: "បន្ថែមភ្ញៀវដំបូង" })}
@@ -122,12 +122,12 @@ export function DesktopGuestTable({
                                 </TableCell>
                                 <TableCell className="px-8 py-5 print:border-r print:border-slate-200">
                                     <div className="flex items-center gap-3">
-                                        <div className={cn("w-2 h-2 shrink-0 rounded-full print:hidden", g.rsvpStatus === 'CONFIRMED' ? 'bg-green-500' : g.rsvpStatus === 'DECLINED' ? 'bg-red-500' : 'bg-slate-300 dark:bg-slate-700')} title={g.rsvpStatus || 'PENDING'} />
+                                        <div className={cn("w-2 h-2 shrink-0 rounded-full print:hidden", g.rsvpStatus === 'CONFIRMED' ? 'bg-green-500' : g.rsvpStatus === 'DECLINED' ? 'bg-red-500' : 'bg-muted-foreground/40')} title={g.rsvpStatus || 'PENDING'} />
                                         <span className="font-bold text-foreground font-kantumruy text-sm">{g.name}</span>
                                     </div>
                                 </TableCell>
                                 <TableCell className="px-8 py-5 text-center print:border-r-2 print:border-slate-200">
-                                    <span className="px-3 py-1 rounded-lg font-bold font-kantumruy text-[11px] bg-muted/60 dark:bg-white/5 text-muted-foreground print:bg-transparent print:text-sm print:text-slate-600">
+                                    <span className="px-3 py-1 rounded-lg font-bold font-kantumruy text-xs bg-muted/60 dark:bg-white/5 text-muted-foreground print:bg-transparent print:text-sm print:text-slate-600">
                                         {g.group && g.group !== "None" ? g.group : (g.source && g.source !== "GIFT_ENTRY" && g.source !== "None" ? g.source : <span className="opacity-40 italic">{t("guests.general")}</span>)}
                                     </span>
                                 </TableCell>
@@ -138,7 +138,7 @@ export function DesktopGuestTable({
                                             size="sm"
                                             onClick={() => onCopyLink(g.name, g.id)}
                                             className={cn(
-                                                "h-9 px-3 rounded-xl font-kantumruy font-bold text-[11px] transition-all",
+                                                "h-11 px-3 rounded-xl font-kantumruy font-bold text-xs transition-all",
                                                 copiedId === g.id ? "bg-green-600 text-white" : "text-muted-foreground"
                                             )}
                                         >
@@ -149,7 +149,7 @@ export function DesktopGuestTable({
                                                 variant="outline"
                                                 size="sm"
                                                 onClick={() => onShareTelegram(g.name, g.id)}
-                                                className="h-9 px-3 rounded-xl font-kantumruy font-bold text-[11px] border-[#229ED9]/30 text-[#229ED9] hover:bg-[#229ED9]/10 hover:text-[#229ED9] transition-all flex items-center gap-1.5"
+                                                className="h-11 px-3 rounded-xl font-kantumruy font-bold text-xs border-[#229ED9]/30 text-[#1A6F9E] dark:text-[#229ED9] hover:bg-[#229ED9]/10 hover:text-[#1A6F9E] dark:hover:text-[#229ED9] transition-all flex items-center gap-1.5"
                                                 title="ផ្ញើតាម Telegram ជាមួយឈ្មោះភ្ញៀវ"
                                             >
                                                 <Send className="w-3.5 h-3.5" />
@@ -161,7 +161,7 @@ export function DesktopGuestTable({
                                                 variant="outline"
                                                 size="sm"
                                                 onClick={() => onViewPass(g)}
-                                                className="h-9 px-3 rounded-xl font-kantumruy font-bold text-[11px] border-amber-500/30 text-amber-800 dark:text-amber-300 hover:bg-amber-500/10 transition-all flex items-center gap-1.5"
+                                                className="h-11 px-3 rounded-xl font-kantumruy font-bold text-xs border-amber-500/30 text-amber-800 dark:text-amber-300 hover:bg-amber-500/10 transition-all flex items-center gap-1.5"
                                                 title="មើល ឬទាញយកសំបុត្រឌីជីថល"
                                             >
                                                 <Ticket className="w-3.5 h-3.5 text-amber-600" />
@@ -170,8 +170,8 @@ export function DesktopGuestTable({
                                         )}
                                         {!isArchived && (
                                             <>
-                                                <Button variant="ghost" size="icon" aria-label="Edit guest" className="h-9 w-9 rounded-xl" onClick={() => onEdit(g)}><Edit className="h-4 w-4" /></Button>
-                                                <Button variant="ghost" size="icon" aria-label="Delete guest" className="h-9 w-9 rounded-xl" onClick={() => onDelete(g.id, g.name)}><Trash2 className="h-4 w-4" /></Button>
+                                                <Button variant="ghost" size="icon" aria-label="Edit guest" className="h-11 w-11 rounded-xl" onClick={() => onEdit(g)}><Edit className="h-4 w-4" /></Button>
+                                                <Button variant="ghost" size="icon" aria-label="Delete guest" className="h-11 w-11 rounded-xl" onClick={() => onDelete(g.id, g.name)}><Trash2 className="h-4 w-4" /></Button>
                                             </>
                                         )}
                                     </div>

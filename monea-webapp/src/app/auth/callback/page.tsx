@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { moneaClient } from "@/lib/api-client";
+import DotMatrixLoader from "@/components/ui/DotMatrixLoader";
 
 export default function AuthCallbackPage() {
   const navigate = useNavigate();
@@ -65,11 +66,11 @@ export default function AuthCallbackPage() {
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="text-center space-y-4">
         {status === "loading" && (
-          <>
-            <div className="w-16 h-16 border-4 border-rose-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <div aria-live="polite" className="space-y-4" role="status">
+            <DotMatrixLoader className="mx-auto h-12 w-12 text-rose-600" />
             <p className="text-lg text-muted-foreground">Completing sign in...</p>
             <p className="text-sm text-muted-foreground">កំពុងបញ្ចប់ការចូល...</p>
-          </>
+          </div>
         )}
 
         {status === "success" && (

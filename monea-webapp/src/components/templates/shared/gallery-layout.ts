@@ -10,25 +10,23 @@ export const getGalleryContainerClass = (style: GalleryDisplayStyle): string => 
 
     return style === "polaroid"
         ? "grid grid-cols-2 gap-4"
-        : "grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-5";
+        : "grid grid-cols-2 gap-3.5 sm:grid-cols-3 sm:gap-4";
 };
 
 export const getGalleryCardClass = (
     style: GalleryDisplayStyle,
-    index: number,
+    _index: number,
 ): string => {
     if (style === "slider") {
-        return "h-56 w-[82%] shrink-0 snap-center sm:h-72 sm:w-[60%]";
+        return "h-56 w-[82%] shrink-0 snap-center overflow-hidden rounded-2xl sm:h-72 sm:w-[60%]";
     }
     if (style === "polaroid") {
         return `aspect-square bg-white p-2 pb-8 shadow-lg ${
-            index % 2 === 0 ? "-rotate-1" : "rotate-1"
+            _index % 2 === 0 ? "-rotate-1" : "rotate-1"
         }`;
     }
 
-    return index % 3 === 0
-        ? "row-span-2 aspect-[3/4]"
-        : "aspect-square";
+    return "aspect-[4/5] overflow-hidden rounded-2xl";
 };
 
 export const getGalleryImageClass = (style: GalleryDisplayStyle): string =>

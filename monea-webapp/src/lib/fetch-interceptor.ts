@@ -2,8 +2,21 @@
  * Global fetch interceptor for static export
  * Automatically redirects /api/* calls to VITE_API_URL and includes session cookies
  */
+import { notifyNetworkError } from "./network-errors";
 
 const originalFetch = globalThis.fetch;
+
+async function fetchWithNetworkReporting(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+): Promise<Response> {
+  try {
+    return await originalFetch(input, init);
+  } catch (error) {
+    notifyNetworkError(error);
+    throw error;
+  }
+}
 
 let cachedCsrfToken: string | null = null;
 let lastCsrfFetch = 0;
@@ -40,7 +53,7 @@ async function getCsrfToken(apiBase: string): Promise<string | null> {
   }
 
   try {
-    const res = await originalFetch(`${apiBase}/api/auth/csrf`, { credentials: 'include' });
+    const res = await fetchWithNetworkReporting(`${apiBase}/api/auth/csrf`, { credentials: 'include' });
     if (!res.ok) return cachedCsrfToken;
 
     const data: any = await res.json();
@@ -64,13 +77,13 @@ export function setupFetchInterceptor() {
   if (typeof window === 'undefined') return; // Only run in browser
   
   globalThis.fetch = async function (input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-    const apiBase = (import.meta.env.VITE_API_URL || 'https://monea-api.seabkoeurn64.workers.dev').replace(/\/$/, '');
+    const apiBase = (import.meta.env.VITE_API_URL || 'https://api.moneoez.com').replace(/\/$/, '');
     const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
     const isDev = import.meta.env.DEV;
 
     // In local browser development on localhost in dev mode, keep /api/ relative so Vite proxy forwards
     if (isLocal && isDev) {
-      return originalFetch(input, init);
+      return fetchWithNetworkReporting(input, init);
     }
 
     let urlString = '';
@@ -95,7 +108,7 @@ export function setupFetchInterceptor() {
         } catch {}
 
         // If it's already pointing to the API worker origin
-        if ((apiOrigin && parsed.origin === apiOrigin) || urlString.includes('monea-api.seabkoeurn64.workers.dev')) {
+        if (apiOrigin && parsed.origin === apiOrigin) {
           isApiCall = true;
           finalUrl = urlString;
         } 
@@ -143,10 +156,18 @@ export function setupFetchInterceptor() {
         credentials: 'include',
       };
 
-      return originalFetch(finalUrl, updatedInit);
+      const response = await fetchWithNetworkReporting(finalUrl, updatedInit);
+      const apiPath = new URL(finalUrl).pathname;
+      if (
+        response.status === 401 &&
+        (!apiPath.startsWith('/api/auth/') || apiPath === '/api/auth/me')
+      ) {
+        window.dispatchEvent(new CustomEvent('monea:auth-expired'));
+      }
+      return response;
     }
     
-    return originalFetch(input, init);
+    return fetchWithNetworkReporting(input, init);
   } as typeof fetch;
 }
 

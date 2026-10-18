@@ -9,9 +9,11 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { PageHeader } from "@/app/dashboard/_components/PageHeader";
+import { useSocialLinks } from "@/hooks/useSocialLinks";
 
 function SupportForm() {
     const { t } = useTranslation();
+    const telegramLink = useSocialLinks().find((link) => link.platform === "telegram");
     const [searchParams] = useSearchParams();
     const weddingId = searchParams.get("weddingId");
 
@@ -52,7 +54,7 @@ function SupportForm() {
         <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="min-h-[50vh] flex flex-col items-center justify-center p-8 text-center bg-white dark:bg-[#141419] rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-sm"
+            className="min-h-[50vh] flex flex-col items-center justify-center p-8 text-center bg-card rounded-3xl border border-border shadow-sm"
         >
             <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center text-emerald-600 mb-6 border border-emerald-500/20">
                 <CheckCircle2 size={44} />
@@ -67,7 +69,7 @@ function SupportForm() {
 
             <Button
                 asChild
-                className="h-11 rounded-xl bg-slate-900 px-8 text-sm font-bold text-white transition-all dark:bg-white dark:text-slate-900"
+                className="h-11 rounded-xl bg-primary px-8 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/90"
             >
                 <Link to="/dashboard">
                     {t("support.form.success.back", { defaultValue: "ត្រឡប់ទៅ Dashboard" })}
@@ -85,7 +87,7 @@ function SupportForm() {
                 transition={{ duration: 0.3 }}
                 className="lg:col-span-7"
             >
-                <Card className="shadow-sm border border-slate-200/80 dark:border-white/10 rounded-3xl overflow-hidden bg-white dark:bg-[#141419]">
+                <Card className="shadow-sm border border-border rounded-3xl overflow-hidden bg-card">
                     <div className="p-4 sm:p-8">
                         <div className="mb-6 space-y-1">
                             <h3 className="text-lg sm:text-xl font-bold font-kantumruy text-foreground">
@@ -122,7 +124,7 @@ function SupportForm() {
                                     placeholder={t("support.form.subjectPlaceholder", { defaultValue: "តើអ្នកត្រូវការជំនួយលើផ្នែកអ្វីខ្លះ?" })}
                                     value={subject}
                                     onChange={e => setSubject(e.target.value)}
-                                    className="h-11 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 font-kantumruy text-sm text-foreground focus-visible:ring-teal-500 px-4"
+                                    className="h-11 rounded-xl border border-border bg-background/70 font-kantumruy text-sm text-foreground focus-visible:ring-primary px-4"
                                     required
                                 />
                             </div>
@@ -133,7 +135,7 @@ function SupportForm() {
                                 </legend>
                                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3" role="group" aria-label={t("support.form.priority", { defaultValue: "កម្រិតអាទិភាព" })}>
                                     {[
-                                        { id: 'NORMAL', label: t("support.form.priorityNormal", { defaultValue: "ធម្មតា" }), icon: Zap, activeColor: 'text-slate-800 dark:text-white', activeBg: 'bg-slate-100 dark:bg-white/10 border-slate-300 dark:border-white/20' },
+                                        { id: 'NORMAL', label: t("support.form.priorityNormal", { defaultValue: "ធម្មតា" }), icon: Zap, activeColor: 'text-foreground', activeBg: 'bg-secondary border-primary/30' },
                                         { id: 'HIGH', label: t("support.form.priorityHigh", { defaultValue: "អាទិភាពខ្ពស់ (បន្ទាន់)" }), icon: Sparkles, activeColor: 'text-amber-700 dark:text-amber-300', activeBg: 'bg-amber-500/10 border-amber-500/30' }
                                     ].map((p) => (
                                         <button
@@ -142,10 +144,10 @@ function SupportForm() {
                                             onClick={() => setPriority(p.id)}
                                             aria-pressed={priority === p.id}
                                             className={cn(
-                                                "min-h-11 rounded-xl px-3 py-2 font-bold text-sm tracking-wide flex items-center justify-center gap-2 transition-all border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2",
+                                                "min-h-11 rounded-xl px-3 py-2 font-bold text-sm tracking-wide flex items-center justify-center gap-2 transition-all border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                                                 priority === p.id
                                                     ? `${p.activeBg} ${p.activeColor} shadow-sm font-black`
-                                                    : 'bg-slate-50/50 dark:bg-black/20 border-slate-200 dark:border-white/10 text-muted-foreground hover:bg-slate-100'
+                                                    : 'bg-background/70 border-border text-muted-foreground hover:bg-muted'
                                             )}
                                         >
                                             <p.icon size={14} className={priority === p.id ? p.activeColor : 'text-muted-foreground/50'} />
@@ -164,13 +166,13 @@ function SupportForm() {
                                     placeholder={t("support.form.messagePlaceholder", { defaultValue: "សូមរៀបរាប់លម្អិតអំពីបញ្ហា ឬសំណួររបស់អ្នកឱ្យបានច្បាស់លាស់..." })}
                                     value={message}
                                     onChange={e => setMessage(e.target.value)}
-                                    className="min-h-[120px] sm:min-h-[140px] rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-black/20 p-3.5 font-kantumruy text-sm text-foreground focus-visible:ring-teal-500 leading-relaxed"
+                                    className="min-h-[120px] sm:min-h-[140px] rounded-xl border border-border bg-background/70 p-3.5 font-kantumruy text-sm text-foreground focus-visible:ring-primary leading-relaxed"
                                     required
                                 />
                             </div>
 
                             <Button
-                                className="h-11 w-full bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-bold font-kantumruy text-xs shadow-md shadow-teal-600/20 transition-all active:scale-98 flex items-center justify-center gap-2"
+                                className="h-11 w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl font-bold font-kantumruy text-xs shadow-md shadow-primary/15 transition-all active:scale-98 flex items-center justify-center gap-2"
                                 type="submit"
                                 disabled={loading || !subject.trim() || !message.trim()}
                             >
@@ -189,7 +191,7 @@ function SupportForm() {
                 className="lg:col-span-5 space-y-5"
             >
                 {/* Official Telegram Support Card (Eye-friendly, Soft & Modern) */}
-                <Card className="rounded-3xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#141419] shadow-sm p-6 sm:p-7 relative overflow-hidden">
+                {telegramLink && <Card className="rounded-3xl border border-border bg-card shadow-sm p-6 sm:p-7 relative overflow-hidden">
                     <div className="space-y-4">
                         <div className="w-12 h-12 rounded-2xl bg-[#229ED9]/10 text-[#229ED9] flex items-center justify-center border border-[#229ED9]/20 shadow-sm">
                             <MessageCircle size={24} />
@@ -205,23 +207,24 @@ function SupportForm() {
                         </div>
 
                         <a
-                            href="https://t.me/monea_support"
+                            href={telegramLink.url}
                             target="_blank"
                             rel="noopener noreferrer"
+                            aria-label={telegramLink.label}
                             className="inline-flex items-center justify-center gap-2 w-full h-11 bg-[#229ED9] hover:bg-[#1E88C7] text-white rounded-xl font-bold font-kantumruy text-xs shadow-md shadow-[#229ED9]/20 transition-all active:scale-98"
                         >
                             <span>{t("support.urgentHelp.telegram", { defaultValue: "ទាក់ទងតាម Telegram" })}</span>
                             <Send size={14} />
                         </a>
 
-                        <p className="text-[10px] text-muted-foreground/60 font-kantumruy text-center">
+                        <p className="text-xs text-muted-foreground/60 font-kantumruy text-center">
                             {t("support.urgentHelp.replyTime", { defaultValue: "ពេលវេលាឆ្លើយតប៖ ជាទូទៅក្នុងរយៈពេល ១ ទៅ ២៤ ម៉ោង" })}
                         </p>
                     </div>
-                </Card>
+                </Card>}
 
                 {/* Why Contact Us Card */}
-                <Card className="rounded-3xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#141419] shadow-sm p-6">
+                <Card className="rounded-3xl border border-border bg-card shadow-sm p-6">
                     <h4 className="text-xs font-bold font-kantumruy text-foreground mb-4 flex items-center gap-2">
                         <HelpCircle size={15} className="text-muted-foreground" />
                         <span>{t("support.whyContact.title", { defaultValue: "ហេតុអ្វីត្រូវទាក់ទងមកយើង?" })}</span>
@@ -232,7 +235,7 @@ function SupportForm() {
                             { text: t("support.whyContact.request", { defaultValue: "ស្នើសុំមុខងារបន្ថែម ឬការកែសម្រួលពិសេស" }), icon: Zap, color: "text-amber-600 bg-amber-500/10" },
                             { text: t("support.whyContact.help", { defaultValue: "ជំនួយក្នុងការរៀបចំកាលវិភាគ និងបញ្ជីភ្ញៀវ" }), icon: Sparkles, color: "text-blue-600 bg-blue-500/10" }
                         ].map((item, i) => (
-                            <li key={i} className="flex items-center gap-3 text-xs font-medium text-slate-600 dark:text-slate-300 font-kantumruy">
+                            <li key={i} className="flex items-center gap-3 text-xs font-medium text-muted-foreground font-kantumruy">
                                 <div className={cn("w-7 h-7 rounded-xl flex items-center justify-center shrink-0 shadow-sm", item.color)}>
                                     <item.icon size={14} />
                                 </div>

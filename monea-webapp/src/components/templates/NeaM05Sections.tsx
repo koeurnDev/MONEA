@@ -2,10 +2,8 @@ import { useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { createPortal } from "react-dom";
 import {
     CalendarDays,
-    Check,
     ChevronLeft,
     ChevronRight,
-    Copy,
     Download,
     ExternalLink,
     Gift,
@@ -25,10 +23,12 @@ import { formatNeaM05Date, formatNeaM05DateParts } from "@/lib/nea-m05-date";
 import { downloadIcsFile } from "@/lib/calendar";
 import type { ResolvedTemplateConfig, WeddingData } from "./types";
 import { getWeddingHeroImage, getWeddingPhotos } from "./shared/weddingPhotos";
-import { getGalleryCardClass, getGalleryContainerClass, getGalleryDisplayStyle, getGalleryImageClass } from "./shared/gallery-layout";
+import { getGalleryCardClass, getGalleryContainerClass, getGalleryDisplayStyle } from "./shared/gallery-layout";
 import { PhotoImage } from "./shared/PhotoImage";
+import { getDirectMapUrl } from "./shared/mapUtils";
 import { isSectionVisible } from "./shared/template-settings";
 import { GuestbookSection } from "./shared/GuestbookSection";
+import { CoupleNamesLine, OneLineName } from "./shared/OneLineName";
 
 type Locale = keyof typeof copy;
 
@@ -52,23 +52,6 @@ function formatVenueDate(date: Date, locale: Locale): string {
     return `ថ្ងៃ${weekday} ទី${day} ខែ${month} ឆ្នាំ${year}`;
 }
 
-const ShareMark = ({ platform }: { platform: "telegram" | "messenger" | "facebook" }) => (
-    <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" aria-hidden="true">
-        {platform === "telegram" && (
-            <path fill="currentColor" d="M21.4 4.5 18.3 19c-.2 1 -0.8 1.2 -1.6 .7l-4.5-3.3-2.2 2.1c-.2.2-.4.4-.8.4l.3-4.6 8.4-7.6c.4-.3-.1-.5-.5-.2L7.1 13.2 2.7 11.8c-1-.3-1-1 .2-1.5L20 3.7c.8-.3 1.6.2 1.4.8Z" />
-        )}
-        {platform === "messenger" && (
-            <>
-                <path fill="currentColor" d="M12 2C6.3 2 2 6.1 2 11.6c0 2.9 1.2 5.4 3.3 7.1.2.2.3.4.3.7l-.1 2.2c0 .4.4.7.8.5l2.5-1.1c.2-.1.4-.1.6 0 1 .3 1.9.4 2.9.4 5.7 0 10-4.1 10-9.7C22.3 6.1 17.9 2 12 2Z" />
-                <path fill="#1b1914" d="m5.6 14.9 4.2-4.5c.3-.3.7-.3 1 0l2.4 1.8 4.1-2.2c.5-.3 1 .2.7.7l-4.2 4.5c-.3.3-.7.3-1 0l-2.4-1.8-4.1 2.2c-.5.3-1-.2-.7-.7Z" />
-            </>
-        )}
-        {platform === "facebook" && (
-            <path fill="currentColor" d="M13.4 21v-8h2.7l.4-3.1h-3.1V8c0-.9.3-1.5 1.6-1.5h1.7V3.7c-.3 0-1.4-.1-2.6-.1-2.6 0-4.4 1.6-4.4 4.6v1.7H7v3.1h2.7v8h3.7Z" />
-        )}
-    </svg>
-);
-
 const ParentNames = ({
     title,
     father,
@@ -87,19 +70,19 @@ const ParentNames = ({
     if (!fatherName && !motherName) return null;
 
     return (
-        <div className="min-w-0 px-1 py-2 text-center sm:px-2 sm:py-3">
-            <h3 className="m05-khmer-safe font-khmer-moul text-xs leading-[1.9] text-[#9b7844] sm:text-sm">
+        <div className="min-w-0 px-2 py-3 text-center sm:px-3 sm:py-4">
+            <h3 className="m05-khmer-safe font-khmer-moul text-sm leading-[1.9] text-[#d9bd83] sm:text-base">
                 {title}
             </h3>
-            <div className="mt-2 space-y-1">
+            <div className="mt-3 space-y-2">
                 {fatherName && (
-                    <p className="m05-khmer-safe break-words font-kantumruy text-xs leading-[1.9] text-[#f4ecdc] [overflow-wrap:anywhere] sm:text-sm">
-                        <span className="text-[#d9cfb9]">{text.fatherNamePrefix} </span><span className="font-semibold">{fatherName}</span>
+                    <p className="m05-khmer-safe break-words font-kantumruy text-sm leading-[1.9] text-[#fffaf0] [overflow-wrap:anywhere] sm:text-base">
+                        <span className="text-[#e0d5bd]">{text.fatherNamePrefix} </span><span className="font-semibold">{fatherName}</span>
                     </p>
                 )}
                 {motherName && (
-                    <p className="m05-khmer-safe break-words font-kantumruy text-xs leading-[1.9] text-[#f4ecdc] [overflow-wrap:anywhere] sm:text-sm">
-                        <span className="text-[#d9cfb9]">{text.motherNamePrefix} </span><span className="font-semibold">{motherName}</span>
+                    <p className="m05-khmer-safe break-words font-kantumruy text-sm leading-[1.9] text-[#fffaf0] [overflow-wrap:anywhere] sm:text-base">
+                        <span className="text-[#e0d5bd]">{text.motherNamePrefix} </span><span className="font-semibold">{motherName}</span>
                     </p>
                 )}
             </div>
@@ -148,7 +131,6 @@ export default function NeaM05Sections({
     const [activeImage, setActiveImage] = useState<number | null>(null);
     const [floatingLights, setFloatingLights] = useState<Array<{ id: number; x: number; y: number }>>([]);
     const nextFloatingLightId = useRef(0);
-    const [copyResult, setCopyResult] = useState<"copied" | "failed" | null>(null);
     const [downloadError, setDownloadError] = useState(false);
     const touchStartX = useRef<number | null>(null);
     const galleryDialogRef = useRef<HTMLDivElement>(null);
@@ -270,22 +252,6 @@ export default function NeaM05Sections({
         }
     };
 
-    const shareUrl = typeof window === "undefined" ? "" : window.location.href;
-    const shareText = `${text.shareMessage} ${wedding.groomName} & ${wedding.brideName}`;
-    const encodedUrl = encodeURIComponent(shareUrl);
-    const encodedText = encodeURIComponent(shareText);
-
-    const copyLink = async () => {
-        setCopyResult(null);
-        try {
-            await navigator.clipboard.writeText(shareUrl);
-            setCopyResult("copied");
-        } catch (error) {
-            console.error("Unable to copy the wedding invitation link:", error);
-            setCopyResult("failed");
-        }
-    };
-
     const openGalleryImage = (delta: number) => {
         setActiveImage((index) => {
             if (index === null || visibleGallery.length === 0) return index;
@@ -298,32 +264,29 @@ export default function NeaM05Sections({
             <section
                 id="m05-invitation-words"
                 data-m05-reveal=""
-                className="relative overflow-hidden bg-[#25281f] px-5 py-20 text-[#f4ecdc] sm:py-28"
+                className="relative overflow-hidden bg-[#25281f] px-5 py-20 text-[#f4ecdc] [container-type:inline-size] sm:py-28"
             >
-                <div className="relative mx-auto grid max-w-[1240px] items-center gap-10 md:grid-cols-[minmax(260px,380px)_minmax(0,1fr)] md:gap-10 lg:gap-32">
+                <div className="m05-invitation-words-layout relative mx-auto grid max-w-[1100px] items-center gap-8 sm:gap-12">
                     <motion.div
                         initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.96 }}
                         whileInView={prefersReducedMotion ? undefined : { opacity: 1, scale: 1 }}
                         viewport={{ once: true }}
                         transition={{ duration: 1.1 }}
-                        className="relative mx-auto w-full max-w-[380px] md:mx-0"
+                        className="m05-invitation-photo relative mx-auto w-full max-w-[340px]"
                     >
-                        <div className="relative overflow-hidden rounded-t-[50%] border border-[#b99b68] p-1.5 shadow-[0_12px_32px_rgba(0,0,0,.22)]">
+                        <div className="relative overflow-hidden rounded-t-[50%] border border-[#c8ad76]/35 shadow-[0_18px_48px_rgba(0,0,0,.3)]">
                             {couplePhoto ? (
-                                <>
-                                    <PhotoImage src={couplePhoto} alt={text.couplePhotoAlt} className="aspect-[4/5] w-full rounded-t-[50%] border border-[#f3dfb5]/65 object-cover" loading="lazy" decoding="async" />
-                                    <span className="m05-photo-tint pointer-events-none absolute inset-1.5 rounded-t-[50%]" aria-hidden="true" />
-                                </>
+                                <PhotoImage src={couplePhoto} alt={text.couplePhotoAlt} className="aspect-[4/5] w-full rounded-t-[50%] object-cover object-center" loading="lazy" decoding="async" />
                             ) : (
-                                <div className="aspect-[4/5] rounded-t-[50%] border border-[#f3dfb5]/65 bg-gradient-to-b from-[#899174] to-[#4d5940]" />
+                                <div className="aspect-[4/5] rounded-t-[50%] bg-gradient-to-b from-[#899174] to-[#4d5940]" />
                             )}
                         </div>
                     </motion.div>
 
-                    <div className="relative text-center md:text-left">
-                        <p className="m05-foil m05-khmer-safe font-khmer-moul text-xs sm:text-sm">{text.formalEyebrow}</p>
-                        <h2 className="m05-section-title m05-khmer-safe mt-2 font-khmer-moul text-lg leading-[1.9] sm:text-2xl">{text.formalTitle}</h2>
-                        <p className="m05-khmer-safe mx-auto mt-5 max-w-2xl font-kantumruy text-sm leading-[2] text-[#e0d5bd] md:mx-0 sm:text-base">
+                    <div className="m05-invitation-copy relative rounded-2xl border border-[#c8ad76]/20 bg-black/10 px-4 py-5 text-center sm:px-6 sm:py-7">
+                        <p className="m05-foil m05-khmer-safe font-khmer-moul text-sm sm:text-base">{text.formalEyebrow}</p>
+                        <h2 className="m05-section-title m05-khmer-safe mx-auto mt-2 max-w-xl font-khmer-moul text-base leading-[1.85] sm:text-xl">{text.formalTitle}</h2>
+                        <p className="m05-invitation-description m05-khmer-safe mx-auto mt-4 max-w-2xl font-kantumruy text-base leading-[2] text-[#f4ecdc] sm:text-lg">
                             {wedding.themeSettings?.invitationText || wedding.themeSettings?.welcomeMessage || text.formalPlaceholder}
                         </p>
                         {(groomFather || groomMother || brideFather || brideMother) && (
@@ -339,16 +302,16 @@ export default function NeaM05Sections({
             <section
                 id="m05-couple"
                 data-m05-reveal=""
-                className="relative overflow-hidden bg-[#24271f] px-5 py-20 text-[#f4ecdc] sm:py-28"
+                className="relative overflow-hidden bg-[#24271f] px-5 py-20 text-[#f4ecdc] [container-type:inline-size] sm:py-28"
                 style={{
                     backgroundImage: "url('/khmer-invite-starter-kit/textures/paper-cream.webp')",
                     backgroundBlendMode: "multiply",
                 }}
             >
-                <div className="relative mx-auto grid max-w-5xl items-center gap-12 md:grid-cols-2">
+                <div className="m05-couple-layout relative mx-auto grid max-w-5xl items-center gap-12">
                     <div className="mx-auto w-full max-w-[360px]">
                         <div
-                            className="relative aspect-[4/5] overflow-hidden bg-gradient-to-b from-[#d0b475] to-[#384233] p-2"
+                            className="relative aspect-[4/5] overflow-hidden"
                             style={{ clipPath: "polygon(50% 0%,56% 2%,62% 0%,68% 2%,74% 0%,80% 2%,86% 0%,92% 2%,98% 0%,100% 7%,98% 13%,100% 19%,98% 25%,100% 31%,98% 37%,100% 43%,98% 49%,100% 55%,98% 61%,100% 67%,98% 73%,100% 79%,98% 85%,100% 91%,98% 97%,92% 100%,86% 98%,80% 100%,74% 98%,68% 100%,62% 98%,56% 100%,50% 98%,44% 100%,38% 98%,32% 100%,26% 98%,20% 100%,14% 98%,8% 100%,2% 98%,0% 92%,2% 86%,0% 80%,2% 74%,0% 68%,2% 62%,0% 56%,2% 50%,0% 44%,2% 38%,0% 32%,2% 26%,0% 20%,2% 14%,0% 8%,2% 2%,8% 0%,14% 2%,20% 0%,26% 2%,32% 0%,38% 2%,44% 0%)" }}
                         >
                             {couplePhoto ? (
@@ -359,27 +322,26 @@ export default function NeaM05Sections({
                             ) : (
                                 <div className="h-full w-full bg-gradient-to-br from-[#909878] to-[#252b21]" />
                             )}
-                            <div className="pointer-events-none absolute inset-2 border border-[#f3dfb5]/70" />
                         </div>
                     </div>
                     <div className="min-w-0 text-center">
                         <p className="m05-foil m05-khmer-safe font-khmer-moul text-xs">{text.coupleEyebrow}</p>
-                        <h2 className="m05-section-title m05-khmer-safe mt-3 font-khmer-moul text-lg sm:text-2xl">{text.coupleTitle}</h2>
+                        <h2 className="m05-section-title m05-khmer-safe mt-3 whitespace-nowrap font-khmer-moul text-[clamp(0.8rem,4.2cqi,1.5rem)]">{text.coupleTitle}</h2>
                         <div className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:gap-6">
                             <div className="min-w-0">
                                 <p className="text-[10px] uppercase tracking-[0.28em] text-[#d7bd88]">{text.groom}</p>
-                                <p className="m05-foil m05-khmer-safe mt-2 whitespace-nowrap font-moulpali text-[clamp(0.75rem,4vw,1rem)] sm:text-xl">{wedding.groomName}</p>
+                                <OneLineName name={wedding.groomName} className="m05-foil m05-khmer-safe mt-2 font-moulpali text-[clamp(0.7rem,3.5cqi,1rem)]" />
                             </div>
                             <div className="min-w-0 border-l border-[#c8ad76]/25 pl-2 sm:pl-4">
                                 <p className="text-[10px] uppercase tracking-[0.28em] text-[#d7bd88]">{text.bride}</p>
-                                <p className="m05-foil m05-khmer-safe mt-2 whitespace-nowrap font-moulpali text-[clamp(0.75rem,4vw,1rem)] sm:text-xl">{wedding.brideName}</p>
+                                <OneLineName name={wedding.brideName} className="m05-foil m05-khmer-safe mt-2 font-moulpali text-[clamp(0.7rem,3.5cqi,1rem)]" />
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <section id="m05-countdown" data-m05-reveal="" className="relative overflow-hidden bg-[#25281f] px-4 py-14 text-center text-[#f4ecdc] sm:px-6 sm:py-20">
+            <section id="m05-countdown" data-m05-reveal="" className="relative overflow-hidden bg-[#25281f] px-4 py-14 text-center text-[#f4ecdc] [container-type:inline-size] sm:px-6 sm:py-20">
                 <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#c8ad76]/45 to-transparent" />
                 <style>{`
                     #m05-countdown .m05-countdown-number {
@@ -408,7 +370,7 @@ export default function NeaM05Sections({
                                     : String(value).padStart(2, "0");
                             return (
                                 <div key={text.countdownUnits[index]} className="relative flex min-w-0 flex-col items-center px-0 sm:px-2">
-                                    <p className="m05-foil m05-countdown-number whitespace-nowrap font-serif-elegant text-[clamp(1.75rem,7vw,4rem)] tabular-nums sm:text-[clamp(2.5rem,5vw,4rem)]">
+                                    <p className="m05-foil m05-countdown-number whitespace-nowrap font-serif-elegant text-[clamp(1.5rem,9cqi,4rem)] tabular-nums">
                                         {locale === "km" && value !== null ? toKhmerDigits(digits, locale) : digits}
                                     </p>
                                     <span aria-hidden="true" className="relative z-10 mt-1 h-2 w-2 rotate-45 border border-[#e6ce98] bg-[#25281f] shadow-[0_0_12px_rgba(200,173,118,.18)]" />
@@ -433,13 +395,15 @@ export default function NeaM05Sections({
                     className="pointer-events-none absolute inset-y-0 left-0 w-1/2"
                     style={{ backgroundImage: "radial-gradient(ellipse at 20% 50%,color-mix(in srgb,var(--m05-foil) 9%,transparent),transparent 68%)" }}
                 />
-                <div className="relative mx-auto grid max-w-[1500px] gap-10 md:grid-cols-[minmax(0,.9fr)_minmax(0,1.1fr)] md:gap-14 lg:gap-24">
-                    <div className="flex flex-col items-center justify-center text-center md:sticky md:top-24 md:h-fit md:items-start md:text-left">
-                        <h2 className="m05-foil m05-khmer-safe max-w-[12ch] font-khmer-moul text-[clamp(1.75rem,4vw,3rem)] leading-[1.8] md:leading-[1.9]">
-                            {config.labels.scheduleTitle || text.programmeTitle}
+                <div className="m05-programme-layout relative mx-auto grid max-w-[1500px] gap-6 sm:gap-8">
+                    <div className="mx-auto flex w-full max-w-2xl items-center justify-center gap-3 text-center">
+                        <span aria-hidden="true" className="h-px w-8 bg-[#c8ad76]/55 sm:w-14" />
+                        <CalendarDays className="h-4 w-4 shrink-0 text-[#d9bd83]" strokeWidth={1.5} aria-hidden="true" />
+                        <h2 className="m05-section-title m05-khmer-safe font-khmer-moul text-lg text-[#f4ecdc] sm:text-xl">
+                            {locale === "km" ? "កម្មវិធី" : "Programme"}
                         </h2>
+                        <span aria-hidden="true" className="h-px w-8 bg-[#c8ad76]/55 sm:w-14" />
                     </div>
-
                     <div className="m05-programme-list relative mx-auto w-full max-w-2xl pt-2 md:mx-0 md:pr-4 md:pt-0">
                         <svg aria-hidden="true" className="absolute bottom-8 left-5 top-0 h-[calc(100%-2rem)] w-px overflow-visible sm:left-6" viewBox="0 0 1 1000" preserveAspectRatio="none">
                             <path data-m05-thread="" d="M.5 0V1000" fill="none" stroke="url(#m05-programme-thread)" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
@@ -458,7 +422,7 @@ export default function NeaM05Sections({
                                 whileInView={prefersReducedMotion ? undefined : { opacity: 1, x: 0 }}
                                 viewport={{ once: true, amount: 0.25 }}
                                 transition={{ duration: 0.7, delay: Math.min(index * 0.08, 0.4), ease: [0.22, 1, 0.36, 1] }}
-                                className="relative mb-5 grid grid-cols-[40px_1fr] gap-3 last:mb-0 sm:mb-9 sm:grid-cols-[48px_1fr] sm:gap-6"
+                                className="relative mb-3 grid grid-cols-[40px_1fr] gap-3 last:mb-0 sm:mb-5 sm:grid-cols-[48px_1fr] sm:gap-6"
                             >
                                 <span
                                     className="relative z-10 flex h-10 w-10 items-center justify-center rounded-full border border-[#c7a86d] bg-[#25281f] text-[#ecd6a7] sm:h-12 sm:w-12"
@@ -466,7 +430,7 @@ export default function NeaM05Sections({
                                 >
                                     <RitualIcon index={index} />
                                 </span>
-                                <div className="border-b border-[#ddc894]/20 pb-4 pt-0 sm:pb-6 sm:pt-1">
+                                <div className="border-b border-[#ddc894]/20 pb-3 pt-0 sm:pb-4 sm:pt-1">
                                     <p className="m05-foil m05-khmer-safe font-khmer-moul text-xs tracking-[0.08em]">{activity.time}</p>
                                     <h3 className="m05-khmer-safe mt-0.5 font-khmer-moul text-base sm:mt-1 sm:text-lg">{activity.title}</h3>
                                     {activity.description && (
@@ -506,7 +470,7 @@ export default function NeaM05Sections({
                                     transition={{ duration: 0.8, delay: (index % 3) * 0.1, ease: [0.22, 1, 0.36, 1] }}
                                     className="w-[82vw] max-w-[760px] min-w-[min(82vw,760px)] snap-start sm:w-[72vw] sm:min-w-[min(72vw,760px)]"
                                 >
-                                    <div className="relative overflow-hidden rounded-sm border border-[#c8ad76]/35 bg-[#1d2019] p-1.5 shadow-[0_18px_42px_rgba(0,0,0,.25)]">
+                                    <div className="relative overflow-hidden">
                                         <PhotoImage src={src} alt={`${text.storyPhotoAlt} ${toKhmerDigits(index + 1, locale)}`} className="h-[clamp(240px,42vw,540px)] w-full object-cover transition-transform duration-700 hover:scale-[1.035]" loading="lazy" decoding="async" />
                                         <span className="m05-photo-tint pointer-events-none absolute inset-1.5" aria-hidden="true" />
                                     </div>
@@ -535,7 +499,7 @@ export default function NeaM05Sections({
             </section>
             )}
 
-            <section id="m05-candlelight" className="relative isolate flex min-h-[720px] flex-col items-center justify-center overflow-hidden bg-[#171a16] px-5 py-14 text-[#f4ecdc] sm:min-h-[780px] sm:py-20">
+            <section id="m05-candlelight" className="relative isolate flex min-h-[720px] flex-col items-center justify-center overflow-hidden bg-[#171a16] px-5 py-14 text-[#f4ecdc] [container-type:inline-size] sm:min-h-[780px] sm:py-20">
                 {candlePhoto && (
                     <img src={candlePhoto} alt="" aria-hidden="true" className="absolute inset-0 -z-20 h-full w-full object-cover object-[center_20%]" loading="lazy" decoding="async" />
                 )}
@@ -547,9 +511,7 @@ export default function NeaM05Sections({
                 <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_50%_38%,transparent_20%,rgba(10,9,7,.32)_100%)]" />
                 <div className="relative z-10 flex w-full flex-col items-center justify-center text-center">
                     <h2 className="m05-section-title m05-khmer-safe mt-2 font-khmer-moul text-lg leading-[1.8] sm:text-2xl">{text.candleTitle}</h2>
-                    <p className="m05-khmer-safe mt-4 font-moulpali text-2xl text-[#fff4d6] [text-shadow:0_2px_5px_rgba(0,0,0,.95),0_0_18px_rgba(0,0,0,.7)] sm:text-3xl">
-                        {wedding.groomName} <span className="mx-2 text-[#ffe2a0]">♡</span> {wedding.brideName}
-                    </p>
+                    <CoupleNamesLine groom={wedding.groomName} bride={wedding.brideName} separator="♡" className="m05-khmer-safe mt-4 font-moulpali text-[clamp(0.8rem,5cqi,1.5rem)] text-[#fff4d6] [text-shadow:0_2px_5px_rgba(0,0,0,.95),0_0_18px_rgba(0,0,0,.7)]" />
                 </div>
                 <button
                     type="button"
@@ -610,7 +572,7 @@ export default function NeaM05Sections({
                 <div className="relative mx-auto max-w-7xl">
                     <div className="mb-8 flex items-end justify-between gap-4 sm:mb-12">
                         <div>
-                            <h2 className="m05-section-title m05-khmer-safe font-khmer-moul text-lg sm:text-2xl">{text.galleryTitle}</h2>
+                            <h2 className="m05-section-title m05-khmer-safe whitespace-nowrap font-khmer-moul text-[clamp(10px,3.8vw,24px)] sm:text-2xl">{text.galleryTitle}</h2>
                         </div>
                         {visibleGallery.length > 0 && (
                             <span className="m05-foil shrink-0 font-serif-elegant text-sm tracking-[0.16em]" aria-label={`${visibleGallery.length} ${text.galleryPhotoAlt}`}>
@@ -627,28 +589,21 @@ export default function NeaM05Sections({
                                     key={`${item.url}-${index}`}
                                     type="button"
                                     onClick={() => setActiveImage(index)}
-                                    className={`group relative block min-h-0 overflow-hidden bg-[#1b1e18] text-left outline-none ring-1 ring-inset ring-[#e3d2ad]/20 focus-visible:ring-2 focus-visible:ring-[#e4c47c] ${galleryDisplayStyle === "masonry"
+                                    className={`group relative block min-h-0 overflow-hidden bg-[#1b1e18] text-left outline-none focus-visible:ring-2 focus-visible:ring-[#e4c47c] ${galleryDisplayStyle === "masonry"
                                         ? index === 0 ? "col-span-2 row-span-2 md:col-span-7" : index < 3 ? "col-span-1 md:col-span-5" : "col-span-1 md:col-span-3"
-                                        : getGalleryCardClass(galleryDisplayStyle, index)}`}
+                                        : galleryDisplayStyle === "polaroid" ? "aspect-square" : getGalleryCardClass(galleryDisplayStyle, index)}`}
                                     aria-label={`${text.openPhoto} ${toKhmerDigits(index + 1, locale)}`}
                                 >
                                     <PhotoImage
                                         src={item.url}
                                         alt={`${text.galleryPhotoAlt} ${toKhmerDigits(index + 1, locale)}`}
                                         className={`${galleryDisplayStyle === "polaroid"
-                                            ? getGalleryImageClass(galleryDisplayStyle)
+                                            ? "absolute inset-0 h-full w-full object-cover"
                                             : "absolute inset-0 h-full w-full object-cover"} transition-transform duration-700 group-hover:scale-[1.035]`}
                                         loading="lazy"
                                         decoding="async"
                                     />
-                                    <span className="m05-photo-tint pointer-events-none absolute inset-0" aria-hidden="true" />
-                                    <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-black/5 opacity-70 transition-opacity duration-500 group-hover:opacity-100" />
-                                    <span className="pointer-events-none absolute bottom-3 left-3 font-serif-elegant text-xs tracking-[0.16em] text-white/90 drop-shadow-[0_1px_5px_rgba(0,0,0,.85)] sm:bottom-4 sm:left-4">
-                                        {toKhmerDigits(String(index + 1).padStart(2, "0"), locale)}
-                                    </span>
-                                    <span className="pointer-events-none absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full border border-white/45 bg-black/20 text-white opacity-0 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100">
-                                        <ExternalLink size={14} aria-hidden="true" />
-                                    </span>
+                                    <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-50 transition-opacity duration-500 group-hover:opacity-75" />
                                 </button>
                             ))}
                         </div>
@@ -658,53 +613,49 @@ export default function NeaM05Sections({
                 </div>
             </section>}
 
-            {isSectionVisible(config, "map") && <section id="m05-venue" data-m05-reveal="" className="relative overflow-hidden bg-[#25281f] px-5 py-20 text-center text-[#f4ecdc] sm:py-28">
-                <img src="/khmer-invite-starter-kit/elements/crest.svg" alt="" aria-hidden="true" className="relative mx-auto mb-3 h-12 w-12" />
+            {isSectionVisible(config, "map") && <section id="m05-venue" data-m05-reveal="" className="relative overflow-hidden bg-[#25281f] px-5 py-20 text-center text-[#f4ecdc] [container-type:inline-size] sm:py-28">
+                <MapPin aria-hidden="true" className="relative mx-auto mb-4 h-7 w-7 text-[#d9bd83]" strokeWidth={1.4} />
                 <p className="m05-foil m05-khmer-safe relative font-khmer-moul text-xs">{text.venueEyebrow}</p>
                 <h2 className="m05-section-title m05-khmer-safe relative mt-2 font-khmer-moul text-lg sm:text-2xl">{text.venueTitle}</h2>
-                <div className="relative mx-auto mt-6 grid w-full max-w-4xl gap-5 text-left sm:grid-cols-2 sm:gap-10">
-                    <div className="min-w-0 border-l border-[#c8ad76]/55 pl-4 sm:pl-5">
+                <div className="relative mx-auto mt-7 grid w-full max-w-2xl gap-5 rounded-2xl border border-[#c8ad76]/35 bg-black/10 p-5 text-left shadow-[0_18px_48px_rgba(0,0,0,.16)] sm:grid-cols-2 sm:gap-7 sm:p-7">
+                    <div className="min-w-0">
                         <div className="flex items-center gap-2 text-[#d9bd83]">
-                            <MapPin size={15} strokeWidth={1.5} aria-hidden="true" />
-                            <p className="m05-khmer-safe font-khmer-moul text-xs">{text.venueAddressLabel}</p>
+                            <MapPin size={16} strokeWidth={1.5} aria-hidden="true" />
+                            <p className="m05-khmer-safe m05-venue-copy font-khmer-moul text-xs">{text.venueAddressLabel}</p>
                         </div>
-                        <p className="m05-khmer-safe mt-1 break-words font-kantumruy text-base font-semibold leading-8 text-[#fff4dc] [overflow-wrap:anywhere] sm:text-lg">
+                        <p className="m05-khmer-safe m05-venue-copy mt-2 break-words font-kantumruy text-sm font-semibold leading-relaxed text-[#fff4dc] [overflow-wrap:anywhere] sm:text-base">
                             {wedding.locationName || wedding.location || text.venuePlaceholder}
                         </p>
                         {wedding.locationName && wedding.location && (
-                            <p className="m05-khmer-safe mt-1 break-words font-kantumruy text-sm leading-7 text-[#e0d5bd]/85 [overflow-wrap:anywhere]">{wedding.location}</p>
+                            <p className="m05-khmer-safe m05-venue-copy mt-1 break-words font-kantumruy text-xs leading-relaxed text-[#e0d5bd]/85 [overflow-wrap:anywhere] sm:text-sm">{wedding.location}</p>
                         )}
                     </div>
-                    <div className="min-w-0 border-l border-[#c8ad76]/55 pl-4 sm:pl-5">
+                    <div className="min-w-0 border-t border-[#c8ad76]/25 pt-4 sm:border-l sm:border-t-0 sm:pl-7 sm:pt-0">
                         <div className="flex items-center gap-2 text-[#d9bd83]">
-                            <CalendarDays size={15} strokeWidth={1.5} aria-hidden="true" />
-                            <p className="m05-khmer-safe font-khmer-moul text-xs">{text.eventDateLabel}</p>
+                            <CalendarDays size={16} strokeWidth={1.5} aria-hidden="true" />
+                            <p className="m05-khmer-safe m05-venue-copy font-khmer-moul text-xs">{text.eventDateLabel}</p>
                         </div>
-                        <p className="m05-khmer-safe mt-1 break-words font-kantumruy text-base font-semibold leading-8 text-[#fff4dc] [overflow-wrap:anywhere] sm:text-lg">
+                        <p className="m05-khmer-safe m05-venue-copy mt-2 break-words font-kantumruy text-sm font-semibold leading-relaxed text-[#fff4dc] [overflow-wrap:anywhere] sm:text-base">
                             {Number.isFinite(targetTime) ? formatVenueDate(new Date(targetTime), locale) : text.datePlaceholder}
                         </p>
                         {wedding.themeSettings?.lunarDate && (
-                            <p className="m05-khmer-safe mt-1 break-words font-kantumruy text-sm leading-7 text-[#e0d5bd]/85 [overflow-wrap:anywhere]">
+                            <p className="m05-khmer-safe m05-venue-copy mt-1 break-words font-kantumruy text-xs leading-relaxed text-[#e0d5bd]/85 [overflow-wrap:anywhere] sm:text-sm">
                                 <span className="text-[#d9bd83]">{text.lunarDateLabel}៖ </span>{wedding.themeSettings.lunarDate}
                             </p>
                         )}
                     </div>
                 </div>
-                <div className="relative mx-auto mt-8 max-w-5xl overflow-hidden rounded-sm border border-[#b99b68] p-2 shadow-[0_18px_55px_rgba(0,0,0,.3)]" style={{ backgroundColor: "var(--m05-dark-surface)" }}>
-                    <iframe
-                        title={text.mapTitle}
-                        src={`https://maps.google.com/maps?q=${encodeURIComponent(new URLSearchParams((wedding.themeSettings?.mapLink || "").split("?")[1] || "").get("q") || [wedding.locationName, wedding.location].filter(Boolean).join(", "))}&output=embed`}
-                        className="h-[320px] w-full border-0 sm:h-[420px]"
-                        loading="lazy"
-                        referrerPolicy="no-referrer-when-downgrade"
-                    />
-                </div>
-                <div className="relative mt-6 flex flex-wrap justify-center gap-3">
+                <div className="relative mx-auto mt-5 flex w-full max-w-2xl flex-col justify-center gap-3 sm:flex-row">
                     <a
-                        href={wedding.themeSettings?.mapLink || wedding.mapUrl || `https://maps.google.com/?q=${encodeURIComponent(wedding.locationName || wedding.location || "")}`}
+                        href={getDirectMapUrl(
+                            wedding.themeSettings?.mapLink?.includes("google.com/maps/embed")
+                                ? ""
+                                : wedding.themeSettings?.mapLink || wedding.mapUrl,
+                            [wedding.locationName, wedding.location].filter(Boolean).join(", "),
+                        )}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex min-h-11 items-center gap-2 border border-[#c8ad76] px-5 py-2.5 font-kantumruy text-xs text-[#f5e9ce] transition hover:bg-[#c8ad76]/10"
+                        className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-lg bg-[#c8ad76] px-5 py-3 font-kantumruy text-xs font-semibold text-[#25281f] shadow-sm transition hover:bg-[#d8c18e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f3dfb5] focus-visible:ring-offset-2 focus-visible:ring-offset-[#25281f]"
                     >
                         <MapPin size={15} aria-hidden="true" /> {text.openMap} <ExternalLink size={12} aria-hidden="true" />
                     </a>
@@ -725,7 +676,7 @@ export default function NeaM05Sections({
                                     fileName: "nea-m05-wedding.ics",
                                 });
                             }}
-                            className="inline-flex min-h-11 items-center gap-2 border border-[#c8ad76] px-5 py-2.5 font-kantumruy text-xs text-[#f5e9ce] transition hover:bg-[#c8ad76]/10"
+                            className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-lg border border-[#c8ad76]/60 px-5 py-3 font-kantumruy text-xs font-medium text-[#f5e9ce] transition hover:bg-[#c8ad76]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f3dfb5] focus-visible:ring-offset-2 focus-visible:ring-offset-[#25281f]"
                         >
                             <CalendarDays size={15} aria-hidden="true" /> {text.saveCalendar}
                         </button>
@@ -742,9 +693,9 @@ export default function NeaM05Sections({
                         {(wedding.themeSettings?.bankAccounts || []).map((account, index) => {
                             const qrSource = account.qrUrl || (wedding.themeSettings?.paymentQrUrl ?? "");
                             return (
-                                <article key={`${account.bankName}-${index}`} className={`mx-auto w-full max-w-md border border-[#b89a60]/55 bg-[#1d211b]/65 p-4 shadow-[0_14px_35px_rgba(0,0,0,.2)] sm:p-6 ${(wedding.themeSettings?.bankAccounts || []).length === 1 ? "sm:col-span-2" : ""}`}>
-                                    <div className="m05-khqr-frame mx-auto w-full max-w-[17rem] overflow-hidden rounded-xl p-[6px] shadow-[0_10px_28px_rgba(0,0,0,.28)]">
-                                        <div className="m05-khqr-header flex h-11 items-center justify-center rounded-t-lg font-serif-elegant text-lg font-bold tracking-[0.08em] text-white">
+                                <article key={`${account.bankName}-${index}`} className={`mx-auto w-full max-w-md border-b border-[#b89a60]/35 py-6 ${(wedding.themeSettings?.bankAccounts || []).length === 1 ? "sm:col-span-2" : ""}`}>
+                                    <div className="mx-auto w-full max-w-[17rem]">
+                                        <div className="m05-khqr-header flex h-11 items-center justify-center font-serif-elegant text-lg font-bold tracking-[0.08em] text-white">
                                             KHQR
                                         </div>
                                         <div className="bg-white px-3 pt-2 text-left text-[#202020]">
@@ -774,8 +725,8 @@ export default function NeaM05Sections({
                             );
                         })}
                         {(wedding.themeSettings?.bankAccounts || []).length === 0 && (
-                            <article className="border border-dashed border-[#b89a60]/65 bg-transparent p-5 sm:col-span-2">
-                                <div className="mx-auto flex aspect-square w-48 items-center justify-center border border-[#c6ab77]/60 bg-white/70 p-4">
+                            <article className="py-6 sm:col-span-2">
+                                <div className="mx-auto flex aspect-square w-48 items-center justify-center bg-white p-4">
                                     <span className="m05-khmer-safe font-kantumruy text-xs text-[#746a58]">{text.qrPlaceholder}</span>
                                 </div>
                                 <p className="m05-khmer-safe mt-3 font-kantumruy text-xs text-[#d9cfb9]">{text.qrMissing}</p>
@@ -786,33 +737,22 @@ export default function NeaM05Sections({
                 </div>
             </section>}
 
-            {isSectionVisible(config, "guestbook") && <GuestbookSection wedding={wedding} tone="dark" />}
+            {isSectionVisible(config, "guestbook") && <GuestbookSection wedding={wedding} tone="dark" unboxed />}
 
-            <section id="m05-thank-you" data-m05-reveal="" className="relative overflow-hidden bg-[#171a16] px-5 py-20 text-center text-[#f4ecdc] sm:py-28">
+            <section id="m05-thank-you" data-m05-reveal="" className="relative overflow-hidden bg-[#171a16] px-5 py-20 text-center text-[#f4ecdc] [container-type:inline-size] sm:py-28">
                 <div className="pointer-events-none absolute inset-0 opacity-15" style={{ backgroundImage: "url('/khmer-invite-starter-kit/textures/paper-cream.webp')" }} />
-                <div className="relative mx-auto max-w-3xl">
+                <div className="m05-thank-you-content relative mx-auto max-w-3xl">
+                    <div aria-hidden="true" className="mx-auto mb-4 flex w-20 items-center justify-center gap-2 text-[#c8ad76]">
+                        <span className="h-px flex-1 bg-current opacity-60" />
+                        <Sparkles className="h-5 w-5" strokeWidth={1.2} />
+                        <span className="h-px flex-1 bg-current opacity-60" />
+                    </div>
                     <p className="m05-foil m05-khmer-safe font-khmer-moul text-2xl sm:text-3xl">{text.thankYouTitle}</p>
                     <p className="m05-khmer-safe mx-auto mt-4 max-w-xl font-kantumruy text-sm leading-[2] text-[#d9cfb9]">{wedding.themeSettings?.acknowledgment || text.thankYouMessage}</p>
-                    <div className="mx-auto mt-8 grid w-full max-w-md grid-cols-2 gap-2.5">
-                        <a href={`https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-12 min-w-0 items-center justify-center gap-2 border border-[#c2a56f]/65 px-2.5 py-2.5 font-kantumruy text-xs leading-5 text-[#f4ecdc] transition-colors hover:border-[#d9bd83] hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d9bd83]">
-                            <ShareMark platform="telegram" /> {text.shareTelegram}
-                        </a>
-                        <a href={`https://www.facebook.com/dialog/send?link=${encodedUrl}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-12 min-w-0 items-center justify-center gap-2 border border-[#c2a56f]/65 px-2.5 py-2.5 font-kantumruy text-xs leading-5 text-[#f4ecdc] transition-colors hover:border-[#d9bd83] hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d9bd83]">
-                            <ShareMark platform="messenger" /> {text.shareMessenger}
-                        </a>
-                        <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-12 min-w-0 items-center justify-center gap-2 border border-[#c2a56f]/65 px-2.5 py-2.5 font-kantumruy text-xs leading-5 text-[#f4ecdc] transition-colors hover:border-[#d9bd83] hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d9bd83]">
-                            <ShareMark platform="facebook" /> {text.shareFacebook}
-                        </a>
-                        <button type="button" onClick={() => void copyLink()} className="inline-flex min-h-12 min-w-0 items-center justify-center gap-2 border border-[#c2a56f]/65 px-2.5 py-2.5 font-kantumruy text-xs leading-5 text-[#f4ecdc] transition-colors hover:border-[#d9bd83] hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d9bd83]">
-                            {copyResult === "copied" ? <Check size={16} className="shrink-0" aria-hidden="true" /> : <Copy size={16} className="shrink-0" aria-hidden="true" />}
-                            {copyResult === "copied" ? text.copySuccess : text.copyLink}
-                        </button>
-                    </div>
-                    {copyResult === "failed" && <p role="alert" className="m05-khmer-safe mt-3 font-kantumruy text-xs text-red-300">{text.copyFailure}</p>}
                     <div className="mx-auto mt-12 h-px max-w-xs bg-gradient-to-r from-transparent via-[#b99b68]/75 to-transparent" />
-                    <p className="m05-foil m05-khmer-safe mt-5 font-moulpali text-lg">{wedding.groomName} ♡ {wedding.brideName}</p>
+                    <CoupleNamesLine groom={wedding.groomName} bride={wedding.brideName} separator="♡" className="m05-foil m05-khmer-safe mt-5 font-moulpali text-lg" />
                     <p className="mt-8 font-serif-elegant text-[10px] font-medium uppercase tracking-[0.24em] text-[#e2c68e]/70">
-                        By Monea
+                        MONEO
                     </p>
                 </div>
             </section>

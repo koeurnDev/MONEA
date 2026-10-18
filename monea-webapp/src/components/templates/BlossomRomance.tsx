@@ -53,7 +53,7 @@ export const BlossomRomance: React.FC<TemplateProps> = ({ wedding, guestName, co
     return (
         <div 
             style={getTemplatePaletteStyles(wedding.themeSettings, "#B45309", "#F5EBE6")}
-            className="monea-full-palette monea-paper-canvas m05-type-system w-full bg-[#F5EBE6] font-kantumruy text-slate-800 relative min-h-screen selection:bg-rose-500 selection:text-white"
+            className="monea-full-palette monea-paper-canvas m05-type-system khmer-readable-type-system w-full bg-[#F5EBE6] font-kantumruy text-slate-800 relative min-h-screen selection:bg-rose-500 selection:text-white"
         >
             {/* Background Audio */}
             {musicUrl && (
@@ -73,7 +73,7 @@ export const BlossomRomance: React.FC<TemplateProps> = ({ wedding, guestName, co
             {revealed && musicUrl && (
                 <button
                     onClick={togglePlay}
-                    className="fixed bottom-6 right-6 z-40 w-11 h-11 rounded-full bg-white/90 dark:bg-black/80 backdrop-blur-md border border-rose-200 text-rose-600 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all"
+                    className="invitation-floating-control fixed bottom-6 z-40 w-11 h-11 rounded-full bg-white/90 dark:bg-black/80 backdrop-blur-md border border-rose-200 text-rose-600 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all"
                     aria-label="Toggle Music"
                 >
                     {isPlaying ? <Volume2 size={18} className="animate-pulse" /> : <VolumeX size={18} />}
@@ -82,7 +82,7 @@ export const BlossomRomance: React.FC<TemplateProps> = ({ wedding, guestName, co
 
             {/* Mount invitation sections only after the guest opens the envelope. */}
             {revealed && (
-            <main className="monea-paper-canvas relative max-w-[540px] mx-auto min-h-screen bg-transparent flex flex-col">
+            <main className="monea-paper-canvas relative mx-auto flex min-h-screen max-w-[430px] flex-col bg-transparent">
                 {/* 1. Hero Section */}
                 <HeroSection wedding={wedding} primaryColor={primaryColor} />
 
@@ -91,7 +91,7 @@ export const BlossomRomance: React.FC<TemplateProps> = ({ wedding, guestName, co
 
                 {isSectionVisible(config, "story") && (loveStory || storyImage) && (
                     <section className="bg-gradient-to-b from-[#fff9f5] to-[#f5ebe6] px-5 py-16 text-center">
-                        <div className="mx-auto max-w-md rounded-[2rem] border border-rose-200/80 bg-white/80 p-6 shadow-[0_18px_45px_rgba(100,45,45,.08)] sm:p-8">
+                        <div className="mx-auto max-w-md p-2 text-slate-800 sm:p-4">
                             <Heart aria-hidden="true" className="mx-auto mb-3 h-6 w-6 fill-rose-200 text-rose-500" />
                             <h2 className="font-khmer-moul text-xl leading-relaxed text-rose-950 sm:text-2xl">
                                 {wedding.themeSettings?.customLabels?.storyTitle || "រឿងរ៉ាវស្នេហារបស់យើង"}
@@ -109,7 +109,7 @@ export const BlossomRomance: React.FC<TemplateProps> = ({ wedding, guestName, co
                                             <img
                                                 src={image}
                                                 alt={`រូបភាពរឿងរ៉ាវស្នេហាទី ${index + 1}`}
-                                                className="max-h-[28rem] aspect-[4/3] w-full rounded-2xl object-cover shadow-md"
+                                                className="max-h-[28rem] aspect-[4/3] w-full object-cover"
                                                 loading="lazy"
                                                 decoding="async"
                                             />
@@ -146,7 +146,7 @@ export const BlossomRomance: React.FC<TemplateProps> = ({ wedding, guestName, co
                     <GiftSection wedding={wedding} primaryColor={primaryColor} />
                 )}
 
-                {isSectionVisible(config, "guestbook") && <GuestbookSection wedding={wedding} />}
+                {isSectionVisible(config, "guestbook") && <GuestbookSection wedding={wedding} unboxed />}
 
                 {/* 7. Thank You & Blessings */}
                 <ThankYouSection wedding={wedding} primaryColor={primaryColor} />

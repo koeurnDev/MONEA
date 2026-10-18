@@ -104,14 +104,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [isBypassMode])
 
   useEffect(() => {
-    if (isBypassMode) return; // Skip fetch in bypass mode
+    const handleAuthExpired = () => {
+      setUser(null);
+      setIsLoading(false);
+    };
+    window.addEventListener('monea:auth-expired', handleAuthExpired);
+
+    if (isBypassMode) return () => window.removeEventListener('monea:auth-expired', handleAuthExpired); // Skip fetch in bypass mode
+    const publicPaths = ['/', '/templates', '/contact', '/support', '/privacy-policy', '/terms-and-conditions', '/khmer-digital-wedding-invitation'];
+    if (publicPaths.includes(window.location.pathname)) {
+      setIsLoading(false);
+      return () => window.removeEventListener('monea:auth-expired', handleAuthExpired);
+    }
     // Debounce initial fetch for mobile
     const timer = setTimeout(fetchUser, 100);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('monea:auth-expired', handleAuthExpired);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []) // Mount-only fetch with debounce to prevent loops
 
   const logout = useCallback(async () => {
+    window.dispatchEvent(new CustomEvent('monea:auth-expired'));
     setUser(null);
     try {
       await moneaClient.post('/api/auth/logout');

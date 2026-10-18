@@ -111,7 +111,7 @@ export function GuestbookForm({
                         </Suspense>
                     </div>
                 ) : (
-                    <div className="text-[10px] text-rose-500 bg-rose-500/10 p-2 rounded-lg text-center font-bold py-2">
+                    <div className="text-xs text-rose-500 bg-rose-500/10 p-2 rounded-lg text-center font-bold py-2">
                         មិនអាចផ្ទៀងផ្ទាត់ CAPTCHA បានទេ។ សូមព្យាយាមពេលក្រោយ។
                     </div>
                 )}

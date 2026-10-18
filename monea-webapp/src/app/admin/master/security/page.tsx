@@ -142,53 +142,54 @@ export default function SecurityDashboardPage() {
         <div className="w-full min-h-full font-kantumruy pb-16">
             {/* Top Bar Header */}
             <div className="bg-card/80 backdrop-blur-md border-b border-border/80 sticky top-0 z-20">
-                <div className="max-w-[1400px] mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                <div className="max-w-[1400px] mx-auto flex flex-col gap-3 px-3 py-3 sm:h-20 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-8 sm:py-0">
+                    <div className="flex min-w-0 items-center gap-2 sm:gap-3">
                         <Link to="/admin/master">
-                            <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10 border border-border bg-card shadow-xs hover:bg-muted">
+                            <Button variant="ghost" size="icon" aria-label={isKm ? "ត្រឡប់ទៅទំព័រគ្រប់គ្រង" : "Back to admin"} className="h-10 w-10 shrink-0 rounded-xl border border-border bg-card shadow-xs hover:bg-muted">
                                 <ArrowLeft size={17} className="text-muted-foreground" />
                             </Button>
                         </Link>
-                        <div>
-                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-teal-800 dark:text-teal-300">
+                        <div className="min-w-0">
+                            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-teal-800 dark:text-teal-300 sm:text-xs">
                                 <ShieldAlert size={13} />
-                                <span>Security & Firewall</span>
+                                <span className="truncate">Security & Firewall</span>
                             </div>
-                            <h1 className="text-lg sm:text-xl font-bold text-foreground">
+                            <h1 className="line-clamp-2 text-sm font-bold leading-snug text-foreground sm:text-xl">
                                 {isKm ? "ការត្រួតពិនិត្យសុវត្ថិភាព & រនាំងការពារ IP" : "Security & IP Firewall Monitoring"}
                             </h1>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex w-full items-center gap-2 sm:w-auto sm:shrink-0 sm:gap-3">
                         <Button
                             onClick={fetchStats}
                             variant="outline"
                             disabled={loading}
-                            className="h-10 px-4 rounded-xl font-bold text-xs border border-border bg-card shadow-xs flex items-center gap-2"
+                            aria-label={isKm ? "ផ្ទុកឡើងវិញ" : "Refresh"}
+                            className="h-10 w-10 shrink-0 rounded-xl border border-border bg-card p-0 font-bold text-xs shadow-xs sm:w-auto sm:px-4 sm:flex sm:items-center sm:gap-2"
                         >
                             <RefreshCcw size={14} className={loading ? "animate-spin" : ""} />
-                            <span>{isKm ? "ផ្ទុកឡើងវិញ" : "Refresh"}</span>
+                            <span className="hidden sm:inline">{isKm ? "ផ្ទុកឡើងវិញ" : "Refresh"}</span>
                         </Button>
                         <Button
                             onClick={handleRevokeAllSessions}
                             disabled={revoking}
-                            className="h-10 px-4 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs shadow-xs flex items-center gap-2"
+                            className="h-10 min-w-0 flex-1 whitespace-normal rounded-xl bg-rose-600 px-3 text-center text-xs font-bold text-white shadow-xs hover:bg-rose-700 sm:flex-none sm:px-4 sm:text-xs"
                         >
                             {revoking ? <Loader2 size={14} className="animate-spin" /> : <AlertTriangle size={14} />}
-                            <span>{isKm ? "ផ្តាច់ការចូលប្រើទាំងអស់" : "Revoke All Sessions"}</span>
+                            <span className="leading-tight">{isKm ? "ផ្តាច់ការចូលប្រើទាំងអស់" : "Revoke All Sessions"}</span>
                         </Button>
                     </div>
                 </div>
             </div>
 
-            <main className="max-w-[1400px] mx-auto p-4 sm:p-8 space-y-6">
+            <main className="max-w-[1400px] mx-auto space-y-4 p-3 sm:space-y-6 sm:p-8">
                 {/* Stats Overview */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
                     <Card className="bg-card border border-border/80 rounded-2xl shadow-xs">
-                        <CardContent className="p-5 flex items-center justify-between">
-                            <div>
-                                <p className="text-xs font-bold text-muted-foreground">{isKm ? "គណនីដែលត្រូវបានចាក់សោ" : "Locked Accounts"}</p>
+                        <CardContent className="flex items-center justify-between gap-3 p-4 sm:p-5">
+                            <div className="min-w-0">
+                                <p className="break-words text-xs font-bold leading-snug text-muted-foreground">{isKm ? "គណនីដែលត្រូវបានចាក់សោ" : "Locked Accounts"}</p>
                                 <h3 className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">{stats?.lockedAccountsCount || 0}</h3>
                             </div>
                             <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold">
@@ -198,9 +199,9 @@ export default function SecurityDashboardPage() {
                     </Card>
 
                     <Card className="bg-card border border-border/80 rounded-2xl shadow-xs">
-                        <CardContent className="p-5 flex items-center justify-between">
-                            <div>
-                                <p className="text-xs font-bold text-muted-foreground">{isKm ? "IP ដែលត្រូវបានហាមឃាត់" : "Blacklisted IPs"}</p>
+                        <CardContent className="flex items-center justify-between gap-3 p-4 sm:p-5">
+                            <div className="min-w-0">
+                                <p className="break-words text-xs font-bold leading-snug text-muted-foreground">{isKm ? "IP ដែលត្រូវបានហាមឃាត់" : "Blacklisted IPs"}</p>
                                 <h3 className="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">{stats?.blacklistedIPsCount || 0}</h3>
                             </div>
                             <div className="w-12 h-12 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center font-bold">
@@ -210,9 +211,9 @@ export default function SecurityDashboardPage() {
                     </Card>
 
                     <Card className="bg-card border border-border/80 rounded-2xl shadow-xs">
-                        <CardContent className="p-5 flex items-center justify-between">
-                            <div>
-                                <p className="text-xs font-bold text-muted-foreground">{isKm ? "ការចូលមិនបានសម្រេច (សកម្ម)" : "Failed Login Attempts"}</p>
+                        <CardContent className="flex items-center justify-between gap-3 p-4 sm:p-5">
+                            <div className="min-w-0">
+                                <p className="break-words text-xs font-bold leading-snug text-muted-foreground">{isKm ? "ការចូលមិនបានសម្រេច (សកម្ម)" : "Failed Login Attempts"}</p>
                                 <h3 className="text-2xl font-black text-foreground mt-1">{stats?.failedLoginsCount || 0}</h3>
                             </div>
                             <div className="w-12 h-12 rounded-xl bg-muted text-muted-foreground flex items-center justify-center font-bold">
@@ -224,13 +225,13 @@ export default function SecurityDashboardPage() {
 
                 {/* Manual Restriction IP Form Card */}
                 <Card className="bg-card border border-border/80 rounded-2xl shadow-xs overflow-hidden">
-                    <CardHeader className="p-6 pb-3 border-b border-border/50">
-                        <CardTitle className="text-base font-bold text-foreground flex items-center gap-2">
-                            <Ban size={18} className="text-rose-500" />
-                            <span>{isKm ? "ការគ្រប់គ្រងការចូលប្រើតាម IP (Manual IP Restriction)" : "Manual IP Blacklist"}</span>
+                    <CardHeader className="border-b border-border/50 p-4 pb-3 sm:p-6 sm:pb-3">
+                        <CardTitle className="flex items-start gap-2 text-sm font-bold leading-snug text-foreground sm:text-base">
+                            <Ban size={18} className="mt-0.5 shrink-0 text-rose-500" />
+                            <span className="min-w-0 break-words">{isKm ? "ការគ្រប់គ្រងការចូលប្រើតាម IP (Manual IP Restriction)" : "Manual IP Blacklist"}</span>
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="p-6">
+                    <CardContent className="p-4 sm:p-6">
                         <form onSubmit={handleAddIp} className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
                             <div className="sm:col-span-4 space-y-1.5">
                                 <label className="text-xs font-bold text-foreground">
@@ -269,15 +270,15 @@ export default function SecurityDashboardPage() {
                 </Card>
 
                 {/* Grid of 2 tables: Failed Logins & Blacklisted IPs */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
                     {/* Failed Logins List */}
                     <Card className="bg-card border border-border/80 rounded-2xl shadow-xs overflow-hidden">
-                        <CardHeader className="p-5 pb-3 border-b border-border/50 flex flex-row items-center justify-between">
-                            <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
-                                <Users size={16} className="text-amber-500" />
-                                <span>{isKm ? "គណនីដែលមានការចូលមិនបានសម្រេច" : "Failed Login Accounts"}</span>
+                        <CardHeader className="flex flex-row items-start justify-between gap-2 border-b border-border/50 p-4 pb-3 sm:p-5 sm:pb-3">
+                            <CardTitle className="flex min-w-0 items-start gap-2 text-xs font-bold leading-snug text-foreground sm:text-sm">
+                                <Users size={16} className="mt-0.5 shrink-0 text-amber-500" />
+                                <span className="min-w-0 break-words">{isKm ? "គណនីដែលមានការចូលមិនបានសម្រេច" : "Failed Login Accounts"}</span>
                             </CardTitle>
-                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                            <span className="text-xs font-black uppercase px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
                                 {stats?.failedAccounts?.length || 0} គណនី
                             </span>
                         </CardHeader>
@@ -288,13 +289,13 @@ export default function SecurityDashboardPage() {
                                         <div key={i} className="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors">
                                             <div className="space-y-1 min-w-0 pr-3">
                                                 <p className="text-xs font-bold text-foreground truncate">{acc.email || acc.name}</p>
-                                                <p className="text-[10px] text-muted-foreground">
+                                                <p className="text-xs text-muted-foreground">
                                                     ប្រភេទ: <span className="font-bold">{acc.type}</span> • ចំនួនបរាជ័យ: <span className="text-rose-500 font-bold">{acc.failedAttempts} ដង</span>
                                                 </p>
                                             </div>
                                             <div className="flex items-center gap-2 shrink-0">
                                                 {acc.lockedUntil && new Date(acc.lockedUntil) > new Date() && (
-                                                    <span className="px-2 py-0.5 bg-rose-500/10 text-rose-600 border border-rose-500/20 rounded-md text-[9px] font-black uppercase">
+                                                    <span className="px-2 py-0.5 bg-rose-500/10 text-rose-600 border border-rose-500/20 rounded-md text-xs font-black uppercase">
                                                         ចាក់សោ
                                                     </span>
                                                 )}
@@ -303,7 +304,7 @@ export default function SecurityDashboardPage() {
                                                     variant="outline"
                                                     onClick={() => handleUnlockAccount(acc.id, acc.type)}
                                                     disabled={unlockingId === acc.id}
-                                                    className="h-8 px-3 rounded-xl text-[10px] font-bold border-border text-foreground hover:bg-muted"
+                                                    className="h-8 px-3 rounded-xl text-xs font-bold border-border text-foreground hover:bg-muted"
                                                 >
                                                     {unlockingId === acc.id ? <Loader2 size={12} className="animate-spin" /> : <Unlock size={12} className="mr-1" />}
                                                     ដោះសោ
@@ -318,7 +319,7 @@ export default function SecurityDashboardPage() {
                                         <CheckCircle2 size={24} />
                                     </div>
                                     <p className="text-xs font-bold text-foreground">មិនមានការប៉ុនប៉ងចូលដោយខុសច្បាប់ឡើយ</p>
-                                    <p className="text-[11px] text-muted-foreground">ប្រព័ន្ធដំណើរការប្រកបដោយសុវត្ថិភាពខ្ពស់។</p>
+                                    <p className="text-xs text-muted-foreground">ប្រព័ន្ធដំណើរការប្រកបដោយសុវត្ថិភាពខ្ពស់។</p>
                                 </div>
                             )}
                         </CardContent>
@@ -326,12 +327,12 @@ export default function SecurityDashboardPage() {
 
                     {/* Blacklisted IPs List */}
                     <Card className="bg-card border border-border/80 rounded-2xl shadow-xs overflow-hidden">
-                        <CardHeader className="p-5 pb-3 border-b border-border/50 flex flex-row items-center justify-between">
-                            <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
-                                <Ban size={16} className="text-rose-500" />
-                                <span>{isKm ? "បញ្ជី IP ដែលត្រូវបានហាមឃាត់" : "Blacklisted IP Addresses"}</span>
+                        <CardHeader className="flex flex-row items-start justify-between gap-2 border-b border-border/50 p-4 pb-3 sm:p-5 sm:pb-3">
+                            <CardTitle className="flex min-w-0 items-start gap-2 text-xs font-bold leading-snug text-foreground sm:text-sm">
+                                <Ban size={16} className="mt-0.5 shrink-0 text-rose-500" />
+                                <span className="min-w-0 break-words">{isKm ? "បញ្ជី IP ដែលត្រូវបានហាមឃាត់" : "Blacklisted IP Addresses"}</span>
                             </CardTitle>
-                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                            <span className="text-xs font-black uppercase px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
                                 {stats?.blacklistedIPs?.length || 0} IPs
                             </span>
                         </CardHeader>
@@ -342,7 +343,7 @@ export default function SecurityDashboardPage() {
                                         <div key={i} className="p-4 flex items-center justify-between hover:bg-muted/30 transition-colors">
                                             <div className="space-y-1 min-w-0 pr-3">
                                                 <p className="text-xs font-mono font-bold text-foreground">{ipRec.ip}</p>
-                                                <p className="text-[10px] text-muted-foreground">
+                                                <p className="text-xs text-muted-foreground">
                                                     {ipRec.reason || "គ្មានមូលហេតុ"} • {new Date(ipRec.createdAt).toLocaleDateString('km-KH', { timeZone: 'Asia/Phnom_Penh' })}
                                                 </p>
                                             </div>
@@ -351,7 +352,7 @@ export default function SecurityDashboardPage() {
                                                 variant="outline"
                                                 onClick={() => handleUnblockIp(ipRec.ip, ipRec.id)}
                                                 disabled={unblockingIp === ipRec.ip}
-                                                className="h-8 px-3 rounded-xl text-[10px] font-bold border-rose-200 dark:border-rose-900/40 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10"
+                                                className="h-8 px-3 rounded-xl text-xs font-bold border-rose-200 dark:border-rose-900/40 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10"
                                             >
                                                 {unblockingIp === ipRec.ip ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} className="mr-1" />}
                                                 ដោះការរារាំង
@@ -365,7 +366,7 @@ export default function SecurityDashboardPage() {
                                         <Globe size={24} />
                                     </div>
                                     <p className="text-xs font-bold text-foreground">មិនមាន IP ជាប់ក្នុងបញ្ជីខ្មៅទេ</p>
-                                    <p className="text-[11px] text-muted-foreground">រាល់ IP ទាំងអស់អាចចូលដំណើរការប្រព័ន្ធបានធម្មតា។</p>
+                                    <p className="text-xs text-muted-foreground">រាល់ IP ទាំងអស់អាចចូលដំណើរការប្រព័ន្ធបានធម្មតា។</p>
                                 </div>
                             )}
                         </CardContent>

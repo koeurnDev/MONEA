@@ -23,5 +23,8 @@ export const getTemplateDefaultPaperColor = (templateId?: string | null): string
     "modern-minimal": "#F8F8EC",
     "fortune-harmony": "#FDFBF7",
     "blossom-romance": "#F5EBE6",
+    "nea-m05": "#F3ECDC",
+    "emerald-garden": "#FFFFFF",
     "anniversary-elegant": "#F1ECE5",
+    "garden-editorial": "#FBF4E8",
 }[templateId || ""] || "#F5F0E5");

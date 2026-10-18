@@ -1,4 +1,20 @@
 import DOMPurify from "isomorphic-dompurify";
+/**
+ * Allows only http(s), blob, tel and mailto URLs, same-origin paths, and raster data:image URIs.
+ * Blocks javascript:, vbscript:, data:text/html and SVG data URIs (which can carry script).
+ */
+function isSafeUrlOrMediaPath(value: string): boolean {
+    if (/^data:image\/(png|jpe?g|gif|webp|avif)[;,]/i.test(value)) return true;
+    if (value.startsWith("/")) return true;
+    try {
+        const { protocol } = new URL(value);
+        return ["http:", "https:", "blob:", "tel:", "mailto:"].includes(protocol);
+    } catch {
+        return false;
+    }
+}
+
+
 
 /**
  * Sanitizes an input string to prevent XSS without corrupting URLs or slashes.
@@ -10,7 +26,7 @@ export function sanitize(input: any): string {
     
     // Check if input is a URL or media path
     if (/^(https?:\/\/|\/|data:image\/|blob:|tel:|mailto:)/i.test(trimmed)) {
-        if (/^\s*(javascript|vbscript|data:text\/html):/i.test(trimmed)) {
+        if (!isSafeUrlOrMediaPath(trimmed)) {
             return "";
         }
         // Clean any double-escaped entities in URLs

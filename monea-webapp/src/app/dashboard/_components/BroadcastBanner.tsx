@@ -54,7 +54,7 @@ export function BroadcastBanner({ isAuthenticated = true }: { isAuthenticated?: 
                             "relative overflow-hidden rounded-2xl border p-4 shadow-xs transition-colors",
                             b.type === 'WARNING' ? 'bg-amber-50/90 border-amber-200/60 text-amber-900 dark:bg-amber-950/30 dark:border-amber-900/50 dark:text-amber-200' :
                                 b.type === 'SUCCESS' ? 'bg-emerald-50/90 border-emerald-200/60 text-emerald-900 dark:bg-emerald-950/30 dark:border-emerald-900/50 dark:text-emerald-200' :
-                                    'bg-blue-50/90 border-blue-200/60 text-blue-900 dark:bg-blue-950/30 dark:border-blue-900/50 dark:text-blue-200'
+                                    'bg-accent/70 border-primary/20 text-foreground'
                         )}
                     >
                         <div className="flex items-start gap-3.5 pr-8">
@@ -62,7 +62,7 @@ export function BroadcastBanner({ isAuthenticated = true }: { isAuthenticated?: 
                                 "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
                                 b.type === 'WARNING' ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-600' :
                                     b.type === 'SUCCESS' ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600' :
-                                        'bg-blue-100 dark:bg-blue-900/40 text-blue-600'
+                                        'bg-primary/10 text-primary'
                             )}>
                                 <Megaphone size={18} />
                             </div>
@@ -90,7 +90,7 @@ export function BroadcastBanner({ isAuthenticated = true }: { isAuthenticated?: 
                             type="button"
                             onClick={() => handleDismiss(b.id)}
                             aria-label="Close notification"
-                            className="absolute top-3.5 right-3.5 p-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all text-muted-foreground hover:text-foreground"
+                            className="absolute top-3.5 right-3.5 p-1.5 rounded-xl hover:bg-foreground/5 dark:hover:bg-foreground/10 active:scale-95 transition-all text-muted-foreground hover:text-foreground"
                         >
                             <X size={16} />
                         </button>

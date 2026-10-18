@@ -1,271 +1,336 @@
-import React from 'react';
+import React from "react";
 import { Label } from "@/components/ui/label";
-import { m, Reorder } from "framer-motion";
-import { Plus, Trash2, Loader2, ImageIcon, LayoutGrid, SlidersHorizontal, Film, Eye, EyeOff } from "lucide-react";
+import { ImageIcon, LayoutGrid, SlidersHorizontal, Film, Plus, Trash2, Loader2, Scissors, ArrowDown, ArrowUp } from "lucide-react";
 import clsx from "clsx";
-import { getGalleryPhotoKey } from "@/components/templates/photo-visibility";
 import { PhotoImage } from "@/components/templates/shared/PhotoImage";
+import { getWeddingPhotoLayout } from "@/lib/wedding-photo-layout";
+import ImageCropperModal from "@/components/ui/image-cropper-modal";
+import { useCloudinaryUpload } from "@/hooks/use-cloudinary-upload";
 
 interface GeneralGallerySectionProps {
     wedding: any;
-    layout: any;
-    removeGalleryItem: (idx: number) => void;
-    generalInputRef: React.RefObject<HTMLInputElement>;
-    galleryUploading: boolean;
-    galleryProgress: number;
-    isDraggingGallery: boolean;
-    setIsDraggingGallery: (val: boolean) => void;
-    handleGalleryDirectUpload: (files: FileList | File[]) => Promise<void>;
-    galleryUploadStatus: "idle" | "uploading" | "success" | "error";
-    galleryUploadError: string | null;
-    canRetryGalleryUpload: boolean;
-    retryGalleryUpload: () => Promise<unknown> | undefined;
+    inputRef: React.RefObject<HTMLInputElement>;
+    uploading: boolean;
+    progress: number;
+    uploadStatus: "idle" | "uploading" | "success" | "error";
+    uploadError: string | null;
+    failedFileCount: number;
+    onUpload: (files: FileList | File[]) => Promise<void>;
+    onRetry: () => Promise<void>;
+    onReplacePhoto: (index: number, url: string, publicId?: string) => Promise<boolean>;
+    onMovePhoto: (fromIndex: number, toIndex: number) => Promise<boolean>;
+    onMediaOperationChange: (busy: boolean) => void;
+    removeGalleryItem: (index: number) => void;
     updateTheme: (key: string, value: any, autoSave?: boolean) => void;
-    updateGalleryOrder: (items: any[]) => void;
-    t: any;
 }
 
 export const GeneralGallerySection: React.FC<GeneralGallerySectionProps> = ({
     wedding,
-    layout,
+    inputRef,
+    uploading,
+    progress,
+    uploadStatus,
+    uploadError,
+    failedFileCount,
+    onUpload,
+    onRetry,
+    onReplacePhoto,
+    onMovePhoto,
+    onMediaOperationChange,
     removeGalleryItem,
-    generalInputRef,
-    galleryUploading,
-    galleryProgress,
-    isDraggingGallery,
-    setIsDraggingGallery,
-    handleGalleryDirectUpload,
-    galleryUploadStatus,
-    galleryUploadError,
-    canRetryGalleryUpload,
-    retryGalleryUpload,
     updateTheme,
-    updateGalleryOrder,
-    t
 }) => {
-    const toggleGalleryPhotoVisibility = (photoKey: string, visible: boolean) => {
-        const hiddenPhotos = new Set(wedding.themeSettings?.hiddenGalleryPhotoKeys || []);
-        if (visible) hiddenPhotos.delete(photoKey);
-        else hiddenPhotos.add(photoKey);
-        updateTheme("hiddenGalleryPhotoKeys", [...hiddenPhotos]);
+    const [cropIndex, setCropIndex] = React.useState<number | null>(null);
+    const [cropFeedback, setCropFeedback] = React.useState<{ message: string; error: boolean } | null>(null);
+    const [reorderFeedback, setReorderFeedback] = React.useState<string | null>(null);
+    const [isReordering, setIsReordering] = React.useState(false);
+    const cropTargetIndex = React.useRef<number | null>(null);
+    const photoLayout = getWeddingPhotoLayout(wedding.templateId);
+    const cropUploader = useCloudinaryUpload({
+        folder: wedding.id || "",
+        resourceType: "image",
+        onSuccess: async (url, publicId) => {
+            const index = cropTargetIndex.current;
+            if (index === null) return;
+            const saved = await onReplacePhoto(index, url, publicId);
+            setCropFeedback(saved
+                ? { message: "បានកាត់ និងរក្សារូបនេះរួចរាល់។", error: false }
+                : { message: "រូបបាន upload ប៉ុន្តែរក្សាទុកមិនបាន។ សូមពិនិត្យការតភ្ជាប់ ហើយសាក crop ម្ដងទៀត។", error: true });
+        },
+        onError: (error) => console.error("Cropped photo upload failed:", error),
+    });
+    const isBusy = uploading || cropUploader.uploading || isReordering;
+    const galleryItems = wedding.galleryItems || [];
+    const photos = galleryItems
+        .map((item: any, index: number) => ({ item, index }))
+        .filter(({ item }: { item: any }) =>
+            item && typeof item.url === "string" && item.url.trim()
+            && item.type?.toUpperCase() !== "VIDEO"
+            && item.type?.toUpperCase() !== "CERTIFICATE"
+        );
+
+    React.useEffect(() => {
+        onMediaOperationChange(cropUploader.uploading || isReordering);
+    }, [cropUploader.uploading, isReordering, onMediaOperationChange]);
+
+    const selectedPhoto = cropIndex === null ? null : galleryItems[cropIndex];
+    const selectedSlot = cropIndex === null ? undefined : photoLayout.slots[cropIndex];
+    const selectedTitle = selectedSlot?.title
+        || (cropIndex === null ? "" : `រូបបន្ថែម ${cropIndex - photoLayout.slots.length + 1}`);
+    const movePhoto = async (fromIndex: number, toIndex: number) => {
+        setIsReordering(true);
+        setReorderFeedback(null);
+        try {
+            const saved = await onMovePhoto(fromIndex, toIndex);
+            setReorderFeedback(saved
+                ? "បានប្ដូរលំដាប់រូប និងរក្សាទុករួចរាល់។"
+                : "មិនអាចរក្សាទុកលំដាប់រូបបានទេ។ សូមសាកម្ដងទៀត។");
+        } catch (error) {
+            console.error("Reordering gallery photo failed:", error);
+            setReorderFeedback(error instanceof Error ? error.message : "មិនអាចប្ដូរលំដាប់រូបបានទេ។");
+        } finally {
+            setIsReordering(false);
+        }
+    };
+
+    const handleCropComplete = async (croppedImage: Blob) => {
+        if (cropIndex === null) return;
+        cropTargetIndex.current = cropIndex;
+        setCropFeedback(null);
+        try {
+            await cropUploader.uploadFile(new File(
+                [croppedImage],
+                `cropped-photo-${Date.now()}.jpg`,
+                { type: croppedImage.type || "image/jpeg" },
+            ));
+        } finally {
+            cropTargetIndex.current = null;
+        }
     };
 
     return (
-        <section className="space-y-4 rounded-2xl border border-sky-200/70 bg-white p-3 font-kantumruy dark:border-sky-500/20 dark:bg-white/[0.02] sm:space-y-6 sm:p-5">
-            <div className="space-y-1 border-b border-slate-200/80 dark:border-white/10 pb-2">
-                <h4 className="text-xs font-bold text-foreground flex items-center gap-2">
-                    <ImageIcon className="w-4 h-4 text-teal-500" />
-                    <span>កម្រងរូបភាពវិចិត្រសាលបន្ថែម (Photo Album Gallery)</span>
+        <section className="space-y-4 rounded-2xl border border-border bg-card p-3 font-kantumruy sm:space-y-5 sm:p-5">
+            <div className="space-y-1">
+                <h4 className="flex items-center gap-2 text-sm font-bold text-foreground">
+                    <ImageIcon className="h-4 w-4 text-primary" />
+                    រូបភាពសម្រាប់ធៀប
                 </h4>
-                <p className="text-[11px] text-muted-foreground">
-                    ផ្នែកនេះសម្រាប់រូបអនុស្សាវរីយ៍ច្រើនសន្លឹក។ រូបទាំងនេះខុសពីរូបក្រប ឬរូបកូនកំលោះ/កូនក្រមុំ។ ភ្ញៀវអាចចុចរូបដើម្បីពង្រីកមើល។
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                    ជ្រើសរើសរូបច្រើនសន្លឹកម្ដងបាន។ រូបទី១ដាក់លើគម្រប រូបបន្ទាប់ៗនឹងបំពេញផ្នែកផ្សេងៗដោយស្វ័យប្រវត្តិ។
                 </p>
-                <p className="text-[11px] font-bold text-teal-500">
-                    {((wedding.galleryItems?.slice(layout ? layout.slots : 0) || []).filter((item: any) => item && typeof item === "object" && typeof item.url === "string" && item.url.trim())).length} រូបក្នុងវិចិត្រសាល
+                <p className="text-xs text-muted-foreground">
+                    រូបដែលមានរួចនឹងមិនត្រូវបានជំនួសទេ—រូបថ្មីនឹងបំពេញកន្លែងទំនេរបន្ទាប់។
                 </p>
             </div>
-            <p className="rounded-xl bg-sky-50 px-3 py-2 text-[11px] leading-relaxed text-sky-900 dark:bg-sky-500/10 dark:text-sky-100">
-                របៀបដាក់៖ ចុចប៊ូតុងខាងក្រោម រួចជ្រើសរើសរូបមួយ ឬច្រើនសន្លឹក។ អាចអូសរូបដើម្បីប្ដូរលំដាប់ និងលាក់រូបដែលមិនចង់បង្ហាញបាន។
-            </p>
 
-            <div className="space-y-6">
-                {(() => {
-                    const slotCount = layout ? layout.slots : 0;
-                    const slotItems = wedding.galleryItems?.slice(0, slotCount) || [];
-                    const generalItems = (wedding.galleryItems?.slice(slotCount) || []).filter((i: any) => i && typeof i === "object" && typeof i.url === "string" && i.url.trim());
-                    const hasGeneralItems = generalItems.length > 0;
+            <input
+                ref={inputRef}
+                type="file"
+                multiple
+                accept="image/*"
+                className="hidden"
+                onChange={(event) => {
+                    if (event.target.files) void onUpload(event.target.files);
+                    event.target.value = "";
+                }}
+            />
+            <button
+                type="button"
+                onClick={() => inputRef.current?.click()}
+                disabled={isBusy}
+                className="flex min-h-28 w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-primary/30 bg-accent/40 p-4 text-center transition-colors hover:bg-accent/70 disabled:cursor-wait disabled:opacity-70"
+            >
+                {isBusy ? (
+                    <>
+                        <Loader2 className="h-7 w-7 animate-spin text-primary" />
+                        <span className="text-sm font-bold text-foreground">
+                            {cropUploader.uploading ? "កំពុង upload រូបដែលបានកាត់..." : "កំពុងដាក់រូប..."} {cropUploader.uploading ? cropUploader.progress : progress}%
+                        </span>
+                    </>
+                ) : (
+                    <>
+                        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+                            <Plus size={22} />
+                        </span>
+                        <span className="text-sm font-bold text-foreground">ជ្រើសរើសរូបភាព</span>
+                        <span className="text-xs text-muted-foreground">អាចជ្រើសរើសច្រើនសន្លឹកក្នុងពេលតែមួយ</span>
+                    </>
+                )}
+            </button>
 
-                    return (
-                        <Reorder.Group 
-                            axis="y" 
-                            values={generalItems} 
-                            onReorder={(newGeneral) => updateGalleryOrder([...slotItems, ...newGeneral])}
-                            className={clsx(
-                                "relative grid gap-3",
-                                hasGeneralItems ? "grid-cols-2 sm:grid-cols-3 md:grid-cols-4" : "grid-cols-1"
-                            )}
-                        >
-                            {generalItems.map((item: any, localIdx: number) => {
-                                const globalIdx = slotCount + localIdx;
-                                const uniqueKey = item.publicId ? `${item.publicId}-${localIdx}` : `${item.url || 'gallery'}-${localIdx}`;
-                                const photoKey = getGalleryPhotoKey(item);
-                                const isVisible = !wedding.themeSettings?.hiddenGalleryPhotoKeys?.includes(photoKey);
-                                return (
-                                    <Reorder.Item 
-                                        key={uniqueKey} 
-                                        value={item}
-                                        initial={{ opacity: 0, scale: 0.9 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        className="relative aspect-square rounded-2xl overflow-hidden group shadow-sm border border-slate-200/80 dark:border-white/10 cursor-grab active:cursor-grabbing bg-slate-100 dark:bg-black/20"
-                                    >
-                                        <PhotoImage src={item.url} alt="Extra Gallery" loading="lazy" decoding="async" className="w-full h-full object-cover transition-transform group-hover:scale-105 pointer-events-none" />
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                toggleGalleryPhotoVisibility(photoKey, !isVisible);
-                                            }}
-                                            aria-pressed={isVisible}
-                                            aria-label={isVisible ? "លាក់រូបនេះពីធៀប" : "បង្ហាញរូបនេះក្នុងធៀប"}
-                                            title={isVisible ? "លាក់រូបនេះពីធៀប" : "បង្ហាញរូបនេះក្នុងធៀប"}
-                                            className={clsx(
-                                                "absolute top-2 left-2 z-10 inline-flex min-h-8 items-center gap-1 rounded-lg px-2 text-[10px] font-bold text-white shadow-md backdrop-blur-sm",
-                                                isVisible ? "bg-teal-700/90" : "bg-slate-700/90"
-                                            )}
-                                        >
-                                            {isVisible ? <EyeOff size={13} /> : <Eye size={13} />}
-                                            <span>{isVisible ? "លាក់" : "បង្ហាញ"}</span>
-                                        </button>
-                                        
-                                        {/* Mobile Direct Delete Button */}
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                removeGalleryItem(globalIdx);
-                                            }}
-                                            className="sm:hidden absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-black/70 active:bg-rose-600 text-white flex items-center justify-center shadow-md backdrop-blur-sm"
-                                            title="លុបរូបភាព"
-                                        >
-                                            <Trash2 size={13} />
-                                        </button>
-
-                                        {/* Desktop Hover Overlay */}
-                                        <div className="hidden sm:flex absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity items-center justify-center backdrop-blur-[2px]">
-                                            <button
-                                                type="button"
-                                                onClick={() => removeGalleryItem(globalIdx)}
-                                                className="bg-rose-600 text-white p-2.5 rounded-xl hover:bg-rose-700 transition-all shadow-lg flex items-center gap-1 text-xs font-bold"
-                                            >
-                                                <Trash2 size={15} />
-                                                <span>លុប</span>
-                                            </button>
-                                        </div>
-                                    </Reorder.Item>
-                                );
-                            })}
-
-                            <button
-                                type="button"
-                                onClick={() => generalInputRef.current?.click()} 
-                                disabled={galleryUploading}
-                                aria-label="បន្ថែមរូបភាពទៅវិចិត្រសាល"
-                                onDragOver={(e) => { e.preventDefault(); setIsDraggingGallery(true); }}
-                                onDragLeave={() => setIsDraggingGallery(false)}
-                                onDrop={(e) => { e.preventDefault(); setIsDraggingGallery(false); handleGalleryDirectUpload(e.dataTransfer.files); }}
-                                className={clsx(
-                                    "flex flex-col items-center justify-center gap-2.5 transition-all duration-300 relative border-2 border-dashed rounded-2xl p-6 outline-none",
-                                    hasGeneralItems 
-                                        ? "col-span-full min-h-[120px] " + (isDraggingGallery ? "border-teal-500 bg-teal-50 dark:bg-teal-950/20" : "bg-slate-50/50 dark:bg-white/[0.02] border-slate-300 dark:border-white/10 hover:border-teal-400 hover:bg-teal-50/30")
-                                        : "w-full min-h-[180px] " + (isDraggingGallery ? "border-teal-500 bg-teal-50 dark:bg-teal-950/20" : "bg-slate-50/50 dark:bg-white/[0.02] border-slate-300 dark:border-white/10 hover:border-teal-400 hover:bg-teal-50/30")
-                                )}
-                            >
-                                {galleryUploading ? (
-                                    <div className="flex flex-col items-center gap-2">
-                                        <Loader2 className="w-7 h-7 animate-spin text-teal-500" />
-                                        <span className="text-xs font-bold text-foreground">កំពុងបញ្ចូលរូបភាព...</span>
-                                        <span className="text-[11px] font-bold text-teal-600">{galleryProgress}%</span>
-                                    </div>
-                                ) : (
-                                    <>
-                                        <div className="w-10 h-10 rounded-xl bg-teal-500/10 text-teal-600 flex items-center justify-center">
-                                            <Plus size={20} strokeWidth={2.5} />
-                                        </div>
-                                        <div className="text-center space-y-0.5">
-                                            <span className="text-xs text-foreground font-bold block">
-                                                {hasGeneralItems ? "បន្ថែមរូបទៅកម្រងនេះ" : "ជ្រើសរូបច្រើនសន្លឹកសម្រាប់វិចិត្រសាល"}
-                                            </span>
-                                            <span className="text-[10px] text-muted-foreground block">
-                                                អាចជ្រើសរើសរូបថតបានច្រើនសន្លឹកក្នុងពេលតែមួយ (JPG, PNG, WebP)
-                                            </span>
-                                        </div>
-                                    </>
-                                )}
-                            </button>
-                        </Reorder.Group>
-                    );
-                })()}
-            </div>
-
-            {galleryUploadStatus === "success" && (
+            {uploadStatus === "success" && (
                 <p role="status" className="text-xs font-bold text-emerald-700 dark:text-emerald-300">
-                    រូបភាពត្រូវបានបង្ហោះជោគជ័យ។
+                    រូបត្រូវបានដាក់តាមលំដាប់ និងរក្សាទុករួចរាល់។
                 </p>
             )}
-            {galleryUploadStatus === "error" && (
+            {uploadStatus === "error" && (
                 <div role="alert" className="flex flex-wrap items-center gap-2 rounded-xl border border-rose-300/70 bg-rose-50 px-3 py-2 text-xs font-bold text-rose-800 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200">
-                    <span>{galleryUploadError || "បង្ហោះរូបមិនបាន។"}</span>
-                    {canRetryGalleryUpload && (
+                    <span>{uploadError || "មិនអាចដាក់ ឬរក្សាទុករូបបានទេ។ សូមសាកល្បងម្ដងទៀត។"}</span>
+                    {failedFileCount > 0 && (
                         <button
                             type="button"
-                            onClick={() => void retryGalleryUpload()}
-                            disabled={galleryUploading}
+                            onClick={() => void onRetry()}
+                            disabled={uploading}
                             className="min-h-9 rounded-lg border border-rose-300 px-3 py-1.5 disabled:opacity-50"
                         >
-                            សាកល្បងរូបដែលបរាជ័យម្ដងទៀត
+                            សាកដាក់រូបដែលបរាជ័យម្ដងទៀត
                         </button>
                     )}
                 </div>
             )}
+            {(cropUploader.uploading || cropFeedback) && (
+                <p role={cropFeedback?.error ? "alert" : "status"} className={clsx(
+                    "text-xs font-bold",
+                    cropFeedback?.error ? "text-rose-700 dark:text-rose-300" : "text-emerald-700 dark:text-emerald-300",
+                )}>
+                    {cropUploader.uploading
+                        ? `កំពុង upload រូបដែលបានកាត់... ${cropUploader.progress}%`
+                        : cropFeedback?.message}
+                </p>
+            )}
+            {cropUploader.error && (
+                <p role="alert" className="text-xs font-bold text-rose-700 dark:text-rose-300">
+                    {cropUploader.error}
+                </p>
+            )}
+            {reorderFeedback && (
+                <p role={reorderFeedback.startsWith("បាន") ? "status" : "alert"} className={clsx(
+                    "text-xs font-bold",
+                    reorderFeedback.startsWith("បាន")
+                        ? "text-emerald-700 dark:text-emerald-300"
+                        : "text-rose-700 dark:text-rose-300",
+                )}>
+                    {reorderFeedback}
+                </p>
+            )}
 
-            {/* Gallery Style Selector */}
-            <div className="pt-4 border-t border-slate-200/80 dark:border-white/10 space-y-3">
-                <Label className="text-xs font-bold text-foreground block">
-                    របៀបបង្ហាញកម្រងរូបភាពលើធៀប
-                </Label>
-                <div className="grid grid-cols-3 gap-2.5">
+            {photos.length > 0 && (
+                <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-xs font-bold text-foreground">រូបដែលនឹងបង្ហាញលើធៀប</p>
+                            <p className="text-xs text-muted-foreground">ប្រើព្រួញដើម្បីប្ដូរលំដាប់រូប</p>
+                        </div>
+                        <span className="text-xs font-bold text-primary">{photos.length} រូប</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                        {photos.map(({ item, index }: { item: any; index: number }) => {
+                            const slot = photoLayout.slots[index];
+                            const title = slot?.title || `រូបបន្ថែម ${index - photoLayout.slots.length + 1}`;
+                            const photoPosition = photos.findIndex((photo: { index: number }) => photo.index === index);
+                            const previousPhoto = photos[photoPosition - 1];
+                            const nextPhoto = photos[photoPosition + 1];
+                            const previousSlotIsEmpty = index > 0
+                                && index < photoLayout.slots.length
+                                && !galleryItems[index - 1]?.url
+                                && galleryItems[index - 1]?.type?.toUpperCase() !== "VIDEO"
+                                && galleryItems[index - 1]?.type?.toUpperCase() !== "CERTIFICATE";
+                            const nextSlotIsEmpty = index + 1 < photoLayout.slots.length
+                                && !galleryItems[index + 1]?.url
+                                && galleryItems[index + 1]?.type?.toUpperCase() !== "VIDEO"
+                                && galleryItems[index + 1]?.type?.toUpperCase() !== "CERTIFICATE";
+                            const moveUpTarget = previousPhoto?.index ?? (previousSlotIsEmpty ? index - 1 : null);
+                            const moveDownTarget = nextPhoto?.index ?? (nextSlotIsEmpty ? index + 1 : null);
+                            return (
+                                <div key={item.publicId || `${item.url}-${index}`} className="relative overflow-hidden rounded-xl border border-border bg-card">
+                                    <div className="aspect-[4/3] bg-muted">
+                                        <PhotoImage src={item.url} alt={title} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                                    </div>
+                                    <div className="flex min-h-9 items-center justify-between gap-1 px-2">
+                                        <span className="truncate text-xs font-bold text-foreground">{title}</span>
+                                        <div className="flex shrink-0 items-center">
+                                            <button
+                                                type="button"
+                                                onClick={() => moveUpTarget !== null && void movePhoto(index, moveUpTarget)}
+                                                aria-label={`ផ្លាស់ទី ${title} ឡើងលើ`}
+                                                title="ផ្លាស់ទីឡើងលើ"
+                                                disabled={isBusy || moveUpTarget === null}
+                                                className="flex h-8 w-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted disabled:opacity-40"
+                                            >
+                                                <ArrowUp size={14} />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => moveDownTarget !== null && void movePhoto(index, moveDownTarget)}
+                                                aria-label={`ផ្លាស់ទី ${title} ចុះក្រោម`}
+                                                title="ផ្លាស់ទីចុះក្រោម"
+                                                disabled={isBusy || moveDownTarget === null}
+                                                className="flex h-8 w-7 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted disabled:opacity-40"
+                                            >
+                                                <ArrowDown size={14} />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setCropFeedback(null);
+                                                    setCropIndex(index);
+                                                }}
+                                                aria-label={`កាត់តម្រឹម ${title}`}
+                                                title={`កាត់តម្រឹម ${title}`}
+                                                disabled={isBusy}
+                                                className="flex h-8 items-center justify-center gap-1 rounded-lg px-1.5 text-primary hover:bg-accent disabled:opacity-50"
+                                            >
+                                                <Scissors size={14} />
+                                                <span className="text-xs font-bold">កាត់</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => removeGalleryItem(index)}
+                                                aria-label={`លុប ${title}`}
+                                                disabled={isBusy}
+                                                className="flex h-8 w-8 items-center justify-center rounded-lg text-rose-600 hover:bg-rose-50 disabled:opacity-50 dark:hover:bg-rose-500/10"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
+            <div className="space-y-3 border-t border-border pt-4">
+                <Label className="block text-xs font-bold text-foreground">របៀបបង្ហាញកម្រងរូបភាព</Label>
+                <div className="grid grid-cols-3 gap-2">
                     {[
-                        { id: 'masonry', label: "ក្រឡារៀបឆ្លាស់", hint: "រូបធំតូចលាយគ្នា", icon: LayoutGrid },
-                        { id: 'slider', label: "រំកិលមើល", hint: "អូសមើលរូបម្ដងមួយ", icon: SlidersHorizontal },
-                        { id: 'polaroid', label: "ស៊ុម Polaroid", hint: "រូបក្នុងស៊ុមស", icon: Film }
-                    ].map((style) => (
-                        <button
-                            key={style.id}
-                            type="button"
-                            onClick={() => updateTheme('galleryStyle', style.id as any, true)}
-                            className={clsx(
-                                "min-h-24 rounded-xl border p-2 text-xs font-bold transition-all flex flex-col items-center justify-center gap-1.5 outline-none",
-                                (wedding.themeSettings as any)?.galleryStyle === style.id || (style.id === 'masonry' && !(wedding.themeSettings as any)?.galleryStyle)
-                                    ? "bg-teal-600 text-white border-teal-600 shadow-md shadow-teal-600/20"
-                                    : "bg-white dark:bg-white/[0.02] text-muted-foreground border-slate-200/80 dark:border-white/10 hover:border-slate-300"
-                            )}
-                        >
-                            <span className="flex h-8 w-12 items-center justify-center gap-0.5" aria-hidden="true">
-                                {style.id === "masonry" && (
-                                    <span className="grid h-8 w-12 grid-cols-3 gap-0.5">
-                                        <i className="row-span-2 rounded-sm bg-current opacity-80" />
-                                        <i className="rounded-sm bg-current opacity-45" />
-                                        <i className="rounded-sm bg-current opacity-60" />
-                                        <i className="rounded-sm bg-current opacity-60" />
-                                        <i className="rounded-sm bg-current opacity-35" />
-                                    </span>
+                        { id: "masonry", label: "ក្រឡារូប", hint: "រូបធំតូចលាយគ្នា", icon: LayoutGrid },
+                        { id: "slider", label: "រំកិលមើល", hint: "មើលម្ដងមួយ", icon: SlidersHorizontal },
+                        { id: "polaroid", label: "ស៊ុមស", hint: "ស្ទីល Polaroid", icon: Film },
+                    ].map((style) => {
+                        const isSelected = wedding.themeSettings?.galleryStyle === style.id
+                            || (style.id === "masonry" && !wedding.themeSettings?.galleryStyle);
+                        return (
+                            <button
+                                key={style.id}
+                                type="button"
+                                aria-pressed={isSelected}
+                                onClick={() => updateTheme("galleryStyle", style.id, true)}
+                                className={clsx(
+                                    "flex min-h-20 flex-col items-center justify-center gap-1 rounded-xl border p-2 text-center transition-colors",
+                                    isSelected
+                                        ? "border-primary bg-primary text-primary-foreground"
+                                        : "border-border bg-card text-muted-foreground hover:border-primary/40"
                                 )}
-                                {style.id === "slider" && (
-                                    <span className="flex h-6 w-12 gap-0.5 overflow-hidden">
-                                        <i className="h-6 w-7 shrink-0 rounded-sm bg-current opacity-80" />
-                                        <i className="h-6 w-7 shrink-0 rounded-sm bg-current opacity-50" />
-                                        <i className="h-6 w-7 shrink-0 rounded-sm bg-current opacity-35" />
-                                    </span>
-                                )}
-                                {style.id === "polaroid" && (
-                                    <span className="flex items-center gap-1">
-                                        <i className="h-7 w-5 border-b-4 border-current bg-current opacity-70" />
-                                        <i className="h-7 w-5 rotate-3 border-b-4 border-current bg-current opacity-45" />
-                                    </span>
-                                )}
-                            </span>
-                            <style.icon size={16} />
-                            <span className="text-[11px] font-kantumruy">{style.label}</span>
-                            <span className={clsx(
-                                "text-center text-[9px] font-normal",
-                                (wedding.themeSettings as any)?.galleryStyle === style.id || (style.id === 'masonry' && !(wedding.themeSettings as any)?.galleryStyle)
-                                    ? "text-white/80"
-                                    : "text-muted-foreground"
-                            )}>{style.hint}</span>
-                        </button>
-                    ))}
+                            >
+                                <style.icon size={16} />
+                                <span className="text-xs font-bold">{style.label}</span>
+                                <span className="text-xs">{style.hint}</span>
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
+            <ImageCropperModal
+                isOpen={cropIndex !== null}
+                onClose={() => setCropIndex(null)}
+                imageSrc={selectedPhoto?.url || null}
+                contextLabel={selectedTitle}
+                title="កាត់តម្រឹមរូប"
+                aspectRatio={selectedSlot?.aspectRatio ?? 1}
+                onCropComplete={(croppedImage) => void handleCropComplete(croppedImage)}
+            />
         </section>
     );
 };

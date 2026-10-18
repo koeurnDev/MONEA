@@ -1,7 +1,7 @@
 import React, { useState, useEffect, memo, useCallback } from "react";
 import { Link, useLocation } from 'react-router-dom';
 import { 
-    LogOut, Palette, HelpCircle, Home, UserCog, Users,
+    LogOut, Palette, HelpCircle, Home, Users,
     Crown, ShieldCheck, LucideIcon,
     PanelLeftClose, PanelLeftOpen
 } from "lucide-react";
@@ -16,6 +16,7 @@ interface DashboardSidebarProps {
     onCloseMobile?: () => void;
     isStaff?: boolean;
     isAdmin?: boolean;
+    isCustomer?: boolean;
     collapsed?: boolean;
     onToggleCollapse?: () => void;
 }
@@ -26,10 +27,11 @@ interface NavItem {
     icon: LucideIcon;
     badge?: string;
     disabled?: boolean;
+    emphasized?: boolean;
 }
 
 interface NavSection {
-    title: string;
+    id: string;
     items: NavItem[];
 }
 
@@ -41,7 +43,8 @@ const NavLink = memo(({ item, isActive, isPending, onClick, onNavClick, collapse
             aria-current={isActive ? "page" : undefined}
             onClick={(event) => {
                 if (item.disabled) {
-                    event.preventDefault();
+                    if (onNavClick) onNavClick("/dashboard/create");
+                    if (onClick) onClick();
                     return;
                 }
                 if (onNavClick) onNavClick(item.href);
@@ -49,18 +52,20 @@ const NavLink = memo(({ item, isActive, isPending, onClick, onNavClick, collapse
                     onClick();
                 }
             }}
-            title={collapsed ? item.label : undefined}
-            className={`flex items-center ${collapsed ? "justify-center px-2" : "gap-3 px-3.5"} w-full h-11 md:h-10 text-xs font-kantumruy font-bold rounded-xl transition-all duration-150 outline-none focus-visible:ring-2 focus-visible:ring-teal-600/60 focus-visible:ring-offset-1 focus-visible:ring-offset-card ${item.disabled
-                ? "pointer-events-none cursor-not-allowed opacity-50 text-zinc-400 dark:text-zinc-500"
+            title={item.disabled ? "សូមបង្កើតធៀបការជាមុន" : collapsed ? item.label : undefined}
+            className={`flex items-center ${collapsed ? "justify-center px-2" : "gap-3 px-3.5"} w-full h-11 md:h-10 text-sm font-kantumruy font-bold rounded-xl transition-all duration-150 outline-none focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-offset-1 focus-visible:ring-offset-card ${item.disabled
+                ? "cursor-pointer opacity-60 text-muted-foreground hover:bg-amber-50/70 hover:text-amber-700 dark:hover:bg-amber-500/10 dark:hover:text-amber-300"
                 : isHighlighted
-                    ? "bg-teal-50 dark:bg-teal-500/10 text-teal-800 dark:text-teal-300 font-bold shadow-xs border border-teal-200/50 dark:border-teal-500/20"
-                    : "text-zinc-700 dark:text-zinc-300 hover:text-teal-800 hover:bg-slate-100/60 dark:hover:bg-white/5"
+                    ? "bg-accent text-primary font-bold shadow-xs border border-primary/20"
+                    : item.emphasized
+                        ? "border border-primary/10 bg-primary/5 text-primary/90 hover:bg-primary/10"
+                    : "text-muted-foreground hover:text-primary hover:bg-muted/60"
                 }`}
         >
-            <item.icon className={`h-4 w-4 transition-colors shrink-0 ${item.disabled ? "text-zinc-400 dark:text-zinc-500" : isHighlighted ? "text-teal-800 dark:text-teal-300" : "text-zinc-400 dark:text-zinc-500"}`} />
+            <item.icon className={`h-4 w-4 transition-colors shrink-0 ${item.disabled ? "text-muted-foreground" : isHighlighted || item.emphasized ? "text-primary" : "text-muted-foreground"}`} />
             {!collapsed && <span className="text-left flex-1 truncate">{item.label}</span>}
             {item.badge && !collapsed && (
-                <span className="text-[9px] font-black bg-teal-700 text-white px-1.5 py-0.5 rounded-md opacity-90">
+                <span className="text-xs font-black bg-primary text-primary-foreground px-1.5 py-0.5 rounded-md opacity-90">
                     {item.badge}
                 </span>
             )}
@@ -70,7 +75,7 @@ const NavLink = memo(({ item, isActive, isPending, onClick, onNavClick, collapse
 
 NavLink.displayName = "NavLink";
 
-export const DashboardSidebar = memo(function DashboardSidebar({ onCloseMobile, isStaff = false, isAdmin = false, collapsed = false, onToggleCollapse }: DashboardSidebarProps) {
+export const DashboardSidebar = memo(function DashboardSidebar({ onCloseMobile, isStaff = false, isAdmin = false, isCustomer = false, collapsed = false, onToggleCollapse }: DashboardSidebarProps) {
     const { t } = useTranslation();
     const { pathname } = useLocation();
     const { startLoading } = useLoading();
@@ -117,14 +122,13 @@ export const DashboardSidebar = memo(function DashboardSidebar({ onCloseMobile, 
     /** Keep the supported dashboard routes reachable from desktop and mobile menus. */
     const sections = React.useMemo<NavSection[]>(() => {
         const guests: NavItem = { href: "/dashboard/guests", label: t("dashboard.nav.guests", { defaultValue: "គ្រប់គ្រងភ្ញៀវ" }), icon: Users };
-        const account: NavItem = { href: "/dashboard/account", label: t("dashboard.nav.account", { defaultValue: "គណនី និងប្រវត្តិរូប" }), icon: UserCog };
         const support: NavItem = { href: "/dashboard/support", label: t("dashboard.nav.support", { defaultValue: "ជំនួយ និងការគាំទ្រ" }), icon: HelpCircle };
 
         if (isStaff) {
             return [
                 {
-                    title: t("dashboard.menu.others", { defaultValue: "ផ្សេងៗ" }),
-                    items: [account, support],
+                    id: "staff",
+                    items: [support],
                 },
             ];
         }
@@ -140,7 +144,7 @@ export const DashboardSidebar = memo(function DashboardSidebar({ onCloseMobile, 
 
         return [
             {
-                title: t("dashboard.menu.invitation", { defaultValue: "ធៀបការឌីជីថល" }),
+                id: "invitation",
                 items: [
                     { href: "/dashboard", label: t("dashboard.nav.overview", { defaultValue: "ទំព័រដើម" }), icon: Home },
                     { href: "/dashboard/design", label: t("dashboard.user.designSettings", { defaultValue: "រចនាធៀបការ" }), icon: Palette, disabled: !canAccessWeddingFeatures },
@@ -148,10 +152,9 @@ export const DashboardSidebar = memo(function DashboardSidebar({ onCloseMobile, 
                 ],
             },
             {
-                title: t("dashboard.menu.others", { defaultValue: "ផ្សេងៗ" }),
+                id: "account",
                 items: [
-                    { href: "/dashboard/upgrade", label: t("dashboard.nav.upgrade", { defaultValue: "ដំឡើងកម្រិត" }), icon: Crown },
-                    account,
+                    { href: "/dashboard/upgrade", label: t("dashboard.nav.upgrade", { defaultValue: "ដំឡើងកម្រិត" }), icon: Crown, emphasized: true },
                     support,
                     ...adminPortal,
                 ],
@@ -160,8 +163,8 @@ export const DashboardSidebar = memo(function DashboardSidebar({ onCloseMobile, 
     }, [isStaff, isSuperAdmin, canAccessWeddingFeatures, t, user?.email, user?.name]);
 
     return (
-        <div className="flex flex-col h-full bg-card relative">
-            <div className="absolute top-0 -left-20 w-40 h-40 bg-teal-500/5 rounded-full pointer-events-none hidden md:block" />
+        <div className={`monea-dashboard-sidebar flex flex-col h-full bg-card relative ${isCustomer ? "monea-customer-dashboard" : ""}`}>
+            <div className="absolute top-0 -left-20 w-40 h-40 bg-sage/5 rounded-full pointer-events-none hidden md:block" />
 
             <div className={`p-5 pb-4 flex items-center ${collapsed ? "justify-center" : "justify-between"} border-b border-border/40 relative z-10`}>
                 <Link to="/" className="flex items-center gap-3">
@@ -181,14 +184,9 @@ export const DashboardSidebar = memo(function DashboardSidebar({ onCloseMobile, 
                 )}
             </div>
 
-            <nav aria-label="Dashboard" className="min-h-0 flex-1 overflow-y-auto px-3 py-3 space-y-4 scrollbar-none relative z-10">
+            <nav aria-label="Dashboard" className="min-h-0 flex-1 overflow-y-auto px-3 py-3 space-y-3 scrollbar-none relative z-10">
                 {sections.map((section) => (
-                    <div key={section.title} className="space-y-1">
-                        {!collapsed && (
-                            <h2 className="px-3.5 pb-1 text-[10px] font-black uppercase tracking-wider text-muted-foreground/70 font-kantumruy">
-                                {section.title}
-                            </h2>
-                        )}
+                    <div key={section.id} className="space-y-1">
                         {section.items.map((item) => (
                             <NavLink
                                 key={item.href}
@@ -204,15 +202,15 @@ export const DashboardSidebar = memo(function DashboardSidebar({ onCloseMobile, 
                 ))}
             </nav>
 
-            <div className={`p-4 relative ${collapsed ? "flex justify-center" : ""}`}>
+            <div className={`relative p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] ${collapsed ? "flex justify-center" : ""}`}>
                 <Button
                     variant="ghost"
-                    className={`${collapsed ? "w-10 justify-center px-0" : "w-full justify-start gap-3"} text-zinc-600 dark:text-zinc-400 hover:text-foreground hover:bg-accent h-10 rounded-xl transition-all`}
+                    className={`${collapsed ? "h-12 w-12 justify-center px-0" : "h-12 w-full justify-start gap-3"} text-primary hover:text-primary hover:bg-accent rounded-xl transition-all`}
                     onClick={() => setIsLogoutModalOpen(true)}
                     title={collapsed ? t("common.auth.logout", { defaultValue: "ចាកចេញ" }) : undefined}
                 >
-                    <LogOut className="h-4 w-4" />
-                    {!collapsed && <span className="text-xs font-bold uppercase tracking-wider font-kantumruy">{t("common.auth.logout", { defaultValue: "ចាកចេញ" })}</span>}
+                    <LogOut className="h-4 w-4 text-primary" />
+                    {!collapsed && <span className="text-xs font-bold tracking-wide font-kantumruy text-primary">{t("common.auth.logout", { defaultValue: "ចាកចេញ" })}</span>}
                 </Button>
             </div>
 

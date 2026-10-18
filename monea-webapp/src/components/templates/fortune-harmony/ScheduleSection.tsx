@@ -10,26 +10,21 @@ interface ScheduleSectionProps {
 }
 
 export const ScheduleSection: React.FC<ScheduleSectionProps> = ({ wedding, primaryColor, title }) => {
-    const isEngagement = wedding.eventType === 'anniversary';
-
     const rawActivities = wedding.activities || [];
     if (rawActivities.length === 0) return null;
 
     return (
-        <section className="py-14 px-4 sm:px-6 bg-transparent text-[#2d352b] font-kantumruy relative overflow-hidden">
+        <section id="schedule-fortune-harmony" className="relative overflow-hidden bg-transparent px-4 py-12 font-kantumruy text-[#2d352b] sm:px-6 sm:py-14">
             <div className="max-w-md mx-auto relative z-10">
-                {/* Title */}
-                <div className="text-center space-y-2 mb-10">
-                    <span className="text-xl sm:text-2xl font-khmer-moul text-amber-300 block">
-                        {isEngagement 
-                            ? (title || "កម្មវិធីសិរីមង្គលភ្ជាប់ពាក្យ")
-                            : (title || "កម្មវិធីសិរីមង្គលអាពាហ៍ពិពាហ៍")}
-                    </span>
-                    <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto" />
-                </div>
-
+                <header className="mb-7 text-center">
+                    <Calendar aria-hidden="true" className="mx-auto mb-2 h-5 w-5 text-[#67805f]" />
+                    <h2 className="fh-khmer-safe font-khmer-moul text-xl leading-relaxed text-[#2d352b] sm:text-2xl">
+                        {title || "កម្មវិធី"}
+                    </h2>
+                    <div className="mx-auto mt-3 h-px w-12 bg-[#8ea07a]/70" />
+                </header>
                 {/* Activities List */}
-                <div className="space-y-6">
+                <div className="relative space-y-3 before:pointer-events-none before:absolute before:bottom-7 before:left-[12px] before:top-7 before:w-0.5 before:bg-[#8ea07a]/80">
                     {rawActivities.map((item, idx) => {
                         const isHeader = item.icon === "header" || (!item.time && !item.description);
 
@@ -42,14 +37,14 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({ wedding, prima
                                     viewport={{ once: true }}
                                     className="pt-6 pb-2 text-center relative"
                                 >
-                                    <div className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#fffdf8]/80 border border-[#d9d1bf] shadow-md text-[#4d5649]">
+                                    <div className="inline-flex max-w-full items-center justify-center gap-2 py-2.5 text-center text-[#4d5649]">
                                         <Calendar size={14} className="text-[#67805f]" />
-                                        <span className="font-khmer-moul text-xs sm:text-sm tracking-wide">
+                                        <span className="fh-khmer-safe break-words font-khmer-moul text-xs sm:text-sm">
                                             {item.title}
                                         </span>
                                     </div>
                                     {item.description && (
-                                        <p className="text-xs text-[#485547] mt-2 italic">
+                                        <p className="fh-khmer-safe mt-2 break-words font-kantumruy text-xs text-[#485547] italic">
                                             {item.description}
                                         </p>
                                     )}
@@ -64,24 +59,24 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({ wedding, prima
                                 whileInView={{ opacity: 1, x: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ duration: 0.4, delay: idx * 0.05 }}
-                                className="relative pl-6 sm:pl-7 border-l-2 border-[#8ea07a]/80 ml-3 sm:ml-4 group"
+                                className="group relative ml-3 min-w-0 pl-6 sm:ml-4 sm:pl-7"
                             >
-                                <div className="absolute -left-[14px] top-4 w-6 h-6 rounded-full bg-[#fffdf8] text-[#4d5649] border-2 border-[#8ea07a] shadow-md flex items-center justify-center text-[10px]">
+                                <div className="absolute -left-[13px] top-4 flex h-6 w-6 items-center justify-center rounded-full border-2 border-[#8ea07a] bg-[#fdfbf7] text-[10px] text-[#4d5649]">
                                     <Sparkles size={11} className="fill-[#4d5649] text-[#4d5649]" />
                                 </div>
 
-                                <div className="bg-[#fffdf8]/80 border border-[#d9d1bf] rounded-2xl p-4 shadow-md group-hover:shadow-lg transition-shadow space-y-1">
+                                <div className="py-1 space-y-1">
                                     {item.time && (
                                         <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#4d5649]">
                                             <Clock size={12} />
-                                            <span>{item.time}</span>
+                                            <span className="fh-khmer-safe">{item.time}</span>
                                         </div>
                                     )}
-                                    <h4 className="text-sm font-bold text-[#2d352b] leading-snug">
+                                    <h4 className="fh-khmer-safe break-words font-khmer-moul text-base text-[#2d352b]">
                                         {item.title}
                                     </h4>
                                     {item.description && (
-                                        <p className="text-xs text-[#485547] leading-relaxed pt-0.5">
+                                        <p className="fh-khmer-safe break-words pt-0.5 font-kantumruy text-xs text-[#485547]">
                                             {item.description}
                                         </p>
                                     )}

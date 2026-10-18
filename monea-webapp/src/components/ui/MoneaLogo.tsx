@@ -14,6 +14,7 @@ interface MoneaLogoProps {
 export function MoneaLogo({ className, showText = false, size = "md", variant = "system", performance = true }: MoneaLogoProps) {
     const { resolvedTheme } = useTheme();
     const [mounted, setMounted] = React.useState(false);
+    const brandName = "MONEO";
 
     React.useEffect(() => setMounted(true), []);
 
@@ -27,17 +28,27 @@ export function MoneaLogo({ className, showText = false, size = "md", variant = 
                 : "text-black";
 
     return (
-        <div className={cn("inline-flex items-center justify-center bg-transparent p-0 m-0 border-none shadow-none whitespace-nowrap shrink-0", className)}>
+        <div
+            role={showText ? "img" : undefined}
+            aria-label={showText ? brandName : undefined}
+            className={cn("inline-flex shrink-0 items-center justify-center whitespace-nowrap border-none bg-transparent p-0 shadow-none", className)}
+        >
             {showText && (
-                <m.span 
-                    whileHover={{ scale: 1.05 }}
-                    className={cn(
-                    "font-outfit font-black tracking-[0.2em] uppercase whitespace-nowrap transition-all duration-300 cursor-default select-none",
-                    activeColor,
+                <span className={cn(
+                    "inline-flex items-center gap-1.5 leading-none",
                     size === "sm" ? "text-sm" : size === "md" ? "text-lg" : size === "xl" ? "text-4xl" : size === "2xl" ? "text-5xl" : "text-2xl"
                 )}>
-                    MONEA
-                </m.span>
+                    <m.span
+                        whileHover={{ scale: 1.05 }}
+                        className={cn(
+                            "cursor-default select-none whitespace-nowrap font-black transition-all duration-300",
+                                "font-outfit uppercase tracking-[0.15em]",
+                                activeColor
+                        )}
+                    >
+                        {brandName}
+                    </m.span>
+                </span>
             )}
         </div>
     );

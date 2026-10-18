@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import useSWR from "swr";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { moneaClient } from "@/lib/api-client";
@@ -16,10 +16,6 @@ const fetcher = async (url: string) => {
 export function useAccountSettings() {
     const { data: user, mutate, error } = useSWR("/api/auth/me", fetcher);
     const [show2FASetup, setShow2FASetup] = useState(false);
-    const [securityLogs, setSecurityLogs] = useState<any[]>([]);
-    const [loadingLogs, setLoadingLogs] = useState(false);
-    const [securityLogsError, setSecurityLogsError] = useState(false);
-    const [revoking, setRevoking] = useState(false);
     const [activeTab, setActiveTab] = useState("profile");
 
     // Change Password States
@@ -50,51 +46,7 @@ export function useAccountSettings() {
         }
     }, [error]);
 
-    const fetchLogs = useCallback(async () => {
-        setLoadingLogs(true);
-        setSecurityLogsError(false);
-        try {
-            const res = await moneaClient.get<any[]>("/api/admin/security/logs");
-            if (res.status === 401) return;
-            if (res.error) throw new Error(res.error);
-            if (!Array.isArray(res.data)) throw new Error("Security logs response was invalid");
-            setSecurityLogs(res.data);
-        } catch (err) {
-            console.error("Failed to fetch logs:", err);
-            setSecurityLogsError(true);
-        } finally {
-            setLoadingLogs(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        if (activeTab === "security") {
-            fetchLogs();
-        }
-    }, [activeTab, fetchLogs]);
-
     const { t } = useTranslation();
-
-    const handleRevokeSessions = async () => {
-        if (!confirm(t("account.security.sessions.confirm"))) return;
-        setRevoking(true);
-        try {
-            const res = await fetch("/api/admin/security/revoke", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ targetType: "SELF" })
-            });
-            const data = await res.json();
-            if (data.success) {
-                alert(t("account.security.sessions.success"));
-                window.location.href = "/sign-in";
-            }
-        } catch (err) {
-            alert(t("account.security.sessions.error"));
-        } finally {
-            setRevoking(false);
-        }
-    };
 
     const handleChangePassword = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -185,12 +137,6 @@ export function useAccountSettings() {
         mutate,
         show2FASetup,
         setShow2FASetup,
-        securityLogs,
-        loadingLogs,
-        securityLogsError,
-        fetchLogs,
-        revoking,
-        handleRevokeSessions,
         activeTab,
         setActiveTab,
 

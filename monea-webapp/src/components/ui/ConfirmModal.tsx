@@ -45,11 +45,11 @@ const variantConfig: Record<ConfirmVariant, {
         confirmClass: "bg-slate-900 hover:bg-black shadow-slate-200",
     },
     logout: {
-        bg: "from-primary to-primary/80",
+        bg: "from-[#344536] to-[#465A45]",
         icon: LogOut,
         iconBg: "bg-white/20",
-        iconColor: "text-primary-foreground",
-        confirmClass: "bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20",
+        iconColor: "text-white",
+        confirmClass: "bg-[#344536] hover:bg-[#304333] text-white shadow-lg shadow-[#344536]/20",
     },
 };
 

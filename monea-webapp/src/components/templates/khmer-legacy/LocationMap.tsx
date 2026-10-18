@@ -4,34 +4,37 @@ import { MapPin, Navigation } from 'lucide-react';
 import { RevealSection } from '../shared/CinematicComponents';
 import { WeddingData } from '../types';
 import { getDirectMapUrl } from '../shared/mapUtils';
+import { getWeddingPhotoAtSlot } from '../shared/weddingPhotos';
 
 interface LocationMapProps {
     wedding: WeddingData;
-    galleryImages: string[];
     mapPan: any;
 }
 
-export function LocationMap({ wedding, galleryImages, mapPan }: LocationMapProps) {
+export function LocationMap({ wedding, mapPan }: LocationMapProps) {
     const mapLink = wedding.themeSettings?.mapLink || wedding.mapUrl || "";
     const locationText = wedding.location || "";
     if (!mapLink && !locationText) return null;
 
-    const portraitImage = galleryImages[2] || galleryImages[1] || galleryImages[0];
+    const portraitImage = getWeddingPhotoAtSlot(wedding, "location")?.url
+        || getWeddingPhotoAtSlot(wedding, "locationBackup")?.url
+        || getWeddingPhotoAtSlot(wedding, "couple")?.url
+        || getWeddingPhotoAtSlot(wedding, "cover")?.url;
     const directMapUrl = getDirectMapUrl(mapLink, locationText);
 
     return (
-        <section id="location" className="py-10 md:py-16 px-4 sm:px-8 md:px-12 bg-white relative overflow-hidden font-kantumruy">
+        <section id="location" className="relative overflow-hidden bg-white px-4 py-10 font-kantumruy">
             {/* Background subtle luxury glow */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] md:w-[1000px] h-[500px] bg-[radial-gradient(circle_at_center,_rgba(212,175,55,0.04)_0%,_transparent_70%)] pointer-events-none" />
 
-            <div className="max-w-4xl mx-auto relative z-10">
+            <div className="relative z-10 mx-auto w-full max-w-sm">
                 <RevealSection>
-                    <div className={`grid ${portraitImage ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"} gap-6 sm:gap-10 items-center`}>
+                    <div className="grid grid-cols-1 items-center gap-6">
                         {/* Left: Portrait Photo */}
-                        {portraitImage && <div className="w-full max-w-[280px] sm:max-w-none mx-auto aspect-[3/4] sm:aspect-[4/5] bg-white p-2 shadow-[0_15px_40px_rgba(212,175,55,0.1)] border border-[#D4AF37]/25 relative overflow-hidden rounded-2xl sm:rounded-3xl group">
+                        {portraitImage && <div className="relative mx-auto aspect-[3/4] w-full max-w-[280px] overflow-hidden rounded-2xl group">
                             <img
                                 src={portraitImage}
-                                className={`w-full h-full object-cover rounded-xl sm:rounded-2xl transition-all duration-1000 ${mapPan.isDragging ? 'cursor-grabbing scale-105' : 'cursor-grab hover:scale-105'}`}
+                                className={`h-full w-full rounded-xl object-cover transition-all duration-1000 ${mapPan.isDragging ? 'cursor-grabbing scale-105' : 'cursor-grab hover:scale-105'}`}
                                 style={{
                                     objectPosition: `${mapPan.localX} ${mapPan.localY}`,
                                     userSelect: 'none',
@@ -45,39 +48,31 @@ export function LocationMap({ wedding, galleryImages, mapPan }: LocationMapProps
                         </div>}
 
                         {/* Right: Location & QR Block */}
-                        <div className="flex flex-col items-center justify-center space-y-3.5 sm:space-y-4 text-center">
-                            {/* Cursive Gold Title with proper padding to prevent right clipping */}
-                            <div className="px-3 pr-5 py-1">
-                                <h3 className="font-playfair italic text-3xl sm:text-4xl md:text-5xl text-gold-gradient font-bold leading-tight drop-shadow-sm inline-block">
-                                    Location
-                                </h3>
+                        <div className="flex flex-col items-center text-center">
+                            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#D4AF37]/25 bg-[#FBF8F0] text-[#A27A1E]">
+                                <MapPin size={22} strokeWidth={1.8} aria-hidden="true" />
                             </div>
-
-                            {/* Interactive QR Code Container */}
-                            <m.a
-                                href={directMapUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                whileHover={{ scale: 1.03, y: -4 }}
-                                whileTap={{ scale: 0.97 }}
-                                className="w-full max-w-sm min-h-36 p-5 sm:p-7 bg-white rounded-3xl border-2 border-[#D4AF37]/35 shadow-[0_12px_36px_rgba(212,175,55,0.12)] flex flex-col items-center justify-center gap-3 cursor-pointer group text-center"
-                            >
-                                <MapPin size={34} className="text-red-500" />
-                                <span className="inline-flex items-center gap-2 font-kantumruy text-sm font-bold text-[#805C00]">
-                                    <Navigation size={15} />
-                                    Open in Google Maps
-                                </span>
-                            </m.a>
-
-                            {/* Scan or Click Here Subtitle */}
-                            <div className="space-y-1 pt-1">
-                                <p className="font-playfair font-black text-xs sm:text-sm tracking-[0.2em] text-[#805C00] uppercase hover:text-[#684a00] transition-colors">
-                                    OPEN MAP
-                                </p>
-                                {locationText && <p className="font-kantumruy text-[11px] sm:text-xs text-stone-600 font-medium max-w-xs mx-auto">
+                            <h3 className="font-khmer-moul text-lg leading-relaxed text-[#805C00]">
+                                ទីតាំងកម្មវិធី
+                            </h3>
+                            {locationText && (
+                                <p className="mt-2 max-w-xs break-words text-sm leading-7 text-stone-600">
                                     {locationText}
-                                </p>}
-                            </div>
+                                </p>
+                            )}
+                            {mapLink && (
+                                <m.a
+                                    href={directMapUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    whileHover={{ y: -2 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#B8921E]/50 bg-[#FBF8F0] px-5 py-2.5 text-sm font-bold text-[#805C00] shadow-sm transition-colors hover:bg-[#F5EEDC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B8921E]/50"
+                                >
+                                    <Navigation size={16} aria-hidden="true" />
+                                    <span>បើកក្នុង Google Maps</span>
+                                </m.a>
+                            )}
                         </div>
                     </div>
                 </RevealSection>

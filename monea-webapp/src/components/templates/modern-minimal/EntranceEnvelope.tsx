@@ -4,6 +4,7 @@ import { ArrowRight, Heart } from 'lucide-react';
 import { WeddingData } from "../types";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { getWeddingHeroImage } from "../shared/weddingPhotos";
+import { OneLineName } from "../shared/OneLineName";
 
 interface EntranceEnvelopeProps {
     wedding: WeddingData;
@@ -54,21 +55,14 @@ export const EntranceEnvelope = ({ wedding, guestName, onReveal, onStartOpen, au
                     <div className="absolute inset-0 z-0 overflow-hidden">
                         <img
                             src={heroImage}
-                            className="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-70"
-                            style={{ objectPosition: 'center 20%' }}
-                            alt=""
-                            aria-hidden="true"
-                        />
-                        <img
-                            src={heroImage}
-                            className="relative w-full h-full object-cover filter brightness-[0.92] transition-transform duration-1000"
+                            className="absolute inset-0 w-full h-full object-cover filter brightness-[0.98] transition-transform duration-1000"
                             style={{ objectPosition: 'center 20%' }}
                             loading="eager"
                             fetchPriority="high"
                             decoding="async"
                             alt="Pre-wedding Cover"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/85" />
+                        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40" />
                     </div>
                     
                     {/* Top: Minimalist Header */}
@@ -92,17 +86,13 @@ export const EntranceEnvelope = ({ wedding, guestName, onReveal, onStartOpen, au
                         className="relative z-10 w-full max-w-xs space-y-4 pb-2"
                     >
                         <div className="flex max-w-full flex-col items-center gap-1.5 text-white drop-shadow-[0_3px_12px_rgba(0,0,0,0.9)]">
-                            <p className="m05-font-name max-w-full break-words text-2xl sm:text-3xl">
-                                {wedding.groomName}
-                            </p>
+                            <OneLineName name={wedding.groomName} className="m05-font-name text-2xl sm:text-3xl" />
                             <Heart size={16} className="fill-rose-200 text-rose-200" aria-hidden="true" />
-                            <p className="m05-font-name max-w-full break-words text-2xl sm:text-3xl">
-                                {wedding.brideName}
-                            </p>
+                            <OneLineName name={wedding.brideName} className="m05-font-name text-2xl sm:text-3xl" />
                         </div>
 
                         {/* Clean One-Line Guest Pill */}
-                        <div className="text-xs sm:text-sm text-white/90 bg-white/10 backdrop-blur-xl border border-white/20 px-4 py-2 rounded-full font-kantumruy shadow-lg drop-shadow-md">
+                        <div className="text-xs sm:text-sm text-white/90 font-kantumruy drop-shadow-md">
                             <span className="text-white/60 mr-1.5 font-light">សូមគោរពអញ្ជើញ៖</span>
                             <span className="font-bold text-white">{guestName || "ឯកឧត្តម លោកជំទាវ លោក លោកស្រី"}</span>
                         </div>

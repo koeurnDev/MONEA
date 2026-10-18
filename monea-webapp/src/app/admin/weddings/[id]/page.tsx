@@ -125,7 +125,7 @@ export default function AdminWeddingDetailsPage() {
                                 <Users size={24} className="sm:h-7 sm:w-7" />
                             </div>
                             <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">ភ្ញៀវសរុប</p>
+                                <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-1">ភ្ញៀវសរុប</p>
                                 <p className="text-3xl font-black text-slate-900 dark:text-white leading-none">{wedding._count?.guests || 0}</p>
                             </div>
                         </m.div>
@@ -139,7 +139,7 @@ export default function AdminWeddingDetailsPage() {
                                 <Sparkles size={24} className="sm:h-7 sm:w-7" />
                             </div>
                             <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Template</p>
+                                <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Template</p>
                                 <p className="text-xl font-black text-slate-900 dark:text-white capitalize truncate max-w-[120px]" title={wedding.templateId}>{wedding.templateId}</p>
                             </div>
                         </m.div>
@@ -171,7 +171,7 @@ export default function AdminWeddingDetailsPage() {
                                     >
                                         <div className="flex justify-between items-start">
                                             <h4 className="font-black text-slate-900 dark:text-white font-kantumruy text-lg group-hover:text-red-600 transition-colors">{evt.title}</h4>
-                                            <div className="px-3 py-1 rounded-full bg-white dark:bg-slate-950 text-[10px] font-bold text-slate-500 border border-slate-100 dark:border-slate-800 shadow-sm">
+                                            <div className="px-3 py-1 rounded-full bg-white dark:bg-slate-950 text-xs font-bold text-slate-500 border border-slate-100 dark:border-slate-800 shadow-sm">
                                                 Event {i + 1}
                                             </div>
                                         </div>
@@ -223,21 +223,21 @@ export default function AdminWeddingDetailsPage() {
 
                         <div className="space-y-6">
                             <div>
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2 mb-2">
+                                <label className="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-2 mb-2">
                                     <Calendar size={12} /> ថ្ងៃមង្គលការ
                                 </label>
                                 <p className="text-base font-black text-slate-700 dark:text-slate-300 font-kantumruy ml-5">{formattedDate}</p>
                             </div>
 
                             <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3 block">គណនីគ្រប់គ្រង (Owner)</label>
+                                <label className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3 block">គណនីគ្រប់គ្រង (Owner)</label>
                                 {wedding.user ? (
                                     <div
                                         className="flex flex-col p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all cursor-pointer border border-slate-100 dark:border-slate-800 group"
                                         onClick={() => router("/admin/users")}
                                     >
                                         <span className="text-xs font-mono font-bold text-slate-700 dark:text-slate-300 truncate group-hover:text-red-600 transition-colors uppercase tracking-tight">{wedding.user.email}</span>
-                                        <span className="text-[10px] text-slate-400 font-black uppercase mt-1 tracking-widest">{wedding.user.role}</span>
+                                        <span className="text-xs text-slate-400 font-black uppercase mt-1 tracking-widest">{wedding.user.role}</span>
                                     </div>
                                 ) : (
                                     <p className="text-xs text-slate-500 italic ml-1">មិនមានម្ចាស់</p>

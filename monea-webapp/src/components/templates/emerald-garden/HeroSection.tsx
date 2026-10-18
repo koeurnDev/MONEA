@@ -1,21 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, Sparkles } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import { WeddingData } from '../types';
 import { getWeddingSectionPhoto } from "../shared/weddingPhotos";
 import { PhotoImage } from "../shared/PhotoImage";
+import { OneLineName } from "../shared/OneLineName";
 
 interface HeroSectionProps {
     wedding: WeddingData;
     primaryColor: string;
 }
 
-export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor }) => {
+export const HeroSection: React.FC<HeroSectionProps> = ({ wedding }) => {
     const isEngagement = wedding.eventType === 'anniversary';
     const groomName = wedding.groomName || "កូនកំលោះ";
     const brideName = wedding.brideName || "កូនក្រមុំ";
     const eventDate = wedding.date ? new Date(wedding.date) : new Date();
-    const couplePhoto = getWeddingSectionPhoto(wedding, 0)?.url;
+    const couplePhoto = getWeddingSectionPhoto(wedding, "cover")?.url;
 
     const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
@@ -46,26 +47,20 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
     };
 
     return (
-        <section className="relative w-full min-h-[640px] bg-[#F4F9F6] flex flex-col items-center justify-center p-6 text-center overflow-hidden">
-            {/* Background Image with Botanical Arch */}
-            <div 
-                className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-95"
-                style={{ backgroundImage: `url('/assets/emerald-garden/emerald-garden-bg.jpg')` }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-transparent to-white/70" />
+        <section className="relative flex min-h-[640px] w-full flex-col items-center justify-center overflow-hidden bg-[#f4f6ef] px-5 py-12 text-center" style={{ backgroundColor: "var(--emerald-card-surface)" }}>
+            <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_15%,rgba(104,130,93,.14),transparent_42%),linear-gradient(180deg,rgba(255,255,255,.5),transparent_48%,rgba(104,130,93,.06))]" />
 
-            <div className="relative z-10 max-w-lg mx-auto flex flex-col items-center space-y-6 pt-16 pb-12">
-                {/* Header Tag */}
+            <div className="relative z-10 mx-auto flex w-full max-w-md flex-col items-center gap-5">
                 <motion.div
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6 }}
-                    className="space-y-1"
+                    className="space-y-2"
                 >
-                    <span className="text-xl sm:text-2xl font-khmer-moul text-[#1B4332] tracking-wider drop-shadow-sm block">
+                    <span className="block font-khmer-moul text-base leading-relaxed text-[#1B4332] sm:text-xl">
                         {isEngagement ? "សិរីមង្គលពិធីភ្ជាប់ពាក្យ" : "សិរីមង្គលអាពាហ៍ពិពាហ៍"}
                     </span>
-                    <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-emerald-600 to-transparent mx-auto mt-1" />
+                    <div className="mx-auto h-px w-16 bg-gradient-to-r from-transparent via-emerald-700/55 to-transparent" />
                 </motion.div>
 
                 {couplePhoto && (
@@ -73,58 +68,46 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
                         initial={{ opacity: 0, scale: 0.96 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.7, delay: 0.15 }}
-                        className="relative w-full max-w-[220px] overflow-hidden rounded-[7rem] border-4 border-white/90 shadow-xl"
+                        className="relative w-full max-w-[250px] overflow-hidden rounded-t-[9rem] rounded-b-3xl"
                     >
                         <PhotoImage
                             src={couplePhoto}
                             alt={`${groomName} និង ${brideName}`}
-                            className="aspect-[4/5] w-full object-cover"
+                            className="aspect-[4/4.7] w-full object-cover"
                             loading="eager"
                             decoding="async"
                         />
                     </motion.div>
                 )}
 
-                {/* Monogram / Crest */}
-                <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 0.7, delay: 0.2 }}
-                    className="w-20 h-20 rounded-full border-2 border-emerald-300 bg-white/80 backdrop-blur-md shadow-lg flex items-center justify-center text-emerald-800 font-serif italic text-2xl"
-                >
-                    {groomName[0]} & {brideName[0]}
-                </motion.div>
-
-                {/* Couple Names */}
                 <motion.div
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.3 }}
-                    className="space-y-2 py-2"
+                    className="w-full space-y-1"
                 >
                     <h1
                         aria-label={`${groomName} និង ${brideName}`}
-                        className="text-3xl sm:text-4xl font-khmer-moul text-[#1B4332] drop-shadow-md"
+                        className="font-khmer-moul text-[clamp(1rem,5vw,1.75rem)] leading-[1.8] text-[#173d2d]"
                     >
-                        <span className="block">{groomName}</span>
-                        <span aria-hidden="true" className="my-2 flex items-center justify-center gap-3">
-                            <span className="h-px w-10 bg-emerald-300" />
-                            <Heart size={16} className="text-emerald-600 fill-emerald-600" />
-                            <span className="h-px w-10 bg-emerald-300" />
+                        <OneLineName name={groomName} />
+                        <span aria-hidden="true" className="my-1 flex items-center justify-center gap-3">
+                            <span className="h-px w-8 bg-emerald-700/30" />
+                            <Heart size={14} className="fill-emerald-700 text-emerald-700" />
+                            <span className="h-px w-8 bg-emerald-700/30" />
                         </span>
-                        <span aria-hidden="true" className="block">{brideName}</span>
+                        <OneLineName name={brideName} ariaHidden />
                     </h1>
                 </motion.div>
 
-                {/* Date Display */}
                 <motion.div
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.4 }}
-                    className="space-y-1.5"
+                    className="space-y-1"
                 >
-                    <p className="text-sm sm:text-base font-bold font-kantumruy text-slate-800 bg-white/85 backdrop-blur-md px-5 py-2 rounded-full border border-emerald-200/80 shadow-sm inline-block">
-                        📅 {formatKhmerDate(eventDate)}
+                    <p className="font-kantumruy text-sm font-semibold text-slate-800 sm:text-base">
+                        {formatKhmerDate(eventDate)}
                     </p>
                     {wedding.themeSettings?.lunarDate && (
                         <p className="text-xs text-emerald-900/80 font-kantumruy">
@@ -138,7 +121,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.5 }}
-                    className="grid grid-cols-4 gap-2.5 w-full max-w-xs pt-2"
+                    className="grid w-full max-w-xs grid-cols-4 divide-x divide-emerald-900/20 pt-1"
                 >
                     {[
                         { label: "ថ្ងៃ", value: timeLeft.days },
@@ -146,11 +129,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
                         { label: "នាទី", value: timeLeft.minutes },
                         { label: "វិនាទី", value: timeLeft.seconds },
                     ].map((item, idx) => (
-                        <div key={idx} className="bg-white/90 backdrop-blur-md border border-emerald-200/80 rounded-2xl p-2.5 shadow-sm text-center">
-                            <span className="text-lg sm:text-xl font-bold font-mono text-[#1B4332] block">
+                        <div key={idx} className="px-1 py-1.5 text-center">
+                            <span className="block font-mono text-lg font-bold text-[#1B4332] sm:text-xl">
                                 {item.value < 10 ? `0${item.value}` : item.value}
                             </span>
-                            <span className="text-[10px] font-kantumruy text-slate-600 block">
+                            <span className="block font-kantumruy text-[10px] text-slate-600">
                                 {item.label}
                             </span>
                         </div>

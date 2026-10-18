@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { RevealSection } from '../shared/CinematicComponents';
 import { WeddingData } from "../types";
-import { useTranslation } from "@/i18n/LanguageProvider";
+import { getWeddingSectionPhoto } from "../shared/weddingPhotos";
 
 const KHMER_ICONS_MAP: Record<string, LucideIcon> = {
     scissors: Scissors,
@@ -60,23 +60,14 @@ const getActivityIcon = (title: string, iconKey?: string | null): LucideIcon => 
 
 export function KhmerSchedule({ 
     wedding, 
-    galleryImages = [],
-    customTitle,
 }: { 
     wedding: WeddingData; 
-    galleryImages?: string[];
     customTitle?: string;
 }) {
-    const { t } = useTranslation();
-    const isEngagement = wedding.eventType === 'anniversary';
+    const coverPhoto = getWeddingSectionPhoto(wedding, "cover")?.url;
 
     const rawActivities = wedding.activities;
     const activities = React.useMemo(() => rawActivities || [], [rawActivities]);
-
-    const scheduleTitle = customTitle ||
-                          (isEngagement
-                              ? "កម្មវិធីសិរីមង្គលភ្ជាប់ពាក្យ"
-                              : t("template.khmerLegacy.schedule") || "កម្មវិធីសិរីមង្គលអាពាហ៍ពិពាហ៍");
 
     // Calendar computation for Save The Date
     const weddingDate = React.useMemo(() => {
@@ -137,16 +128,6 @@ export function KhmerSchedule({
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-[radial-gradient(circle_at_center,_rgba(212,175,55,0.04)_0%,_transparent_70%)] pointer-events-none" />
             
             <div className="max-w-xl mx-auto relative z-10 space-y-12">
-                {/* 1. Title Section */}
-                <RevealSection>
-                    <div className="text-center space-y-2.5 mb-8 md:mb-12">
-                        <h2 className="font-khmer-moul text-xl sm:text-2xl md:text-3xl text-gold-gradient text-gold-embossed tracking-wide leading-relaxed py-1">
-                            {scheduleTitle}
-                        </h2>
-                        <div className="w-20 md:w-28 h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent mx-auto" />
-                    </div>
-                </RevealSection>
-
                 {/* 2. Traditional Timeline / Activities List Grouped by Day */}
                 <div className="space-y-8 sm:space-y-10">
                     {scheduleGroups.map((group, groupIdx) => (
@@ -227,12 +208,12 @@ export function KhmerSchedule({
                 {/* 3. Save The Date Calendar Block (Matching Reference Image) */}
                 <RevealSection delay={0.2}>
                     <div className="pt-6 sm:pt-10 border-t border-[#D4AF37]/20">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 items-center bg-[#FAF9F6] p-4 sm:p-6 rounded-3xl border border-[#D4AF37]/25 shadow-[0_10px_30px_rgba(212,175,55,0.06)]">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 items-center">
                             {/* Left Couple Photo */}
-                            <div className="aspect-[3/4] w-full rounded-2xl overflow-hidden shadow-md border-2 border-white relative group">
-                                {galleryImages[0] ? (
+                            <div className="aspect-[3/4] w-full rounded-2xl overflow-hidden relative group">
+                                {coverPhoto ? (
                                     <img 
-                                        src={galleryImages[0]} 
+                                        src={coverPhoto}
                                         alt="Save The Date Couple" 
                                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
                                     />

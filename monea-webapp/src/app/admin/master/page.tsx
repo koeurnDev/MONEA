@@ -19,6 +19,7 @@ import {
     Settings,
     ShieldAlert,
     ShieldCheck,
+    Share2,
     TrendingUp,
     UserRound,
     Users,
@@ -115,9 +116,25 @@ const adminModules = [
         group: "ប្រព័ន្ធ"
     },
     {
+        title: "គោលការណ៍ឯកជនភាព និងលក្ខខណ្ឌ",
+        subtitle: "Legal content",
+        desc: "កែប្រែ Privacy Policy និង Terms of Use ជាភាសាខ្មែរ និងអង់គ្លេស។",
+        href: "/admin/master/legal-content",
+        icon: FileText,
+        group: "ប្រព័ន្ធ"
+    },
+    {
+        title: "បណ្តាញសង្គម",
+        subtitle: "Social Media",
+        desc: "បន្ថែម ឬកែតំណភ្ជាប់បណ្តាញសង្គមដែលបង្ហាញនៅ Footer។",
+        href: "/admin/master/social-links",
+        icon: Share2,
+        group: "ប្រព័ន្ធ"
+    },
+    {
         title: "ការកំណត់ទូទៅ",
         subtitle: "Settings",
-        desc: "កំណត់រចនាសម្ព័ន្ធ និងសេវាភ្ជាប់របស់ MONEA។",
+        desc: "កំណត់រចនាសម្ព័ន្ធ និងសេវាភ្ជាប់របស់ MONEO។",
         href: "/admin/master/settings",
         icon: Settings,
         group: "ប្រព័ន្ធ"
@@ -199,7 +216,7 @@ export default function MasterAdminPage() {
                 <div className="pointer-events-none absolute -right-16 -top-24 h-64 w-64 rounded-full bg-teal-500/[0.07] blur-3xl" />
                 <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                     <div className="max-w-2xl">
-                        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-teal-600/20 bg-teal-600/[0.07] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.16em] text-teal-800 dark:text-teal-300">
+                        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-teal-600/20 bg-teal-600/[0.07] px-3 py-1.5 text-xs font-black uppercase tracking-[0.16em] text-teal-800 dark:text-teal-300">
                             <ShieldCheck size={14} className="text-amber-600 dark:text-amber-400" />
                             Platform administration
                         </div>
@@ -207,7 +224,7 @@ export default function MasterAdminPage() {
                             {t("admin.overview.title", { defaultValue: "មជ្ឈមណ្ឌលបញ្ជាមេ" })}
                         </h1>
                         <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-                            ទិដ្ឋភាពរួមនៃ MONEA និងផ្លូវកាត់ទៅកាន់ការគ្រប់គ្រងសំខាន់ៗ។
+                            ទិដ្ឋភាពរួមនៃ MONEO និងផ្លូវកាត់ទៅកាន់ការគ្រប់គ្រងសំខាន់ៗ។
                         </p>
                     </div>
                     <div className="flex flex-col gap-2 sm:flex-row">
@@ -256,7 +273,7 @@ export default function MasterAdminPage() {
                                         {(stat.value ?? 0).toLocaleString()}
                                     </p>
                                 )}
-                                <p className="mt-1 text-[11px] text-muted-foreground">{stat.detail}</p>
+                                <p className="mt-1 text-xs text-muted-foreground">{stat.detail}</p>
                             </div>
                             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-teal-600/20 bg-teal-600/[0.07] text-teal-800 dark:text-teal-300">
                                 <stat.icon size={20} />
@@ -269,7 +286,7 @@ export default function MasterAdminPage() {
             <section className="space-y-4">
                 <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
                     <div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-teal-800 dark:text-teal-300">Workspace</p>
+                        <p className="text-xs font-black uppercase tracking-[0.16em] text-teal-800 dark:text-teal-300">Workspace</p>
                         <h2 className="mt-1 text-xl font-black tracking-tight text-foreground">ការគ្រប់គ្រងប្រព័ន្ធ</h2>
                     </div>
                     <p className="text-xs text-muted-foreground">ជ្រើសរើសផ្នែកដែលអ្នកចង់គ្រប់គ្រង</p>
@@ -288,13 +305,13 @@ export default function MasterAdminPage() {
                                         <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-teal-600/20 bg-teal-600/[0.07] text-teal-800 dark:text-teal-300">
                                             <module.icon size={19} />
                                         </div>
-                                        <span className="rounded-full border border-border bg-muted/50 px-2.5 py-1 text-[10px] font-bold text-muted-foreground">
+                                        <span className="rounded-full border border-border bg-muted/50 px-2.5 py-1 text-xs font-bold text-muted-foreground">
                                             {module.group}
                                         </span>
                                     </div>
                                     <div className="mt-4 flex flex-1 items-end justify-between gap-3">
                                         <div>
-                                            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">{module.subtitle}</p>
+                                            <p className="text-xs font-bold uppercase tracking-[0.12em] text-muted-foreground">{module.subtitle}</p>
                                             <h3 className="mt-1 text-sm font-black text-foreground">{module.title}</h3>
                                             <p className="mt-1.5 text-xs leading-5 text-muted-foreground">{module.desc}</p>
                                         </div>
@@ -341,12 +358,12 @@ export default function MasterAdminPage() {
                                             </div>
                                             <div className="min-w-0">
                                                 <p className="truncate text-sm font-bold text-foreground">{wedding.groomName} & {wedding.brideName}</p>
-                                                <p className="mt-0.5 truncate font-mono text-[10px] text-muted-foreground">{wedding.id}</p>
+                                                <p className="mt-0.5 truncate font-mono text-xs text-muted-foreground">{wedding.id}</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center justify-between gap-4 pl-12 sm:pl-0">
                                             <span className={cn(
-                                                "rounded-full border px-2.5 py-1 text-[10px] font-bold",
+                                                "rounded-full border px-2.5 py-1 text-xs font-bold",
                                                 wedding.packageType === "PREMIUM"
                                                     ? "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300"
                                                     : wedding.packageType === "PRO"
@@ -356,13 +373,13 @@ export default function MasterAdminPage() {
                                                 {wedding.packageType || "FREE"}
                                             </span>
                                             <span className={cn(
-                                                "flex items-center gap-1.5 text-[10px] font-bold",
+                                                "flex items-center gap-1.5 text-xs font-bold",
                                                 wedding.status === "ACTIVE" ? "text-emerald-700 dark:text-emerald-300" : "text-muted-foreground"
                                             )}>
                                                 <span className={cn("h-1.5 w-1.5 rounded-full", wedding.status === "ACTIVE" ? "bg-emerald-500" : "bg-muted-foreground/50")} />
                                                 {wedding.status}
                                             </span>
-                                            <span className="min-w-[78px] text-right text-[10px] tabular-nums text-muted-foreground">
+                                            <span className="min-w-[78px] text-right text-xs tabular-nums text-muted-foreground">
                                                 {formatDate(wedding.createdAt)}
                                             </span>
                                         </div>
@@ -393,7 +410,7 @@ export default function MasterAdminPage() {
                                     <span className="text-xs font-bold text-foreground">មូលដ្ឋានទិន្នន័យ</span>
                                 </div>
                                 <span className={cn(
-                                    "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold",
+                                    "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold",
                                     databaseHealthy
                                         ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
                                         : data
@@ -404,7 +421,7 @@ export default function MasterAdminPage() {
                                     {loading ? "កំពុងពិនិត្យ" : databaseHealthy ? "បានភ្ជាប់" : data ? "មិនស្គាល់" : "មិនទាន់មានទិន្នន័យ"}
                                 </span>
                             </div>
-                            <p className="mt-3 text-[11px] leading-5 text-muted-foreground">
+                            <p className="mt-3 text-xs leading-5 text-muted-foreground">
                                 ស្ថានភាពនេះត្រូវបានរាយការណ៍ពីការត្រួតពិនិត្យ Database ចុងក្រោយ។
                             </p>
                         </CardContent>

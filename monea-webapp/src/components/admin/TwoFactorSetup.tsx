@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Shield, Copy, Download, RefreshCw, CheckCircle2, AlertCircle, Lock, FileText } from "lucide-react";
+import { Shield, Copy, Download, RefreshCw, CheckCircle2, AlertCircle, Lock, FileText, Eye, EyeOff } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface TwoFactorSetupProps {
@@ -23,6 +23,7 @@ export function TwoFactorSetup({ open, onOpenChange, onSuccess }: TwoFactorSetup
     const [copied, setCopied] = useState(false);
     const [downloaded, setDownloaded] = useState(false);
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
 
     const fetchSetupData = async () => {
         setLoading(true);
@@ -52,6 +53,7 @@ export function TwoFactorSetup({ open, onOpenChange, onSuccess }: TwoFactorSetup
             setStep(0); // Start with password verification
             setVerificationCode("");
             setPassword("");
+            setShowPassword(false);
             setError("");
             setSetupData(null);
         }
@@ -95,7 +97,7 @@ export function TwoFactorSetup({ open, onOpenChange, onSuccess }: TwoFactorSetup
             year: 'numeric',
             timeZone: 'Asia/Phnom_Penh'
         });
-        const content = `MONEA RECOVERY CODES\n\nGenerated: ${formattedDate}\n\nKeep these codes in a safe place. Each code can be used once.\n\n${setupData.recoveryCodes.join("\n")}`;
+        const content = `MONEO RECOVERY CODES\n\nGenerated: ${formattedDate}\n\nKeep these codes in a safe place. Each code can be used once.\n\n${setupData.recoveryCodes.join("\n")}`;
         const blob = new Blob([content], { type: "text/plain" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -111,27 +113,27 @@ export function TwoFactorSetup({ open, onOpenChange, onSuccess }: TwoFactorSetup
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-2xl p-0 overflow-hidden rounded-3xl border-none shadow-2xl">
-                <div className="bg-slate-900 p-8 text-white relative">
-                    <div className="absolute top-0 right-0 p-8 opacity-10">
-                        <Lock size={120} />
+            <DialogContent className="w-[calc(100vw-2rem)] max-w-[500px] max-h-[90dvh] overflow-y-auto rounded-2xl border border-border bg-card p-0 shadow-2xl sm:rounded-3xl">
+                <div className="relative overflow-hidden bg-slate-900 px-5 py-6 text-white sm:px-7 sm:py-7">
+                    <div aria-hidden="true" className="pointer-events-none absolute -right-2 -top-4 opacity-[0.08]">
+                        <Lock size={100} />
                     </div>
                     <DialogHeader>
-                        <DialogTitle className="text-2xl font-black font-kantumruy flex items-center gap-3">
-                            <Shield className="text-red-500" />
+                        <DialogTitle className="relative z-10 flex items-center gap-3 text-xl font-black font-kantumruy sm:text-2xl">
+                            <Shield className="h-5 w-5 shrink-0 text-red-500 sm:h-6 sm:w-6" />
                             រៀបចំប្រព័ន្ធការពារ ២ ជាន់ (2FA)
                         </DialogTitle>
-                        <DialogDescription className="text-slate-400 font-kantumruy text-base mt-2">
+                        <DialogDescription className="relative z-10 mt-2 text-sm leading-relaxed text-slate-300 font-kantumruy sm:text-base">
                             បង្កើនសុវត្ថិភាពខ្ពស់បំផុតសម្រាប់គណនីរបស់អ្នក។
                         </DialogDescription>
                     </DialogHeader>
                 </div>
 
-                <div className="p-8 space-y-8 bg-white max-h-[70vh] overflow-y-auto">
+                <div className="space-y-6 bg-background p-5 sm:p-7">
                     {loading ? (
-                        <div className="h-64 flex flex-col items-center justify-center gap-4">
+                        <div className="flex min-h-48 flex-col items-center justify-center gap-4">
                             <RefreshCw className="w-10 h-10 animate-spin text-red-600" />
-                            <p className="font-kantumruy text-slate-500">កំពុងរៀបចំទិន្នន័យសុវត្ថិភាព...</p>
+                            <p className="text-center text-sm text-muted-foreground font-kantumruy">កំពុងរៀបចំទិន្នន័យសុវត្ថិភាព...</p>
                         </div>
                     ) : step === 0 ? (
                         <form
@@ -139,46 +141,70 @@ export function TwoFactorSetup({ open, onOpenChange, onSuccess }: TwoFactorSetup
                                 e.preventDefault();
                                 fetchSetupData();
                             }}
-                            className="space-y-6 py-4"
+                            className="space-y-5"
                         >
-                            <div className="space-y-3">
-                                <Label className="text-sm font-bold text-slate-900 font-kantumruy">សូមបញ្ជាក់ពាក្យសម្ងាត់របស់អ្នក ដើម្បីបន្ត៖</Label>
+                            <div className="space-y-2.5">
+                                <Label htmlFor="two-factor-setup-password" className="text-sm font-bold text-foreground font-kantumruy">
+                                    បញ្ចូលពាក្យសម្ងាត់បច្ចុប្បន្ន ដើម្បីបន្ត
+                                </Label>
                                 {/* Accessibility: Hidden username field */}
                                 <input type="text" name="username" defaultValue={""} autoComplete="username" className="hidden" aria-hidden="true" />
                                 <div className="relative group">
-                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-red-500 transition-colors">
+                                    <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary">
                                         <Lock size={18} />
                                     </div>
                                     <Input
-                                        type="password"
+                                        id="two-factor-setup-password"
+                                        type={showPassword ? "text" : "password"}
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         placeholder="បញ្ចូលពាក្យសម្ងាត់"
-                                        className="pl-12 h-14 rounded-2xl bg-slate-50 border-slate-200 focus-visible:ring-red-600/20 text-lg"
+                                        className="h-12 rounded-xl border-input bg-background pl-11 pr-12 text-base text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-primary/25"
                                         autoFocus
                                         autoComplete="current-password"
+                                        aria-describedby="two-factor-setup-password-help"
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword((visible) => !visible)}
+                                        aria-label={showPassword ? "លាក់ពាក្យសម្ងាត់" : "បង្ហាញពាក្យសម្ងាត់"}
+                                        aria-pressed={showPassword}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-2 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    >
+                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
                                 </div>
-                                <p className="text-xs text-slate-500 font-kantumruy italic">
-                                    * នេះគឺជាការតម្រូវផ្នែកសុវត្ថិភាព មុននឹងបង្ហាញលេខកូដសម្ងាត់ 2FA។
+                                <p id="two-factor-setup-password-help" className="text-xs leading-relaxed text-muted-foreground font-kantumruy">
+                                    ពាក្យសម្ងាត់នេះត្រូវបានស្នើសុំ ដើម្បីបញ្ជាក់អត្តសញ្ញាណមុនរៀបចំ 2FA។
                                 </p>
                             </div>
 
                             {error && (
-                                <div className="flex items-center gap-2 p-3 rounded-xl bg-red-50 text-red-600 text-xs font-bold animate-shake">
+                                <div role="alert" className="flex items-start gap-2 rounded-xl border border-destructive/20 bg-destructive/10 p-3 text-sm font-bold text-destructive font-kantumruy">
                                     <AlertCircle size={14} />
                                     {error}
                                 </div>
                             )}
 
-                            <Button
-                                type="submit"
-                                disabled={!password || loading}
-                                className="w-full bg-slate-900 text-white hover:bg-black rounded-xl h-14 font-black text-base font-kantumruy transition-all shadow-lg active:scale-[0.98]"
-                            >
-                                {loading ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : null}
-                                បន្តទៅមុខទៀត
-                            </Button>
+                            <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => onOpenChange(false)}
+                                    disabled={loading}
+                                    className="h-11 w-full rounded-xl font-bold font-kantumruy sm:w-auto sm:min-w-28"
+                                >
+                                    បោះបង់
+                                </Button>
+                                <Button
+                                    type="submit"
+                                    disabled={!password.trim() || loading}
+                                    className="h-11 w-full rounded-xl bg-primary px-6 font-bold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground sm:w-auto sm:min-w-36"
+                                >
+                                    {loading ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                    បន្ត
+                                </Button>
+                            </div>
                         </form>
                     ) : setupData ? (
                         <div className="space-y-8">
@@ -193,7 +219,7 @@ export function TwoFactorSetup({ open, onOpenChange, onSuccess }: TwoFactorSetup
                                         {setupData.qrCodeDataUrl && (
                                             <img src={setupData.qrCodeDataUrl} alt="2FA QR Code" width={192} height={192} className="w-48 h-48" />
                                         )}
-                                        <p className="text-[10px] text-slate-500 text-center font-kantumruy">ប្រើកម្មវិធី Google Authenticator ឬ Telegram ដើម្បីស្កេន។</p>
+                                        <p className="text-xs text-slate-500 text-center font-kantumruy">ប្រើកម្មវិធី Google Authenticator ឬ Telegram ដើម្បីស្កេន។</p>
                                     </div>
                                 </div>
 
@@ -205,7 +231,7 @@ export function TwoFactorSetup({ open, onOpenChange, onSuccess }: TwoFactorSetup
                                     <div className="bg-red-50 p-5 rounded-2xl border border-red-100 space-y-4">
                                         <div className="grid grid-cols-2 gap-2">
                                             {setupData.recoveryCodes.map((code, idx) => (
-                                                <code key={idx} className="text-[11px] font-mono text-red-700 bg-white p-1.5 rounded-lg border border-red-50 text-center uppercase tracking-wider">
+                                                <code key={idx} className="text-xs font-mono text-red-700 bg-white p-1.5 rounded-lg border border-red-50 text-center uppercase tracking-wider">
                                                     {code}
                                                 </code>
                                             ))}
@@ -214,7 +240,7 @@ export function TwoFactorSetup({ open, onOpenChange, onSuccess }: TwoFactorSetup
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                className="w-full text-[11px] h-9 rounded-xl font-kantumruy gap-2 border-red-200 text-red-700 hover:bg-red-100/50"
+                                                className="w-full text-xs h-9 rounded-xl font-kantumruy gap-2 border-red-200 text-red-700 hover:bg-red-100/50"
                                                 onClick={copyRecoveryCodes}
                                             >
                                                 {copied ? <CheckCircle2 size={12} /> : <Copy size={12} />}
@@ -223,7 +249,7 @@ export function TwoFactorSetup({ open, onOpenChange, onSuccess }: TwoFactorSetup
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                className="w-full text-[11px] h-9 rounded-xl font-kantumruy gap-2 border-red-200 text-red-700 hover:bg-red-100/50"
+                                                className="w-full text-xs h-9 rounded-xl font-kantumruy gap-2 border-red-200 text-red-700 hover:bg-red-100/50"
                                                 onClick={handleDownload}
                                             >
                                                 {downloaded ? <CheckCircle2 size={12} /> : <FileText size={12} />}
@@ -231,7 +257,7 @@ export function TwoFactorSetup({ open, onOpenChange, onSuccess }: TwoFactorSetup
                                             </Button>
                                         </div>
                                     </div>
-                                    <p className="text-[10px] text-red-600 font-bold font-kantumruy italic">
+                                    <p className="text-xs text-red-600 font-bold font-kantumruy italic">
                                         * សំខាន់៖ លេខកូដទាំងនេះប្រើសម្រាប់ Login នៅពេលអ្នកបាត់ទូរស័ព្ទ។ សូមរក្សាវាទុកឱ្យបានល្អបំផុត!
                                     </p>
                                 </div>

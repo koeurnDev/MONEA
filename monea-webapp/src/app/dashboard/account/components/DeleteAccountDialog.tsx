@@ -37,27 +37,27 @@ export function DeleteAccountDialog({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="w-[92vw] max-w-[440px] max-h-[90dvh] overflow-y-auto rounded-2xl md:rounded-[2.5rem] border-none shadow-2xl p-5 sm:p-6 md:p-10 font-kantumruy">
                 <DialogHeader className="space-y-4">
-                    <div className="w-14 h-14 bg-red-50 dark:bg-red-950/20 rounded-2xl flex items-center justify-center text-red-600 mx-auto">
+                    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
                         <Trash2 size={28} />
                     </div>
                     <DialogTitle className="text-2xl font-black text-center font-kantumruy">
                         {t("account.dialogs.deleteAccount.title", { defaultValue: "លុបគណនី" })}
                     </DialogTitle>
                     <DialogDescription className="text-center font-kantumruy text-sm opacity-70">
-                        {t("account.dialogs.deleteAccount.description", { defaultValue: "សកម្មភាពនេះជាអចិន្ត្រៃយ៍ និងមិនអាចដកវិញបានទេ។ ទិន្នន័យទាំងអស់របស់អ្នកនឹងត្រូវបានលុបចោល។" })}
+                        {t("account.dialogs.deleteAccount.description", { defaultValue: "គណនីនឹងត្រូវបិទភ្លាមៗ ហើយទិន្នន័យ រូបភាព និងអនុស្សាវរីយ៍នឹងត្រូវរក្សាទុក 30 ថ្ងៃ មុនលុបជាអចិន្ត្រៃយ៍។" })}
                     </DialogDescription>
                 </DialogHeader>
 
-                <Alert variant="destructive" className="bg-red-50/50 border-red-100 text-red-900 rounded-2xl py-4 mt-2">
+                <Alert variant="destructive" className="mt-2 rounded-2xl bg-destructive/5 py-4">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription className="text-xs font-bold font-kantumruy ml-2">
-                        {t("account.dialogs.deleteAccount.alert", { defaultValue: "ការព្រមាន៖ សកម្មភាពនេះមិនអាចត្រឡប់ក្រោយវិញបានឡើយ។ ទិន្នន័យពិធីមង្គលការ និងភ្ញៀវទាំងអស់នឹងត្រូវលុបជាអចិន្ត្រៃយ៍។" })}
+                        {t("account.dialogs.deleteAccount.alert", { defaultValue: "បន្ទាប់ពីបញ្ជាក់ គណនីនឹងមិនអាចចូលប្រើបាន។ អ្នកអាចទាក់ទងជំនួយក្នុងរយៈពេល 30 ថ្ងៃ ដើម្បីស្នើសុំស្តារគណនី និងអនុស្សាវរីយ៍វិញ។" })}
                     </AlertDescription>
                 </Alert>
 
                 <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 mt-5 sm:mt-6">
                     <div className="space-y-3">
-                        <Label className="text-[11px] font-bold text-muted-foreground ml-1">
+                        <Label className="text-xs font-bold text-muted-foreground ml-1">
                             {t("account.dialogs.deleteAccount.label", { defaultValue: "បញ្ជាក់ពាក្យសម្ងាត់របស់អ្នក" })}
                         </Label>
                         <div className="relative">
@@ -65,7 +65,7 @@ export function DeleteAccountDialog({
                                 type={showPassword ? "text" : "password"}
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="h-11 sm:h-14 bg-muted/40 border-none rounded-2xl px-4 sm:px-5 font-bold focus-visible:ring-2 focus-visible:ring-red-500/20"
+                                className="h-11 rounded-2xl border-none bg-muted/40 px-4 font-bold focus-visible:ring-2 focus-visible:ring-destructive/30 sm:h-14 sm:px-5"
                                 placeholder={t("account.dialogs.deleteAccount.placeholder", { defaultValue: "បញ្ចូលពាក្យសម្ងាត់របស់អ្នកដើម្បីបញ្ជាក់" })}
                                 required
                             />
@@ -78,7 +78,7 @@ export function DeleteAccountDialog({
                             </button>
                         </div>
                         {error && (
-                            <p className="text-xs font-bold text-red-600 font-kantumruy ml-1">{error}</p>
+                            <p className="ml-1 font-kantumruy text-xs font-bold text-destructive">{error}</p>
                         )}
                     </div>
 
@@ -93,8 +93,9 @@ export function DeleteAccountDialog({
                         </Button>
                         <Button
                             type="submit"
+                            variant="destructive"
                             disabled={isDeleting || !password}
-                            className="flex-[1.5] h-11 sm:h-12 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-black font-kantumruy shadow-lg shadow-red-500/20"
+                            className="h-11 flex-[1.5] rounded-2xl font-black font-kantumruy sm:h-12"
                         >
                             {isDeleting 
                                 ? t("account.dialogs.deleteAccount.processing", { defaultValue: "កំពុងលុប..." }) 

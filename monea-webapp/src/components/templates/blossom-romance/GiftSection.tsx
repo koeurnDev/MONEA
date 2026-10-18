@@ -35,20 +35,20 @@ export const GiftSection: React.FC<GiftSectionProps> = ({ wedding, primaryColor 
                     {bankAccounts.map((acc, idx) => (
                         <div
                             key={idx}
-                            className="bg-white border border-rose-200/80 rounded-3xl p-5 shadow-sm space-y-4"
+                            className="space-y-4 border-b border-rose-200/80 py-5"
                         >
-                            <div className="flex items-center justify-between">
-                                <span className="text-xs font-bold text-rose-700 bg-rose-50 px-3 py-1 rounded-full">
+                            <div className="flex flex-wrap items-start justify-between gap-2">
+                                <span className="max-w-full break-words text-xs font-bold text-rose-700">
                                     {acc.bankName || "ធនាគារ"}
                                 </span>
-                                <span className="text-xs font-bold text-slate-800">
+                                <span className="min-w-0 break-words text-right text-xs font-bold text-slate-800 [overflow-wrap:anywhere]">
                                     {acc.accountName || "ឈ្មោះគណនី"}
                                 </span>
                             </div>
 
                             {/* QR Code */}
                             {(acc.qrUrl || (acc as any).qrCodeUrl) && (
-                                <div className="w-44 h-44 mx-auto p-2 bg-white rounded-2xl border border-rose-200/80 shadow-inner flex items-center justify-center">
+                                <div className="mx-auto flex h-44 w-44 items-center justify-center bg-white p-2">
                                     <img
                                         src={acc.qrUrl || (acc as any).qrCodeUrl}
                                         alt="KHQR Code"
@@ -59,13 +59,13 @@ export const GiftSection: React.FC<GiftSectionProps> = ({ wedding, primaryColor 
 
                             {/* Account Number with Copy */}
                             {acc.accountNumber && (
-                                <div className="flex items-center justify-between bg-slate-50 border border-slate-200/80 px-4 py-2.5 rounded-xl text-xs">
-                                    <span className="font-mono font-bold text-slate-800 tracking-wider">
+                                <div className="flex min-w-0 items-center justify-between gap-2 border-b border-rose-200/80 px-1 py-2.5 text-xs">
+                                    <span className="min-w-0 break-all font-mono font-bold tracking-wider text-slate-800">
                                         {acc.accountNumber}
                                     </span>
                                     <button
                                         onClick={() => acc.accountNumber && handleCopy(acc.accountNumber, idx)}
-                                        className="text-rose-600 hover:text-rose-700 font-bold flex items-center gap-1 active:scale-95 transition-all"
+                                        className="flex shrink-0 items-center gap-1 border-b border-rose-300 py-1 font-bold text-rose-700 transition-colors hover:text-rose-800 active:scale-95"
                                     >
                                         {copiedIndex === idx ? (
                                             <>

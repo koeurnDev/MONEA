@@ -1,5 +1,7 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { m } from 'framer-motion';
+import { format, isValid } from 'date-fns';
+import { km } from 'date-fns/locale';
 import { WeddingData } from "../types";
 
 export const CountdownSection = ({ wedding }: { wedding: WeddingData }) => {
@@ -21,6 +23,12 @@ export const CountdownSection = ({ wedding }: { wedding: WeddingData }) => {
         const timer = setInterval(update, 1000);
         return () => clearInterval(timer);
     }, [wedding.date]);
+
+    const eventDate = new Date(wedding.date);
+    const formattedEventDate = isValid(eventDate)
+        ? format(eventDate, "EEEE 'ទី' d 'ខែ' MMMM 'ឆ្នាំ' yyyy", { locale: km })
+            .replace(/\d/g, (digit) => "០១២៣៤៥៦៧៨៩"[Number(digit)])
+        : "";
 
     return (
         <section className="py-24 bg-slate-50 border-t border-b border-slate-100 flex flex-col items-center justify-center">
@@ -49,6 +57,12 @@ export const CountdownSection = ({ wedding }: { wedding: WeddingData }) => {
                 ))}
             </div>
 
+            {formattedEventDate && (
+                <p className="mt-8 px-4 text-center font-khmer-moul text-xs leading-relaxed text-[#77613a] sm:text-sm">
+                    {formattedEventDate}
+                </p>
+            )}
+
             <m.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -60,10 +74,10 @@ export const CountdownSection = ({ wedding }: { wedding: WeddingData }) => {
                     href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`Wedding of ${wedding.groomName} and ${wedding.brideName}`)}&dates=${new Date(wedding.date).toISOString().replace(/-|:|\.\d\d\d/g, "")}/${new Date(new Date(wedding.date).getTime() + 6*60*60*1000).toISOString().replace(/-|:|\.\d\d\d/g, "")}&location=${encodeURIComponent(wedding.location || "Cambodia")}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-8 py-3 bg-slate-900 text-white rounded-full font-bold uppercase tracking-widest text-xs hover:bg-slate-800 transition-colors shadow-lg active:scale-95"
+                    className="inline-flex items-center gap-2 rounded-full border border-[#9b8055]/30 bg-white/75 px-7 py-3 font-kantumruy text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-700 shadow-sm transition-colors hover:border-[#9b8055]/55 hover:bg-white hover:text-[#806744] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9b8055] focus-visible:ring-offset-2 active:scale-[0.98]"
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                    Save The Date
+                    <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    រក្សាទុកក្នុងប្រតិទិន
                 </a>
             </m.div>
         </section>

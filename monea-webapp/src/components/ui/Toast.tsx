@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { X, Bell, MessageSquare, Heart } from "lucide-react";
+import { NETWORK_ERROR_MESSAGE } from "@/lib/network-errors";
 
 export interface ToastMessage {
     id: string;
@@ -34,6 +35,35 @@ export function useToast() {
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
     const [toasts, setToasts] = React.useState<ToastMessage[]>([]);
+    const [isOffline, setIsOffline] = React.useState(
+        () => typeof navigator !== "undefined" && !navigator.onLine
+    );
+    const [connectionError, setConnectionError] = React.useState(false);
+
+    React.useEffect(() => {
+        let connectionErrorTimeout: number | undefined;
+        const handleOffline = () => setIsOffline(true);
+        const handleOnline = () => {
+            setIsOffline(false);
+            setConnectionError(false);
+            window.clearTimeout(connectionErrorTimeout);
+        };
+        const handleNetworkError = () => {
+            setConnectionError(true);
+            window.clearTimeout(connectionErrorTimeout);
+            connectionErrorTimeout = window.setTimeout(() => setConnectionError(false), 8000);
+        };
+        window.addEventListener("offline", handleOffline);
+        window.addEventListener("online", handleOnline);
+        window.addEventListener("monea:network-error", handleNetworkError);
+
+        return () => {
+            window.removeEventListener("offline", handleOffline);
+            window.removeEventListener("online", handleOnline);
+            window.removeEventListener("monea:network-error", handleNetworkError);
+            window.clearTimeout(connectionErrorTimeout);
+        };
+    }, []);
 
     const showToast = React.useCallback((msg: Omit<ToastMessage, "id">) => {
         const id = Math.random().toString(36).substring(2, 9);
@@ -46,6 +76,15 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     return (
         <ToastContext.Provider value={{ showToast }}>
             {children}
+            {(isOffline || connectionError) && (
+                <div
+                    role="alert"
+                    aria-live="assertive"
+                    className="fixed inset-x-0 top-0 z-[110] bg-red-700 px-4 py-3 text-center text-sm font-bold text-white shadow-lg"
+                >
+                    {NETWORK_ERROR_MESSAGE}
+                </div>
+            )}
             <div className="fixed bottom-6 right-6 z-[100] flex flex-col gap-3 pointer-events-none">
                 {toasts.map(toast => (
                     <div
@@ -78,7 +117,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
                                         toast.action?.onClick();
                                         setToasts(prev => prev.filter(t => t.id !== toast.id));
                                     }}
-                                    className="mt-2 text-[10px] font-black uppercase tracking-widest text-indigo-500 hover:text-indigo-400 transition-colors bg-indigo-500/10 px-3 py-1 rounded-full"
+                                    className="mt-2 text-xs font-black uppercase tracking-widest text-indigo-500 hover:text-indigo-400 transition-colors bg-indigo-500/10 px-3 py-1 rounded-full"
                                 >
                                     {toast.action.label}
                                 </button>

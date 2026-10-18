@@ -1,4 +1,4 @@
-﻿import * as React from "react";
+import * as React from "react";
 import { AnimatePresence, m } from "framer-motion";
 
 interface CountdownTimerProps {
@@ -61,7 +61,7 @@ export const CountdownTimer = ({ targetDate }: CountdownTimerProps) => {
                     >
                         {item.value < 10 ? `0${item.value}` : item.value}
                     </m.div>
-                    <span className="text-[10px] sm:text-xs text-gray-500 mt-2 font-medium uppercase tracking-wider">
+                    <span className="text-xs sm:text-xs text-gray-500 mt-2 font-medium uppercase tracking-wider">
                         {item.label}
                     </span>
                 </div>

@@ -22,7 +22,7 @@ const getAppUrl = (req?: Request) => {
     }
     
     // Production fallback
-    return process.env.VITE_APP_URL || 'https://monea-webapp.pages.dev';
+    return process.env.VITE_APP_URL || 'https://moneoez.com';
 };
 
 export const getRedirectUri = (req?: Request) => {

@@ -1,10 +1,10 @@
 import { m } from 'framer-motion';
 import { WeddingData } from '../types';
 import { RevealSection, CinematicPlaceholder } from '../shared/CinematicComponents';
+import { getWeddingSectionPhoto } from "../shared/weddingPhotos";
 
 interface EditorialBreaksProps {
     wedding: WeddingData;
-    galleryImages: string[];
     editorialPan1: any;
     editorialPan2: any;
     editorialPan3: any;
@@ -13,20 +13,25 @@ interface EditorialBreaksProps {
 
 export function EditorialBreaks({ 
     wedding, 
-    galleryImages,
     editorialPan1,
     editorialPan2,
     editorialPan3,
     editorialPan4
 }: EditorialBreaksProps) {
+    const editorialPhotos = {
+        first: getWeddingSectionPhoto(wedding, "couple")?.url,
+        second: getWeddingSectionPhoto(wedding, "signature2")?.url,
+        third: getWeddingSectionPhoto(wedding, "editorial1")?.url,
+        fourth: getWeddingSectionPhoto(wedding, "editorial2")?.url,
+    };
     return (
         <section id="editorial-breaks" className="w-full bg-[#FAF9F6] space-y-12 md:space-y-24 overflow-hidden py-10 md:py-20 px-4 md:px-12">
             {/* Split 1 */}
             <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-8 md:gap-16">
                 <div className="w-full md:w-1/2 aspect-[4/5] bg-gold-main/5 relative overflow-hidden rounded-[2rem] shadow-xl">
-                    {galleryImages[1 % galleryImages.length] ? (
+                    {editorialPhotos.first ? (
                         <img 
-                            src={galleryImages[1 % galleryImages.length]}  
+                            src={editorialPhotos.first}
                             className={`w-full h-full object-cover transition-all duration-1000 ${editorialPan1.isDragging ? 'cursor-grabbing scale-105' : 'cursor-grab hover:scale-105'}`} 
                             style={{ 
                                 objectPosition: `${editorialPan1.localX} ${editorialPan1.localY}`,
@@ -71,9 +76,9 @@ export function EditorialBreaks({
                     </RevealSection>
                 </div>
                 <div className="w-full md:w-1/2 aspect-[4/5] bg-gold-main/5 relative overflow-hidden rounded-[2rem] shadow-xl">
-                    {galleryImages[7 % galleryImages.length] ? (
+                    {editorialPhotos.second ? (
                         <img 
-                            src={galleryImages[7 % galleryImages.length]}  
+                            src={editorialPhotos.second}
                             className={`w-full h-full object-cover transition-all duration-1000 ${editorialPan2.isDragging ? 'cursor-grabbing scale-105' : 'cursor-grab hover:scale-105'}`} 
                             style={{ 
                                 objectPosition: `${editorialPan2.localX} ${editorialPan2.localY}`,
@@ -106,9 +111,9 @@ export function EditorialBreaks({
                         </RevealSection>
                     </div>
                     <div className="aspect-[4/3] rounded-[2rem] overflow-hidden shadow-xl relative bg-gold-main/5 border-4 border-white">
-                        {galleryImages[3] ? (
+                        {editorialPhotos.third ? (
                             <img 
-                                src={galleryImages[3]}  
+                                src={editorialPhotos.third}
                                 className={`w-full h-full object-cover transition-all duration-1000 ${editorialPan3.isDragging ? 'cursor-grabbing scale-105' : 'cursor-grab hover:scale-105'}`} 
                                 style={{ 
                                     objectPosition: `${editorialPan3.localX} ${editorialPan3.localY}`,
@@ -133,9 +138,9 @@ export function EditorialBreaks({
             <div className="max-w-6xl mx-auto py-6 md:py-12">
                 <RevealSection>
                     <div className="w-full aspect-[16/9] md:aspect-[21/9] overflow-hidden relative shadow-xl rounded-[2rem] bg-gold-main/5">
-                        {galleryImages[4] ? (
+                        {editorialPhotos.fourth ? (
                             <img 
-                                src={galleryImages[4]} 
+                                src={editorialPhotos.fourth}
                                 className={`w-full h-full object-cover transition-all duration-1000 ${editorialPan4.isDragging ? 'cursor-grabbing scale-105' : 'cursor-grab hover:scale-105'}`} 
                                 style={{ 
                                     objectPosition: `${editorialPan4.localX} ${editorialPan4.localY}`,

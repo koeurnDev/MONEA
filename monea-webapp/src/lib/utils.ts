@@ -44,7 +44,7 @@ export function getIP(req: Request | any): string {
   const cf = headers.get("cf-connecting-ip");
   if (cf) return cf;
   
-  // 2. Vercel/Standard Proxy header
+  // 2. Standard proxy header
   const xRealIp = headers.get("x-real-ip");
   if (xRealIp) return xRealIp;
 

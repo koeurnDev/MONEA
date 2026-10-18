@@ -6,7 +6,7 @@ export function PreferencesTab() {
     const { t, locale } = useTranslation();
 
     return (
-        <Card className="bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-white/10 shadow-sm rounded-3xl overflow-hidden font-kantumruy">
+        <Card className="border border-border bg-card shadow-sm rounded-3xl overflow-hidden font-kantumruy">
             <CardHeader className="p-6 sm:p-8 pb-4">
                 <CardTitle className="text-xl sm:text-2xl font-bold text-foreground font-kantumruy tracking-tight">
                     {t("account.preferences.title", { defaultValue: "ចំណូលចិត្ត" })}
@@ -16,9 +16,9 @@ export function PreferencesTab() {
                 </CardDescription>
             </CardHeader>
             <CardContent className="p-6 sm:p-8 pt-2 space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-5 sm:p-6 bg-slate-50 dark:bg-black/20 rounded-2xl border border-slate-200/80 dark:border-white/10">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 p-5 sm:p-6 bg-muted/50 rounded-2xl border border-border">
                     <div className="flex items-center gap-4">
-                        <div className="p-3 bg-teal-500/10 rounded-2xl text-teal-600 dark:text-teal-400 shrink-0">
+                        <div className="p-3 bg-accent rounded-2xl text-primary shrink-0">
                             <Languages size={24} />
                         </div>
                         <div className="space-y-0.5">
@@ -32,7 +32,7 @@ export function PreferencesTab() {
                             </p>
                         </div>
                     </div>
-                    <div className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-foreground dark:border-white/10 dark:bg-zinc-800 sm:w-[180px]">
+                    <div className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm font-bold text-foreground sm:w-[180px]">
                         🇰🇭 {t("account.preferences.language.km", { defaultValue: "ភាសាខ្មែរ (Khmer)" })}
                     </div>
                 </div>

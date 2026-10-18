@@ -2,10 +2,11 @@ import { m } from "framer-motion";
 // next/image replaced with <img>;
 import { RevealSection, CinematicPlaceholder } from "../shared/CinematicComponents";
 import { WeddingData } from "../types";
+import { getWeddingSectionPhoto } from "../shared/weddingPhotos";
+import { OneLineName } from "../shared/OneLineName";
 
 interface SignatureMomentsProps {
     wedding: WeddingData;
-    galleryImages: string[];
     signaturePan1: any;
     signaturePan2: any;
     signaturePan3: any;
@@ -16,7 +17,6 @@ interface SignatureMomentsProps {
 
 export function SignatureMoments({ 
     wedding,
-    galleryImages,
     signaturePan1,
     signaturePan2,
     signaturePan3,
@@ -24,7 +24,15 @@ export function SignatureMoments({
     signaturePan5,
     signaturePan6
 }: SignatureMomentsProps) {
-    if (galleryImages.length === 0) return null;
+    const signaturePhotos = {
+        signature1: getWeddingSectionPhoto(wedding, "signature1")?.url,
+        signature2: getWeddingSectionPhoto(wedding, "signature2")?.url,
+        signature3: getWeddingSectionPhoto(wedding, "signature3")?.url,
+        signature4: getWeddingSectionPhoto(wedding, "signature4")?.url,
+        signature5: getWeddingSectionPhoto(wedding, "signature5")?.url,
+        signature6: getWeddingSectionPhoto(wedding, "signature6")?.url,
+    };
+    if (Object.values(signaturePhotos).every((photo) => !photo)) return null;
 
     return (
         <section id="signature-moments" className="w-full py-16 md:py-24 bg-white relative overflow-hidden">
@@ -48,9 +56,9 @@ export function SignatureMoments({
                             <div 
                                 className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-xl md:shadow-2xl border border-gold/10 bg-gold/5"
                             >
-                                {galleryImages[6] ? (
+                                {signaturePhotos.signature1 ? (
                                     <img 
-                                        src={galleryImages[6]}  
+                                        src={signaturePhotos.signature1}
                                         className={`object-cover transition-all duration-2000 ${signaturePan1.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-110'}`} 
                                         style={{ 
                                             objectPosition: `${signaturePan1.localX} ${signaturePan1.localY}`,
@@ -78,9 +86,9 @@ export function SignatureMoments({
                             <div 
                                 className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-[0_20px_60px_-15px_rgba(212,175,55,0.15)] md:shadow-[0_40px_100px_-20px_rgba(212,175,55,0.2)] border-2 border-gold/20 md:scale-105 z-10 bg-gold/5"
                             >
-                                {galleryImages[7] ? (
+                                {signaturePhotos.signature2 ? (
                                     <img 
-                                        src={galleryImages[7]}  
+                                        src={signaturePhotos.signature2}
                                         className={`object-cover transition-all duration-2000 ${signaturePan2.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-110'}`} 
                                         style={{ 
                                             objectPosition: `${signaturePan2.localX} ${signaturePan2.localY}`,
@@ -108,9 +116,9 @@ export function SignatureMoments({
                             <div 
                                 className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-xl md:shadow-2xl border border-gold/10 bg-gold/5"
                             >
-                                {galleryImages[8] ? (
+                                {signaturePhotos.signature3 ? (
                                     <img 
-                                        src={galleryImages[8]}  
+                                        src={signaturePhotos.signature3}
                                         className={`object-cover transition-all duration-2000 ${signaturePan3.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-110'}`} 
                                         style={{ 
                                             objectPosition: `${signaturePan3.localX} ${signaturePan3.localY}`,
@@ -134,7 +142,7 @@ export function SignatureMoments({
                 </div>
 
                 {/* STRUCTURED TRIPTYCH LAYOUT - ROW 2 */}
-                {(galleryImages[9] || galleryImages[10] || galleryImages[11]) && (
+                {(signaturePhotos.signature4 || signaturePhotos.signature5 || signaturePhotos.signature6) && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-12 relative mt-12 md:mt-32">
                         {/* Image 4 */}
                         <RevealSection delay={0.1}>
@@ -142,9 +150,9 @@ export function SignatureMoments({
                                 <div 
                                     className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-xl md:shadow-2xl border border-gold/10 bg-gold/5"
                                 >
-                                    {galleryImages[9] ? (
+                                    {signaturePhotos.signature4 ? (
                                         <img 
-                                            src={galleryImages[9]}  
+                                            src={signaturePhotos.signature4}
                                             className={`object-cover transition-all duration-2000 ${signaturePan4.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-110'}`} 
                                             style={{ 
                                                 objectPosition: `${signaturePan4.localX} ${signaturePan4.localY}`,
@@ -172,9 +180,9 @@ export function SignatureMoments({
                                 <div 
                                     className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-[0_20px_60px_-15px_rgba(212,175,55,0.15)] md:shadow-[0_40px_100px_-20px_rgba(212,175,55,0.2)] border-2 border-gold/20 md:scale-105 z-10 bg-gold/5"
                                 >
-                                    {galleryImages[10] ? (
+                                    {signaturePhotos.signature5 ? (
                                         <img 
-                                            src={galleryImages[10]}  
+                                            src={signaturePhotos.signature5}
                                             className={`object-cover transition-all duration-2000 ${signaturePan5.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-110'}`} 
                                             style={{ 
                                                 objectPosition: `${signaturePan5.localX} ${signaturePan5.localY}`,
@@ -202,9 +210,9 @@ export function SignatureMoments({
                                 <div 
                                     className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-xl md:shadow-2xl border border-gold/10 bg-gold/5"
                                 >
-                                    {galleryImages[11] ? (
+                                    {signaturePhotos.signature6 ? (
                                         <img 
-                                            src={galleryImages[11]}  
+                                            src={signaturePhotos.signature6}
                                             className={`object-cover transition-all duration-2000 ${signaturePan6.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-110'}`} 
                                             style={{ 
                                                 objectPosition: `${signaturePan6.localX} ${signaturePan6.localY}`,
@@ -239,9 +247,9 @@ export function SignatureMoments({
                     <div className="flex flex-col items-center space-y-6">
                         <div className="h-[1px] w-12 bg-gold/20" />
                         <div className="space-y-4 font-serif-kh-bold text-xl md:text-4xl text-gold-gradient relative">
-                            <p>{wedding.groomName}</p>
+                            <OneLineName name={wedding.groomName} />
                             <p className="font-playfair italic text-white/20 text-sm md:text-xl tracking-widest lowercase">and</p>
-                            <p>{wedding.brideName}</p>
+                            <OneLineName name={wedding.brideName} />
                         </div>
                         <div className="h-[1px] w-12 bg-gold/20" />
                     </div>

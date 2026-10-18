@@ -1,37 +1,20 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
-import { m, AnimatePresence } from 'framer-motion';
-import { Smartphone, Monitor, ArrowLeft, Sparkles, Check } from 'lucide-react';
+import { ChevronRight, Heart, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { AUTH_URLS } from '@/lib/constants';
+import { NavBar } from '@/components/landing/NavBar';
+import { Footer } from '@/components/landing/StaticSections';
+import {
+    normalizeTemplatePresentationMetadata,
+    TEMPLATE_CATALOG,
+    type TemplatePresentationMetadata,
+} from '@/components/templates/template-config';
+import { moneaClient } from '@/lib/api-client';
 
-const TEMPLATES = [
-    {
-        code: 'M-02',
-        id: 'modern-minimal',
-        title: 'Modern Minimal',
-        category: 'wedding',
-        image: '/images/bg_tunnel.webp',
-        description: 'สไตล์เรียบหรู เหมาะกับงานแต่งงานสมัยใหม่ที่ต้องการความสะอาด',
-    },
-    {
-        code: 'M-03',
-        id: 'anniversary-elegant',
-        title: 'Anniversary Elegant',
-        category: 'anniversary',
-        image: '/assets/anniversary-elegant/anniversary-elegant-bg.webp',
-        description: 'ธีมอันสง่างามสำหรับวันครบรอบ ความอบอุ่นและประทับใจยิ่งขึ้น',
-    },
-    {
-        code: 'M-05',
-        id: 'nea-m05',
-        title: 'NEA - Olive & Gold',
-        category: 'wedding',
-        image: '/khmer-invite-starter-kit/elements/crest.svg',
-        description: 'ក្រដាសធៀបការខ្មែរបែបទំនើប ពណ៌ olive និងមាសប្រណីត',
-    },
-];
+const TEMPLATES = TEMPLATE_CATALOG;
 
 const FILTER_LABELS = {
     all: 'ទាំងអស់',
@@ -40,229 +23,210 @@ const FILTER_LABELS = {
 } as const;
 
 export default function TemplateGalleryPage() {
-    const [selectedTemplate, setSelectedTemplate] = useState<typeof TEMPLATES[0] | null>(null);
-    const [viewMode, setViewMode] = useState<'mobile' | 'desktop'>('mobile');
     const [filter, setFilter] = useState<'all' | 'wedding' | 'anniversary'>('all');
+    const [presentationMetadata, setPresentationMetadata] = useState<Record<string, TemplatePresentationMetadata> | null>(null);
 
-    const filteredTemplates = TEMPLATES.filter((template) => filter === 'all' || template.category === filter);
+    useEffect(() => {
+        let cancelled = false;
+
+        const loadPresentationMetadata = async () => {
+            try {
+                const response = await moneaClient.get<unknown>('/api/templates/metadata', { cache: 'no-store' });
+                if (response.error || !response.data) {
+                    throw new Error(response.error || 'Template metadata response was empty');
+                }
+
+                const metadata = normalizeTemplatePresentationMetadata(response.data);
+                if (!cancelled) {
+                    setPresentationMetadata(metadata);
+                }
+            } catch (error) {
+                console.error('[TemplateGalleryPage] Failed to load template metadata:', error);
+            }
+        };
+
+        void loadPresentationMetadata();
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    const galleryTemplates = TEMPLATES.map((template) => {
+        const metadata = presentationMetadata?.[template.id];
+        return {
+            ...template,
+            image: metadata?.image ?? template.image,
+            eventType: metadata?.eventType ?? template.eventType,
+            hasCustomCover: !!metadata && metadata.image !== template.image,
+        };
+    });
+    const filteredTemplates = galleryTemplates.filter((template) =>
+        filter === 'all' || template.eventType === filter || template.eventType === 'both',
+    );
 
     return (
-        <div className="min-h-screen bg-[#160d19] text-white">
-            <header className="sticky top-0 z-40 border-b border-white/10 bg-[#160d19]/85 backdrop-blur-xl">
-                <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-                    <Link to="/" className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-amber-400 text-sm font-black text-white shadow-lg shadow-rose-950/30">
-                            ✦
+        <>
+        <Helmet>
+            <title>MONEO | Khmer Digital Wedding Invitation Templates | គំរូធៀបការឌីជីថល</title>
+            <meta name="description" content="មើលគំរូធៀបអាពាហ៍ពិពាហ៍ឌីជីថលជាភាសាខ្មែរ ជ្រើសរើសរចនាបថ និងចាប់ផ្តើមបង្កើតធៀបសម្រាប់ថ្ងៃពិសេសរបស់អ្នកជាមួយ MONEO។" />
+            <link rel="canonical" href="https://moneoez.com/templates" />
+            <meta property="og:type" content="website" />
+            <meta property="og:site_name" content="MONEO" />
+            <meta property="og:url" content="https://moneoez.com/templates" />
+            <meta property="og:title" content="MONEO | Khmer Digital Wedding Invitation Templates | គំរូធៀបការឌីជីថល" />
+            <meta property="og:description" content="ស្វែងរកគំរូធៀបមង្គលការ និងគំរូខួបអនុស្សាវរីយ៍ដែលសមនឹងអ្នក។" />
+            <meta property="og:image" content="https://moneoez.com/icons/logomoneo.jpg" />
+            <meta property="og:image:alt" content="គំរូធៀបអាពាហ៍ពិពាហ៍ឌីជីថលពី MONEO" />
+            <meta name="twitter:card" content="summary_large_image" />
+            <meta name="twitter:url" content="https://moneoez.com/templates" />
+            <meta name="twitter:title" content="MONEO | Khmer Digital Wedding Invitation Templates | គំរូធៀបការឌីជីថល" />
+            <meta name="twitter:description" content="ស្វែងរកគំរូធៀបមង្គលការ និងគំរូខួបអនុស្សាវរីយ៍ដែលសមនឹងអ្នក។" />
+            <meta name="twitter:image" content="https://moneoez.com/icons/logomoneo.jpg" />
+            <meta name="twitter:image:alt" content="គំរូធៀបអាពាហ៍ពិពាហ៍ឌីជីថលពី MONEO" />
+            <script type="application/ld+json">{JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "CollectionPage",
+                name: "MONEO | Khmer Digital Wedding Invitation Templates | គំរូធៀបការឌីជីថល",
+                url: "https://moneoez.com/templates",
+                description: "មើលគំរូធៀបអាពាហ៍ពិពាហ៍ឌីជីថលជាភាសាខ្មែរ និងជ្រើសរើសរចនាបថសម្រាប់ថ្ងៃពិសេសរបស់អ្នក។",
+                isPartOf: { "@id": "https://moneoez.com/#website" },
+                mainEntity: {
+                    "@type": "ItemList",
+                    itemListElement: TEMPLATES.map((template, index) => ({
+                        "@type": "ListItem",
+                        position: index + 1,
+                        name: template.title,
+                        url: "https://moneoez.com/templates",
+                    })),
+                },
+                inLanguage: "km-KH",
+            })}</script>
+        </Helmet>
+        <div className="min-h-screen overflow-hidden bg-[#f5f2eb] font-kantumruy text-[#1c2e28] transition-colors duration-300 dark:bg-[#0d1210] dark:text-[#f1eee6]">
+            <NavBar />
+            <main className="mx-auto max-w-[1440px] px-4 pb-16 pt-24 sm:px-6 sm:pt-28 lg:px-10">
+                <section className="relative isolate overflow-hidden rounded-[2rem] bg-[#173d32] px-6 py-10 text-[#f7f2e8] shadow-[0_30px_80px_rgba(27,51,42,.16)] sm:rounded-[2.5rem] sm:px-10 sm:py-14 lg:px-16 lg:py-16">
+                    <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-32 -z-10 h-[28rem] w-[28rem] rounded-full border border-[#d8c69a]/20 sm:right-8 sm:top-1/2 sm:-translate-y-1/2">
+                        <div className="absolute inset-8 rounded-full border border-[#d8c69a]/15" />
+                        <div className="absolute inset-16 rounded-full border border-[#d8c69a]/10" />
+                    </div>
+                    <div className="grid items-center gap-10 lg:grid-cols-[1fr_0.72fr]">
+                        <div className="relative z-10">
+                            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#e7d7b1]/25 bg-white/[0.06] px-3 py-1.5 text-xs font-semibold tracking-[0.12em] text-[#e6d8b8]">
+                                <Sparkles size={13} />
+                                MONEO · DIGITAL INVITATIONS
+                            </div>
+                            <h1 className="max-w-2xl text-3xl font-bold leading-[1.5] tracking-tight sm:text-4xl lg:text-5xl">
+                                ធៀបដ៏មានន័យ<br className="hidden sm:block" /> សម្រាប់ថ្ងៃដ៏ពិសេស
+                            </h1>
+                            <p className="mt-4 max-w-xl text-sm leading-7 text-[#f7f2e8]/70 sm:text-base sm:leading-8">
+                                ជ្រើសរើសមើលរូបគម្របគំរូដែលអ្នកពេញចិត្ត រួចចាប់ផ្តើមបង្កើតធៀបផ្ទាល់ខ្លួនរបស់អ្នក។
+                            </p>
+                            <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-[#f7f2e8]/70">
+                                <span className="inline-flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-[#d8c69a]" />{TEMPLATES.length} គំរូរចនា</span>
+                                <span className="hidden h-4 w-px bg-white/20 sm:block" />
+                                <span>សម្រាប់មង្គលការ និងពិធីភ្ជាប់ពាក្យ</span>
+                            </div>
                         </div>
-                        <span className="text-base font-black tracking-[0.18em] text-white">MONEA</span>
-                    </Link>
 
-                    <div className="hidden items-center gap-1 rounded-full border border-white/10 bg-white/[0.06] p-1 shadow-sm md:flex">
-                        {(['all', 'wedding', 'anniversary'] as const).map((item) => (
-                            <button
-                                key={item}
-                                onClick={() => setFilter(item)}
-                                className={cn(
-                                    'rounded-full px-4 py-2 text-[10px] font-bold tracking-[0.12em] transition-all',
-                                    filter === item
-                                        ? 'bg-rose-500 text-white shadow-sm'
-                                        : 'text-white/55 hover:text-white'
-                                )}
-                            >
-                                {FILTER_LABELS[item]}
-                            </button>
-                        ))}
+                        <div aria-hidden="true" className="relative mx-auto hidden h-[280px] w-full max-w-[360px] lg:block lg:h-[310px]">
+                            <div className="absolute right-5 top-8 h-[230px] w-[164px] rotate-[10deg] rounded-[1.4rem] border border-[#eadbb9]/30 bg-[#f1e8d5] p-2 shadow-2xl">
+                                <img src="/assets/blossom-romance/blossom-arch-bg.jpg" alt="" className="h-full w-full rounded-[1rem] object-cover" />
+                            </div>
+                            <div className="absolute left-8 top-2 flex h-[250px] w-[178px] -rotate-[7deg] flex-col items-center justify-center overflow-hidden rounded-[1.4rem] border border-[#d9c89e]/60 bg-[#e9e0cd] p-5 text-center text-[#244136] shadow-2xl">
+                                <div className="absolute inset-2 border border-[#9d8558]/35" />
+                                <img src="/khmer-invite-starter-kit/elements/crest.svg" alt="" className="relative h-12 w-12 opacity-80" />
+                                <span className="relative mt-4 font-serif text-[9px] uppercase tracking-[0.3em] text-[#8d7448]">Save the date</span>
+                                <span className="relative mt-2 font-khmer-moul text-lg">សិរីមង្គល</span>
+                                <span className="relative mt-2 h-px w-10 bg-[#a68d5d]/60" />
+                                <span className="relative mt-2 font-serif text-[8px] tracking-[0.22em] text-[#8d7448]">MONEO · 2026</span>
+                            </div>
+                            <div className="absolute bottom-2 right-0 flex h-12 w-12 items-center justify-center rounded-full border border-[#e7d7b1]/25 bg-[#214a3e] text-[#e7d7b1] shadow-lg">
+                                <Heart size={17} strokeWidth={1.4} />
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section className="py-10 sm:py-14" aria-labelledby="template-list-heading">
+                    <div className="mb-6 flex flex-col gap-5 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                            <p className="mb-2 text-xs font-bold uppercase tracking-[0.24em] text-[#8c7955]">The collection</p>
+                            <h2 id="template-list-heading" className="text-2xl font-bold tracking-tight text-[#1c2e28] dark:text-[#f1eee6] sm:text-3xl">ជ្រើសរើសរចនាបថរបស់អ្នក</h2>
+                            <p className="mt-2 text-sm text-[#6d756e] dark:text-[#a7afa8]">គម្របនីមួយៗបង្ហាញតែលេខសម្គាល់គំរូប៉ុណ្ណោះ។</p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <span className="hidden text-xs text-[#7b817b] dark:text-[#a7afa8] sm:inline">បង្ហាញ {filteredTemplates.length} គំរូ</span>
+                            <div className="flex w-full gap-1 overflow-x-auto rounded-full border border-[#dfd9cc] bg-[#fbfaf7] p-1 dark:border-white/10 dark:bg-white/[0.04] sm:w-auto">
+                                {(['all', 'wedding', 'anniversary'] as const).map((item) => (
+                                    <button
+                                        key={item}
+                                        type="button"
+                                        onClick={() => setFilter(item)}
+                                        aria-pressed={filter === item}
+                                        className={cn(
+                                            'shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#527568] focus-visible:ring-offset-2 focus-visible:ring-offset-[#f5f2eb] dark:focus-visible:ring-offset-[#0d1210]',
+                                            filter === item ? 'bg-[#21483b] text-white shadow-sm dark:bg-[#b8c8ae] dark:text-[#17251e]' : 'text-[#6c756e] hover:bg-[#eeeae1] hover:text-[#21382e] dark:text-[#b4bcb5] dark:hover:bg-white/[0.08] dark:hover:text-white',
+                                        )}
+                                    >
+                                        {FILTER_LABELS[item]}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                     </div>
 
-                    <Link to={AUTH_URLS.SIGN_UP}>
-                        <Button className="h-10 rounded-full bg-rose-500 px-4 text-[10px] font-black tracking-[0.14em] text-white hover:bg-rose-400 sm:px-5">
-                            ចាប់ផ្តើម
-                        </Button>
-                    </Link>
-                </div>
-            </header>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
+                        {filteredTemplates.map((template, templateIndex) => {
+                                const isPaperDesign = template.id === 'nea-m05' && !template.hasCustomCover;
 
-            <main className="mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-6 lg:px-8 lg:pt-10">
-                <div className="mb-6 flex flex-col gap-3 text-center sm:mb-8">
-                    <div className="inline-flex items-center justify-center gap-2 self-center rounded-full border border-rose-300/20 bg-rose-300/10 px-3 py-1 text-[9px] font-black tracking-[0.2em] text-rose-200 shadow-sm">
-                        <Sparkles size={12} />
-                        ជ្រើសរើសគំរូសម្រាប់ថ្ងៃពិសេស
-                    </div>
-                    <h1 className="text-2xl font-black tracking-tight text-white sm:text-4xl lg:text-5xl">
-                        ជ្រើសរើសស្ទីលដែលសមនឹងអ្នក
-                    </h1>
-                    <p className="mx-auto max-w-xl text-xs leading-7 text-white/60 sm:text-sm">
-                        មើលគំរូធៀបការជាមុន និងជ្រើសរើសការរចនាដែលសមនឹងថ្ងៃពិសេសរបស់អ្នក។
-                    </p>
-                </div>
-
-                <div className="mb-5 flex items-center justify-between md:hidden">
-                    <p className="text-[9px] font-black tracking-[0.2em] text-white/45">ជ្រើសរើសប្រភេទ</p>
-                    <div className="flex items-center gap-1 overflow-x-auto rounded-full bg-white/[0.06] p-1">
-                        {(['all', 'wedding', 'anniversary'] as const).map((item) => (
-                            <button
-                                key={item}
-                                onClick={() => setFilter(item)}
-                                className={cn(
-                                    'shrink-0 rounded-full px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.12em] transition-all',
-                                    filter === item ? 'bg-rose-500 text-white shadow-sm' : 'text-white/55'
-                                )}
-                            >
-                                {FILTER_LABELS[item]}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
-                    <AnimatePresence mode="popLayout">
-                        {filteredTemplates.map((template) => {
-                            const isSelected = selectedTemplate?.id === template.id;
-
-                            return (
-                                <m.div
-                                    key={template.id}
-                                    layout
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.96 }}
-                                    onClick={() => setSelectedTemplate(template)}
-                                    className={cn(
-                                        'group relative overflow-hidden rounded-[1.75rem] border text-left transition-all duration-300',
-                                        isSelected
-                                            ? 'border-rose-300/60 bg-white/[0.1] shadow-[0_25px_60px_rgba(0,0,0,0.25)] ring-1 ring-rose-300/20'
-                                            : 'border-white/10 bg-white/[0.05] shadow-[0_12px_30px_rgba(0,0,0,0.16)] hover:-translate-y-1 hover:border-rose-300/40 hover:bg-white/[0.08] hover:shadow-[0_18px_40px_rgba(0,0,0,0.22)]'
-                                    )}
-                                >
-                                    <div className="relative aspect-[9/14] overflow-hidden rounded-t-[1.75rem]">
-                                        <img
-                                            src={template.image}
-                                            alt={template.title}
-                                            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                                        />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-900/20 to-transparent" />
-
-                                        <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4">
-                                            <div className="mb-2 flex items-center justify-between gap-2">
-                                                <span className="rounded-full bg-white/90 px-2 py-1 text-[9px] font-black tracking-[0.2em] text-slate-900 shadow-sm">
+                                return (
+                                    <article
+                                        key={template.id}
+                                        aria-label={`គម្របគំរូ ${template.code}`}
+                                        className="overflow-hidden rounded-[1.4rem] border border-[#e3ded3] bg-[#fbfaf7] shadow-[0_8px_24px_rgba(48,55,46,.05)] dark:border-white/10 dark:bg-[#171e1a] dark:shadow-[0_12px_30px_rgba(0,0,0,.22)]"
+                                    >
+                                        <div className="relative aspect-[1.08/1] overflow-hidden bg-[#e9e3d5] dark:bg-[#242a25]">
+                                            {isPaperDesign ? (
+                                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#68745c] bg-cover bg-center p-8 text-center" style={{ backgroundImage: "url('/khmer-invite-starter-kit/textures/paper-olive.webp')" }}>
+                                                    <div className="absolute inset-3 border border-[#a38b55]/45" />
+                                                    <img src="/khmer-invite-starter-kit/elements/crest.svg" alt="" className="relative h-14 w-14 opacity-80" />
+                                                </div>
+                                            ) : (
+                                                <img
+                                                    src={template.image}
+                                                    alt=""
+                                                    loading={templateIndex < 2 ? 'eager' : 'lazy'}
+                                                    fetchPriority={templateIndex === 0 ? 'high' : 'auto'}
+                                                    className="h-full w-full object-cover"
+                                                />
+                                            )}
+                                            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#14231d]/65 via-transparent to-[#14231d]/10" />
+                                            <div className="absolute left-4 top-4">
+                                                <span className="rounded-full border border-white/45 bg-[#fbfaf7]/90 px-3 py-1 text-xs font-bold tracking-[0.16em] text-[#25392f] shadow-sm backdrop-blur-sm dark:border-white/25 dark:bg-[#111714]/85 dark:text-[#f1eee6]">
                                                     {template.code}
                                                 </span>
-                                                {isSelected && (
-                                                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-white shadow-lg shadow-emerald-500/30">
-                                                        <Check size={12} strokeWidth={3} />
-                                                    </span>
-                                                )}
                                             </div>
-                                            <h2 className="text-base font-black text-white sm:text-lg">{template.title}</h2>
-                                            <p className="mt-1 text-[10px] text-white/70 sm:text-[11px]">{template.category}</p>
                                         </div>
-                                    </div>
+                                    </article>
+                                );
+                            })}
+                    </div>
 
-                                </m.div>
-                            );
-                        })}
-                    </AnimatePresence>
-                </div>
-            </main>
-
-            <AnimatePresence>
-                {selectedTemplate && (
-                    <m.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm"
-                    >
-                        <div className="flex h-full flex-col bg-[#10151b]">
-                            <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 sm:px-6">
-                                <div className="flex items-center gap-3">
-                                    <button
-                                        onClick={() => setSelectedTemplate(null)}
-                                        className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 text-white/80 transition hover:bg-white/10"
-                                        aria-label="Close preview"
-                                    >
-                                        <ArrowLeft size={17} />
-                                    </button>
-                                    <div>
-                                        <h2 className="text-sm font-black text-white sm:text-base">{selectedTemplate.title}</h2>
-                                        <p className="text-[10px] tracking-[0.2em] text-slate-400">{FILTER_LABELS[selectedTemplate.category as keyof typeof FILTER_LABELS]}</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                    <div className="hidden items-center gap-1 rounded-full bg-white/5 p-1 sm:flex">
-                                        <button
-                                            onClick={() => setViewMode('mobile')}
-                                            className={cn(
-                                                'rounded-full p-2 transition',
-                                                viewMode === 'mobile' ? 'bg-white/15 text-white' : 'text-slate-400 hover:text-white'
-                                            )}
-                                            title="Mobile view"
-                                        >
-                                            <Smartphone size={16} />
-                                        </button>
-                                        <button
-                                            onClick={() => setViewMode('desktop')}
-                                            className={cn(
-                                                'rounded-full p-2 transition',
-                                                viewMode === 'desktop' ? 'bg-white/15 text-white' : 'text-slate-400 hover:text-white'
-                                            )}
-                                            title="Desktop view"
-                                        >
-                                            <Monitor size={16} />
-                                        </button>
-                                    </div>
-
-                                </div>
-                            </div>
-
-                            <div className="flex flex-1 items-center justify-center overflow-hidden px-3 py-4 sm:px-6 sm:py-6">
-                                <div
-                                    className={cn(
-                                        'relative overflow-hidden rounded-[2rem] bg-white shadow-2xl ring-1 ring-white/10 transition-all duration-300',
-                                        viewMode === 'mobile'
-                                            ? 'h-[78vh] max-h-[780px] w-[92vw] max-w-[390px] rounded-[2.5rem] border-[6px] border-slate-900'
-                                            : 'h-full w-full max-h-[82vh] rounded-[1.5rem] border border-slate-700'
-                                    )}
-                                >
-                                    <iframe
-                                        src={'/preview?templateId=' + selectedTemplate.id}
-                                        className="h-full w-full bg-white"
-                                        title="Live Preview"
-                                    />
-
-                                    {viewMode === 'mobile' && (
-                                        <div className="pointer-events-none absolute left-1/2 top-0 h-5 w-28 -translate-x-1/2 rounded-b-xl bg-slate-900" />
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="border-t border-white/10 bg-slate-950/70 px-4 py-3 sm:hidden">
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={() => setViewMode('mobile')}
-                                        className={cn(
-                                            'flex-1 rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition',
-                                            viewMode === 'mobile' ? 'bg-white text-slate-900' : 'bg-white/5 text-slate-300'
-                                        )}
-                                    >
-                                        Mobile
-                                    </button>
-                                    <button
-                                        onClick={() => setViewMode('desktop')}
-                                        className={cn(
-                                            'flex-1 rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition',
-                                            viewMode === 'desktop' ? 'bg-white text-slate-900' : 'bg-white/5 text-slate-300'
-                                        )}
-                                    >
-                                        Desktop
-                                    </button>
-                                </div>
-                            </div>
+                    <div className="mt-10 flex flex-col items-center justify-between gap-4 rounded-2xl border border-[#e1dbce] bg-[#ebe7dc] px-5 py-5 dark:border-white/10 dark:bg-[#171e1a] sm:flex-row sm:px-7">
+                        <div>
+                            <p className="text-sm font-semibold text-[#26392f] dark:text-[#f1eee6]">បានរកឃើញរចនាបថដែលអ្នកចូលចិត្តហើយឬនៅ?</p>
+                            <p className="mt-1 text-xs text-[#687168] dark:text-[#a7afa8]">ចាប់ផ្តើមបង្កើតធៀបផ្ទាល់ខ្លួនរបស់អ្នកបានភ្លាមៗ។</p>
                         </div>
-                    </m.div>
-                )}
-            </AnimatePresence>
+                        <Button asChild className="h-11 w-full rounded-full bg-[#21483b] px-6 text-xs font-semibold text-white hover:bg-[#183a30] dark:bg-[#b8c8ae] dark:text-[#17251e] dark:hover:bg-[#c9d7c0] sm:w-auto">
+                            <Link to={AUTH_URLS.SIGN_UP}>ចាប់ផ្តើមបង្កើតធៀប <ChevronRight size={15} /></Link>
+                        </Button>
+                    </div>
+                </section>
+            </main>
+            <Footer />
+
         </div>
+        </>
     );
 }

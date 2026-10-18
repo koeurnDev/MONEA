@@ -22,7 +22,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ wedding, primary
         <section className="py-14 px-4 sm:px-6 bg-transparent text-[#2d352b] font-kantumruy relative overflow-hidden">
             <div className="max-w-md mx-auto space-y-6 relative z-10">
                 <div className="text-center space-y-1">
-                    <span className="text-xl sm:text-2xl font-khmer-moul text-[#4d5649] block">
+                    <span className="fh-khmer-safe block px-2 font-khmer-moul text-lg text-[#4d5649] sm:text-2xl">
                         កម្រងរូបភាពអនុស្សាវរីយ៍
                     </span>
                     <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-[#8ea07a] to-transparent mx-auto" />
@@ -32,19 +32,17 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ wedding, primary
                     {photos.map((photo, idx) => (
                         <motion.div
                             key={idx}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
                             onClick={() => setSelectedPhoto(idx)}
-                            className={`relative rounded-2xl overflow-hidden cursor-pointer shadow-md border-2 border-amber-400/40 ${getGalleryCardClass(galleryStyle, idx)}`}
+                            className={`relative overflow-hidden cursor-pointer ${galleryStyle === "polaroid" ? "aspect-square" : getGalleryCardClass(galleryStyle, idx)}`}
                         >
                             <PhotoImage
                                 src={photo.url}
                                 alt={`Photo ${idx + 1}`}
-                                className={getGalleryImageClass(galleryStyle)}
+                                className={galleryStyle === "polaroid" ? "h-full w-full object-cover" : getGalleryImageClass(galleryStyle)}
                                 loading="lazy"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity flex items-end p-2.5">
-                                <span className="text-[11px] text-amber-200 font-bold truncate">
+                                <span className="fh-khmer-safe truncate text-[11px] font-bold text-amber-200">
                                     អនុស្សាវរីយ៍
                                 </span>
                             </div>
@@ -76,7 +74,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ wedding, primary
                             <PhotoImage
                                 src={photos[selectedPhoto].url}
                                 alt="Enlarged moment"
-                                className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl border border-amber-400/40"
+                                className="max-w-full max-h-[80vh] object-contain"
                             />
                         </div>
                     </motion.div>

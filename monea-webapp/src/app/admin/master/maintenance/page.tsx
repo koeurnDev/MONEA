@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +47,7 @@ export default function MasterMaintenancePage() {
 
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState(false);
     const [cleaning, setCleaning] = useState(false);
     const [optimizing, setOptimizing] = useState(false);
     const [cleanupConfirm, setCleanupConfirm] = useState(false);
@@ -66,7 +67,6 @@ export default function MasterMaintenancePage() {
     const [restoringBackup, setRestoringBackup] = useState(false);
     const [restoreData, setRestoreData] = useState<any>(null);
     const [restoreFileError, setRestoreFileError] = useState<string | null>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         loadData();
@@ -74,11 +74,29 @@ export default function MasterMaintenancePage() {
 
     const loadData = async () => {
         setLoading(true);
+        setLoadError(false);
         try {
             const res = await moneaClient.get<any>("/api/admin/master/maintenance/tasks");
-            if (res.data) setStats(res.data);
+            if (res.error || !res.data) {
+                throw new Error(res.error || "Diagnostics response was empty");
+            }
+            const storage = res.data.storage;
+            const storageCards = [storage?.database, storage?.cloudinary, storage?.imagekit];
+            if (
+                storageCards.some((item) =>
+                    !item
+                    || typeof item.usedFormatted !== "string"
+                    || typeof item.usagePercent !== "number"
+                    || !Number.isFinite(item.usagePercent)
+                    || typeof item.isLiveAPI !== "boolean"
+                )
+            ) {
+                throw new Error("Diagnostics response contained invalid storage data");
+            }
+            setStats(res.data);
         } catch (e) {
-            console.error(e);
+            console.error("[Maintenance] Failed to load diagnostics:", e);
+            setLoadError(true);
         } finally {
             setLoading(false);
         }
@@ -135,14 +153,39 @@ export default function MasterMaintenancePage() {
         }
     };
 
-    const formatHealthStatus = (status: string) => {
-        if (!status) return "ល្អប្រសើរ";
+    const formatHealthStatus = (status?: string) => {
+        if (!status) return isKm ? "មិនស្គាល់" : "Unknown";
         const s = String(status).toUpperCase();
-        if (s === "HEALTHY" || s === "ONLINE" || s === "LOCAL_ACTIVE" || s === "ACTIVE") return "ល្អប្រសើរ";
-        if (s === "DEGRADED") return "ដំណើរការខ្សោយ";
-        if (s === "DOWN" || s === "ERROR") return "មានបញ្ហា";
+        if (s === "HEALTHY" || s === "ONLINE" || s === "ACTIVE") return isKm ? "ល្អប្រសើរ" : "Healthy";
+        if (s === "LOCAL_ACTIVE") return isKm ? "ប្រើទម្រង់មូលដ្ឋាន" : "Local mode";
+        if (s === "STANDBY") return isKm ? "រង់ចាំ / មិនសកម្ម" : "Standby";
+        if (s === "DEGRADED") return isKm ? "ដំណើរការខ្សោយ" : "Degraded";
+        if (s === "DOWN" || s === "ERROR") return isKm ? "មានបញ្ហា" : "Issue";
         return status;
     };
+
+    const healthStatusClass = (status?: string) => {
+        const value = status?.toUpperCase();
+        if (value === "HEALTHY" || value === "ONLINE" || value === "ACTIVE") {
+            return "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400";
+        }
+        if (value === "LOCAL_ACTIVE" || value === "STANDBY" || value === "DEGRADED") {
+            return "bg-amber-500/10 text-amber-700 dark:text-amber-300";
+        }
+        if (value === "DOWN" || value === "ERROR") {
+            return "bg-rose-500/10 text-rose-700 dark:text-rose-400";
+        }
+        return "bg-muted text-muted-foreground";
+    };
+
+    const serviceStates = Object.values(stats?.services ?? {}).map((status) => String(status).toUpperCase());
+    const overallHealth = serviceStates.length === 0
+        ? undefined
+        : serviceStates.some((status) => status === "DOWN" || status === "ERROR")
+            ? "ERROR"
+            : serviceStates.some((status) => status === "LOCAL_ACTIVE" || status === "STANDBY" || status === "DEGRADED")
+                ? "DEGRADED"
+                : "HEALTHY";
 
     // ─── 1-Click Direct Backup Download ───────────────────────────────────────
     const handleDownloadBackup = async () => {
@@ -186,7 +229,7 @@ export default function MasterMaintenancePage() {
             try {
                 const parsed = JSON.parse(event.target?.result as string);
                 if (!parsed || !parsed.data) {
-                    setRestoreFileError(isKm ? "ឯកសារនេះមិនមែនជាទម្រង់ Backup របស់ MONEA ឡើយ" : "Invalid backup file structure");
+                    setRestoreFileError(isKm ? "ឯកសារនេះមិនមែនជាទម្រង់ Backup របស់ MONEO ឡើយ" : "Invalid backup file structure");
                     return;
                 }
                 setRestoreData(parsed);
@@ -274,31 +317,9 @@ export default function MasterMaintenancePage() {
         }
     };
 
-    const dbStorage = stats?.storage?.database || {
-        usedMB: 12.5,
-        usedFormatted: "12.5 MB",
-        maxQuotaMB: 500,
-        freeMB: 487.5,
-        usagePercent: 2.5
-    };
-
-    const mediaStorage = stats?.storage?.cloudinary || {
-        usedGB: 0.01,
-        usedFormatted: "10.5 MB",
-        maxQuotaGB: 25.0,
-        freeGB: 24.99,
-        usagePercent: 0.1,
-        totalPhotos: 0
-    };
-
-    const imagekitStorage = stats?.storage?.imagekit || {
-        usedGB: 0.0,
-        usedFormatted: "0.0 MB",
-        maxQuotaGB: 20.0,
-        freeGB: 20.0,
-        usagePercent: 0.01,
-        totalPhotos: 0
-    };
+    const dbStorage = stats?.storage?.database;
+    const mediaStorage = stats?.storage?.cloudinary;
+    const imagekitStorage = stats?.storage?.imagekit;
 
     const filteredAssets = mediaAssets.filter(item => 
         item.public_id?.toLowerCase().includes(mediaSearch.toLowerCase()) ||
@@ -321,71 +342,103 @@ export default function MasterMaintenancePage() {
 
             {/* Top Bar Header */}
             <div className="bg-card/80 backdrop-blur-md border-b border-border/80 sticky top-0 z-20">
-                <div className="max-w-[1400px] mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                <div className="max-w-[1400px] mx-auto px-3 py-3 sm:px-8 sm:py-0 sm:h-20 flex items-center justify-between gap-2">
+                    <div className="flex min-w-0 items-center gap-2 sm:gap-3">
                         <Link to="/admin/master">
-                            <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10 border border-border bg-card shadow-xs hover:bg-muted">
+                            <Button variant="ghost" size="icon" aria-label={isKm ? "ត្រឡប់ទៅទំព័រគ្រប់គ្រង" : "Back to admin"} className="shrink-0 rounded-xl h-10 w-10 border border-border bg-card shadow-xs hover:bg-muted">
                                 <ArrowLeft size={17} className="text-muted-foreground" />
                             </Button>
                         </Link>
-                        <div>
-                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-teal-800 dark:text-teal-300">
+                        <div className="min-w-0">
+                            <div className="flex items-center gap-2 text-xs sm:text-xs font-black uppercase tracking-wider text-teal-800 dark:text-teal-300">
                                 <HeartPulse size={13} />
                                 <span>{isKm ? "សុខភាព និងការថែទាំប្រព័ន្ធ" : "Health & Maintenance"}</span>
                             </div>
-                            <h1 className="text-lg sm:text-xl font-bold text-foreground">
+                            <h1 className="truncate text-base sm:text-xl font-bold text-foreground">
                                 {isKm ? "ការត្រួតពិនិត្យ និងថែទាំប្រព័ន្ធ" : "System Diagnostics & Maintenance"}
                             </h1>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="shrink-0">
                         <Button
                             onClick={loadData}
                             variant="outline"
                             disabled={loading}
-                            className="h-10 px-4 rounded-xl font-bold text-xs border border-border bg-card shadow-xs flex items-center gap-2"
+                            aria-label={isKm ? "ផ្ទុកឡើងវិញ" : "Refresh"}
+                            className="h-10 w-10 sm:w-auto sm:px-4 rounded-xl font-bold text-xs border border-border bg-card shadow-xs flex items-center justify-center gap-2"
                         >
                             <RefreshCcw size={14} className={loading ? "animate-spin" : ""} />
-                            <span>{isKm ? "ផ្ទុកឡើងវិញ" : "Refresh"}</span>
+                            <span className="hidden sm:inline">{isKm ? "ផ្ទុកឡើងវិញ" : "Refresh"}</span>
                         </Button>
                     </div>
                 </div>
             </div>
 
-            <main className="max-w-[1400px] mx-auto p-4 sm:p-8 space-y-6">
+            <main className="max-w-[1400px] mx-auto p-3 sm:p-8 space-y-4 sm:space-y-6">
                 {loading && !stats ? (
                     <div className="py-24 flex flex-col items-center justify-center space-y-3">
                         <Loader2 className="w-8 h-8 animate-spin text-teal-700 dark:text-teal-300" />
                         <p className="text-xs font-bold text-muted-foreground">{isKm ? "កំពុងទាញយកទិន្នន័យសុខភាពប្រព័ន្ធ..." : "Running diagnostics..."}</p>
                     </div>
+                ) : !stats ? (
+                    <div className="mx-auto flex max-w-lg flex-col items-center gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-5 text-center dark:border-rose-500/20 dark:bg-rose-500/5" role="alert">
+                        <AlertTriangle className="h-7 w-7 text-rose-600 dark:text-rose-400" />
+                        <div className="space-y-1">
+                            <p className="font-bold text-foreground">{isKm ? "មិនអាចផ្ទុកទិន្នន័យ Diagnostics បានទេ" : "Diagnostics could not be loaded"}</p>
+                            <p className="text-sm text-muted-foreground">{isKm ? "សូមពិនិត្យការតភ្ជាប់ ឬសិទ្ធិ Admin រួចសាកល្បងម្ដងទៀត។" : "Check your connection or admin access, then try again."}</p>
+                        </div>
+                        <Button type="button" variant="outline" onClick={() => void loadData()} disabled={loading} className="min-h-11 rounded-xl">
+                            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCcw className="mr-2 h-4 w-4" />}
+                            {isKm ? "សាកល្បងម្ដងទៀត" : "Retry"}
+                        </Button>
+                    </div>
                 ) : (
                     <div className="space-y-6">
+                        {loadError && (
+                            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-500/20 dark:bg-amber-500/5 dark:text-amber-200" role="status">
+                                <span>{isKm ? "មិនអាចធ្វើបច្ចុប្បន្នភាពបានទេ។ កំពុងបង្ហាញទិន្នន័យដែលបានផ្ទុកមុន។" : "Refresh failed. Showing the last loaded diagnostics."}</span>
+                                <Button type="button" variant="outline" onClick={() => void loadData()} disabled={loading} className="min-h-10 rounded-lg">
+                                    <RefreshCcw className={cn("mr-2 h-4 w-4", loading && "animate-spin")} />
+                                    {isKm ? "សាកល្បងម្ដងទៀត" : "Retry"}
+                                </Button>
+                            </div>
+                        )}
                         {/* 3 Dedicated Storage Cards Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                             {/* Card 1: Neon Database Storage */}
                             <Card className="bg-card border border-border/80 rounded-2xl shadow-xs overflow-hidden">
-                                <CardHeader className="p-5 pb-3 border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                                    <div className="flex items-center gap-2.5">
+                                <CardHeader className="p-4 sm:p-5 pb-3 border-b border-border/50 flex flex-row items-center justify-between gap-2">
+                                    <div className="flex min-w-0 items-center gap-2.5">
                                         <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center border border-blue-500/20 shrink-0">
                                             <Database size={18} />
                                         </div>
-                                        <div>
+                                        <div className="min-w-0">
                                             <CardTitle className="text-sm font-bold text-foreground">
                                                 {isKm ? "ទំហំផ្ទុក Database" : "Database"}
                                             </CardTitle>
-                                            <p className="text-[11px] text-muted-foreground">
-                                                Neon PostgreSQL
+                                            <p className="truncate text-xs text-muted-foreground">
+                                                {isKm ? "Neon PostgreSQL" : "Neon PostgreSQL database"}
+                                            </p>
+                                            <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                                                {isKm ? "ទិន្នន័យផ្ទាល់" : "Live database data"}
                                             </p>
                                         </div>
                                     </div>
-                                    <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-lg bg-muted text-foreground border border-border/60">
+                                    <span className="shrink-0 text-xs font-mono font-bold px-2 py-0.5 rounded-lg bg-muted text-foreground border border-border/60">
                                         {dbStorage.usagePercent}%
                                     </span>
                                 </CardHeader>
-                                <CardContent className="p-5 space-y-3">
+                                <CardContent className="p-4 sm:p-5 space-y-3">
                                     <div className="space-y-1.5">
-                                        <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden p-0.5">
+                                        <div
+                                            className="w-full h-2.5 bg-muted rounded-full overflow-hidden p-0.5"
+                                            role="progressbar"
+                                            aria-label={isKm ? "ភាគរយទំហំផ្ទុក Database" : "Database storage usage"}
+                                            aria-valuemin={0}
+                                            aria-valuemax={100}
+                                            aria-valuenow={dbStorage.usagePercent}
+                                        >
                                             <div 
                                                 className={cn(
                                                     "h-full rounded-full transition-all duration-500",
@@ -396,20 +449,20 @@ export default function MasterMaintenancePage() {
                                                 style={{ width: `${Math.max(3, dbStorage.usagePercent)}%` }}
                                             />
                                         </div>
-                                        <div className="flex items-center justify-between text-[10px] font-bold text-muted-foreground">
-                                            <span>ប្រើ៖ <strong className="text-foreground font-mono">{dbStorage.usedFormatted}</strong></span>
-                                            <span>សល់៖ <strong className="text-emerald-600 dark:text-emerald-400 font-mono">{dbStorage.freeMB} MB</strong></span>
+                                        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-xs font-bold text-muted-foreground">
+                                            <span>{isKm ? "បានប្រើ" : "Used"}: <strong className="text-foreground font-mono">{dbStorage.usedFormatted}</strong></span>
+                                            <span>{isKm ? "នៅសល់" : "Free"}: <strong className="text-emerald-600 dark:text-emerald-400 font-mono">{dbStorage.freeMB} MB</strong></span>
                                         </div>
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-2 pt-1">
-                                        <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60 flex flex-col">
-                                            <span className="text-[10px] text-muted-foreground font-bold">{isKm ? "ទំហំប្រើ" : "Used"}</span>
-                                            <span className="text-xs font-mono font-black text-foreground">{dbStorage.usedFormatted}</span>
+                                        <div className="min-w-0 p-2.5 rounded-xl bg-muted/40 border border-border/60 flex flex-col">
+                                            <span className="text-xs text-muted-foreground font-bold">{isKm ? "ទំហំបានប្រើ" : "Used"}</span>
+                                            <span className="break-words text-xs font-mono font-black text-foreground">{dbStorage.usedFormatted}</span>
                                         </div>
-                                        <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60 flex flex-col">
-                                            <span className="text-[10px] text-muted-foreground font-bold">{isKm ? "កម្រិតផ្ទុក" : "Quota"}</span>
-                                            <span className="text-xs font-mono font-black text-foreground">{dbStorage.maxQuotaMB} MB</span>
+                                        <div className="min-w-0 p-2.5 rounded-xl bg-muted/40 border border-border/60 flex flex-col">
+                                            <span className="text-xs text-muted-foreground font-bold">{isKm ? "កម្រិតផ្ទុក" : "Quota"}</span>
+                                            <span className="break-words text-xs font-mono font-black text-foreground">{dbStorage.maxQuotaMB} MB</span>
                                         </div>
                                     </div>
                                 </CardContent>
@@ -417,27 +470,39 @@ export default function MasterMaintenancePage() {
 
                             {/* Card 2: Cloudinary Media Storage (Primary) */}
                             <Card className="bg-card border border-border/80 rounded-2xl shadow-xs overflow-hidden">
-                                <CardHeader className="p-5 pb-3 border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                                    <div className="flex items-center gap-2.5">
+                                <CardHeader className="p-4 sm:p-5 pb-3 border-b border-border/50 flex flex-row items-center justify-between gap-2">
+                                    <div className="flex min-w-0 items-center gap-2.5">
                                         <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center border border-emerald-500/20 shrink-0">
                                             <ImageIcon size={18} />
                                         </div>
-                                        <div>
+                                        <div className="min-w-0">
                                             <CardTitle className="text-sm font-bold text-foreground">
                                                 {isKm ? "Cloudinary (ចម្បង)" : "Cloudinary (Primary)"}
                                             </CardTitle>
-                                            <p className="text-[11px] text-muted-foreground">
-                                                Primary Media CDN
+                                            <p className="truncate text-xs text-muted-foreground">
+                                                {isKm ? "សេវាផ្ទុករូបភាពចម្បង" : "Primary media CDN"}
+                                            </p>
+                                            <p className={cn("text-xs font-semibold", mediaStorage.isLiveAPI ? "text-emerald-700 dark:text-emerald-400" : "text-amber-700 dark:text-amber-300")}>
+                                                {mediaStorage.isLiveAPI
+                                                    ? (isKm ? "ទិន្នន័យផ្ទាល់ពី API" : "Live provider data")
+                                                    : (isKm ? "តម្លៃប៉ាន់ស្មាន • មិនមែនទិន្នន័យផ្ទាល់" : "Estimated • not live provider data")}
                                             </p>
                                         </div>
                                     </div>
-                                    <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-lg bg-muted text-foreground border border-border/60">
+                                    <span className="shrink-0 text-xs font-mono font-bold px-2 py-0.5 rounded-lg bg-muted text-foreground border border-border/60">
                                         {mediaStorage.usagePercent}%
                                     </span>
                                 </CardHeader>
-                                <CardContent className="p-5 space-y-3">
+                                <CardContent className="p-4 sm:p-5 space-y-3">
                                     <div className="space-y-1.5">
-                                        <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden p-0.5">
+                                        <div
+                                            className="w-full h-2.5 bg-muted rounded-full overflow-hidden p-0.5"
+                                            role="progressbar"
+                                            aria-label={isKm ? "ភាគរយទំហំផ្ទុក Cloudinary" : "Cloudinary storage usage"}
+                                            aria-valuemin={0}
+                                            aria-valuemax={100}
+                                            aria-valuenow={mediaStorage.usagePercent}
+                                        >
                                             <div 
                                                 className={cn(
                                                     "h-full rounded-full transition-all duration-500",
@@ -448,26 +513,26 @@ export default function MasterMaintenancePage() {
                                                 style={{ width: `${Math.max(3, mediaStorage.usagePercent)}%` }}
                                             />
                                         </div>
-                                        <div className="flex items-center justify-between text-[10px] font-bold text-muted-foreground">
-                                            <span>ប្រើ៖ <strong className="text-foreground font-mono">{mediaStorage.usedFormatted}</strong></span>
-                                            <span>សល់៖ <strong className="text-emerald-600 dark:text-emerald-400 font-mono">{mediaStorage.freeGB} GB</strong></span>
+                                        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-xs font-bold text-muted-foreground">
+                                            <span>{isKm ? "បានប្រើ" : "Used"}: <strong className="text-foreground font-mono">{mediaStorage.usedFormatted}</strong></span>
+                                            <span>{isKm ? "នៅសល់" : "Free"}: <strong className="text-emerald-600 dark:text-emerald-400 font-mono">{mediaStorage.freeGB} GB</strong></span>
                                         </div>
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-2 pt-1">
-                                        <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60 flex flex-col">
-                                            <span className="text-[10px] text-muted-foreground font-bold">{isKm ? "រូបភាព" : "Photos"}</span>
-                                            <span className="text-xs font-mono font-black text-foreground">{mediaStorage.totalPhotos || 0} សន្លឹក</span>
+                                        <div className="min-w-0 p-2.5 rounded-xl bg-muted/40 border border-border/60 flex flex-col">
+                                            <span className="text-xs text-muted-foreground font-bold">{isKm ? "រូបភាព" : "Photos"}</span>
+                                            <span className="break-words text-xs font-mono font-black text-foreground">{mediaStorage.totalPhotos || 0} {isKm ? "សន្លឹក" : "photos"}</span>
                                         </div>
-                                        <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60 flex flex-col">
-                                            <span className="text-[10px] text-muted-foreground font-bold">{isKm ? "កម្រិតផ្ទុក" : "Quota"}</span>
-                                            <span className="text-xs font-mono font-black text-foreground">{mediaStorage.maxQuotaGB} GB</span>
+                                        <div className="min-w-0 p-2.5 rounded-xl bg-muted/40 border border-border/60 flex flex-col">
+                                            <span className="text-xs text-muted-foreground font-bold">{isKm ? "កម្រិតផ្ទុក" : "Quota"}</span>
+                                            <span className="break-words text-xs font-mono font-black text-foreground">{mediaStorage.maxQuotaGB} GB</span>
                                         </div>
                                     </div>
 
                                     <Button
                                         onClick={handleOpenMediaGallery}
-                                        className="w-full h-9 rounded-xl font-bold text-[11px] bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-1.5 shadow-xs transition-all active:scale-95"
+                                        className="w-full h-9 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-1.5 shadow-xs transition-all active:scale-95"
                                     >
                                         <ImageIcon size={13} />
                                         <span>{isKm ? "បើកមើលរូបភាពទាំងអស់" : "Browse Photos"}</span>
@@ -477,50 +542,62 @@ export default function MasterMaintenancePage() {
 
                             {/* Card 3: ImageKit.io Media Storage (Secondary / Auto Failover) */}
                             <Card className="bg-card border border-border/80 rounded-2xl shadow-xs overflow-hidden">
-                                <CardHeader className="p-5 pb-3 border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                                    <div className="flex items-center gap-2.5">
+                                <CardHeader className="p-4 sm:p-5 pb-3 border-b border-border/50 flex flex-row items-center justify-between gap-2">
+                                    <div className="flex min-w-0 items-center gap-2.5">
                                         <div className="w-9 h-9 rounded-xl bg-cyan-500/10 text-cyan-600 flex items-center justify-center border border-cyan-500/20 shrink-0">
                                             <Globe size={18} />
                                         </div>
-                                        <div>
+                                        <div className="min-w-0">
                                             <CardTitle className="text-sm font-bold text-foreground">
                                                 {isKm ? "ImageKit.io (ជំនួយ)" : "ImageKit.io (Backup)"}
                                             </CardTitle>
-                                            <p className="text-[11px] text-muted-foreground">
-                                                Auto-Failover CDN
+                                            <p className="truncate text-xs text-muted-foreground">
+                                                {isKm ? "សេវាបម្រុង ប្ដូរដោយស្វ័យប្រវត្តិ" : "Automatic CDN backup"}
+                                            </p>
+                                            <p className={cn("text-xs font-semibold", imagekitStorage.isLiveAPI ? "text-amber-700 dark:text-amber-300" : "text-amber-700 dark:text-amber-300")}>
+                                                {imagekitStorage.isLiveAPI
+                                                    ? (isKm ? "API ផ្ទាល់ • រាប់តែ ១០០ ឯកសារដំបូង" : "Live API • first 100 files only")
+                                                    : (isKm ? "តម្លៃប៉ាន់ស្មាន • មិនមែនទិន្នន័យផ្ទាល់" : "Estimated • not live provider data")}
                                             </p>
                                         </div>
                                     </div>
-                                    <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">
+                                    <span className="shrink-0 text-xs font-mono font-bold px-2 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">
                                         {imagekitStorage.usagePercent}%
                                     </span>
                                 </CardHeader>
-                                <CardContent className="p-5 space-y-3">
+                                <CardContent className="p-4 sm:p-5 space-y-3">
                                     <div className="space-y-1.5">
-                                        <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden p-0.5">
+                                        <div
+                                            className="w-full h-2.5 bg-muted rounded-full overflow-hidden p-0.5"
+                                            role="progressbar"
+                                            aria-label={isKm ? "ភាគរយទំហំផ្ទុក ImageKit" : "ImageKit storage usage"}
+                                            aria-valuemin={0}
+                                            aria-valuemax={100}
+                                            aria-valuenow={imagekitStorage.usagePercent}
+                                        >
                                             <div 
                                                 className="h-full rounded-full transition-all duration-500 bg-gradient-to-r from-cyan-500 to-blue-500 shadow-cyan-500/30"
                                                 style={{ width: `${Math.max(3, imagekitStorage.usagePercent)}%` }}
                                             />
                                         </div>
-                                        <div className="flex items-center justify-between text-[10px] font-bold text-muted-foreground">
-                                            <span>ប្រើ៖ <strong className="text-foreground font-mono">{imagekitStorage.usedFormatted}</strong></span>
-                                            <span>សល់៖ <strong className="text-emerald-600 dark:text-emerald-400 font-mono">{imagekitStorage.freeGB} GB</strong></span>
+                                        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-xs font-bold text-muted-foreground">
+                                            <span>{isKm ? "បានប្រើ" : "Used"}: <strong className="text-foreground font-mono">{imagekitStorage.usedFormatted}</strong></span>
+                                            <span>{isKm ? "នៅសល់" : "Free"}: <strong className="text-emerald-600 dark:text-emerald-400 font-mono">{imagekitStorage.freeGB} GB</strong></span>
                                         </div>
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-2 pt-1">
-                                        <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60 flex flex-col">
-                                            <span className="text-[10px] text-muted-foreground font-bold">{isKm ? "រូបភាព" : "Photos"}</span>
-                                            <span className="text-xs font-mono font-black text-foreground">{imagekitStorage.totalPhotos || 0} សន្លឹក</span>
+                                        <div className="min-w-0 p-2.5 rounded-xl bg-muted/40 border border-border/60 flex flex-col">
+                                            <span className="text-xs text-muted-foreground font-bold">{isKm ? "រូបភាព" : "Photos"}</span>
+                                            <span className="break-words text-xs font-mono font-black text-foreground">{imagekitStorage.totalPhotos || 0} {isKm ? "សន្លឹក" : "photos"}</span>
                                         </div>
-                                        <div className="p-2.5 rounded-xl bg-muted/40 border border-border/60 flex flex-col">
-                                            <span className="text-[10px] text-muted-foreground font-bold">{isKm ? "កម្រិតផ្ទុក" : "Quota"}</span>
-                                            <span className="text-xs font-mono font-black text-foreground">{imagekitStorage.maxQuotaGB} GB</span>
+                                        <div className="min-w-0 p-2.5 rounded-xl bg-muted/40 border border-border/60 flex flex-col">
+                                            <span className="text-xs text-muted-foreground font-bold">{isKm ? "កម្រិតផ្ទុក" : "Quota"}</span>
+                                            <span className="break-words text-xs font-mono font-black text-foreground">{imagekitStorage.maxQuotaGB} GB</span>
                                         </div>
                                     </div>
 
-                                    <div className="p-2 rounded-xl bg-cyan-50/50 dark:bg-cyan-950/20 border border-cyan-100 dark:border-cyan-900/30 text-[10px] font-mono text-cyan-700 dark:text-cyan-300 text-center truncate">
+                                    <div className="p-2 rounded-xl bg-cyan-50/50 dark:bg-cyan-950/20 border border-cyan-100 dark:border-cyan-900/30 text-xs font-mono text-cyan-700 dark:text-cyan-300 text-center truncate">
                                         ik.imagekit.io/v8dbam7a6
                                     </div>
                                 </CardContent>
@@ -607,7 +684,7 @@ export default function MasterMaintenancePage() {
                                         <Layers size={18} className="text-teal-700 dark:text-teal-300" />
                                         <span>{isKm ? "ការបែងចែកទិន្នន័យ" : "Data Distribution"}</span>
                                     </CardTitle>
-                                    <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+                                    <span className="text-xs font-black uppercase px-2.5 py-0.5 rounded-full bg-muted text-muted-foreground">
                                         PostgreSQL
                                     </span>
                                 </CardHeader>
@@ -640,9 +717,9 @@ export default function MasterMaintenancePage() {
                                         <Server size={18} className="text-emerald-500" />
                                         <span>{isKm ? "ស្ថានភាពសេវាកម្ម" : "Service Health"}</span>
                                     </CardTitle>
-                                    <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5 font-bold">
-                                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                        <span>{isKm ? "ដំណើរការធម្មតា" : "ONLINE"}</span>
+                                    <span className={cn("flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-black uppercase", healthStatusClass(overallHealth))}>
+                                        <div className={cn("h-2 w-2 rounded-full", overallHealth === "HEALTHY" ? "bg-emerald-500" : overallHealth === "ERROR" ? "bg-rose-500" : overallHealth ? "bg-amber-500" : "bg-slate-400")} />
+                                        <span>{formatHealthStatus(overallHealth)}</span>
                                     </span>
                                 </CardHeader>
                                 <CardContent className="p-6 space-y-3">
@@ -653,10 +730,10 @@ export default function MasterMaintenancePage() {
                                             </div>
                                             <div>
                                                 <span className="text-xs font-bold text-foreground block">{isKm ? "មូលដ្ឋានទិន្នន័យ" : "Database"}</span>
-                                                <span className="text-[10px] text-muted-foreground">{isKm ? "ម៉ាស៊ីនមេ PostgreSQL" : "Neon PostgreSQL"}</span>
+                                                <span className="text-xs text-muted-foreground">{isKm ? "ម៉ាស៊ីនមេ PostgreSQL" : "Neon PostgreSQL"}</span>
                                             </div>
                                         </div>
-                                        <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold">
+                                        <span className={cn("rounded-md px-2.5 py-1 text-xs font-black uppercase", healthStatusClass(stats?.services?.database))}>
                                             {formatHealthStatus(stats?.services?.database)}
                                         </span>
                                     </div>
@@ -668,10 +745,10 @@ export default function MasterMaintenancePage() {
                                             </div>
                                             <div>
                                                 <span className="text-xs font-bold text-foreground block">{isKm ? "ប្រព័ន្ធផ្ទុករូបភាពចម្បង" : "Primary Storage"}</span>
-                                                <span className="text-[10px] text-muted-foreground">{isKm ? "ប្រព័ន្ធផ្ទុករូបភាព Cloudinary (25 GB)" : "Cloudinary Storage"}</span>
+                                                <span className="text-xs text-muted-foreground">{isKm ? "ប្រព័ន្ធផ្ទុករូបភាព Cloudinary (25 GB)" : "Cloudinary Storage"}</span>
                                             </div>
                                         </div>
-                                        <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold">
+                                        <span className={cn("rounded-md px-2.5 py-1 text-xs font-black uppercase", healthStatusClass(stats?.services?.cloudinary))}>
                                             {formatHealthStatus(stats?.services?.cloudinary)}
                                         </span>
                                     </div>
@@ -683,11 +760,11 @@ export default function MasterMaintenancePage() {
                                             </div>
                                             <div>
                                                 <span className="text-xs font-bold text-foreground block">{isKm ? "ប្រព័ន្ធផ្ទុករូបភាពទី ២" : "Secondary CDN"}</span>
-                                                <span className="text-[10px] text-muted-foreground">{isKm ? "ImageKit.io CDN (20 GB)" : "ImageKit.io CDN"}</span>
+                                                <span className="text-xs text-muted-foreground">{isKm ? "ImageKit.io CDN (20 GB)" : "ImageKit.io CDN"}</span>
                                             </div>
                                         </div>
-                                        <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold">
-                                            {formatHealthStatus(stats?.services?.imagekit || "ONLINE")}
+                                        <span className={cn("rounded-md px-2.5 py-1 text-xs font-black uppercase", healthStatusClass(stats?.services?.imagekit))}>
+                                            {formatHealthStatus(stats?.services?.imagekit)}
                                         </span>
                                     </div>
 
@@ -698,15 +775,15 @@ export default function MasterMaintenancePage() {
                                             </div>
                                             <div>
                                                 <span className="text-xs font-bold text-foreground block">{isKm ? "ឃ្លាំងទិន្នន័យជំនួយ" : "Archive Vault"}</span>
-                                                <span className="text-[10px] text-muted-foreground">{isKm ? "CockroachDB (10 GB Free)" : "CockroachDB AWS SG"}</span>
+                                                <span className="text-xs text-muted-foreground">{isKm ? "CockroachDB (10 GB Free)" : "CockroachDB AWS SG"}</span>
                                             </div>
                                         </div>
-                                        <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold">
-                                            {formatHealthStatus(stats?.services?.cockroach || "ONLINE")}
+                                        <span className={cn("rounded-md px-2.5 py-1 text-xs font-black uppercase", healthStatusClass(stats?.services?.cockroach))}>
+                                            {formatHealthStatus(stats?.services?.cockroach)}
                                         </span>
                                     </div>
 
-                                    <div className="pt-2 text-[11px] text-muted-foreground flex items-center justify-between">
+                                    <div className="pt-2 text-xs text-muted-foreground flex items-center justify-between">
                                         <span>{isKm ? "ពេលវេលាត្រួតពិនិត្យចុងក្រោយ:" : "Last Checked:"}</span>
                                         <span className="font-mono font-bold">
                                             {new Date(stats?.timestamp || Date.now()).toLocaleTimeString('km-KH', { timeZone: 'Asia/Phnom_Penh' })}
@@ -771,12 +848,12 @@ export default function MasterMaintenancePage() {
 
             {/* Restore Database Modal */}
             <Dialog open={showRestoreModal} onOpenChange={setShowRestoreModal}>
-                <DialogContent className="max-w-md rounded-3xl p-6 font-kantumruy bg-white">
+                <DialogContent className="w-[calc(100vw-2rem)] max-w-md max-h-[85dvh] overflow-y-auto rounded-3xl p-4 font-kantumruy bg-white sm:p-6">
                     <DialogHeader className="space-y-2 text-left">
                         <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-200">
                             <Upload size={24} />
                         </div>
-                        <DialogTitle className="text-lg font-black text-slate-900">
+                        <DialogTitle className="break-words text-lg font-black text-slate-900">
                             {isKm ? "បញ្ចូលទិន្នន័យពី Backup មកវិញ" : "Restore Database"}
                         </DialogTitle>
                         <DialogDescription className="text-xs text-slate-500">
@@ -785,23 +862,24 @@ export default function MasterMaintenancePage() {
                     </DialogHeader>
 
                     <div className="space-y-4 py-2">
-                        <div 
-                            onClick={() => fileInputRef.current?.click()}
-                            className="border-2 border-dashed border-slate-200 hover:border-indigo-500 rounded-2xl p-6 flex flex-col items-center justify-center gap-2 cursor-pointer bg-slate-50 hover:bg-indigo-50/40 transition-colors"
+                        <label
+                            htmlFor="maintenance-backup-file"
+                            className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 p-5 text-center transition-colors hover:border-indigo-500 hover:bg-indigo-50/40 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/30 sm:p-6"
                         >
                             <input 
-                                ref={fileInputRef}
+                                id="maintenance-backup-file"
                                 type="file" 
                                 accept=".json" 
                                 onChange={handleFileSelect} 
-                                className="hidden" 
+                                className="sr-only"
+                                aria-label={isKm ? "ជ្រើសរើសឯកសារ Backup JSON" : "Choose a JSON backup file"}
                             />
                             <Download size={24} className="text-slate-400" />
                             <span className="text-xs font-bold text-slate-700">
                                 {restoreData ? "ឯកសារ Backup ត្រូវបានជ្រើសរើស ✓" : "ចុចទីនេះដើម្បីជ្រើសរើសឯកសារ Backup .json"}
                             </span>
-                            <span className="text-[10px] text-slate-400">monea_backup_*.json</span>
-                        </div>
+                            <span className="text-xs text-slate-400">monea_backup_*.json</span>
+                        </label>
 
                         {restoreFileError && (
                             <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 text-xs font-bold flex items-center gap-2">
@@ -814,9 +892,9 @@ export default function MasterMaintenancePage() {
                             <div className="p-4 rounded-2xl bg-indigo-50/60 border border-indigo-100 space-y-2">
                                 <div className="text-xs font-bold text-indigo-900 flex items-center justify-between">
                                     <span>ព័ត៌មាន Backup៖</span>
-                                    <span className="font-mono text-[10px] bg-white px-2 py-0.5 rounded-full border border-indigo-200">{restoreData.version || "1.2.3"}</span>
+                                    <span className="font-mono text-xs bg-white px-2 py-0.5 rounded-full border border-indigo-200">{restoreData.version || "1.2.3"}</span>
                                 </div>
-                                <div className="grid grid-cols-2 gap-2 text-[11px] font-mono font-bold text-slate-700">
+                                <div className="grid grid-cols-2 gap-2 text-xs font-mono font-bold text-slate-700">
                                     <div>Users: {restoreData.counts?.users || restoreData.data?.users?.length || 0}</div>
                                     <div>Weddings: {restoreData.counts?.weddings || restoreData.data?.weddings?.length || 0}</div>
                                     <div>Guests: {restoreData.counts?.guests || restoreData.data?.guests?.length || 0}</div>
@@ -831,14 +909,14 @@ export default function MasterMaintenancePage() {
                             variant="ghost"
                             onClick={() => setShowRestoreModal(false)}
                             disabled={restoringBackup}
-                            className="rounded-xl text-xs font-bold"
+                            className="min-h-11 w-full rounded-xl text-xs font-bold sm:w-auto"
                         >
                             {isKm ? "បោះបង់" : "Cancel"}
                         </Button>
                         <Button
                             onClick={handleConfirmRestore}
                             disabled={!restoreData || restoringBackup}
-                            className="rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-2"
+                            className="min-h-11 w-full rounded-xl bg-indigo-600 text-xs font-bold text-white hover:bg-indigo-700 sm:w-auto"
                         >
                             {restoringBackup ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
                             <span>{isKm ? "ចាប់ផ្ដើម Restore" : "Confirm Restore"}</span>
@@ -849,7 +927,7 @@ export default function MasterMaintenancePage() {
 
             {/* Cloudinary Media Explorer Modal */}
             <Dialog open={showMediaModal} onOpenChange={setShowMediaModal}>
-                <DialogContent className="max-w-4xl max-h-[85vh] rounded-3xl p-6 font-kantumruy flex flex-col bg-white overflow-hidden">
+                <DialogContent className="w-[calc(100vw-2rem)] max-w-4xl max-h-[85dvh] overflow-hidden rounded-3xl p-4 font-kantumruy flex flex-col bg-white sm:p-6">
                     <DialogHeader className="space-y-2 text-left shrink-0 pb-2 border-b border-slate-100">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div className="flex items-center gap-3">
@@ -879,7 +957,7 @@ export default function MasterMaintenancePage() {
                     </DialogHeader>
 
                     {/* Gallery Grid */}
-                    <div className="flex-1 overflow-y-auto py-4 min-h-[300px]">
+                    <div className="min-h-0 flex-1 overflow-y-auto py-4">
                         {loadingMedia ? (
                             <div className="py-20 flex flex-col items-center justify-center space-y-3">
                                 <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
@@ -917,10 +995,10 @@ export default function MasterMaintenancePage() {
                                             </div>
 
                                             <div className="p-2.5 bg-white space-y-1 text-left">
-                                                <p className="text-[11px] font-mono font-bold text-slate-800 truncate" title={asset.public_id}>
+                                                <p className="text-xs font-mono font-bold text-slate-800 truncate" title={asset.public_id}>
                                                     {asset.public_id?.split('/').pop()}
                                                 </p>
-                                                <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono">
+                                                <div className="flex items-center justify-between text-xs text-slate-400 font-mono">
                                                     <span>{asset.width}x{asset.height}</span>
                                                     <span>{sizeKB} KB</span>
                                                 </div>
@@ -928,7 +1006,7 @@ export default function MasterMaintenancePage() {
                                                 <div className="flex items-center gap-1.5 pt-1">
                                                     <button
                                                         onClick={() => handleCopyUrl(imgUrl)}
-                                                        className="flex-1 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-bold flex items-center justify-center gap-1 transition-colors"
+                                                        className="flex-1 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center justify-center gap-1 transition-colors"
                                                         title="ចម្លង Link"
                                                     >
                                                         {copiedUrl === imgUrl ? <Check size={11} className="text-emerald-600" /> : <Copy size={11} />}

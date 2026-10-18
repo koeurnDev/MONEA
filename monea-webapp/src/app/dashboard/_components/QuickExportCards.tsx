@@ -62,7 +62,7 @@ export function QuickExportCards({ weddingId }: QuickExportCardsProps) {
 
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, t("dashboard.export.guestSheetName"));
-            XLSX.writeFile(workbook, `MONEA_GuestList_${wedding?.groomName || 'Wedding'}.xlsx`);
+            XLSX.writeFile(workbook, `MONEO_GuestList_${wedding?.groomName || 'Wedding'}.xlsx`);
 
             showToast({
                 title: "ទាញយកបញ្ជីភ្ញៀវជោគជ័យ!",
@@ -88,14 +88,14 @@ export function QuickExportCards({ weddingId }: QuickExportCardsProps) {
                 onClick={exportGuests}
                 disabled={loading !== null}
                 className={cn(
-                    "flex flex-col items-center justify-center gap-2.5 p-4 md:p-5 rounded-2xl md:rounded-3xl bg-blue-50/50 dark:bg-blue-950/10 hover:bg-blue-100/70 dark:hover:bg-blue-950/30 active:scale-95 transition-all border border-border/40 hover:border-blue-200 group outline-none",
+                    "flex flex-col items-center justify-center gap-2.5 p-4 md:p-5 rounded-2xl md:rounded-3xl bg-accent/50 hover:bg-accent active:scale-95 transition-all border border-border/40 hover:border-primary/30 group outline-none",
                     loading !== null && "cursor-not-allowed opacity-60 pointer-events-none"
                 )}
             >
                 {loading === "guests" ? (
-                    <Loader2 className="w-5 h-5 md:w-6 md:h-6 text-blue-600 animate-spin" />
+                    <Loader2 className="w-5 h-5 md:w-6 md:h-6 text-primary animate-spin" />
                 ) : (
-                    <Users className="w-5 h-5 md:w-6 md:h-6 text-blue-600 group-hover:scale-110 transition-transform" />
+                    <Users className="w-5 h-5 md:w-6 md:h-6 text-primary group-hover:scale-110 transition-transform" />
                 )}
                 <span className="font-bold font-kantumruy text-xs md:text-sm text-foreground">{t("dashboard.quickActions.guests")}</span>
             </button>

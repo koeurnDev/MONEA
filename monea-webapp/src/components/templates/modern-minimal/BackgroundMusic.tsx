@@ -1,7 +1,7 @@
-﻿import React, { useState, useRef, useEffect } from 'react';
-import { m, AnimatePresence } from 'framer-motion';
-import { Music, Volume2, VolumeX } from 'lucide-react';
-import { WeddingData } from '../types';
+import React, { useEffect } from 'react';
+import { m } from 'framer-motion';
+import { Volume2, VolumeX } from 'lucide-react';
+import type { WeddingData } from '../types';
 
 interface BackgroundMusicProps {
     wedding: WeddingData;
@@ -40,33 +40,23 @@ export function BackgroundMusic({ wedding, isPlaying, setIsPlaying, audioRef }: 
     if (!audioUrl) return null;
 
     return (
-        <div className="fixed bottom-8 right-8 z-[100]">
+        <div className="invitation-floating-control fixed bottom-6 z-[100]">
             <m.button
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
                 onClick={togglePlay}
-                className={`relative flex items-center justify-center w-12 h-12 rounded-full shadow-lg border backdrop-blur-md transition-all ${
+                type="button"
+                aria-label={isPlaying ? "Pause background music" : "Play background music"}
+                aria-pressed={isPlaying}
+                className={`relative flex h-10 w-10 items-center justify-center rounded-full border backdrop-blur-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9b8055] focus-visible:ring-offset-2 ${
                     isPlaying 
-                        ? "bg-slate-900 text-white border-slate-900" 
-                        : "bg-white/80 text-slate-500 border-slate-200"
+                        ? "border-[#9b8055]/25 bg-[#f7f1ea]/95 text-[#9b8055] shadow-[0_4px_14px_rgba(31,41,55,0.12)]"
+                        : "border-white/80 bg-white/85 text-slate-600 shadow-[0_3px_12px_rgba(31,41,55,0.10)] hover:text-[#9b8055]"
                 }`}
             >
-                {/* Minimal pulse ring when playing */}
-                <AnimatePresence>
-                    {isPlaying && (
-                        <m.div
-                            initial={{ scale: 0.8, opacity: 0 }}
-                            animate={{ scale: 1.5, opacity: 0 }}
-                            exit={{ scale: 0.8, opacity: 0 }}
-                            transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
-                            className="absolute inset-0 rounded-full border border-slate-900/30"
-                        />
-                    )}
-                </AnimatePresence>
-
-                {isPlaying ? <Volume2 size={20} /> : <VolumeX size={20} />}
+                {isPlaying ? <Volume2 aria-hidden="true" size={17} strokeWidth={1.8} /> : <VolumeX aria-hidden="true" size={17} strokeWidth={1.8} />}
             </m.button>
         </div>
     );

@@ -8,10 +8,13 @@ const prisma = new PrismaClient();
 async function reset() {
     console.log("Resetting admin password using app's CryptoUtils...");
     
-    const pepper = process.env.SECURITY_PEPPER || "monea-dev-fallback-pepper";
-    console.log("[Hash Info] Using Pepper:", pepper);
+    // Password must come from the environment; never hard-code credentials.
+    const newPassword = process.env.ADMIN_RESET_PASSWORD;
+    if (!newPassword || newPassword.length < 12) {
+        throw new Error("Set ADMIN_RESET_PASSWORD (min 12 characters) before running this script.");
+    }
     // Hash the password using the exact same logic as the sign-in route
-    const hashedPassword = await CryptoUtils.hash("password123");
+    const hashedPassword = await CryptoUtils.hash(newPassword);
     
     await prisma.user.upsert({
         where: { email: 'kook74532@gmail.com' },
@@ -24,7 +27,7 @@ async function reset() {
         },
     });
 
-    console.log("Admin password reset successfully to: password123");
+    console.log("Admin password reset successfully.");
 }
 
 reset()

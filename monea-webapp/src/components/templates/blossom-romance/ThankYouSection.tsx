@@ -1,6 +1,7 @@
 import React from 'react';
 import { Heart, Sparkles } from 'lucide-react';
 import { WeddingData } from '../types';
+import { CoupleNamesLine } from "../shared/OneLineName";
 
 interface ThankYouSectionProps {
     wedding: WeddingData;
@@ -14,8 +15,8 @@ export const ThankYouSection: React.FC<ThankYouSectionProps> = ({ wedding, prima
     return (
         <section className="py-16 px-4 sm:px-6 bg-gradient-to-b from-white to-rose-50 text-center font-kantumruy relative overflow-hidden">
             <div className="max-w-md mx-auto space-y-6 relative z-10">
-                <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-600 flex items-center justify-center mx-auto shadow-sm">
-                    <Heart size={20} className="fill-rose-500" />
+                <div className="mx-auto flex h-12 w-12 items-center justify-center text-rose-600">
+                    <Heart size={20} className="fill-rose-500" aria-hidden="true" />
                 </div>
 
                 <div className="space-y-2">
@@ -28,14 +29,12 @@ export const ThankYouSection: React.FC<ThankYouSectionProps> = ({ wedding, prima
                 </div>
 
                 <div className="py-3">
-                    <span className="m05-font-name text-lg font-serif italic text-rose-800 font-bold">
-                        {groomName} & {brideName}
-                    </span>
+                    <CoupleNamesLine groom={groomName} bride={brideName} className="m05-font-name text-lg font-serif italic text-rose-800 font-bold" />
                 </div>
 
                 <div className="pt-6 border-t border-rose-200/60 text-[10px] text-muted-foreground flex items-center justify-center gap-1.5">
                     <span>បង្កើតឡើងដោយក្តីស្រឡាញ់ជាមួយ</span>
-                    <span className="font-bold text-rose-600 font-outfit uppercase tracking-widest">MONEA</span>
+                    <span className="font-bold text-rose-600 font-outfit tracking-[0.08em]">MONEO</span>
                 </div>
             </div>
         </section>

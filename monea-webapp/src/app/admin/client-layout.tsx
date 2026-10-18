@@ -65,14 +65,14 @@ export default function AdminClientLayout({ children }: { children: React.ReactN
                 <Link to="/" className="flex items-center gap-2.5">
                     <MoneaLogo showText size="md" />
                 </Link>
-                <span className="ml-auto rounded-full bg-teal-500/10 border border-teal-500/20 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-teal-700 dark:text-teal-400">
+                <span className="ml-auto rounded-full bg-teal-500/10 border border-teal-500/20 px-2.5 py-0.5 text-xs font-black uppercase tracking-widest text-teal-700 dark:text-teal-400">
                     Admin
                 </span>
             </div>
 
             {/* Navigation */}
             <nav className="flex-1 overflow-y-auto p-4 space-y-1">
-                <p className="px-3 pt-1 pb-2 text-[9px] font-black uppercase tracking-[0.18em] text-slate-400 dark:text-slate-600">
+                <p className="px-3 pt-1 pb-2 text-xs font-black uppercase tracking-[0.18em] text-slate-400 dark:text-slate-600">
                     Navigation
                 </p>
                 {navItems.map((item) => {
@@ -119,7 +119,7 @@ export default function AdminClientLayout({ children }: { children: React.ReactN
                     </div>
                     <div className="min-w-0 flex-1">
                         <p className="truncate text-xs font-semibold text-slate-800 dark:text-slate-200">{user?.email || "Admin"}</p>
-                        <p className="text-[10px] text-slate-400 dark:text-slate-500">{user?.role || "—"}</p>
+                        <p className="text-xs text-slate-400 dark:text-slate-500">{user?.role || "—"}</p>
                     </div>
                 </div>
                 <button

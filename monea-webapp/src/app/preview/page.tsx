@@ -1,7 +1,6 @@
 import React, { Suspense, startTransition, useEffect, useState } from "react";
 import { WeddingData } from "@/components/templates";
 import { TemplateRenderer } from "@/components/templates/TemplateRenderer";
-import { getWeddingWithPhotoVisibility } from "@/components/templates/photo-visibility";
 import { SafeBoundary } from "@/components/ui/SafeBoundary";
 import { moneaClient } from "@/lib/api-client";
 import { DEFAULT_WEDDING } from "@/data/wedding";
@@ -44,7 +43,7 @@ const DEFAULT_PREVIEW_WEDDING: WeddingData = {
         },
         bankAccounts: [
             {
-                bankName: "ABA Bank",
+                bankName: "KHQR",
                 accountName: "KAB SIN & MEAS CHANMEANA",
                 accountNumber: "001 234 567",
                 qrUrl: "/images/qr.webp",
@@ -295,9 +294,8 @@ export default function PreviewPage() {
 
     const activeWedding = wedding || DEFAULT_PREVIEW_WEDDING;
     const previewFontClass = `preview-font-${activeWedding.themeSettings?.fontStyle || 'default'}`;
-
-    // Check if viewed directly in browser (not inside an iframe)
     const isStandalone = typeof window !== 'undefined' && window.self === window.top;
+    const usePhoneFrame = isStandalone && !isApprovalPreview;
 
     return (
         <SafeBoundary name="Preview Template" isSilent={false}>
@@ -329,25 +327,30 @@ export default function PreviewPage() {
                     font-family: 'Preahvihear', 'Kantumruy Pro', sans-serif !important;
                 }
             `}</style>
-            <div className={isStandalone && !isApprovalPreview ? "min-h-screen bg-slate-900 flex justify-center py-6 px-3" : "relative w-full min-h-screen bg-background"}>
-                <div className={`${isStandalone && !isApprovalPreview ? "w-full max-w-[430px] bg-background rounded-3xl overflow-hidden shadow-2xl ring-1 ring-white/10 min-h-screen" : "w-full min-h-screen"} ${previewFontClass}`}>
-                    <Suspense fallback={
-                        <div className="flex items-center justify-center min-h-[500px] animate-pulse font-kantumruy text-sm text-slate-400">
-                            កំពុងផ្ទុកគំរូ...
-                        </div>
-                    }>
-                        {wedding ? (() => {
-                            const visibleWedding = getWeddingWithPhotoVisibility(activeWedding);
-                            return <TemplateRenderer
-                                wedding={visibleWedding}
-                                templateId={activeWedding.templateId || "modern-minimal"}
-                            />;
-                        })() : (
-                            <div className="flex min-h-[500px] items-center justify-center animate-pulse font-kantumruy text-sm text-slate-400">
+            <div className={usePhoneFrame ? "min-h-screen bg-background md:flex md:justify-center md:bg-[#f4f1e9] md:px-6 md:py-6" : "relative w-full min-h-screen bg-background"}>
+                <div className={usePhoneFrame ? "mx-auto w-full min-h-screen md:relative md:my-auto md:max-w-[448px] md:rounded-[3.25rem] md:border-[7px] md:border-[#252528] md:bg-[#252528] md:p-[3px] md:shadow-[0_30px_90px_rgba(25,25,25,.22)] lg:p-2" : "w-full min-h-screen"}>
+                    <div className={`relative w-full min-h-screen bg-background ${usePhoneFrame ? "md:h-[min(956px,calc(100svh-3rem))] md:min-h-[700px] md:overflow-y-auto md:overscroll-contain md:rounded-[2.8rem] md:[scrollbar-width:none]" : ""} ${previewFontClass}`}>
+                        <Suspense fallback={
+                            <div className="flex items-center justify-center min-h-[500px] animate-pulse font-kantumruy text-sm text-slate-400">
                                 កំពុងផ្ទុកគំរូ...
                             </div>
-                        )}
-                    </Suspense>
+                        }>
+                            {wedding ? (() => {
+                                return <TemplateRenderer
+                                    wedding={activeWedding}
+                                    templateId={activeWedding.templateId || "modern-minimal"}
+                                    guestName={new URLSearchParams(window.location.search).get("guestName") || undefined}
+                                />;
+                            })() : (
+                                <div className="flex min-h-[500px] items-center justify-center animate-pulse font-kantumruy text-sm text-slate-400">
+                                    កំពុងផ្ទុកគំរូ...
+                                </div>
+                            )}
+                        </Suspense>
+                    </div>
+                    {usePhoneFrame && (
+                        <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-[15px] z-[100] hidden h-[30px] w-[116px] -translate-x-1/2 rounded-full bg-black md:block" />
+                    )}
                 </div>
             </div>
         </SafeBoundary>

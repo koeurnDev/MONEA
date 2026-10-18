@@ -1,6 +1,9 @@
 import React from 'react';
 import { m } from 'framer-motion';
 import type { WeddingData } from '../types';
+import { getContrastingTextColor } from "@/lib/color-contrast";
+import { getTemplatePaperStyles } from "@/lib/template-color-palette";
+import { OneLineName } from "../shared/OneLineName";
 
 export const AnniversaryInvitation = ({ wedding, guestName }: { wedding: WeddingData; guestName?: string }) => {
     const { 
@@ -23,6 +26,10 @@ export const AnniversaryInvitation = ({ wedding, guestName }: { wedding: Wedding
     const brideFatherName = (wedding.themeSettings?.parents?.brideFather || brideFather)?.trim();
     const brideMotherName = (wedding.themeSettings?.parents?.brideMother || brideMother)?.trim();
     const hasParents = Boolean(groomFatherName || groomMotherName || brideFatherName || brideMotherName);
+    const cardColor = getTemplatePaperStyles(
+        wedding.themeSettings,
+        wedding.themeSettings?.m07CardColor || "#FBF9F5",
+    )["--monea-paper-color"];
 
     return (
         <section className="py-16 px-4 bg-[#F1ECE5] text-[#2D2928] font-kantumruy relative overflow-hidden" id="invitation">
@@ -33,7 +40,15 @@ export const AnniversaryInvitation = ({ wedding, guestName }: { wedding: Wedding
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.8 }}
-                    className="relative bg-[#FBF9F5] rounded-[2rem] p-6 sm:p-9 border border-[#CBAF78]/70 shadow-[0_18px_45px_rgba(75,55,40,0.10)] text-center space-y-7"
+                    className="anniversary-invitation-card relative bg-[#FBF9F5] rounded-[2rem] p-6 sm:p-9 border border-[#CBAF78]/70 shadow-[0_18px_45px_rgba(75,55,40,0.10)] text-center space-y-7"
+                    style={{
+                        backgroundColor: cardColor,
+                        backgroundImage: "var(--monea-paper-texture, url('/khmer-invite-starter-kit/textures/paper-cream.webp'))",
+                        backgroundBlendMode: "multiply",
+                        backgroundRepeat: "repeat",
+                        backgroundSize: "320px 320px",
+                        "--anniversary-card-ink": getContrastingTextColor(cardColor),
+                    } as React.CSSProperties}
                 >
                     {/* Top Ornamental Header */}
                     <div className="space-y-1.5">
@@ -64,14 +79,14 @@ export const AnniversaryInvitation = ({ wedding, guestName }: { wedding: Wedding
                     </div>}
 
                     {/* Honorific Greeting Card */}
-                    <div className="p-4 sm:p-5 bg-[#F0E3D1]/55 rounded-2xl border border-[#D9C6AA] text-center space-y-2">
-                        <p className="text-xs font-bold text-[#966B4E] font-kantumruy">
+                    <div className="mx-auto max-w-md rounded-2xl border border-[#D9C6AA] bg-[#F0E3D1]/55 p-5 text-center sm:p-6">
+                        <p className="font-kantumruy text-xs font-bold tracking-wide text-[#966B4E]">
                             សូមគោរពអញ្ជើញ
                         </p>
-                        <h4 className="font-khmer-moul text-sm sm:text-base text-[#633E42] leading-relaxed">
+                        <h4 className="mx-auto mt-2 max-w-sm font-khmer-moul text-sm leading-loose text-[#633E42] sm:text-base">
                             {guestName || wedding.guestName || "ឯកឧត្តម លោកជំទាវ លោក លោកស្រី អ្នកនាងកញ្ញា"}
                         </h4>
-                        <p className="text-xs text-slate-600 font-kantumruy leading-relaxed pt-1">
+                        <p className="mx-auto mt-3 max-w-sm font-kantumruy text-sm leading-[2] text-slate-700">
                             ចូលរួមជាអធិបតី និងជាសាក្សី ដើម្បីប្រសិទ្ធពរជ័យសិរីសួស្តី ជ័យមង្គល ក្នុងពិធីភ្ជាប់ពាក្យកូនប្រុស-កូនស្រីរបស់យើងខ្ញុំ
                         </p>
                     </div>
@@ -85,7 +100,7 @@ export const AnniversaryInvitation = ({ wedding, guestName }: { wedding: Wedding
                                     កូនប្រុសនាម
                                 </span>
                                 <h3 className="font-khmer-moul text-xs sm:text-sm md:text-base text-slate-900 leading-normal whitespace-nowrap overflow-hidden text-ellipsis">
-                                    {groomName}
+                                    <OneLineName name={groomName} />
                                 </h3>
                             </div>
 
@@ -100,18 +115,25 @@ export const AnniversaryInvitation = ({ wedding, guestName }: { wedding: Wedding
                                     កូនស្រីនាម
                                 </span>
                                 <h3 className="font-khmer-moul text-xs sm:text-sm md:text-base text-slate-900 leading-normal whitespace-nowrap overflow-hidden text-ellipsis">
-                                    {brideName}
+                                    <OneLineName name={brideName} />
                                 </h3>
                             </div>
                         </div>
                     </div>
 
                     {/* Warm closing note */}
-                    <p className="text-xs text-slate-600 font-kantumruy leading-relaxed pt-1">
+                    <p className="mx-auto max-w-sm pt-1 font-kantumruy text-sm leading-[2] text-slate-700">
                         វត្តមានដ៏ឧត្តុង្គឧត្តមរបស់លោកអ្នក គឺជាកិត្តិយសដ៏ធំធេង និងជាសិរីមង្គលដ៏ប្រសើរសម្រាប់គ្រួសារយើងខ្ញុំទាំងពីរ។
                     </p>
                 </m.div>
             </div>
+            <style>{`
+                .anniversary-invitation-card h2,
+                .anniversary-invitation-card h3,
+                .anniversary-invitation-card h4,
+                .anniversary-invitation-card p,
+                .anniversary-invitation-card span { color: var(--anniversary-card-ink) !important; }
+            `}</style>
         </section>
     );
 };

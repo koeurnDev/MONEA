@@ -11,6 +11,5 @@ Allow: /
 Allow: /w/
 Allow: /invite/
 Allow: /templates
-Allow: /pricing
 
-Sitemap: https://monea-webapp.pages.dev/sitemap.xml
+Sitemap: https://moneoez.com/sitemap-index.xml

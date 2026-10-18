@@ -1,9 +1,15 @@
 import React from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 
 export default function NotFoundPage() {
     return (
+        <>
+        <Helmet>
+            <title>404 | MONEO</title>
+            <meta name="robots" content="noindex, follow" />
+        </Helmet>
         <div className="min-h-[70vh] flex flex-col items-center justify-center p-4 text-center">
             <h1 className="text-6xl font-black text-slate-900 dark:text-white mb-4">404</h1>
             <h2 className="text-2xl font-bold text-slate-700 dark:text-slate-300 mb-2">រកមិនឃើញទំព័រនេះទេ</h2>
@@ -16,5 +22,6 @@ export default function NotFoundPage() {
                 </Button>
             </Link>
         </div>
+        </>
     );
 }

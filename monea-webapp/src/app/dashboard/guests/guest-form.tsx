@@ -168,7 +168,7 @@ export function GuestForm({
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.05 }}
-                        className="bg-slate-50/80 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 rounded-2xl p-4 space-y-4 shadow-sm backdrop-blur-xl"
+                        className="bg-muted/50 border border-border/60 rounded-2xl p-4 space-y-4 shadow-sm backdrop-blur-xl"
                     >
                         <FormField
                             control={form.control}
@@ -180,15 +180,15 @@ export function GuestForm({
                                     </FormLabel>
                                     <FormControl>
                                         <div className="relative group/input">
-                                            <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within/input:text-teal-500 transition-colors z-20" />
+                                            <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within/input:text-primary transition-colors z-20" />
                                             <Input
                                                 placeholder={t("guests.form.namePlaceholder")}
-                                                className="pl-10 h-11 text-sm rounded-xl font-kantumruy border-border/80 bg-background/80 focus:bg-background focus-visible:ring-teal-500/20 focus-visible:border-teal-500/50 font-bold"
+                                                className="pl-10 h-11 text-sm rounded-xl font-kantumruy border-border/80 bg-background/80 focus:bg-background focus-visible:ring-ring focus-visible:border-primary/50 font-bold"
                                                 {...field}
                                             />
                                         </div>
                                     </FormControl>
-                                    <FormMessage className="font-kantumruy text-[10px] mt-0.5 text-rose-500" />
+                                    <FormMessage className="font-kantumruy text-xs mt-0.5 text-rose-500" />
                                 </FormItem>
                             )}
                         />
@@ -203,7 +203,7 @@ export function GuestForm({
                                     </FormLabel>
                                     <Select onValueChange={field.onChange} value={field.value}>
                                         <FormControl>
-                                            <SelectTrigger className="h-11 rounded-xl border-border/80 bg-background/80 font-kantumruy text-sm font-bold focus:ring-teal-500/20">
+                                            <SelectTrigger className="h-11 rounded-xl border-border/80 bg-background/80 font-kantumruy text-sm font-bold focus:ring-ring">
                                                 <SelectValue />
                                             </SelectTrigger>
                                         </FormControl>
@@ -215,7 +215,7 @@ export function GuestForm({
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <FormMessage className="font-kantumruy text-[10px] mt-0.5 text-rose-500" />
+                                    <FormMessage className="font-kantumruy text-xs mt-0.5 text-rose-500" />
                                 </FormItem>
                             )}
                         />
@@ -230,15 +230,15 @@ export function GuestForm({
                                     </FormLabel>
                                     <FormControl>
                                         <div className="relative group/input">
-                                            <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within/input:text-teal-500 transition-colors z-20" />
+                                            <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within/input:text-primary transition-colors z-20" />
                                             <Input
                                                 placeholder={t("guests.form.locationPlaceholder")}
-                                                className="pl-10 h-11 text-sm rounded-xl font-kantumruy border-border/80 bg-background/80 focus:bg-background focus-visible:ring-teal-500/20 focus-visible:border-teal-500/50 font-medium"
+                                                className="pl-10 h-11 text-sm rounded-xl font-kantumruy border-border/80 bg-background/80 focus:bg-background focus-visible:ring-ring focus-visible:border-primary/50 font-medium"
                                                 {...field}
                                             />
                                         </div>
                                     </FormControl>
-                                    <FormMessage className="font-kantumruy text-[10px] mt-0.5 text-rose-500" />
+                                    <FormMessage className="font-kantumruy text-xs mt-0.5 text-rose-500" />
                                 </FormItem>
                             )}
                         />
@@ -253,7 +253,7 @@ export function GuestForm({
                     <Button
                         type="submit"
                         disabled={loading}
-                        className="w-full h-11 rounded-xl text-sm font-bold font-kantumruy transition-all bg-teal-600 hover:bg-teal-700 text-white shadow-lg shadow-teal-600/20 active:scale-98"
+                        className="w-full h-11 rounded-xl text-sm font-bold font-kantumruy transition-all bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg active:scale-98"
                     >
                         <div className="flex items-center justify-center gap-2">
                             {loading ? (

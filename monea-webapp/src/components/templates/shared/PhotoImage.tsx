@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { ImageOff } from "lucide-react";
 
-import { optimizeMediaUrl } from "@/lib/media";
+import { buildSrcSet, MEDIA_WIDTHS, optimizeMediaUrl } from "@/lib/media";
 
 type PhotoImageProps = React.ImgHTMLAttributes<HTMLImageElement>;
 
-export function PhotoImage({ src, alt, className, onError, loading, decoding, ...props }: PhotoImageProps) {
+export function PhotoImage({ src, alt, className, onError, loading, decoding, sizes, srcSet, ...props }: PhotoImageProps) {
     const [hasError, setHasError] = useState(false);
 
     useEffect(() => {
@@ -13,12 +13,17 @@ export function PhotoImage({ src, alt, className, onError, loading, decoding, ..
     }, [src]);
 
     const optimizedSrc = typeof src === "string" ? optimizeMediaUrl(src, { width: 1200, quality: 78 }) : src;
+    const responsiveSrcSet = srcSet ?? (typeof src === "string"
+        ? buildSrcSet(src, MEDIA_WIDTHS.lightbox, { quality: 78 })
+        : undefined);
 
     return (
         <>
             <img
                 loading={loading ?? "lazy"}
                 decoding={decoding ?? "async"}
+                sizes={sizes ?? "100vw"}
+                srcSet={responsiveSrcSet}
                 {...props}
                 src={optimizedSrc}
                 alt={alt}

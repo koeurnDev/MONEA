@@ -21,10 +21,8 @@ export function ThankYouSection({ wedding, smartColors }: ThankYouSectionProps) 
                             <m.div
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 whileInView={{ opacity: 1, scale: 1 }}
-                                className="mb-24 p-12 bg-white/80 backdrop-blur-xl shadow-[0_40px_100px_-20px_rgba(0,0,0,0.08)] rounded-[3.5rem] border border-white/60 max-w-sm mx-auto flex flex-col items-center gap-10 group relative overflow-hidden"
+                                className="mb-24 max-w-sm mx-auto flex flex-col items-center gap-6 group relative overflow-hidden"
                             >
-                                <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-transparent via-gold-main/20 to-transparent" />
-                                
                                 <div className="text-center space-y-3">
                                     <p className="font-khmer-moul text-sm text-gold-main tracking-wide leading-relaxed">
                                         {wedding.themeSettings?.customLabels?.ticketHeader || t("template.khmerLegacy.ticketHeader")}
@@ -35,7 +33,7 @@ export function ThankYouSection({ wedding, smartColors }: ThankYouSectionProps) 
                                     </p>
                                 </div>
 
-                                <div className="p-8 bg-white rounded-[2.5rem] shadow-[inner_0_4px_12px_rgba(0,0,0,0.05)] ring-1 ring-slate-100 group-hover:scale-105 transition-transform duration-700">
+                                <div className="p-4 bg-white group-hover:scale-105 transition-transform duration-700">
                                     <SafeQRCode
                                         value={wedding.guestId}
                                         size={200}

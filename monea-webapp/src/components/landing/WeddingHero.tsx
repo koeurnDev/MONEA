@@ -62,7 +62,7 @@ export function WeddingHero() {
                         >
                             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-rose-500/10 dark:bg-rose-500/20 border border-rose-500/30 shadow-xs">
                                 <Sparkles className="w-4 h-4 text-rose-500 animate-pulse" />
-                                <span className="text-rose-700 dark:text-rose-300 text-[11px] sm:text-xs font-black tracking-wider uppercase">
+                                <span className="text-rose-700 dark:text-rose-300 text-xs sm:text-xs font-black tracking-wider uppercase">
                                     ធៀបការឌីជីថលបែបខ្មែរទំនើប
                                 </span>
                             </div>

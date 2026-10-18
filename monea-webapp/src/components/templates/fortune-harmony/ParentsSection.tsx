@@ -1,5 +1,6 @@
 import React from 'react';
 import { WeddingData } from '../types';
+import { OneLineName } from "../shared/OneLineName";
 
 interface ParentsSectionProps {
     wedding: WeddingData;
@@ -21,39 +22,39 @@ export const ParentsSection: React.FC<ParentsSectionProps> = ({ wedding, primary
             <div className="max-w-md mx-auto space-y-8 relative z-10">
                 {/* Header Decoration */}
                 <div className="flex flex-col items-center space-y-2">
-                    <span className="text-xl sm:text-2xl font-khmer-moul text-[#4d5649]">
+                    <span className="fh-khmer-safe px-2 text-center font-khmer-moul text-lg text-[#4d5649] sm:text-2xl">
                         {isEngagement ? "សិរីមង្គលពិធីភ្ជាប់ពាក្យ" : "សិរីមង្គលអាពាហ៍ពិពាហ៍"}
                     </span>
                     <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-[#8ca07a] to-transparent" />
                 </div>
 
                 {/* Parents Grid */}
-                {(groomFather || groomMother || brideFather || brideMother) && <div className="grid grid-cols-2 gap-4 text-xs sm:text-sm">
+                {(groomFather || groomMother || brideFather || brideMother) && <div className="grid grid-cols-2 gap-3 text-xs leading-relaxed sm:gap-4 sm:text-sm">
                     {/* Groom Parents */}
-                    {(groomFather || groomMother) && <div className="bg-[#fffdf8]/80 border border-[#d9d1bf] rounded-2xl p-4 shadow-md space-y-1.5">
-                        <span className="text-[11px] font-bold text-[#4d5649] block uppercase tracking-wider">
+                    {(groomFather || groomMother) && <div className="min-w-0 space-y-1.5 border-y border-[#d9d1bf] px-2 py-3">
+                        <span className="fh-khmer-safe block text-[11px] font-bold text-[#4d5649]">
                             មាតាបិតាខាងប្រុស
                         </span>
-                        {groomFather && <p className="font-bold text-[#2d352b]">ឪពុក៖ {groomFather}</p>}
-                        {groomMother && <p className="font-bold text-[#2d352b]">ម្តាយ៖ {groomMother}</p>}
+                        {groomFather && <p className="fh-khmer-safe break-words font-kantumruy font-bold text-[#2d352b]">ឪពុក៖ {groomFather}</p>}
+                        {groomMother && <p className="fh-khmer-safe break-words font-kantumruy font-bold text-[#2d352b]">ម្តាយ៖ {groomMother}</p>}
                     </div>}
 
                     {/* Bride Parents */}
-                    {(brideFather || brideMother) && <div className={`bg-[#fffdf8]/80 border border-[#d9d1bf] rounded-2xl p-4 shadow-md space-y-1.5 ${!groomFather && !groomMother ? "col-start-2" : ""}`}>
-                        <span className="text-[11px] font-bold text-[#4d5649] block uppercase tracking-wider">
+                    {(brideFather || brideMother) && <div className={`min-w-0 space-y-1.5 border-y border-[#d9d1bf] px-2 py-3 ${!groomFather && !groomMother ? "col-start-2" : ""}`}>
+                        <span className="fh-khmer-safe block text-[11px] font-bold text-[#4d5649]">
                             មាតាបិតាខាងស្រី
                         </span>
-                        {brideFather && <p className="font-bold text-[#2d352b]">ឪពុក៖ {brideFather}</p>}
-                        {brideMother && <p className="font-bold text-[#2d352b]">ម្តាយ៖ {brideMother}</p>}
+                        {brideFather && <p className="fh-khmer-safe break-words font-kantumruy font-bold text-[#2d352b]">ឪពុក៖ {brideFather}</p>}
+                        {brideMother && <p className="fh-khmer-safe break-words font-kantumruy font-bold text-[#2d352b]">ម្តាយ៖ {brideMother}</p>}
                     </div>}
                 </div>}
 
                 {/* Formal Invitation Paragraph */}
-                <div className="bg-[#fffdf8]/80 border border-[#d9d1bf] rounded-3xl p-5 sm:p-6 text-xs sm:text-sm leading-relaxed text-[#374237] space-y-3 shadow-md">
-                    <p className="font-bold text-[#4d5649] text-sm">
+                <div className="space-y-3 border-y border-[#d9d1bf] py-5 text-left text-xs leading-[1.9] text-[#374237] sm:py-6 sm:text-sm">
+                    <p className="fh-khmer-safe text-center font-khmer-moul text-sm font-bold text-[#4d5649]">
                         សូមគោរពអញ្ជើញ
                     </p>
-                    <p>
+                    <p className="fh-khmer-safe">
                         {wedding.themeSettings?.customLabels?.formal_invitation_text || 
                         "ឯកឧត្តម លោកជំទាវ អ្នកឧកញ៉ា លោក លោកស្រី អ្នកនាងកញ្ញា អញ្ជើញចូលរួមជាអធិបតី និងជាភ្ញៀវកិត្តិយស ដើម្បីប្រសិទ្ធពរជ័យ សិរីសួស្តី ជ័យមង្គល ក្នុងពិធីមង្គលការ កូនប្រុស-កូនស្រី របស់យើងខ្ញុំ។"}
                     </p>
@@ -62,13 +63,13 @@ export const ParentsSection: React.FC<ParentsSectionProps> = ({ wedding, primary
                 {/* Couple Highlight */}
                 <div className="py-2 space-y-1">
                     <div className="grid grid-cols-2 gap-4 items-center">
-                        <div className="text-right">
-                            <span className="text-[11px] text-[#5c665d] block">កូនប្រុសនាម</span>
-                            <span className="m05-font-name text-base sm:text-lg font-khmer-moul text-[#2d352b]">{groomName}</span>
+                        <div className="min-w-0 text-right">
+                            <span className="fh-khmer-safe block text-[11px] text-[#5c665d]">កូនប្រុសនាម</span>
+                            <OneLineName name={groomName} className="fh-khmer-safe m05-font-name text-sm text-[#2d352b] sm:text-lg" />
                         </div>
-                        <div className="text-left">
-                            <span className="text-[11px] text-[#5c665d] block">កូនស្រីនាម</span>
-                            <span className="m05-font-name text-base sm:text-lg font-khmer-moul text-[#2d352b]">{brideName}</span>
+                        <div className="min-w-0 text-left">
+                            <span className="fh-khmer-safe block text-[11px] text-[#5c665d]">កូនស្រីនាម</span>
+                            <OneLineName name={brideName} className="fh-khmer-safe m05-font-name text-sm text-[#2d352b] sm:text-lg" />
                         </div>
                     </div>
                 </div>

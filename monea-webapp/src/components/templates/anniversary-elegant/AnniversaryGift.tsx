@@ -17,7 +17,7 @@ export const AnniversaryGift = ({ wedding }: { wedding: WeddingData }) => {
         setTimeout(() => setCopiedIndex(null), 2000);
     };
 
-    const couplePhoto = getWeddingSectionPhoto(wedding, 3)?.url;
+    const couplePhoto = getWeddingSectionPhoto(wedding, "gift")?.url;
 
     return (
         <section className="py-16 px-4 bg-[#F1ECE5] font-kantumruy relative overflow-hidden text-center" id="gifts">

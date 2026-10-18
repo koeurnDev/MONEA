@@ -15,7 +15,6 @@ import { MoneaLogo } from "@/components/ui/MoneaLogo";
 import { useAuth } from "@/hooks/useAuth";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { User, Settings, LogOut, LifeBuoy, ShieldCheck, Menu } from "lucide-react";
-import { ROLES } from "@/lib/constants";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -56,6 +55,10 @@ export function DashboardShell({ children, isStaff, isAdmin }: DashboardShellPro
         }
     }, []);
 
+    React.useEffect(() => {
+        setIsMobileMenuOpen(false);
+    }, [pathname]);
+
     const toggleSidebar = React.useCallback(() => {
         setIsSidebarCollapsed((collapsed) => {
             const next = !collapsed;
@@ -83,24 +86,28 @@ export function DashboardShell({ children, isStaff, isAdmin }: DashboardShellPro
     };
 
     const isEffectiveAdmin = isAdmin || user?.role === 'ADMIN' || user?.role === 'SUPERADMIN' || user?.role === 'PLATFORM_OWNER' || user?.type === 'admin';
+    const isCustomer = !isStaff && !isEffectiveAdmin;
+
+    React.useEffect(() => {
+        if (!isCustomer || isLivePage) return;
+
+        document.body.classList.add("monea-customer-dashboard");
+        return () => document.body.classList.remove("monea-customer-dashboard");
+    }, [isCustomer, isLivePage]);
 
     const memoizedSidebar = React.useMemo(() => (
         <DashboardSidebar
             isStaff={isStaff}
             isAdmin={isEffectiveAdmin}
+            isCustomer={isCustomer}
             collapsed={isSidebarCollapsed}
             onToggleCollapse={toggleSidebar}
         />
     ), [isStaff, isEffectiveAdmin, isSidebarCollapsed, toggleSidebar]);
 
-    const isPlatformAdmin = isEffectiveAdmin || user?.role === ROLES.EVENT_STAFF;
     const userName = user?.name || (user?.email ? user.email.split('@')[0] : "");
-    const resolvedTitle = isPlatformAdmin
-        ? t('admin.header.role')
-        : (userName || "MONEA User");
-    const resolvedSubtitle = isPlatformAdmin
-        ? t('admin.header.platform')
-        : (user?.email || "MONEA User");
+    const resolvedTitle = userName || "MONEO User";
+    const resolvedSubtitle = user?.email || "MONEO User";
     const avatarUrl = user?.avatar || user?.image || undefined;
 
     if (isLivePage) {
@@ -108,7 +115,10 @@ export function DashboardShell({ children, isStaff, isAdmin }: DashboardShellPro
     }
 
     return (
-        <div className="flex min-h-screen w-full max-w-full overflow-x-clip bg-background font-sans text-foreground print:!bg-white print:!text-black">
+        <div className={cn(
+            "flex min-h-screen w-full max-w-full overflow-x-clip bg-background font-sans text-foreground print:!bg-white print:!text-black",
+            isCustomer && "monea-customer-dashboard"
+        )}>
             {/* Desktop Sidebar */}
             <aside className={cn(
                 "hidden md:flex flex-col fixed h-full z-20 bg-card shadow-sm dark:shadow-none print:hidden border-r border-border/50 transition-[width] duration-200",
@@ -142,20 +152,20 @@ export function DashboardShell({ children, isStaff, isAdmin }: DashboardShellPro
                                 </Button>
 
                                 <Link to="/dashboard/account" className="hidden md:flex group items-center gap-3 outline-none transition-opacity focus-visible:opacity-80 active:scale-95 duration-200">
-                                    <Avatar className="w-10 h-10 rounded-2xl bg-muted/30 group-hover:bg-red-600/5 transition-all shadow-sm border-none">
+                                    <Avatar className="w-10 h-10 rounded-2xl bg-muted/30 group-hover:bg-primary/5 transition-all shadow-sm border-none">
                                         {avatarUrl ? (
                                             <AvatarImage src={avatarUrl} alt="User" />
                                         ) : null}
-                                        <AvatarFallback className="bg-transparent text-muted-foreground group-hover:text-red-600">
+                                        <AvatarFallback className="bg-transparent text-muted-foreground group-hover:text-primary">
                                             <User className="w-5 h-5" />
                                         </AvatarFallback>
                                     </Avatar>
                                     <div className="hidden sm:flex flex-col items-start">
-                                        <span className="text-sm font-black text-foreground font-kantumruy leading-none group-hover:text-red-600 transition-colors">
+                                        <span className="text-sm font-black text-foreground font-kantumruy leading-none group-hover:text-primary transition-colors">
                                             {!mounted ? t("common.loading.fetching") : resolvedTitle}
                                         </span>
-                                        <span className="text-[9px] text-zinc-500 font-bold tracking-[0.1em] uppercase mt-1.5 opacity-60">
-                                            {!mounted ? "MONEA User" : resolvedSubtitle}
+                                        <span className="text-xs text-muted-foreground font-bold tracking-[0.1em] uppercase mt-1.5 opacity-60">
+                                            {!mounted ? "MONEO User" : resolvedSubtitle}
                                         </span>
                                     </div>
                                 </Link>
@@ -173,12 +183,12 @@ export function DashboardShell({ children, isStaff, isAdmin }: DashboardShellPro
                                 <Link
                                     to="/dashboard/account"
                                     aria-label={t("dashboard.nav.account", { defaultValue: "គណនី និងប្រវត្តិរូប" })}
-                                    className="md:hidden flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-200/80 bg-slate-100 text-muted-foreground transition-transform hover:text-foreground active:scale-95 dark:border-white/10 dark:bg-zinc-800"
+                                    className="md:hidden flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-muted text-muted-foreground transition-transform hover:text-foreground active:scale-95"
                                 >
                                     {avatarUrl ? (
                                         <img src={avatarUrl} alt="User" className="w-full h-full rounded-xl object-cover" />
                                     ) : (
-                                        <User className="w-4 h-4 text-teal-700 dark:text-teal-300" />
+                                        <User className="w-4 h-4 text-primary" />
                                     )}
                                 </Link>
                             </div>
@@ -194,6 +204,7 @@ export function DashboardShell({ children, isStaff, isAdmin }: DashboardShellPro
                         <DashboardSidebar
                             isStaff={isStaff}
                             isAdmin={isEffectiveAdmin}
+                            isCustomer={isCustomer}
                             onCloseMobile={() => setIsMobileMenuOpen(false)}
                         />
                     </SheetContent>
@@ -215,7 +226,10 @@ export function DashboardShell({ children, isStaff, isAdmin }: DashboardShellPro
             {/* Mobile Bottom Navigation — outside <main> so fixed positioning is relative to viewport, not scroll container */}
             {!isDesignPage && (
                 <div className="print:hidden">
-                    <MobileBottomNav onOpenMenu={() => setIsMobileMenuOpen(true)} />
+                    <MobileBottomNav
+                        isCustomer={isCustomer}
+                        onOpenMenu={() => setIsMobileMenuOpen(true)}
+                    />
                 </div>
             )}
 

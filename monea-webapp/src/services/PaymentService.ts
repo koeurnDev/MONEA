@@ -22,7 +22,7 @@ export class PaymentService {
             const result = KHQR.generate({
                 tag:                 TAG.INDIVIDUAL,
                 accountID:           payload.accountID,
-                merchantName:        payload.merchantName || "MONEA",
+                merchantName:        payload.merchantName || "MONEO",
                 merchantCity:        "Phnom Penh",
                 amount:              Number(payload.amount),
                 currency:            payload.currency === "USD" ? CURRENCY.USD : CURRENCY.KHR,

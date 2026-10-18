@@ -1,4 +1,4 @@
-﻿/**
+/**
  * QuickInviteCard Component
  * Version: 6.0.0 (Clean Implementation)
  */
@@ -78,7 +78,7 @@ export function QuickInviteCard({ weddingId }: { weddingId: string }) {
                 </div>
                 <div className="flex items-center gap-2 mt-5 opacity-40 justify-center sm:justify-start">
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground font-sans">
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground font-sans">
                         {t("dashboard.quickActions.liveInvitation")}
                     </p>
                 </div>

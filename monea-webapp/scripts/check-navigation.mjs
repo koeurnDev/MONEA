@@ -148,6 +148,22 @@ for (const key of [...usedKeys].sort()) {
 if (!missingKeys) console.log(`  all ${usedKeys.size} keys resolved in km + en`);
 else failures.push(`${missingKeys} navigation key(s) missing from a dictionary`);
 
+section('Mobile drawer layering and logout target');
+const mobileNav = read(path.join(SRC, 'app/dashboard/_components/MobileBottomNav.tsx'));
+const sidebar = read(path.join(SRC, 'app/dashboard/_components/DashboardSidebar.tsx'));
+if (/z-\[70\]/.test(mobileNav) || !/z-40/.test(mobileNav)) {
+  console.error('  Mobile bottom navigation must stay below the drawer overlay');
+  failures.push('mobile bottom navigation can cover the drawer');
+} else {
+  console.log('  bottom navigation stays below the drawer overlay');
+}
+if (!/pb-\[calc\(1rem\+env\(safe-area-inset-bottom\)\)\]/.test(sidebar) || !/"h-12 w-full justify-start gap-3"/.test(sidebar)) {
+  console.error('  Mobile logout action must remain tappable above the device safe area');
+  failures.push('mobile logout action is not safe-area/touch friendly');
+} else {
+  console.log('  logout action is touch-friendly and safe-area aware');
+}
+
 console.log('');
 if (failures.length) {
   console.error(`NAVIGATION CHECK FAILED: ${failures.join('; ')}`);

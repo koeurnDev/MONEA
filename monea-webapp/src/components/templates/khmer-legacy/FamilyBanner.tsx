@@ -2,14 +2,17 @@ import { m } from 'framer-motion';
 // next/image replaced with <img>;
 import { RevealSection, CinematicPlaceholder } from '../shared/CinematicComponents';
 import { useTranslation } from '@/i18n/LanguageProvider';
+import { getWeddingSectionPhoto } from "../shared/weddingPhotos";
+import type { WeddingData } from "../types";
 
 interface FamilyBannerProps {
-    galleryImages: string[];
+    wedding: WeddingData;
     bannerPan: any;
 }
 
-export function FamilyBanner({ galleryImages, bannerPan }: FamilyBannerProps) {
+export function FamilyBanner({ wedding, bannerPan }: FamilyBannerProps) {
     const { t } = useTranslation();
+    const familyPhoto = getWeddingSectionPhoto(wedding, "signature1")?.url;
     return (
         <section className="w-full py-24 md:py-48 flex flex-col items-center bg-white space-y-16">
             <div className="max-w-6xl mx-auto w-full px-8">
@@ -23,9 +26,9 @@ export function FamilyBanner({ galleryImages, bannerPan }: FamilyBannerProps) {
             <div 
                 className="w-full aspect-[16/9] md:aspect-[21/7] overflow-hidden grayscale-[5%] hover:grayscale-0 transition-all duration-2000 bg-gold/5 flex items-center justify-center relative shadow-inner md:shadow-none"
             >
-                {galleryImages[6] ? (
+                {familyPhoto ? (
                     <img 
-                        src={galleryImages[6]} 
+                        src={familyPhoto}
                         className={`w-full h-full object-cover grayscale-[0.5] contrast-125 transition-all duration-1000 ${bannerPan.isDragging ? 'cursor-grabbing' : 'cursor-grab hover:scale-110'}`} 
                         style={{ 
                             objectPosition: `${bannerPan.localX} ${bannerPan.localY}`,

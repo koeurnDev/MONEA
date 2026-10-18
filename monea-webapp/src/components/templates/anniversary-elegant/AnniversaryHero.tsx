@@ -6,6 +6,7 @@ import { km } from 'date-fns/locale';
 import type { WeddingData } from '../types';
 import { useImagePan } from '../shared/CinematicComponents';
 import { getWeddingHeroImage } from "../shared/weddingPhotos";
+import { OneLineName } from "../shared/OneLineName";
 
 export const AnniversaryHero = ({ wedding }: { wedding: WeddingData }) => {
     const { groomName, brideName, date, location } = wedding;
@@ -95,13 +96,13 @@ export const AnniversaryHero = ({ wedding }: { wedding: WeddingData }) => {
                         aria-label={`${groomName} និង ${brideName}`}
                         className="font-khmer-moul text-2xl sm:text-3xl md:text-4xl text-[#F8E8C5] drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)] tracking-wide leading-relaxed"
                     >
-                        <span className="block">{groomName}</span>
+                        <OneLineName name={groomName} />
                         <span aria-hidden="true" className="my-1 flex items-center justify-center gap-3">
                             <span className="w-10 h-px bg-[#E7C783]/50" />
                             <span className="font-khmer-moul text-xs text-[#E7C783] drop-shadow-md">និង</span>
                             <span className="w-10 h-px bg-[#E7C783]/50" />
                         </span>
-                        <span className="block">{brideName}</span>
+                        <OneLineName name={brideName} ariaHidden />
                     </h1>
                 </div>
 

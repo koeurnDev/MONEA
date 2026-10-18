@@ -31,7 +31,7 @@ export function Pricing() {
                     >
                         <div className="px-5 py-2 rounded-full border border-slate-200 dark:border-white/10 bg-white/60 dark:bg-white/5 backdrop-blur-md shadow-sm flex items-center gap-2">
                             <Sparkles className="w-4 h-4 text-emerald-500" />
-                            <span className="text-slate-700 dark:text-white/90 font-bold text-[10px] md:text-xs uppercase tracking-[0.2em] font-kantumruy">
+                            <span className="text-slate-700 dark:text-white/90 font-bold text-xs md:text-xs uppercase tracking-[0.2em] font-kantumruy">
                                 {t("pricing.badge")}
                             </span>
                         </div>
@@ -70,7 +70,7 @@ export function Pricing() {
                             )}
                         >
                             {plan.highlight && (
-                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-teal-700 to-teal-500 text-white text-[10px] uppercase tracking-widest font-bold px-6 py-2 rounded-full shadow-lg shadow-teal-500/20 z-20 border border-white/20 whitespace-nowrap">
+                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-teal-700 to-teal-500 text-white text-xs uppercase tracking-widest font-bold px-6 py-2 rounded-full shadow-lg shadow-teal-500/20 z-20 border border-white/20 whitespace-nowrap">
                                     {t("pricing.proHighlight")}
                                 </div>
                             )}

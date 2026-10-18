@@ -1,10 +1,11 @@
 import React from 'react';
 import { m } from 'framer-motion';
 import { WeddingData } from "../types";
+import { CoupleNamesLine } from "../shared/OneLineName";
 import { getWeddingHeroImage, getWeddingPhotoAtSlot } from "../shared/weddingPhotos";
 
 export const ThankYouSection = ({ wedding }: { wedding: WeddingData }) => {
-    const imageUrl = getWeddingPhotoAtSlot(wedding, 4)?.url || getWeddingHeroImage(wedding);
+    const imageUrl = getWeddingPhotoAtSlot(wedding, "thankYou")?.url || getWeddingHeroImage(wedding);
 
     return (
         <section className="relative min-h-[min(82svh,680px)] w-full overflow-hidden flex items-center justify-center bg-slate-950">
@@ -49,9 +50,11 @@ export const ThankYouSection = ({ wedding }: { wedding: WeddingData }) => {
                 </p>
 
                 <div className="mt-6 md:mt-8 pt-5 md:pt-6 border-t border-white/20 flex flex-col items-center">
-                    <span className="m05-font-name text-xl md:text-2xl text-white font-bold">
-                        {wedding.groomName} &amp; {wedding.brideName}
-                    </span>
+                    <CoupleNamesLine
+                        groom={wedding.groomName}
+                        bride={wedding.brideName}
+                        className="m05-font-name w-full text-xl font-bold text-white md:text-2xl"
+                    />
                 </div>
             </m.div>
         </section>

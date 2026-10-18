@@ -83,8 +83,11 @@ export interface WeddingData {
         nameSeparator?: string;
         m05TitleFont?: string;
         m05NameFont?: string;
+        emeraldCardColor?: string;
+        m07CardColor?: string;
         m05ColorPreset?: string;
         m05EnvelopeColor?: string;
+        m05CardColor?: string;
         m05SealColor?: string;
         m05SurfaceColor?: string;
         m05HighlightColor?: string;
@@ -195,10 +198,12 @@ export interface WeddingData {
         locationQrPublicId?: string;
         passcode?: string;
         socialPreviewImage?: string;
+        socialPreviewImagePublicId?: string;
     } | null;
     templateId?: string | null;
     eventType?: 'wedding' | 'anniversary';
     packageType?: string | null;
+    paymentStatus?: string | null;
     guestId?: string; // Unique ID for QR check-in
 }
 

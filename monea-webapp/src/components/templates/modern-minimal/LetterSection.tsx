@@ -1,6 +1,7 @@
 import React from 'react';
 import { m } from 'framer-motion';
 import { WeddingData } from "../types";
+import { OneLineName } from "../shared/OneLineName";
 import { useImagePan } from "../shared/CinematicComponents";
 import { getWeddingPhotoAtSlot, getWeddingSectionPhoto, getWeddingPhotos } from "../shared/weddingPhotos";
 
@@ -14,12 +15,12 @@ export const LetterSection = ({ wedding, guestName }: { wedding: WeddingData; gu
     const hasParents = Boolean(groomFather || groomMother || brideFather || brideMother);
 
     const groomPhoto =
-        getWeddingSectionPhoto(wedding, 9)?.url ||
+        getWeddingSectionPhoto(wedding, "groom")?.url ||
         validGallery.find(img => img.type === 'groom')?.url ||
         wedding.groomPhoto;
         
     const bridePhoto =
-        getWeddingSectionPhoto(wedding, 10)?.url ||
+        getWeddingSectionPhoto(wedding, "bride")?.url ||
         validGallery.find(img => img.type === 'bride')?.url ||
         wedding.bridePhoto;
 
@@ -38,27 +39,29 @@ export const LetterSection = ({ wedding, guestName }: { wedding: WeddingData; gu
     );
 
     return (
-        <section className="relative border-b border-[#d8d2c5] bg-[#e9e5dc] px-4 py-14 sm:py-20 md:py-24">
+        <section
+            className="relative px-4 py-14 text-[#37352f] sm:py-20 md:py-24"
+            style={{
+                backgroundColor: "var(--monea-paper-color, #f4efdf)",
+                backgroundImage: "var(--monea-paper-texture, url('/khmer-invite-starter-kit/textures/paper-cream.webp'))",
+                backgroundBlendMode: "multiply",
+                backgroundRepeat: "repeat",
+                backgroundSize: "320px 320px",
+            }}
+        >
             <div className="mx-auto max-w-5xl text-center">
                 <m.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8 }}
                     viewport={{ once: true }}
-                    className="relative mx-auto max-w-4xl space-y-7 border border-[#d6cdb9] px-5 py-10 text-[#37352f] shadow-[0_18px_48px_rgba(48,42,31,0.16),0_2px_5px_rgba(48,42,31,0.08)] sm:space-y-8 sm:px-12 sm:py-14 md:px-16 md:py-16"
-                    style={{
-                        backgroundColor: "var(--monea-paper-color, #f4efdf)",
-                        backgroundImage: "var(--monea-paper-texture, url('/khmer-invite-starter-kit/textures/paper-cream.webp'))",
-                        backgroundBlendMode: "multiply",
-                        backgroundRepeat: "repeat",
-                        backgroundSize: "320px 320px",
-                    }}
+                    className="relative mx-auto max-w-4xl space-y-7 px-5 py-10 sm:space-y-8 sm:px-12 sm:py-14 md:px-16 md:py-16"
                 >
                     <div className="space-y-3 sm:space-y-4">
                         <div className="text-[10px] font-kantumruy uppercase tracking-[0.28em] text-[#827a68] sm:text-xs">
                             Invitation
                         </div>
-                        <h3 className="font-khmer-moul text-2xl leading-relaxed text-[#37352f] md:text-4xl">
+                        <h3 className="whitespace-nowrap font-khmer-moul text-[clamp(14px,3.5vw,36px)] leading-relaxed text-[#37352f]">
                             សិរីសួស្តី អាពាហ៍ពិពាហ៍
                         </h3>
                     </div>
@@ -67,14 +70,14 @@ export const LetterSection = ({ wedding, guestName }: { wedding: WeddingData; gu
                         <div className="mx-auto grid w-full max-w-xl grid-cols-2 gap-3 text-center sm:gap-5">
                             {(groomFather || groomMother) && (
                                 <div className="space-y-1 border-y border-[#cfc5af] px-2 py-4">
-                                    <h5 className="mb-2 font-khmer-moul text-xs text-[#77613a] sm:text-sm">មាតាបិតាខាងកូនកំលោះ</h5>
+                                    <h5 className="mb-2 whitespace-nowrap font-khmer-moul text-[clamp(9px,3vw,14px)] text-[#77613a]">មាតាបិតាខាងកូនកំលោះ</h5>
                                     {groomFather && <p className="text-xs leading-relaxed text-[#4a473f] sm:text-sm">ឪពុក៖ {groomFather}</p>}
                                     {groomMother && <p className="text-xs leading-relaxed text-[#4a473f] sm:text-sm">ម្តាយ៖ {groomMother}</p>}
                                 </div>
                             )}
                             {(brideFather || brideMother) && (
                                 <div className={`space-y-1 border-y border-[#cfc5af] px-2 py-4 ${!groomFather && !groomMother ? "col-start-2" : ""}`}>
-                                    <h5 className="mb-2 font-khmer-moul text-xs text-[#77613a] sm:text-sm">មាតាបិតាខាងកូនក្រមុំ</h5>
+                                    <h5 className="mb-2 whitespace-nowrap font-khmer-moul text-[clamp(9px,3vw,14px)] text-[#77613a]">មាតាបិតាខាងកូនក្រមុំ</h5>
                                     {brideFather && <p className="text-xs leading-relaxed text-[#4a473f] sm:text-sm">ឪពុក៖ {brideFather}</p>}
                                     {brideMother && <p className="text-xs leading-relaxed text-[#4a473f] sm:text-sm">ម្តាយ៖ {brideMother}</p>}
                                 </div>
@@ -86,25 +89,20 @@ export const LetterSection = ({ wedding, guestName }: { wedding: WeddingData; gu
 
                     {/* Letter Body */}
                     <div className="mx-auto flex max-w-3xl flex-col gap-5 font-kantumruy text-sm leading-8 text-[#4a473f] sm:gap-7 sm:text-base sm:leading-9">
-                        <p className="text-base font-bold tracking-[0.04em] text-[#37352f] md:text-lg">
-                            មានកិត្តិយសសូមគោរពអញ្ជើញ
-                        </p>
-                        
-                        <div className="space-y-2 border-y border-[#cfc5af] px-3 py-5 sm:py-6">
-                            <h4 className="font-khmer-moul text-base leading-relaxed text-[#37352f] md:text-xl">
+                        <p className="mx-auto max-w-3xl border-y border-[#cfc5af] px-3 py-5 text-center text-xs font-medium leading-7 text-[#77613a] sm:px-6 sm:py-6 sm:text-sm sm:leading-8">
+                            មានកិត្តិយសសូមគោរពអញ្ជើញ{" "}
+                            <strong className="font-khmer-moul text-sm font-normal text-[#37352f] sm:text-base">
                                 {guestName || wedding.guestName || "ឯកឧត្តម លោកជំទាវ លោក លោកស្រី អ្នកនាងកញ្ញា"}
-                            </h4>
-                            <p className="text-center text-xs font-medium leading-7 text-[#77613a] sm:text-sm sm:leading-8">
-                                អញ្ជើញចូលរួមជាអធិបតី ដើម្បីប្រសិទ្ធពរជ័យសិរីសួស្តី ជ័យមង្គល ក្នុងពិធីរៀបអាពាហ៍ពិពាហ៍កូនប្រុស-កូនស្រីរបស់យើងខ្ញុំ
-                            </p>
-                        </div>
+                            </strong>{" "}
+                            អញ្ជើញចូលរួមជាអធិបតី ដើម្បីប្រសិទ្ធពរជ័យសិរីសួស្តី ជ័យមង្គល ក្នុងពិធីរៀបអាពាហ៍ពិពាហ៍កូនប្រុស-កូនស្រីរបស់យើងខ្ញុំ
+                        </p>
 
                         {/* Perfectly Aligned Couple Portraits Grid */}
                         <div className="mx-auto grid w-full max-w-xl grid-cols-[1fr_auto_1fr] items-start justify-center gap-2 py-3 sm:gap-4 sm:py-5 md:gap-8">
                             {/* Groom Column */}
                             <div className="flex flex-col items-center text-center space-y-1.5 min-w-0">
                                 {groomPhoto && <div
-                                    className="relative h-32 w-24 cursor-move overflow-hidden border border-[#c8bea9] bg-[#e5dfd0] p-1 shadow-[0_3px_8px_rgba(48,42,31,0.12)] transition-transform duration-300 hover:scale-[1.02] sm:h-40 sm:w-32 md:h-48 md:w-36"
+                                    className="relative h-32 w-24 cursor-move overflow-hidden transition-transform duration-300 hover:scale-[1.02] sm:h-40 sm:w-32 md:h-48 md:w-36"
                                     onMouseDown={groomPan.onStart}
                                     onTouchStart={groomPan.onStart}
                                     title="អូសដើម្បីតម្រឹមរូប (Drag to adjust)"
@@ -120,7 +118,7 @@ export const LetterSection = ({ wedding, guestName }: { wedding: WeddingData; gu
                                     កូនប្រុសនាម
                                 </span>
                                 <h4 className="m05-font-name max-w-full whitespace-nowrap px-1 font-khmer-muol text-sm font-normal leading-normal text-[#37352f] sm:text-base md:text-xl">
-                                    {wedding.groomName}
+                                    <OneLineName name={wedding.groomName} />
                                 </h4>
                             </div>
 
@@ -132,7 +130,7 @@ export const LetterSection = ({ wedding, guestName }: { wedding: WeddingData; gu
                             {/* Bride Column */}
                             <div className="flex flex-col items-center text-center space-y-1.5 min-w-0">
                                 {bridePhoto && <div
-                                    className="relative h-32 w-24 cursor-move overflow-hidden border border-[#c8bea9] bg-[#e5dfd0] p-1 shadow-[0_3px_8px_rgba(48,42,31,0.12)] transition-transform duration-300 hover:scale-[1.02] sm:h-40 sm:w-32 md:h-48 md:w-36"
+                                    className="relative h-32 w-24 cursor-move overflow-hidden transition-transform duration-300 hover:scale-[1.02] sm:h-40 sm:w-32 md:h-48 md:w-36"
                                     onMouseDown={bridePan.onStart}
                                     onTouchStart={bridePan.onStart}
                                     title="អូសដើម្បីតម្រឹមរូប (Drag to adjust)"
@@ -148,7 +146,7 @@ export const LetterSection = ({ wedding, guestName }: { wedding: WeddingData; gu
                                     កូនស្រីនាម
                                 </span>
                                 <h4 className="m05-font-name max-w-full whitespace-nowrap px-1 font-khmer-muol text-sm font-normal leading-normal text-[#37352f] sm:text-base md:text-xl">
-                                    {wedding.brideName}
+                                    <OneLineName name={wedding.brideName} />
                                 </h4>
                             </div>
                         </div>

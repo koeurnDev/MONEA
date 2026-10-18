@@ -8,6 +8,7 @@
  */
 
 import { getApiUrl } from './api-url';
+import { isNetworkError, NETWORK_ERROR_MESSAGE, notifyNetworkError } from './network-errors';
 
 let cachedCsrfToken: string | null = null;
 let lastCsrfFetch: number = 0;
@@ -16,7 +17,11 @@ const CSRF_TTL = 1000 * 60 * 45; // 45 minutes
 async function getCsrfToken(): Promise<string | null> {
     const now = Date.now();
     if (!cachedCsrfToken && typeof window !== 'undefined') {
-        cachedCsrfToken = sessionStorage.getItem('csrf_token');
+        try {
+            cachedCsrfToken = sessionStorage.getItem('csrf_token');
+        } catch (error) {
+            console.warn("[MoneaClient] Could not read cached CSRF token:", error);
+        }
     }
 
     if (cachedCsrfToken && (now - lastCsrfFetch < CSRF_TTL)) {
@@ -27,26 +32,47 @@ async function getCsrfToken(): Promise<string | null> {
         const res = await fetch(getApiUrl("api/auth/csrf"), {
             credentials: 'include',
         });
-        if (!res.ok) throw new Error("Failed to fetch CSRF token");
-        const data = await res.json();
-        cachedCsrfToken = data.token;
+        if (!res.ok) {
+            throw new Error(`Failed to fetch CSRF token (HTTP ${res.status})`);
+        }
+        const data: unknown = await res.json();
+        const token =
+            data && typeof data === 'object' && 'token' in data &&
+            typeof data.token === 'string' && data.token.length > 0
+                ? data.token
+                : null;
+        if (!token) {
+            throw new Error("CSRF token response was invalid");
+        }
+        cachedCsrfToken = token;
         lastCsrfFetch = now;
-        if (typeof window !== 'undefined' && data.token) {
-            sessionStorage.setItem('csrf_token', data.token);
+        if (typeof window !== 'undefined') {
+            try {
+                sessionStorage.setItem('csrf_token', token);
+            } catch (error) {
+                console.warn("[MoneaClient] Could not cache CSRF token:", error);
+            }
         }
         return cachedCsrfToken;
     } catch (err) {
         console.error("[MoneaClient] CSRF Fetch Error:", err);
-        return null;
+        throw err;
     }
 }
 
 export type ApiResponse<T> = {
     data: T | null;
     error: string | null;
+    code?: string;
     details?: any;
     status: number;
 };
+
+function notifyAuthExpired(path: string, status: number): void {
+    if (status !== 401 || typeof window === "undefined") return;
+    if (path.startsWith("/api/auth/") && path !== "/api/auth/me") return;
+    window.dispatchEvent(new CustomEvent("monea:auth-expired"));
+}
 
 async function request<T>(
     path: string, 
@@ -54,53 +80,71 @@ async function request<T>(
 ): Promise<ApiResponse<T>> {
     const method = options.method?.toUpperCase() || "GET";
     const isMutable = ["POST", "PUT", "DELETE", "PATCH"].includes(method);
-    
-    // Setup headers
-    const headers = new Headers(options.headers);
-    if (!headers.has("Content-Type") && options.body && !(options.body instanceof FormData)) {
-        headers.set("Content-Type", "application/json");
-    }
-
-    // Attach CSRF token if mutable
-    if (isMutable) {
-        const token = await getCsrfToken();
-        if (token) {
-            headers.set("X-CSRF-Token", token);
-        }
-    }
 
     try {
+        const headers = new Headers(options.headers);
+        if (!headers.has("Content-Type") && options.body && !(options.body instanceof FormData)) {
+            headers.set("Content-Type", "application/json");
+        }
+
+        if (isMutable && !headers.has("X-CSRF-Token")) {
+            const token = await getCsrfToken();
+            if (!token) {
+                throw new Error("Could not obtain a CSRF token for this request");
+            }
+            headers.set("X-CSRF-Token", token);
+        }
+
         const response = await fetch(getApiUrl(path), { 
             ...options, 
             headers,
             credentials: 'include', // Include cookies for cross-origin
         });
         const text = await response.text();
-        let data: any = null;
+        let data: unknown = null;
         
         try {
             data = text ? JSON.parse(text) : null;
-        } catch (e) {
-            data = { error: "Invalid JSON response from server", raw: text };
-            if (response.status === 401 && !path.includes("/api/auth/signin")) {
-                console.warn("[MoneaClient] 401 Unauthorized detected on", path);
+        } catch {
+            if (!response.ok) {
+                data = null;
+            } else {
+                return {
+                    data: null,
+                    error: "Invalid response from server",
+                    status: response.status,
+                };
             }
         }
 
         if (!response.ok) {
+            notifyAuthExpired(path, response.status);
             let normalizedError: string = `Request failed with status ${response.status}`;
-            if (typeof data?.error === 'string') {
-                normalizedError = data.error;
-            } else if (Array.isArray(data?.error)) {
-                normalizedError = data.error.map((e: any) => e.message ? `${e.path ? e.path.join('.') + ': ' : ''}${e.message}` : JSON.stringify(e)).join(', ');
-            } else if (data?.error) {
-                normalizedError = JSON.stringify(data.error);
+            if (data && typeof data === 'object' && 'error' in data) {
+                const apiError = data.error;
+                if (typeof apiError === 'string') {
+                    normalizedError = apiError;
+                } else if (Array.isArray(apiError)) {
+                    normalizedError = apiError.map((item: unknown) => {
+                        if (!item || typeof item !== 'object') return String(item);
+                        const issue = item as { message?: unknown; path?: unknown };
+                        const path = Array.isArray(issue.path) ? `${issue.path.join('.')}: ` : '';
+                        return `${path}${typeof issue.message === 'string' ? issue.message : 'Invalid request'}`;
+                    }).join(', ');
+                } else if (apiError) {
+                    normalizedError = "The request could not be completed";
+                }
             }
 
             return {
                 data: null,
                 error: normalizedError,
-                details: data?.details,
+                code: data && typeof data === 'object' && 'code' in data && typeof data.code === 'string'
+                    ? data.code
+                    : undefined,
+                details: data && typeof data === 'object' && 'details' in data
+                    ? data.details
+                    : undefined,
                 status: response.status
             };
         }
@@ -110,11 +154,16 @@ async function request<T>(
             error: null,
             status: response.status
         };
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error(`[MoneaClient] ${method} ${path} Error:`, error);
+        const networkError = isNetworkError(error);
+        if (networkError) notifyNetworkError(error);
         return {
             data: null,
-            error: error.message || "Network error or server unreachable",
+            error: networkError
+                ? NETWORK_ERROR_MESSAGE
+                : error instanceof Error ? error.message : "Request could not be completed",
+            code: networkError ? "NETWORK_ERROR" : undefined,
             status: 503
         };
     }

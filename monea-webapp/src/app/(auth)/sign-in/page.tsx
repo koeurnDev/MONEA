@@ -58,11 +58,14 @@ export default function SignInPage() {
     }, [user, authLoading]);
 
     const [error, setError] = useState("");
+    const [canRestoreAccount, setCanRestoreAccount] = useState(false);
+    const [isRestoringAccount, setIsRestoringAccount] = useState(false);
+    const [accountRestoreMessage, setAccountRestoreMessage] = useState("");
+    const [verificationEmail, setVerificationEmail] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [showCaptcha, setShowCaptcha] = useState(false);
     const [captchaToken, setCaptchaToken] = useState<string>("");
-    const [captchaState, setCaptchaState] = useState<"loading" | "ready" | "error" | "expired">(
-        () => import.meta.env.VITE_TURNSTILE_SITE_KEY ? "loading" : "ready",
-    );
+    const [captchaState, setCaptchaState] = useState<"loading" | "ready" | "error" | "expired">("ready");
     const [captchaWidgetKey, setCaptchaWidgetKey] = useState(0);
     const [twoFactorToken, setTwoFactorToken] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -70,6 +73,13 @@ export default function SignInPage() {
     const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY;
     const hint = searchParams.get('hint');
     const registered = searchParams.get('registered');
+    const authError = searchParams.get('error');
+
+    useEffect(() => {
+        if (authError === "network_error") {
+            setError(t("common.errors.network"));
+        }
+    }, [authError, t]);
 
     function retryCaptcha() {
         setCaptchaToken("");
@@ -88,14 +98,16 @@ export default function SignInPage() {
     });
 
     async function onSubmit(values: z.infer<typeof loginSchema>) {
-        if (turnstileSiteKey && !captchaToken) {
+        if (showCaptcha && turnstileSiteKey && !captchaToken) {
             return;
         }
 
         setError("");
+        setCanRestoreAccount(false);
+        setAccountRestoreMessage("");
+        setVerificationEmail("");
         setIsLoading(true);
         const turnstileToken = captchaToken;
-        if (turnstileSiteKey) retryCaptcha();
         try {
             const body = {
                 ...values,
@@ -126,30 +138,71 @@ export default function SignInPage() {
                 return;
             }
 
+            if (res.status === 428) {
+                setShowCaptcha(true);
+                setCaptchaState("loading");
+                setError(res.error || (isKm ? "សូមផ្ទៀងផ្ទាត់សុវត្ថិភាព ដើម្បីបន្ត។" : "Complete the security check to continue."));
+                return;
+            }
+
             if (res.error) {
                 setError(res.error);
+                setCanRestoreAccount(res.code === "ACCOUNT_PENDING_DELETION");
+                if (res.code === "EMAIL_VERIFICATION_REQUIRED") {
+                    setVerificationEmail(values.email.trim().toLowerCase());
+                }
             }
         } catch (e: any) {
             console.error("[SignIn] Request failed:", e);
-            setError("មិនអាចភ្ជាប់ទៅកាន់ Server បានទេ។ សូមព្យាយាមម្តងទៀត។");
+            setError("សូមពិនិត្យសេវាអ៊ីនធឺណិតរបស់អ្នក ហើយព្យាយាមម្ដងទៀត។");
         } finally {
             setIsLoading(false);
+            if (turnstileSiteKey && showCaptcha) retryCaptcha();
+        }
+    }
+
+    async function restoreAccount() {
+        const { email, password } = form.getValues();
+        if (!email || !password || isRestoringAccount) return;
+
+        setIsRestoringAccount(true);
+        setError("");
+        setAccountRestoreMessage("");
+        try {
+            const response = await moneaClient.post<{ success: boolean; message?: string }>(
+                "/api/user/account/restore",
+                { email, password },
+            );
+            if (response.error || !response.data?.success) {
+                setError(response.error || (isKm ? "មិនអាចស្ដារគណនីបានទេ។" : "Could not restore the account."));
+                return;
+            }
+
+            setCanRestoreAccount(false);
+            setAccountRestoreMessage(isKm
+                ? "បានស្ដារគណនីរួចហើយ។ សូមចូលគណនីម្ដងទៀត។"
+                : "Account restored. Please sign in again.");
+        } catch (restoreError) {
+            console.error("[SignIn] Account recovery failed:", restoreError);
+            setError("សូមពិនិត្យសេវាអ៊ីនធឺណិតរបស់អ្នក ហើយព្យាយាមម្ដងទៀត។");
+        } finally {
+            setIsRestoringAccount(false);
         }
     }
 
     return (
-        <div className="relative w-full min-h-[100dvh] flex flex-col font-kantumruy bg-gradient-to-br from-[#F0FDFA] via-[#F8FAFC] to-[#FFFBEB] dark:from-[#09090B] dark:via-[#0C1716] dark:to-[#09090B] items-center justify-center py-4 px-3 sm:px-4 overflow-x-hidden transition-colors duration-300">
+        <div className="relative w-full min-h-[100dvh] flex flex-col font-kantumruy bg-gradient-to-br from-background via-background to-secondary items-center justify-center py-4 px-3 sm:px-4 overflow-x-hidden transition-colors duration-300">
             {/* Ambient Glows */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute -top-[15%] -left-[10%] w-[50vw] h-[50vw] rounded-full bg-teal-400/15 dark:bg-teal-600/10 blur-[130px]" />
-                <div className="absolute -bottom-[15%] -right-[10%] w-[45vw] h-[45vw] rounded-full bg-amber-300/15 dark:bg-amber-900/10 blur-[130px]" />
+                <div className="absolute -top-[15%] -left-[10%] w-[50vw] h-[50vw] rounded-full bg-sage/10 blur-[130px]" />
+                <div className="absolute -bottom-[15%] -right-[10%] w-[45vw] h-[45vw] rounded-full bg-gold/15 blur-[130px]" />
             </div>
 
             {/* Top Bar Navigation */}
             <div className="w-full max-w-[420px] flex items-center justify-between mb-3 px-1">
                 <Link
                     to="/"
-                    className="inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-card/80 px-3 py-1.5 text-xs font-bold text-muted-foreground shadow-xs transition-all hover:bg-muted hover:text-foreground active:scale-95"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-primary bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground shadow-xs transition-all hover:bg-primary/90 active:scale-95"
                 >
                     <ChevronLeft size={15} />
                     <span>{isKm ? "ទំព័រដើម" : "Home"}</span>
@@ -166,7 +219,7 @@ export default function SignInPage() {
                 transition={{ duration: 0.2 }}
                 className="relative z-10 w-full max-w-[420px]"
             >
-                <div className="rounded-[28px] border border-border/80 bg-card/95 p-5 shadow-2xl shadow-slate-900/5 backdrop-blur-2xl dark:border-white/10 dark:bg-[#121216]/95 dark:shadow-teal-950/10 sm:p-6">
+                <div className="rounded-[28px] border border-border bg-card/95 p-5 shadow-2xl backdrop-blur-2xl sm:p-6">
                     
                     {/* Header */}
                     <div className="mb-4 text-center">
@@ -176,14 +229,14 @@ export default function SignInPage() {
                         <h1 className="text-xl font-black text-foreground font-kantumruy sm:text-2xl">
                             {isKm ? "ចូលគណនី" : "Sign In"}
                         </h1>
-                        <p className="mt-1 text-[11px] font-medium text-muted-foreground">
+                        <p className="mt-1 text-xs font-medium text-muted-foreground">
                             {isKm ? "ប្រើអ៊ីមែល និងពាក្យសម្ងាត់របស់អ្នកដើម្បីបន្ត" : "Use your email and password to continue"}
                         </p>
                     </div>
 
                     {/* Hint Banners */}
                     {hint === 'check-email' && (
-                        <div className="mb-3 p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-300 text-xs text-center font-bold">
+                        <div className="mb-3 p-2.5 rounded-xl bg-accent border border-border text-accent-foreground text-xs text-center font-bold">
                             📧 {isKm ? "ប្រសិនបើ Email នេះធ្លាប់ចុះឈ្មោះរួចហើយ សូមចូលប្រើដោយផ្ទាល់" : "If registered, sign in directly"}
                         </div>
                     )}
@@ -214,13 +267,13 @@ export default function SignInPage() {
                                                         {isKm ? "អ៊ីមែល" : "Email"}
                                                     </FormLabel>
                                                     <div className="relative group">
-                                                        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-teal-700 dark:group-focus-within:text-teal-300 transition-colors pointer-events-none z-10">
+                                                        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors pointer-events-none z-10">
                                                             <Mail size={16} />
                                                         </div>
                                                         <Input
                                                             placeholder="name@example.com"
                                                             autoComplete="email"
-                                                            className="h-11 pl-11 bg-background dark:bg-zinc-900/60 border border-input text-foreground rounded-xl focus:border-teal-600 focus-visible:ring-2 focus-visible:ring-teal-600/20 text-sm font-mono transition-all"
+                                                            className="h-11 pl-11 bg-background border border-input text-foreground rounded-xl focus:border-ring focus-visible:ring-2 focus-visible:ring-ring/25 text-sm font-mono transition-all"
                                                             {...field}
                                                         />
                                                     </div>
@@ -238,19 +291,19 @@ export default function SignInPage() {
                                                         <FormLabel className="text-foreground text-xs font-bold font-kantumruy">
                                                             {isKm ? "ពាក្យសម្ងាត់" : "Password"}
                                                         </FormLabel>
-                                                        <Link to="/forgot-password" className="text-xs text-teal-800 dark:text-teal-300 hover:underline font-bold font-kantumruy">
+                                                        <Link to="/forgot-password" className="text-xs text-primary hover:underline font-bold font-kantumruy">
                                                             {isKm ? "ភ្លេចពាក្យសម្ងាត់?" : "Forgot?"}
                                                         </Link>
                                                     </div>
                                                     <div className="relative group">
-                                                        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-teal-700 dark:group-focus-within:text-teal-300 transition-colors pointer-events-none z-10">
+                                                        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors pointer-events-none z-10">
                                                             <Lock size={16} />
                                                         </div>
                                                         <Input
                                                             type={showPassword ? "text" : "password"}
                                                             placeholder="••••••••"
                                                             autoComplete="current-password"
-                                                            className="h-11 pl-11 pr-11 bg-background dark:bg-zinc-900/60 border border-input text-foreground rounded-xl focus:border-teal-600 focus-visible:ring-2 focus-visible:ring-teal-600/20 text-sm transition-all"
+                                                            className="h-11 pl-11 pr-11 bg-background border border-input text-foreground rounded-xl focus:border-ring focus-visible:ring-2 focus-visible:ring-ring/25 text-sm transition-all"
                                                             {...field}
                                                         />
                                                         <button
@@ -276,7 +329,7 @@ export default function SignInPage() {
                                         className="space-y-3 py-1"
                                     >
                                         <div className="text-center space-y-1 mb-1.5">
-                                            <div className="w-10 h-10 bg-teal-600/10 rounded-xl flex items-center justify-center mx-auto mb-1 text-teal-800 dark:text-teal-300">
+                                            <div className="w-10 h-10 bg-accent rounded-xl flex items-center justify-center mx-auto mb-1 text-accent-foreground">
                                                 <Key size={18} />
                                             </div>
                                             <h3 className="text-foreground font-bold text-sm font-kantumruy">
@@ -286,7 +339,7 @@ export default function SignInPage() {
 
                                         <div className="space-y-2">
                                             <div className="relative group">
-                                                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-teal-700 dark:group-focus-within:text-teal-300 pointer-events-none z-10">
+                                                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary pointer-events-none z-10">
                                                     <Lock size={16} />
                                                 </div>
                                                 <Input
@@ -297,7 +350,7 @@ export default function SignInPage() {
                                                     }}
                                                     placeholder="000000"
                                                     autoComplete="one-time-code"
-                                                    className="pl-11 text-center text-lg font-bold tracking-[0.3em] bg-background border border-input text-foreground rounded-xl focus:border-teal-600 h-11 font-mono"
+                                                    className="pl-11 text-center text-lg font-bold tracking-[0.3em] bg-background border border-input text-foreground rounded-xl focus:border-ring focus-visible:ring-2 focus-visible:ring-ring/25 h-11 font-mono"
                                                     maxLength={6}
                                                     autoFocus
                                                     inputMode="numeric"
@@ -317,7 +370,7 @@ export default function SignInPage() {
                             </AnimatePresence>
 
                             {/* Cloudflare Turnstile */}
-                            {turnstileSiteKey && (
+                            {turnstileSiteKey && showCaptcha && (
                                 <div className="flex justify-center items-center py-0.5 min-h-[58px] w-full">
                                     <Turnstile
                                         key={captchaWidgetKey}
@@ -334,12 +387,12 @@ export default function SignInPage() {
                                             setCaptchaToken("");
                                             setCaptchaState("expired");
                                         }}
-                                        options={{ theme: 'auto', appearance: 'always' }}
+                                        options={{ theme: 'auto', appearance: 'always', action: "signin" }}
                                     />
                                 </div>
                             )}
 
-                            {turnstileSiteKey && captchaState !== "ready" && (
+                            {turnstileSiteKey && showCaptcha && captchaState !== "ready" && (
                                 <div
                                     className="flex items-center justify-between gap-3 rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-xs text-amber-800 dark:text-amber-200"
                                     role="status"
@@ -363,6 +416,11 @@ export default function SignInPage() {
                                             {isKm ? "ព្យាយាមម្ដងទៀត" : "Retry"}
                                         </Button>
                                     )}
+                                    {showCaptcha && !turnstileSiteKey && (
+                                        <p role="alert" className="rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-xs text-amber-800 dark:text-amber-200">
+                                            {isKm ? "មិនអាចផ្ទុកការផ្ទៀងផ្ទាត់សុវត្ថិភាពបានទេ។ សូមទាក់ទងជំនួយ។" : "Security verification is unavailable. Please contact support."}
+                                        </p>
+                                    )}
                                 </div>
                             )}
 
@@ -381,12 +439,38 @@ export default function SignInPage() {
                                     </m.div>
                                 )}
                             </AnimatePresence>
+                            {canRestoreAccount && (
+                                <Button
+                                    type="button"
+                                    onClick={restoreAccount}
+                                    disabled={isRestoringAccount || isLoading}
+                                    variant="outline"
+                                    className="w-full border-primary/30 text-primary hover:bg-accent"
+                                >
+                                    {isRestoringAccount
+                                        ? <Loader2 className="h-4 w-4 animate-spin" />
+                                        : isKm ? "ស្ដារគណនីរបស់ខ្ញុំ" : "Restore my account"}
+                                </Button>
+                            )}
+                            {accountRestoreMessage && (
+                                <p role="status" className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-2.5 text-center text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                                    {accountRestoreMessage}
+                                </p>
+                            )}
+                            {verificationEmail && (
+                                <Link
+                                    to={`/verify-email?email=${encodeURIComponent(verificationEmail)}`}
+                                    className="block text-center text-xs font-bold text-primary underline underline-offset-4"
+                                >
+                                    {isKm ? "ផ្ទៀងផ្ទាត់អ៊ីមែល ឬផ្ញើតំណថ្មី" : "Verify your email or resend the link"}
+                                </Link>
+                            )}
 
                             {/* Primary Submit Button */}
                             <Button 
                                 type="submit" 
-                                disabled={isLoading || (!!turnstileSiteKey && !captchaToken)}
-                                className="w-full bg-gradient-to-r from-teal-700 to-teal-600 hover:from-teal-800 hover:to-teal-700 active:bg-teal-800 text-white font-bold h-11 rounded-xl shadow-md shadow-teal-700/20 transition-all text-sm font-kantumruy mt-1"
+                                disabled={isLoading || (showCaptcha && (!turnstileSiteKey || !captchaToken))}
+                                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-11 rounded-xl shadow-md transition-all text-sm font-kantumruy mt-1"
                             >
                                 {isLoading ? (
                                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -400,9 +484,9 @@ export default function SignInPage() {
                     {/* Divider */}
                     <div className="relative my-3.5 flex items-center justify-center">
                         <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-border/60 dark:border-white/10" />
+                            <div className="w-full border-t border-border/60" />
                         </div>
-                        <span className="relative bg-card dark:bg-[#121216] px-2.5 text-[11px] text-muted-foreground font-kantumruy">
+                        <span className="relative bg-card px-2.5 text-xs text-muted-foreground font-kantumruy">
                             {isKm ? "ឬ" : "or"}
                         </span>
                     </div>
@@ -413,12 +497,12 @@ export default function SignInPage() {
                     </div>
 
                     {/* Footer Switch Link */}
-                    <div className="mt-3.5 border-t border-border/60 pt-3 text-center dark:border-white/10">
+                    <div className="mt-3.5 border-t border-border/60 pt-3 text-center">
                         <p className="text-xs text-muted-foreground font-kantumruy">
                             {isKm ? "មិនទាន់មានគណនីទេ?" : "Need an account?"}{" "}
                             <Link 
                                 to={AUTH_URLS.SIGN_UP} 
-                                className="ml-1 font-bold text-teal-800 hover:underline dark:text-teal-300"
+                                className="ml-1 font-bold text-primary hover:underline"
                             >
                                 {isKm ? "ចុះឈ្មោះ" : "Create one"}
                             </Link>

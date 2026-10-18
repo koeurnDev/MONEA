@@ -22,12 +22,6 @@ export default function AccountSettingsPage() {
         mutate,
         show2FASetup,
         setShow2FASetup,
-        securityLogs,
-        loadingLogs,
-        securityLogsError,
-        fetchLogs,
-        revoking,
-        handleRevokeSessions,
         activeTab,
         setActiveTab,
 
@@ -62,7 +56,7 @@ export default function AccountSettingsPage() {
     } = useAccountSettings();
 
     return (
-        <div className="mx-auto max-w-6xl px-3 py-4 sm:px-6 sm:py-6 md:py-10 relative space-y-5 sm:space-y-7">
+        <div className="relative mx-auto w-full max-w-6xl space-y-5 py-4 sm:space-y-7 sm:py-6 md:py-10">
             <TwoFactorSetup
                 open={show2FASetup}
                 onOpenChange={setShow2FASetup}
@@ -73,12 +67,12 @@ export default function AccountSettingsPage() {
             <PageHeader
                 title={t("account.title", { defaultValue: "គណនី និងប្រវត្តិរូប" })}
                 icon={UserCog}
-                iconColor="text-teal-500"
+                iconColor="text-primary"
                 action={
                     <Link
                         to="/dashboard"
                         aria-label="ត្រឡប់ទៅ Dashboard"
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition active:scale-95 dark:border-white/10 dark:bg-white/5 dark:text-slate-300"
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-card text-primary transition hover:bg-accent active:scale-95"
                     >
                         <ArrowLeft className="h-4 w-4" />
                     </Link>
@@ -88,19 +82,19 @@ export default function AccountSettingsPage() {
             {/* Main Tabs Layout */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
                 <div className="w-full">
-                    <TabsList className="h-auto w-full justify-between gap-1 rounded-2xl border border-slate-200/80 bg-slate-100/80 p-1 shadow-sm dark:border-white/10 dark:bg-[#181d22]">
+                    <TabsList className="h-auto w-full justify-between gap-1 rounded-2xl border border-border bg-muted p-1 shadow-sm">
                         <TabsTrigger 
                             value="profile" 
-                            className="group flex min-h-12 flex-1 gap-2 rounded-xl px-3 py-2 font-kantumruy text-sm font-bold text-muted-foreground transition-all focus-visible:ring-0 data-[state=active]:bg-white data-[state=active]:text-teal-600 data-[state=active]:shadow-sm dark:data-[state=active]:bg-[#2b1f22] dark:data-[state=active]:text-teal-400 sm:px-4 sm:py-2.5 sm:text-sm"
+                            className="group flex min-h-12 flex-1 gap-2 rounded-xl px-3 py-2 font-kantumruy text-sm font-bold text-muted-foreground transition-all focus-visible:ring-0 data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-sm sm:px-4 sm:py-2.5 sm:text-sm"
                         >
-                            <User size={14} className="shrink-0 group-data-[state=active]:text-teal-400" />
+                            <User size={14} className="shrink-0 text-sage group-data-[state=active]:text-sage" />
                             <span>{t("account.tabs.profile", { defaultValue: "គណនី" })}</span>
                         </TabsTrigger>
                         <TabsTrigger 
                             value="security" 
-                            className="group flex min-h-12 flex-1 gap-2 rounded-xl px-3 py-2 font-kantumruy text-sm font-bold text-muted-foreground transition-all focus-visible:ring-0 data-[state=active]:bg-white data-[state=active]:text-teal-600 data-[state=active]:shadow-sm dark:data-[state=active]:bg-[#2b1f22] dark:data-[state=active]:text-teal-400 sm:px-4 sm:py-2.5 sm:text-sm"
+                            className="group flex min-h-12 flex-1 gap-2 rounded-xl px-3 py-2 font-kantumruy text-sm font-bold text-muted-foreground transition-all focus-visible:ring-0 data-[state=active]:bg-card data-[state=active]:text-primary data-[state=active]:shadow-sm sm:px-4 sm:py-2.5 sm:text-sm"
                         >
-                            <Shield size={14} className="shrink-0 group-data-[state=active]:text-teal-400" />
+                            <Shield size={14} className="shrink-0 text-sage group-data-[state=active]:text-sage" />
                             <span>{t("account.tabs.security", { defaultValue: "សុវត្ថិភាព" })}</span>
                         </TabsTrigger>
                     </TabsList>
@@ -125,12 +119,6 @@ export default function AccountSettingsPage() {
                             <div>
                                 <SecurityTab
                                     user={user}
-                                    securityLogs={securityLogs}
-                                    loadingLogs={loadingLogs}
-                                    securityLogsError={securityLogsError}
-                                    revoking={revoking}
-                                    onFetchLogs={fetchLogs}
-                                    onRevokeSessions={handleRevokeSessions}
                                     onShow2FASetup={() => setShow2FASetup(true)}
                                     onShowDisable2FA={() => setShowDisable2FA(true)}
                                 />

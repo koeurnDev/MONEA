@@ -8,13 +8,19 @@ import { LanguageProvider } from './i18n/LanguageProvider'
 import { AuthProvider } from './hooks/useAuth'
 import { ToastProvider } from './components/ui/Toast'
 import { useMobilePerformance } from './hooks/useMobilePerformance'
+import DotMatrixLoader from './components/ui/DotMatrixLoader'
 import { Suspense, lazy } from 'react'
 
 // Mobile-optimized loading component
 function MobileLoader() {
   return (
-    <div className="fixed inset-0 bg-background flex items-center justify-center">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    <div
+      aria-live="polite"
+      className="fixed inset-0 flex items-center justify-center bg-background"
+      role="status"
+    >
+      <DotMatrixLoader className="h-12 w-12" />
+      <span className="sr-only">Loading...</span>
     </div>
   );
 }

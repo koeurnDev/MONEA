@@ -137,7 +137,7 @@ export default function GuestPage() {
 
             {/* --- PRINT ONLY HEADER --- */}
             <div className="hidden print:block text-center pt-8 mb-2">
-                <h1 className="text-3xl font-black tracking-[0.25em] text-teal-600 font-sans">MONEA</h1>
+                <h1 className="text-3xl font-black tracking-[0.08em] text-teal-600 font-sans">MONEO</h1>
                 <div className="h-0.5 w-12 bg-teal-200 mx-auto mt-3 opacity-50" />
             </div>
 
@@ -154,11 +154,11 @@ export default function GuestPage() {
             <div className="hidden print:block mb-8">
                 <div className="grid grid-cols-2 gap-0 border border-slate-100 rounded-3xl overflow-hidden">
                     <div className="bg-teal-50/30 p-6 border-r border-slate-100">
-                        <p className="text-[10px] text-teal-400 font-black uppercase tracking-widest mb-1.5 font-kantumruy">{t("guests.print.totalGuests")}</p>
+                        <p className="text-xs text-teal-400 font-black uppercase tracking-widest mb-1.5 font-kantumruy">{t("guests.print.totalGuests")}</p>
                         <p className="text-2xl font-black text-slate-900 font-kantumruy">{filteredGuests.length} {t("guests.print.personUnit")}</p>
                     </div>
                     <div className="bg-slate-50/50 p-6">
-                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1.5 font-kantumruy">{t("guests.print.reportStatus")}</p>
+                        <p className="text-xs text-slate-400 font-black uppercase tracking-widest mb-1.5 font-kantumruy">{t("guests.print.reportStatus")}</p>
                         <div className="flex items-center gap-2">
                             <div className="w-2 h-2 rounded-full bg-emerald-500" />
                             <p className="text-base font-black text-slate-900 font-kantumruy">{t("guests.print.official")}</p>
@@ -310,7 +310,7 @@ export default function GuestPage() {
             <div className="hidden print:flex flex-col mb-10 pt-8 px-10 mt-16 font-kantumruy border-t-2 border-slate-100">
                 <div className="flex justify-between items-end">
                     <div className="space-y-2">
-                        <p suppressHydrationWarning className="text-slate-400 uppercase tracking-[0.15em] text-[9px] font-black">{t("guests.print.reportDate")}</p>
+                        <p suppressHydrationWarning className="text-slate-400 uppercase tracking-[0.15em] text-xs font-black">{t("guests.print.reportDate")}</p>
                         <p suppressHydrationWarning className="text-sm font-bold text-slate-900">
                             {formatKhmerDate(new Date())}
                         </p>
@@ -319,17 +319,17 @@ export default function GuestPage() {
                     <div className="text-right space-y-2">
                         <div className="flex items-center justify-end gap-2 mb-1">
                             <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                            <p className="text-slate-400 uppercase tracking-[0.15em] text-[9px] font-black">{t("guests.print.validity")}</p>
+                            <p className="text-slate-400 uppercase tracking-[0.15em] text-xs font-black">{t("guests.print.validity")}</p>
                         </div>
                         <p className="text-sm font-black text-slate-900">{t("guests.print.officialReport")}</p>
                     </div>
                 </div>
                 
                 <div className="mt-24 text-center">
-                    <p className="text-[10px] text-slate-300 uppercase tracking-[0.5em] font-medium font-kantumruy mb-2">
-                        MONEA PLATFORM • OFFICIAL WEDDING RECORD
+                    <p className="text-xs text-slate-300 uppercase tracking-[0.5em] font-medium font-kantumruy mb-2">
+                        MONEO • OFFICIAL WEDDING RECORD
                     </p>
-                    <p className="text-[9px] text-slate-300 font-medium font-kantumruy">
+                    <p className="text-xs text-slate-300 font-medium font-kantumruy">
                         {t("guests.print.footerNote")}
                     </p>
                 </div>

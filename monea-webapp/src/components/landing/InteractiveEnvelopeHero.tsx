@@ -95,7 +95,7 @@ export function InteractiveEnvelopeHero() {
                             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-rose-500/10 dark:bg-rose-500/20 border border-rose-500/30 text-rose-700 dark:text-rose-300 text-xs font-black tracking-wide shadow-xs"
                         >
                             <Sparkles className="w-4 h-4 text-rose-500 animate-pulse" />
-                            <span>វេទិកាធៀបការឌីជីថលខ្មែរជំនាន់ថ្មី • MONEA</span>
+                            <span>វេទិកាធៀបការឌីជីថលខ្មែរជំនាន់ថ្មី • MONEO</span>
                         </motion.div>
 
                         {/* Heading */}
@@ -129,12 +129,12 @@ export function InteractiveEnvelopeHero() {
                                     <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
                                     សាកល្បងដាក់ឈ្មោះកូនកំលោះ & កូនក្រមុំ៖
                                 </span>
-                                <span className="text-[10px] text-muted-foreground font-medium">Live Preview</span>
+                                <span className="text-xs text-muted-foreground font-medium">Live Preview</span>
                             </div>
 
                             <div className="grid grid-cols-2 gap-2">
                                 <div>
-                                    <label className="text-[10px] text-muted-foreground font-bold block mb-1">ឈ្មោះកូនកំលោះ</label>
+                                    <label className="text-xs text-muted-foreground font-bold block mb-1">ឈ្មោះកូនកំលោះ</label>
                                     <input 
                                         type="text" 
                                         value={groom} 
@@ -144,7 +144,7 @@ export function InteractiveEnvelopeHero() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-[10px] text-muted-foreground font-bold block mb-1">ឈ្មោះកូនក្រមុំ</label>
+                                    <label className="text-xs text-muted-foreground font-bold block mb-1">ឈ្មោះកូនក្រមុំ</label>
                                     <input 
                                         type="text" 
                                         value={bride} 
@@ -157,14 +157,14 @@ export function InteractiveEnvelopeHero() {
 
                             {/* Theme Preset Selector */}
                             <div className="pt-1">
-                                <label className="text-[10px] text-muted-foreground font-bold block mb-1.5">ជ្រើសរើសម៉ូដធៀបការ៖</label>
+                                <label className="text-xs text-muted-foreground font-bold block mb-1.5">ជ្រើសរើសម៉ូដធៀបការ៖</label>
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
                                     {THEMES.map((theme) => (
                                         <button
                                             key={theme.id}
                                             type="button"
                                             onClick={() => setSelectedTheme(theme)}
-                                            className={`px-2 py-1.5 rounded-lg text-[11px] font-bold border transition-all text-center truncate ${
+                                            className={`px-2 py-1.5 rounded-lg text-xs font-bold border transition-all text-center truncate ${
                                                 selectedTheme.id === theme.id 
                                                     ? "bg-rose-600 text-white border-rose-600 shadow-xs" 
                                                     : "bg-muted/50 hover:bg-muted text-foreground border-border"
@@ -214,12 +214,12 @@ export function InteractiveEnvelopeHero() {
                             >
                                 {/* Top Header Ribbon */}
                                 <div className="text-center pb-4 border-b border-white/10 space-y-1">
-                                    <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-white/10 text-[10px] font-bold text-white/90">
+                                    <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-white/10 text-xs font-bold text-white/90">
                                         <Sparkles className="w-3 h-3 text-amber-400" />
                                         <span>សិរីសួស្តី អាពាហ៍ពិពាហ៍</span>
                                     </div>
                                     <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white pt-1 font-moul">
-                                        លិខិតអញ្ជើញ
+                                        ធៀបអញ្ជើញ
                                     </h2>
                                 </div>
 
@@ -243,7 +243,7 @@ export function InteractiveEnvelopeHero() {
                                         </div>
                                         <div>
                                             <div className="font-bold text-white">ថ្ងៃអាទិត្យ ទី១២ ខែធ្នូ ឆ្នាំ២០២៦</div>
-                                            <div className="text-[11px] text-white/70">វេលាម៉ោង ៥:០០ ល្ងាច (ពិធីជប់លៀង)</div>
+                                            <div className="text-xs text-white/70">វេលាម៉ោង ៥:០០ ល្ងាច (ពិធីជប់លៀង)</div>
                                         </div>
                                     </div>
 
@@ -253,7 +253,7 @@ export function InteractiveEnvelopeHero() {
                                         </div>
                                         <div>
                                             <div className="font-bold text-white">មជ្ឈមណ្ឌលសន្និបាត & ពិព័រណ៍ ឌឹ ព្រេមៀ សែនសុខ</div>
-                                            <div className="text-[11px] text-white/70">អគារ A សាលមហោស្រព</div>
+                                            <div className="text-xs text-white/70">អគារ A សាលមហោស្រព</div>
                                         </div>
                                     </div>
                                 </div>
@@ -285,12 +285,12 @@ export function InteractiveEnvelopeHero() {
                                         </a>
                                     </div>
 
-                                    <div className="p-3 bg-black/40 rounded-xl border border-white/10 flex items-center justify-between text-[11px] text-white/80">
+                                    <div className="p-3 bg-black/40 rounded-xl border border-white/10 flex items-center justify-between text-xs text-white/80">
                                         <span className="flex items-center gap-1.5">
                                             <QrCode className="w-4 h-4 text-amber-400" />
                                             <span>ស្កេន KHQR ចងដៃតាមទូរស័ព្ទ</span>
                                         </span>
-                                        <span className="text-[10px] px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-bold">
+                                        <span className="text-xs px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-bold">
                                             ABA / Bakong
                                         </span>
                                     </div>
@@ -311,7 +311,7 @@ export function InteractiveEnvelopeHero() {
                                 <span>ចែករំលែកតាម Telegram ក្នុង 1-Tap</span>
                             </div>
 
-                            <div className="absolute -top-3 -right-3 bg-card/95 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-border shadow-lg flex items-center gap-1.5 text-[11px] font-bold text-foreground">
+                            <div className="absolute -top-3 -right-3 bg-card/95 backdrop-blur-md px-3 py-1.5 rounded-2xl border border-border shadow-lg flex items-center gap-1.5 text-xs font-bold text-foreground">
                                 <Users className="w-3.5 h-3.5 text-amber-500" />
                                 <span>ភ្ញៀវចូលរួម 520+ នាក់</span>
                             </div>

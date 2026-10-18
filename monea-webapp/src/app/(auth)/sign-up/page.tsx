@@ -50,7 +50,9 @@ export default function SignUpPage() {
     const navigate = useNavigate();
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [showTurnstile, setShowTurnstile] = useState(false);
     const [turnstileToken, setTurnstileToken] = useState<string>("");
+    const [turnstileWidgetKey, setTurnstileWidgetKey] = useState(0);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -60,8 +62,8 @@ export default function SignUpPage() {
     });
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
-        if (!turnstileToken && import.meta.env.VITE_TURNSTILE_SITE_KEY) {
-            setError("សូមផ្ទៀងផ្ទាត់សុវត្ថិភាព CAPTCHA");
+        if (showTurnstile && !turnstileToken && import.meta.env.VITE_TURNSTILE_SITE_KEY) {
+            setError("សូមផ្ទៀងផ្ទាត់សុវត្ថិភាព");
             return;
         }
 
@@ -75,32 +77,38 @@ export default function SignUpPage() {
             };
             const res = await moneaClient.post<any>("/api/auth/signup", body);
             
-            if (!res.error && res.data) {
-                window.location.href = AUTH_URLS.DASHBOARD;
+            if (!res.error && res.data?.verificationRequired) {
+                const deliveryStatus = res.data.emailSent ? "" : "&delivery=failed";
+                navigate(`/verify-email?email=${encodeURIComponent(values.email.trim().toLowerCase())}${deliveryStatus}`);
                 return;
+            } else if (res.status === 428) {
+                setShowTurnstile(true);
+                setError(res.error || "សូមផ្ទៀងផ្ទាត់សុវត្ថិភាព ដើម្បីបន្ត។");
             } else {
                 setError(res.error || "មានបញ្ហាក្នុងការចុះឈ្មោះ");
             }
         } catch (e: any) {
-            setError("មិនអាចភ្ជាប់ទៅកាន់ Server បានទេ។ សូមព្យាយាមម្ដងទៀត។");
+            setError("សូមពិនិត្យសេវាអ៊ីនធឺណិតរបស់អ្នក ហើយព្យាយាមម្ដងទៀត។");
         } finally {
             setIsLoading(false);
+            setTurnstileToken("");
+            setTurnstileWidgetKey((key) => key + 1);
         }
     }
 
     return (
-        <div className="relative w-full min-h-[100dvh] flex flex-col font-kantumruy bg-gradient-to-br from-[#F0FDFA] via-[#F8FAFC] to-[#FFFBEB] dark:from-[#09090B] dark:via-[#0C1716] dark:to-[#09090B] items-center justify-center py-4 px-3 sm:px-4 overflow-y-auto transition-colors duration-300">
+        <div className="relative w-full min-h-[100dvh] flex flex-col font-kantumruy bg-gradient-to-br from-background via-background to-secondary items-center justify-center py-4 px-3 sm:px-4 overflow-y-auto transition-colors duration-300">
             {/* Ambient Glows */}
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute -top-[15%] -left-[10%] w-[50vw] h-[50vw] rounded-full bg-teal-400/15 dark:bg-teal-600/10 blur-[130px]" />
-                <div className="absolute -bottom-[15%] -right-[10%] w-[45vw] h-[45vw] rounded-full bg-amber-300/15 dark:bg-amber-900/10 blur-[130px]" />
+                <div className="absolute -top-[15%] -left-[10%] w-[50vw] h-[50vw] rounded-full bg-sage/10 blur-[130px]" />
+                <div className="absolute -bottom-[15%] -right-[10%] w-[45vw] h-[45vw] rounded-full bg-gold/15 blur-[130px]" />
             </div>
 
             {/* Top Bar Navigation */}
-            <div className="mb-3 flex w-full max-w-[420px] items-center justify-between px-1">
+            <div className="mb-3 flex w-full max-w-[460px] items-center justify-between px-1">
                 <Link
                     to="/"
-                    className="inline-flex items-center gap-1.5 rounded-full border border-border/80 bg-card/80 px-3 py-1.5 text-xs font-bold text-muted-foreground shadow-xs transition-all hover:bg-muted hover:text-foreground active:scale-95"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-primary bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground shadow-xs transition-all hover:bg-primary/90 active:scale-95"
                 >
                     <ChevronLeft size={15} />
                     <span>{isKm ? "ទំព័រដើម" : "Home"}</span>
@@ -115,9 +123,9 @@ export default function SignUpPage() {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2 }}
-                className="relative z-10 w-full max-w-[420px] pb-6 sm:pb-0"
+                className="relative z-10 w-full max-w-[460px] pb-6 sm:pb-0"
             >
-                <div className="rounded-[28px] border border-border/80 bg-card/95 p-5 shadow-2xl shadow-slate-900/5 backdrop-blur-2xl dark:border-white/10 dark:bg-[#121216]/95 dark:shadow-teal-950/10 sm:p-6">
+                <div className="rounded-[28px] border border-border bg-card/95 p-5 shadow-2xl backdrop-blur-2xl sm:p-7">
                     
                     {/* Header */}
                     <div className="mb-4 text-center">
@@ -127,33 +135,33 @@ export default function SignUpPage() {
                         <h1 className="text-xl font-black text-foreground font-kantumruy sm:text-2xl">
                             {isKm ? "បង្កើតគណនីថ្មី" : "Create Account"}
                         </h1>
-                        <p className="mt-1 text-[11px] font-medium text-muted-foreground">
+                        <p className="mt-1 text-sm font-medium leading-relaxed text-muted-foreground">
                             {isKm ? "ចុះឈ្មោះដើម្បីចាប់ផ្ដើមធ្វើការកំណត់ធៀបរបស់អ្នក" : "Sign up to start creating your invitation"}
                         </p>
                     </div>
 
                     {/* Primary Sign Up Form */}
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
                             <FormField
                                 control={form.control}
                                 name="name"
                                 render={({ field }) => (
-                                    <FormItem className="space-y-0.5">
-                                        <FormLabel className="text-foreground text-[11px] font-bold font-kantumruy">
+                                    <FormItem className="space-y-1">
+                                        <FormLabel className="text-foreground text-sm font-bold font-kantumruy">
                                             {isKm ? "ឈ្មោះរបស់អ្នក" : "Your Name"}
                                         </FormLabel>
                                         <div className="relative group">
-                                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-teal-700 dark:group-focus-within:text-teal-300 transition-colors pointer-events-none z-10">
-                                                <User size={15} />
+                                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/70 group-focus-within:text-primary transition-colors pointer-events-none z-10">
+                                                <User size={17} />
                                             </div>
                                             <Input
                                                 placeholder={isKm ? "ឧ. សុខា" : "e.g. John Doe"}
-                                                className="h-10 pl-10 bg-background dark:bg-zinc-900/60 border border-input text-foreground rounded-xl focus:border-teal-600 focus-visible:ring-2 focus-visible:ring-teal-600/20 text-xs font-kantumruy transition-all"
+                                                className="h-12 pl-10 bg-background border border-foreground/20 text-foreground placeholder:text-foreground/60 rounded-xl focus:border-ring focus-visible:ring-2 focus-visible:ring-ring/25 text-sm font-kantumruy transition-all"
                                                 {...field}
                                             />
                                         </div>
-                                        <FormMessage className="text-rose-600 text-[10px]" />
+                                        <FormMessage className="text-xs font-semibold leading-5 text-rose-700 dark:text-rose-300" />
                                     </FormItem>
                                 )}
                             />
@@ -162,22 +170,22 @@ export default function SignUpPage() {
                                 control={form.control}
                                 name="email"
                                 render={({ field }) => (
-                                    <FormItem className="space-y-0.5">
-                                        <FormLabel className="text-foreground text-[11px] font-bold font-kantumruy">
+                                    <FormItem className="space-y-1">
+                                        <FormLabel className="text-foreground text-sm font-bold font-kantumruy">
                                             {isKm ? "អ៊ីមែល" : "Email"}
                                         </FormLabel>
                                         <div className="relative group">
-                                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-teal-700 dark:group-focus-within:text-teal-300 transition-colors pointer-events-none z-10">
-                                                <Mail size={15} />
+                                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/70 group-focus-within:text-primary transition-colors pointer-events-none z-10">
+                                                <Mail size={17} />
                                             </div>
                                             <Input
                                                 placeholder="name@example.com"
                                                 autoComplete="email"
-                                                className="h-10 pl-10 bg-background dark:bg-zinc-900/60 border border-input text-foreground rounded-xl focus:border-teal-600 focus-visible:ring-2 focus-visible:ring-teal-600/20 text-xs font-mono transition-all"
+                                                className="h-12 pl-10 bg-background border border-foreground/20 text-foreground placeholder:text-foreground/60 rounded-xl focus:border-ring focus-visible:ring-2 focus-visible:ring-ring/25 text-sm font-mono transition-all"
                                                 {...field}
                                             />
                                         </div>
-                                        <FormMessage className="text-rose-600 text-[10px]" />
+                                        <FormMessage className="text-xs font-semibold leading-5 text-rose-700 dark:text-rose-300" />
                                     </FormItem>
                                 )}
                             />
@@ -187,32 +195,32 @@ export default function SignUpPage() {
                                     control={form.control}
                                     name="password"
                                     render={({ field }) => (
-                                        <FormItem className="space-y-0.5">
-                                            <FormLabel className="text-foreground text-[11px] font-bold font-kantumruy">
+                                        <FormItem className="space-y-1">
+                                            <FormLabel className="text-foreground text-sm font-bold font-kantumruy">
                                                 {isKm ? "ពាក្យសម្ងាត់" : "Password"}
                                             </FormLabel>
                                             <div className="relative group">
-                                                <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-teal-700 dark:group-focus-within:text-teal-300 transition-colors pointer-events-none z-10">
-                                                    <Lock size={14} />
+                                                <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-foreground/70 group-focus-within:text-primary transition-colors pointer-events-none z-10">
+                                                    <Lock size={16} />
                                                 </div>
                                                 <Input
                                                     type={showPassword ? "text" : "password"}
                                                     placeholder="••••••••"
                                                     autoComplete="new-password"
                                                     aria-describedby="signup-password-requirements"
-                                                    className="h-10 pl-9 pr-9 bg-background dark:bg-zinc-900/60 border border-input text-foreground rounded-xl focus:border-teal-600 focus-visible:ring-2 focus-visible:ring-teal-600/20 text-xs transition-all"
+                                                    className="h-12 pl-9 pr-9 bg-background border border-foreground/20 text-foreground placeholder:text-foreground/60 rounded-xl focus:border-ring focus-visible:ring-2 focus-visible:ring-ring/25 text-sm transition-all"
                                                     {...field}
                                                 />
                                                 <button
                                                     type="button"
                                                     onClick={() => setShowPassword(!showPassword)}
-                                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground active:scale-90 transition-all p-0.5 z-10"
+                                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-foreground/70 hover:text-foreground active:scale-90 transition-all p-1 z-10"
                                                     aria-label="Toggle password visibility"
                                                 >
                                                     {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                                                 </button>
                                             </div>
-                                            <FormMessage className="text-rose-600 text-[10px]" />
+                                            <FormMessage className="text-xs font-semibold leading-5 text-rose-700 dark:text-rose-300" />
                                         </FormItem>
                                     )}
                                 />
@@ -221,47 +229,48 @@ export default function SignUpPage() {
                                     control={form.control}
                                     name="confirmPassword"
                                     render={({ field }) => (
-                                        <FormItem className="space-y-0.5">
-                                            <FormLabel className="text-foreground text-[11px] font-bold font-kantumruy">
+                                        <FormItem className="space-y-1">
+                                            <FormLabel className="text-foreground text-sm font-bold font-kantumruy">
                                                 {isKm ? "បញ្ជាក់ពាក្យសម្ងាត់" : "Confirm Password"}
                                             </FormLabel>
                                             <div className="relative group">
-                                                <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-teal-700 dark:group-focus-within:text-teal-300 transition-colors pointer-events-none z-10">
-                                                    <ShieldCheck size={14} />
+                                                <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-foreground/70 group-focus-within:text-primary transition-colors pointer-events-none z-10">
+                                                    <ShieldCheck size={16} />
                                                 </div>
                                                 <Input
                                                     type={showConfirmPassword ? "text" : "password"}
                                                     placeholder="••••••••"
                                                     autoComplete="new-password"
-                                                    className="h-10 pl-9 pr-9 bg-background dark:bg-zinc-900/60 border border-input text-foreground rounded-xl focus:border-teal-600 focus-visible:ring-2 focus-visible:ring-teal-600/20 text-xs transition-all"
+                                                    className="h-12 pl-9 pr-9 bg-background border border-foreground/20 text-foreground placeholder:text-foreground/60 rounded-xl focus:border-ring focus-visible:ring-2 focus-visible:ring-ring/25 text-sm transition-all"
                                                     {...field}
                                                 />
                                                 <button
                                                     type="button"
                                                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground active:scale-90 transition-all p-0.5 z-10"
+                                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-foreground/70 hover:text-foreground active:scale-90 transition-all p-1 z-10"
                                                     aria-label="Toggle confirm password visibility"
                                                 >
                                                     {showConfirmPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                                                 </button>
                                             </div>
-                                            <FormMessage className="text-rose-600 text-[10px]" />
+                                            <FormMessage className="text-xs font-semibold leading-5 text-rose-700 dark:text-rose-300" />
                                         </FormItem>
                                     )}
                                 />
 
                                 <p
                                     id="signup-password-requirements"
-                                    className="col-span-2 text-[10px] leading-relaxed text-muted-foreground"
+                                    className="col-span-2 text-xs leading-relaxed text-muted-foreground"
                                 >
-                                    លេខសម្ងាត់ត្រូវមានយ៉ាងតិច ៨ និងមិនលើស ១២៨ តួអក្សរ។
+                                    លេខសម្ងាត់ត្រូវមានយ៉ាងតិច ៨ តួអក្សរ។
                                 </p>
                             </div>
 
                             {/* Cloudflare Turnstile */}
-                            {import.meta.env.VITE_TURNSTILE_SITE_KEY && (
+                            {import.meta.env.VITE_TURNSTILE_SITE_KEY && showTurnstile && (
                                 <div className="flex justify-center items-center py-0.5 min-h-[55px] w-full">
                                     <Turnstile
+                                        key={turnstileWidgetKey}
                                         siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
                                         onSuccess={(token: string) => {
                                             setTurnstileToken(token);
@@ -269,9 +278,14 @@ export default function SignUpPage() {
                                         }}
                                         onError={() => setError("CAPTCHA failed to load.")}
                                         onExpire={() => setTurnstileToken("")}
-                                        options={{ theme: 'auto', appearance: 'always' }}
+                                        options={{ theme: 'auto', appearance: 'always', action: "signup" }}
                                     />
                                 </div>
+                            )}
+                            {showTurnstile && !import.meta.env.VITE_TURNSTILE_SITE_KEY && (
+                                <p role="alert" className="rounded-xl border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-center text-xs text-amber-800 dark:text-amber-200">
+                                    {isKm ? "មិនអាចផ្ទុកការផ្ទៀងផ្ទាត់សុវត្ថិភាពបានទេ។ សូមទាក់ទងជំនួយ។" : "Security verification is unavailable. Please contact support."}
+                                </p>
                             )}
 
                             {/* Error Alert */}
@@ -291,8 +305,8 @@ export default function SignUpPage() {
                             {/* Primary Submit Button */}
                             <Button 
                                 type="submit" 
-                                disabled={isLoading} 
-                                className="w-full bg-gradient-to-r from-teal-700 to-teal-600 hover:from-teal-800 hover:to-teal-700 active:bg-teal-800 text-white font-bold h-10 rounded-xl shadow-md shadow-teal-700/20 transition-all text-xs font-kantumruy"
+                                disabled={isLoading || (showTurnstile && (!import.meta.env.VITE_TURNSTILE_SITE_KEY || !turnstileToken))}
+                                className="w-full bg-primary hover:bg-primary/90 active:bg-primary/80 text-primary-foreground font-bold h-12 rounded-xl shadow-md transition-all text-sm font-kantumruy"
                             >
                                 {isLoading ? (
                                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -308,7 +322,7 @@ export default function SignUpPage() {
                         <div className="absolute inset-0 flex items-center">
                             <div className="w-full border-t border-border/60 dark:border-white/10" />
                         </div>
-                        <span className="relative bg-card dark:bg-[#121216] px-2 text-[10px] text-muted-foreground font-kantumruy">
+                        <span className="relative bg-card px-2 text-xs text-muted-foreground font-kantumruy">
                             {isKm ? "ឬ ចុះឈ្មោះតាមរយៈ" : "or"}
                         </span>
                     </div>
@@ -320,11 +334,11 @@ export default function SignUpPage() {
 
                     {/* Footer Switch Link */}
                     <div className="mt-3.5 border-t border-border/60 pt-3 text-center dark:border-white/10">
-                        <p className="text-xs text-muted-foreground font-kantumruy">
+                        <p className="text-sm text-muted-foreground font-kantumruy">
                             {isKm ? "មានគណនីរួចហើយ?" : "Already have an account?"}{" "}
                             <Link 
                                 to={AUTH_URLS.SIGN_IN} 
-                                className="ml-1 font-bold text-teal-800 hover:underline dark:text-teal-300"
+                                className="ml-1 font-bold text-primary hover:underline"
                             >
                                 {isKm ? "ចូលគណនី" : "Sign In"}
                             </Link>

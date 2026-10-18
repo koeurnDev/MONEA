@@ -24,7 +24,7 @@ export const GiftSection: React.FC<GiftSectionProps> = ({ wedding, primaryColor 
         <section className="py-12 px-4 sm:px-6 bg-transparent text-[#2d352b] font-kantumruy relative overflow-hidden text-center">
             <div className="max-w-md mx-auto space-y-6 relative z-10">
                 <div className="space-y-1">
-                    <span className="text-xl sm:text-2xl font-khmer-moul text-[#4d5649] block">
+                    <span className="fh-khmer-safe block px-2 font-khmer-moul text-lg text-[#4d5649] sm:text-2xl">
                         ចំណងដៃអាពាហ៍ពិពាហ៍
                     </span>
                     <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-[#8ea07a] to-transparent mx-auto" />
@@ -34,13 +34,13 @@ export const GiftSection: React.FC<GiftSectionProps> = ({ wedding, primaryColor 
                     {bankAccounts.map((acc, idx) => (
                         <div
                             key={idx}
-                            className="bg-[#fffdf8]/80 border border-[#d9d1bf] rounded-3xl p-5 shadow-md space-y-4"
+                            className="space-y-4 border-b border-[#d9d1bf] py-5"
                         >
-                            <div className="flex items-center justify-between">
-                                <span className="text-xs font-bold text-[#4d5649] bg-[#f2eadf] px-3 py-1 rounded-full border border-[#d9d1bf]">
-                                    {acc.bankName || "ធនាគារ"}
+                            <div className="flex flex-wrap items-start justify-between gap-2 text-left">
+                                <span className="fh-khmer-safe max-w-full break-words font-khmer-moul text-xs font-bold text-[#4d5649]">
+                                    KHQR
                                 </span>
-                                <span className="text-xs font-bold text-[#2d352b]">
+                                <span className="fh-khmer-safe min-w-0 break-words font-kantumruy text-xs font-bold text-[#2d352b] [overflow-wrap:anywhere]">
                                     {acc.accountName || "ឈ្មោះគណនី"}
                                 </span>
                             </div>
@@ -58,23 +58,23 @@ export const GiftSection: React.FC<GiftSectionProps> = ({ wedding, primaryColor 
 
                             {/* Account Number with Copy */}
                             {acc.accountNumber && (
-                                <div className="flex items-center justify-between bg-[#f5ede1] border border-[#d9d1bf] px-4 py-2.5 rounded-xl text-xs">
-                                    <span className="font-mono font-bold text-[#2d352b] tracking-wider">
+                                <div className="flex min-w-0 items-center justify-between gap-2 border-b border-[#d9d1bf] px-1 py-2.5 text-xs sm:px-2">
+                                    <span className="min-w-0 break-all font-mono font-bold text-[#2d352b]">
                                         {acc.accountNumber}
                                     </span>
                                     <button
                                         onClick={() => acc.accountNumber && handleCopy(acc.accountNumber, idx)}
-                                        className="text-[#4d5649] hover:text-[#2d352b] font-bold flex items-center gap-1 active:scale-95 transition-all"
+                                        className="flex shrink-0 items-center gap-1 font-bold text-[#4d5649] transition-all hover:text-[#2d352b] active:scale-95"
                                     >
                                         {copiedIndex === idx ? (
                                             <>
                                                 <Check size={14} />
-                                                <span>បានចម្លង</span>
+                                                <span className="fh-khmer-safe">បានចម្លង</span>
                                             </>
                                         ) : (
                                             <>
                                                 <Copy size={14} />
-                                                <span>ចម្លងលេខ</span>
+                                                <span className="fh-khmer-safe">ចម្លងលេខ</span>
                                             </>
                                         )}
                                     </button>

@@ -37,7 +37,7 @@ export function VideoSection({ wedding }: { wedding: WeddingData }) {
                     whileInView={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.8 }}
                     viewport={{ once: true }}
-                    className="w-full aspect-video rounded-2xl overflow-hidden shadow-2xl border border-white/10 relative bg-black group"
+                    className="w-full aspect-video overflow-hidden relative bg-black group"
                 >
                     {videoId ? (
                         <iframe

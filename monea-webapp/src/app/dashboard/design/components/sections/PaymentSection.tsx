@@ -37,7 +37,7 @@ export function PaymentSection({ wedding, updateTheme, t }: PaymentSectionProps)
 
     return (
         <div className="space-y-4 pt-2 font-kantumruy">
-            <div className="flex items-start gap-2 rounded-xl border border-teal-100 bg-teal-50/70 p-3 text-[11px] leading-relaxed text-teal-700 dark:border-teal-500/20 dark:bg-teal-500/10 dark:text-teal-300">
+            <div className="flex items-start gap-2 rounded-xl border border-primary/20 bg-accent/50 p-3 text-xs leading-relaxed text-foreground">
                 <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                 <p>ដាក់រូប KHQR និងឈ្មោះអ្នកទទួលប្រាក់ជាចម្បង។ លេខគណនី និងធនាគារ គឺជាព័ត៌មានបន្ថែម មិនចាំបាច់បំពេញទេ។</p>
             </div>
@@ -45,11 +45,11 @@ export function PaymentSection({ wedding, updateTheme, t }: PaymentSectionProps)
                 {bankAccounts.map((acc: any, idx: number) => (
                     <div
                         key={idx}
-                        className="bg-white dark:bg-white/[0.02] p-3 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 shadow-sm relative group space-y-4"
+                        className="bg-card p-3 sm:p-5 rounded-2xl border border-border shadow-sm relative group space-y-4"
                     >
-                        <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-white/10 pb-3">
+                        <div className="flex items-center justify-between border-b border-border pb-3">
                             <div className="flex items-center gap-2 text-xs font-bold text-foreground">
-                                <div className="w-7 h-7 rounded-lg bg-teal-500/10 text-teal-600 flex items-center justify-center">
+                                <div className="w-7 h-7 rounded-lg bg-accent text-primary flex items-center justify-center">
                                     <CreditCard size={15} />
                                 </div>
                                 <span>KHQR / គណនីទី {idx + 1}</span>
@@ -60,7 +60,7 @@ export function PaymentSection({ wedding, updateTheme, t }: PaymentSectionProps)
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleRemoveAccount(idx)}
-                                className="h-8 px-2.5 text-muted-foreground hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-950/30 rounded-xl transition-all text-xs font-bold flex items-center gap-1"
+                                className="h-8 px-2.5 text-muted-foreground hover:text-primary hover:bg-accent rounded-xl transition-all text-xs font-bold flex items-center gap-1"
                             >
                                 <Trash2 size={13} />
                                 <span>លុប</span>
@@ -94,7 +94,7 @@ export function PaymentSection({ wedding, updateTheme, t }: PaymentSectionProps)
                             {/* Primary recipient details */}
                             <div className="space-y-3.5">
                                 <div className="space-y-1.5">
-                                    <Label className="text-xs font-bold text-foreground">ឈ្មោះអ្នកទទួលប្រាក់ <span className="text-teal-500">*</span></Label>
+                                    <Label className="text-xs font-bold text-foreground">ឈ្មោះអ្នកទទួលប្រាក់ <span className="text-primary">*</span></Label>
                                     <DebouncedInput
                                         placeholder="ឧ. SOK SAN & KONG SOCHATA"
                                         value={acc.accountName || ""}
@@ -103,7 +103,7 @@ export function PaymentSection({ wedding, updateTheme, t }: PaymentSectionProps)
                                             newAccs[idx] = { ...newAccs[idx], accountName: val as string };
                                             updateBankAccounts(newAccs);
                                         }}
-                                        className="h-11 rounded-xl border border-slate-200/80 bg-slate-50/50 px-3.5 text-xs font-bold text-foreground shadow-sm dark:border-white/10 dark:bg-black/20"
+                                        className="h-11 rounded-xl border border-border bg-background px-3.5 text-xs font-bold text-foreground shadow-sm"
                                     />
                                 </div>
 

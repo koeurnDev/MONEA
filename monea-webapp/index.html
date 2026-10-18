@@ -2,91 +2,173 @@
 <html lang="km">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
-    <script>
-      if (window.location.pathname === '/') {
-        const heroPhoto = document.createElement('link');
-        heroPhoto.rel = 'preload';
-        heroPhoto.as = 'image';
-        heroPhoto.href = '/images/user_uploads/sample4-640.webp';
-        heroPhoto.imageSrcset = '/images/user_uploads/sample4-320.webp 320w, /images/user_uploads/sample4-640.webp 640w';
-        heroPhoto.imageSizes = '(min-width: 1024px) 320px, 188px';
-        heroPhoto.fetchPriority = 'high';
-        document.head.appendChild(heroPhoto);
-      }
-    </script>
+    <link rel="icon" type="image/jpeg" href="/icons/logomoneo.jpg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="format-detection" content="telephone=no" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
 
-    <!-- Google Fonts for the M-05 Khmer wedding invitation -->
+    <!-- Load invitation fonts without blocking the initial render or shifting text when they arrive late. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      rel="preload"
-      as="style"
-      href="https://fonts.googleapis.com/css2?family=Battambang&family=Chenla&family=Content:wght@400;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Dangrek&family=Fasthand&family=Kantumruy+Pro:ital,wght@0,100..700;1,100..700&family=Koulen&family=Moul&family=Moulpali&family=Noto+Sans+Khmer:wght@100..900&family=Noto+Serif+Khmer:wght@100..900&family=Odor+Mean+Chey&family=Pinyon+Script&family=Preahvihear&family=Siemreap&display=swap"
-      onload="this.onload=null;this.rel='stylesheet'"
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Battambang&family=Chenla&family=Content:wght@400;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Dangrek&family=Fasthand&family=Kantumruy+Pro:ital,wght@0,100..700;1,100..700&family=Koulen&family=Moul&family=Moulpali&family=Noto+Sans+Khmer:wght@100..900&family=Noto+Serif+Khmer:wght@100..900&family=Odor+Mean+Chey&family=Pinyon+Script&family=Preahvihear&family=Siemreap&display=optional"
+      media="print"
+      onload="this.media='all'"
+      data-nonblocking-stylesheet
     />
     <noscript>
       <link
-        href="https://fonts.googleapis.com/css2?family=Battambang&family=Chenla&family=Content:wght@400;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Dangrek&family=Fasthand&family=Kantumruy+Pro:ital,wght@0,100..700;1,100..700&family=Koulen&family=Moul&family=Moulpali&family=Noto+Sans+Khmer:wght@100..900&family=Noto+Serif+Khmer:wght@100..900&family=Odor+Mean+Chey&family=Pinyon+Script&family=Preahvihear&family=Siemreap&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Battambang&family=Chenla&family=Content:wght@400;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Dangrek&family=Fasthand&family=Kantumruy+Pro:ital,wght@0,100..700;1,100..700&family=Koulen&family=Moul&family=Moulpali&family=Noto+Sans+Khmer:wght@100..900&family=Noto+Serif+Khmer:wght@100..900&family=Odor+Mean+Chey&family=Pinyon+Script&family=Preahvihear&family=Siemreap&display=optional"
         rel="stylesheet"
       />
     </noscript>
 
-    <!-- Preconnect for external resources -->
-    <link rel="preconnect" href="https://res.cloudinary.com" />
-    <link rel="preconnect" href="https://challenges.cloudflare.com" />
+    <!-- Defer connections for resources only needed on specific routes. -->
     <link rel="dns-prefetch" href="https://res.cloudinary.com" />
     <link rel="dns-prefetch" href="https://challenges.cloudflare.com" />
 
-    <title>MONEA - បង្កើតធៀបអញ្ជើញមង្គលការឌីជីថលដ៏ប្រណីត | Digital Wedding Invitation</title>
+    <title>ធៀបការឌីជីថល | TheapKa Digital - Online Invitation Khmer</title>
     <meta
       name="description"
-      content="MONEA - វេទិកាបង្កើតសំបុត្រអញ្ជើញមង្គលការឌីជីថល (Digital Wedding Invitation) ដ៏ប្រណីត គ្រប់គ្រងបញ្ជីភ្ញៀវ កត់ត្រាចំណងដៃ និងផ្ញើតាម Telegram យ៉ាងងាយស្រួល។"
+      content="បង្កើតធៀបអញ្ជើញមង្គលការឌីជីថលបានយ៉ាងងាយស្រួល ភ្ជាប់ Google Maps, KHQR និង Telegram ក្នុងពេលតែមួយជាមួយ MONEO។"
     />
-    <meta name="keywords" content="MONEA, ធៀបការអេឡិចត្រូនិក, សំបុត្រការឌីជីថល, digital wedding invitation cambodia, ធៀបការ online, កត់ត្រាចំណងដៃ, wedding platform khmer" />
-    <meta name="author" content="MONEA Platform" />
-    <link rel="canonical" href="https://monea-webapp.pages.dev/" />
+    <meta name="keywords" content="MONEO, ធៀបអញ្ជើញមង្គលការ, ធៀបការ, ធៀបការឌីជីថល, digital wedding invitation Cambodia, online wedding invitation Cambodia, គ្រប់គ្រងភ្ញៀវ" />
+    <meta name="author" content="MONEO" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="googlebot" content="index, follow, max-image-preview:large" />
+    <meta name="theme-color" content="#0f172a" />
+    <link rel="canonical" href="https://moneoez.com/" />
+    <link rel="alternate" hreflang="km" href="https://moneoez.com/" />
+    <link rel="alternate" hreflang="x-default" href="https://moneoez.com/" />
 
     <!-- Open Graph / Facebook / Telegram -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://monea-webapp.pages.dev/" />
-    <meta property="og:title" content="MONEA - បង្កើតធៀបអញ្ជើញមង្គលការឌីជីថលដ៏ប្រណីត" />
-    <meta property="og:description" content="បង្កើតសំបុត្រអញ្ជើញមង្គលការឌីជីថលដ៏ប្រណីត គ្រប់គ្រងភ្ញៀវ និងកត់ត្រាចំណងដៃបានយ៉ាងងាយស្រួលជាមួយ MONEA។" />
-    <meta property="og:image" content="https://monea-webapp.pages.dev/logo.png" />
-    <meta property="og:site_name" content="MONEA" />
+    <meta property="og:url" content="https://moneoez.com/" />
+    <meta property="og:title" content="ធៀបការឌីជីថល | TheapKa Digital - Online Invitation Khmer" />
+    <meta property="og:description" content="បង្កើតធៀបអញ្ជើញមង្គលការឌីជីថលជាភាសាខ្មែរ គ្រប់គ្រងភ្ញៀវ និងចែករំលែកការអញ្ជើញយ៉ាងងាយស្រួល។" />
+    <meta property="og:image" content="https://moneoez.com/icons/logomoneo.jpg" />
+    <meta property="og:image:alt" content="MONEO — ធៀបអញ្ជើញមង្គលការឌីជីថលនៅកម្ពុជា" />
+    <meta property="og:site_name" content="MONEO" />
     <meta property="og:locale" content="km_KH" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1024" />
+    <meta property="og:image:height" content="1024" />
 
     <!-- Twitter Cards -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:url" content="https://monea-webapp.pages.dev/" />
-    <meta name="twitter:title" content="MONEA - បង្កើតធៀបអញ្ជើញមង្គលការឌីជីថលដ៏ប្រណីត" />
-    <meta name="twitter:description" content="បង្កើតសំបុត្រអញ្ជើញមង្គលការឌីជីថលដ៏ប្រណីត គ្រប់គ្រងភ្ញៀវ និងកត់ត្រាចំណងដៃបានយ៉ាងងាយស្រួល។" />
-    <meta name="twitter:image" content="https://monea-webapp.pages.dev/logo.png" />
+    <meta name="twitter:url" content="https://moneoez.com/" />
+    <meta name="twitter:title" content="ធៀបការឌីជីថល | TheapKa Digital - Online Invitation Khmer" />
+    <meta name="twitter:description" content="បង្កើតធៀបអញ្ជើញមង្គលការឌីជីថលជាភាសាខ្មែរ គ្រប់គ្រងភ្ញៀវ និងចែករំលែកការអញ្ជើញយ៉ាងងាយស្រួល។" />
+    <meta name="twitter:image" content="https://moneoez.com/icons/logomoneo.jpg" />
+    <meta name="twitter:image:alt" content="MONEO — ធៀបអញ្ជើញមង្គលការឌីជីថលនៅកម្ពុជា" />
 
     <!-- JSON-LD Structured Data for Google Search Rich Snippets -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
-      "name": "MONEA",
+      "name": "MONEO",
+      "url": "https://moneoez.com/",
       "applicationCategory": "BusinessApplication",
       "operatingSystem": "All",
-      "description": "Digital Wedding Invitation and Event Management Platform in Cambodia",
+      "description": "បង្កើតធៀបអញ្ជើញមង្គលការឌីជីថលបានយ៉ាងងាយស្រួល ភ្ជាប់ Google Maps, KHQR និង Telegram ក្នុងពេលតែមួយ។",
       "offers": {
         "@type": "Offer",
         "price": "0",
-        "priceCurrency": "USD"
+        "priceCurrency": "USD",
+        "description": "សាកល្បងឥតគិតថ្លៃរយៈពេល ១៤ ថ្ងៃជាមួយ Template free។ កញ្ចប់បង់ប្រាក់អាចប្រើ Template បានច្រើន និងមុខងារបន្ថែមច្រើនទៀត។"
+      },
+      "publisher": {
+        "@id": "https://moneoez.com/#organization"
       }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "តើខ្ញុំអាចកែប្រែធៀបអញ្ជើញមង្គលការរបស់ខ្ញុំបន្ទាប់ពីធ្វើរូចបានទេ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "បាន។ អ្នកអាចកែប្រែកាលបរិច្ឆេទ ទីតាំង ឬពេលវេលាបានគ្រប់ពេល ហើយតំណភ្ជាប់របស់ភ្ញៀវនឹងទទួលបានការផ្លាស់ប្តូរដោយស្វ័យប្រវត្តិ។"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "តើកញ្ចប់ឥតគិតថ្លៃរបស់ MONEO មានសុពលភាពរយៈពេលប៉ុន្មាន?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "គណនីថ្មីអាចសាកល្បងមុខងារសំខាន់ៗបានរយៈពេល ១៤ ថ្ងៃជាមួយ Template free និងភ្ញៀវរហូតដល់ ២០ នាក់។"
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "តើខ្ញុំអាចបន្ថែមតន្ត្រីផ្ទៃក្រោយលើធៀបអញ្ជើញមង្គលការបានទេ?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "បាន។ កញ្ចប់ Standard និង Pro អនុញ្ញាតឱ្យអ្នកជ្រើសរើស ឬបញ្ចូលតន្ត្រីផ្ទៃក្រោយសម្រាប់ធៀបការរបស់អ្នក។"
+          }
+        }
+      ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "@id": "https://moneoez.com/#webpage",
+      "url": "https://moneoez.com/",
+      "name": "ធៀបការឌីជីថល | TheapKa Digital - Online Invitation Khmer",
+      "description": "បង្កើតធៀបអញ្ជើញមង្គលការឌីជីថលជាភាសាខ្មែរ គ្រប់គ្រងភ្ញៀវ និងចែករំលែកការអញ្ជើញយ៉ាងងាយស្រួល។",
+      "isPartOf": {
+        "@id": "https://moneoez.com/#website"
+      },
+      "about": {
+        "@id": "https://moneoez.com/#organization"
+      },
+      "inLanguage": "km-KH"
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://moneoez.com/#organization",
+          "name": "MONEO",
+          "url": "https://moneoez.com/",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://moneoez.com/icons/logomoneo.jpg",
+            "width": 1024,
+            "height": 1024
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://moneoez.com/#website",
+          "url": "https://moneoez.com/",
+          "name": "MONEO",
+          "publisher": {
+            "@id": "https://moneoez.com/#organization"
+          },
+          "inLanguage": ["km-KH", "en"]
+        }
+      ]
     }
     </script>
 
     <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#000000" />
   </head>
   <body>
     <div id="root"></div>
@@ -100,20 +182,18 @@
         // modules. Stale React chunks can create duplicate React instances.
         navigator.serviceWorker.getRegistrations().then(registrations => {
           registrations.forEach(registration => registration.unregister());
-        });
+        }).catch(error => console.warn('Unable to unregister service workers:', error));
         if ('caches' in window) {
-          caches.keys().then(names => names.forEach(name => caches.delete(name)));
+          caches.keys().then(names => names.forEach(name => caches.delete(name))).catch(error => {
+            console.warn('Unable to clear service worker caches:', error);
+          });
         }
       } else if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(registration => {
-              registration.update();
-            })
-            .catch(error => {
-              console.warn('SW registration failed:', error);
-            });
-        });
+        // The landing page does not need an offline worker. Remove older
+        // registrations so stale shell caches cannot affect performance audits.
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+          registrations.forEach(registration => registration.unregister());
+        }).catch(error => console.warn('Unable to unregister service workers:', error));
       }
     </script>
   </body>

@@ -167,8 +167,8 @@ export default function CreateWeddingPage() {
         <div className="w-full min-h-[calc(100dvh-5rem)] bg-background flex items-center justify-center p-4 py-8">
             <Card className="mx-auto w-full max-w-lg overflow-hidden rounded-2xl border border-border shadow-xl sm:rounded-3xl">
                 <CardHeader className={`text-center space-y-1.5 ${step === 2 ? "p-4" : "p-5 sm:p-6"}`}>
-                    <div className={`mx-auto bg-red-500/10 rounded-full flex items-center justify-center ${step === 2 ? "w-10 h-10 mb-1" : "w-12 h-12 mb-2"}`}>
-                        <Heart className={`${step === 2 ? "w-5 h-5" : "w-6 h-6"} text-red-600 fill-red-600`} />
+                    <div className={`mx-auto bg-accent rounded-full flex items-center justify-center ${step === 2 ? "w-10 h-10 mb-1" : "w-12 h-12 mb-2"}`}>
+                        <Heart className={`${step === 2 ? "w-5 h-5" : "w-6 h-6"} text-primary fill-primary`} />
                     </div>
                     <CardTitle className={`${step === 2 ? "text-xl" : "text-2xl"} font-bold font-kantumruy`}>
                         {step === 1 && "សូមបញ្ចូលឈ្មោះ"}
@@ -191,15 +191,15 @@ export default function CreateWeddingPage() {
                                 <Fragment key={stepNumber}>
                                     <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors ${
                                         stepNumber < step
-                                            ? "bg-teal-600 text-white"
+                                            ? "bg-primary text-primary-foreground"
                                             : stepNumber === step
-                                                ? "bg-teal-600 text-white ring-4 ring-teal-500/15"
+                                                ? "bg-primary text-primary-foreground ring-4 ring-primary/15"
                                                 : "bg-muted text-muted-foreground"
                                     }`}>
                                         {stepNumber < step ? <Check className="h-4 w-4" /> : stepNumber}
                                     </div>
                                     {stepNumber < 3 && (
-                                        <div className={`h-1 flex-1 rounded-full transition-colors ${stepNumber < step ? "bg-teal-600" : "bg-muted"}`} />
+                                        <div className={`h-1 flex-1 rounded-full transition-colors ${stepNumber < step ? "bg-primary" : "bg-muted"}`} />
                                     )}
                                 </Fragment>
                             ))}

@@ -28,8 +28,8 @@ const projectRoot = path.resolve(ROOT, '..');
 // Must be set before Vite loads .env / resolves the config.
 process.env.NODE_ENV = 'production';
 process.env.VITE_USER_NODE_ENV = 'production';
-process.env.VITE_API_URL = 'https://monea-api.seabkoeurn64.workers.dev';
-process.env.VITE_APP_URL = 'https://monea-webapp.pages.dev';
+process.env.VITE_API_URL = 'https://api.moneoez.com';
+process.env.VITE_APP_URL = 'https://moneoez.com';
 
 await build({
   root: projectRoot,

@@ -25,6 +25,9 @@ export function FooterSection({ wedding }: FooterSectionProps) {
                             <p className="font-khmer-moul text-xs md:text-sm text-gold-main/80 tracking-wide">
                                 {wedding.themeSettings?.customLabels?.footerLabel || t("template.khmerLegacy.footerLabel")}
                             </p>
+                            <p className="font-kantumruy text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                                BY MONEO
+                            </p>
                         </div>
                     </div>
                 </RevealSection>

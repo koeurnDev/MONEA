@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X } from 'lucide-react';
 import { WeddingData } from '../types';
 import { getWeddingPhotos } from "../shared/weddingPhotos";
 import { getGalleryCardClass, getGalleryContainerClass, getGalleryDisplayStyle, getGalleryImageClass } from "../shared/gallery-layout";
@@ -16,6 +16,9 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ wedding, primary
     const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
 
     const galleryStyle = getGalleryDisplayStyle(wedding.themeSettings?.galleryStyle);
+    const galleryContainerClass = galleryStyle === "masonry"
+        ? "grid grid-cols-2 gap-3"
+        : getGalleryContainerClass(galleryStyle);
     if (photos.length === 0) return null;
 
     return (
@@ -29,19 +32,19 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ wedding, primary
                 </div>
 
                 {/* Grid Display */}
-                <div className={getGalleryContainerClass(galleryStyle)}>
+                <div className={galleryContainerClass}>
                     {photos.map((photo, idx) => (
                         <motion.div
                             key={idx}
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => setSelectedPhoto(idx)}
-                            className={`relative rounded-2xl overflow-hidden cursor-pointer shadow-sm border border-rose-100 ${getGalleryCardClass(galleryStyle, idx)}`}
+                            className={`relative cursor-pointer overflow-hidden ${galleryStyle === "polaroid" ? "aspect-square" : getGalleryCardClass(galleryStyle, idx)}`}
                         >
                             <PhotoImage
                                 src={photo.url}
                                 alt={`Photo ${idx + 1}`}
-                                className={getGalleryImageClass(galleryStyle)}
+                                className={galleryStyle === "polaroid" ? "h-full w-full object-cover" : getGalleryImageClass(galleryStyle)}
                                 loading="lazy"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity flex items-end p-2.5">
@@ -78,7 +81,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ wedding, primary
                             <PhotoImage
                                 src={photos[selectedPhoto].url}
                                 alt="Enlarged moment"
-                                className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl"
+                                className="max-h-[80vh] max-w-full object-contain"
                             />
                         </div>
                     </motion.div>

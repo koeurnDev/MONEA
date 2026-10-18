@@ -1,4 +1,9 @@
 import type { WeddingData } from "../types";
+import {
+    getWeddingPhotoLayout,
+    getWeddingPhotoSlotIndex,
+    type WeddingPhotoSlotKey,
+} from "../../../lib/wedding-photo-layout.ts";
 
 const DEMO_PHOTO_FILES = new Set([
     "621811254_905398285378636_5240747682765358044_n.jpg",
@@ -27,7 +32,20 @@ export const getWeddingPhotos = (wedding: WeddingData) => {
     });
 };
 
-export const getWeddingPhotoAtSlot = (wedding: WeddingData, index: number) => {
+export const getWeddingGeneralPhotos = (wedding: WeddingData) => {
+    return (wedding.galleryItems || [])
+        .slice(getWeddingPhotoLayout(wedding.templateId).slots.length)
+        .filter((item) => {
+            if (!item || typeof item !== "object") return false;
+            if (item.type?.toUpperCase() === "VIDEO" || item.type?.toUpperCase() === "CERTIFICATE") return false;
+            return Boolean(typeof item.url === "string" && item.url.trim() && !isDemoPhoto(item.url));
+        })
+        .map((item) => item.url.trim());
+};
+
+export const getWeddingPhotoAtSlot = (wedding: WeddingData, key: WeddingPhotoSlotKey) => {
+    const index = getWeddingPhotoSlotIndex(wedding.templateId, key);
+    if (index === undefined) return undefined;
     const item = wedding.galleryItems?.[index];
     if (!item || typeof item !== "object") return undefined;
     const url = typeof item.url === "string" ? item.url.trim() : "";
@@ -36,13 +54,18 @@ export const getWeddingPhotoAtSlot = (wedding: WeddingData, index: number) => {
     return item;
 };
 
-export const getWeddingSectionPhoto = (wedding: WeddingData, index: number) => {
-    const hiddenSlots = new Set(wedding.themeSettings?.hiddenPhotoSlots || []);
-    if (hiddenSlots.has(index)) return undefined;
+export const getWeddingSectionPhoto = (wedding: WeddingData, key: WeddingPhotoSlotKey) => {
+    const index = getWeddingPhotoSlotIndex(wedding.templateId, key);
+    if (index === undefined) return undefined;
 
-    return getWeddingPhotoAtSlot(wedding, index)
-        || (index !== 1 && !hiddenSlots.has(1) ? getWeddingPhotoAtSlot(wedding, 1) : undefined)
-        || (index !== 0 && !hiddenSlots.has(0) ? getWeddingPhotoAtSlot(wedding, 0) : undefined);
+    const layout = getWeddingPhotoLayout(wedding.templateId);
+    const secondaryFeaturedKey = layout.featuredSlotKeys.find((featuredKey) => featuredKey !== "cover");
+
+    return getWeddingPhotoAtSlot(wedding, key)
+        || (secondaryFeaturedKey && key !== secondaryFeaturedKey
+            ? getWeddingPhotoAtSlot(wedding, secondaryFeaturedKey)
+            : undefined)
+        || (key !== "cover" ? getWeddingPhotoAtSlot(wedding, "cover") : undefined);
 };
 
 export type ConfiguredPaymentAccount = {
@@ -78,7 +101,7 @@ export const getConfiguredPaymentAccounts = (accounts: unknown): ConfiguredPayme
 };
 
 export const getWeddingHeroImage = (wedding: WeddingData, fallback = "") => {
-    return getWeddingPhotoAtSlot(wedding, 0)?.url
+    return getWeddingPhotoAtSlot(wedding, "cover")?.url
         || (wedding.themeSettings?.heroImagePublicId && !isDemoPhoto(wedding.themeSettings.heroImage) ? wedding.themeSettings.heroImage : undefined)
         || (!isDemoPhoto(wedding.themeSettings?.heroImage) ? wedding.themeSettings?.heroImage : undefined)
         || (!isDemoPhoto(wedding.themeSettings?.coverImageUrl) ? wedding.themeSettings?.coverImageUrl : undefined)

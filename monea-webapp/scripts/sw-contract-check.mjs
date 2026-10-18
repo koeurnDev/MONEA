@@ -28,7 +28,12 @@ const SHELL_BODY = '<html data-testid="cached-shell">cached shell</html>';
 
 let failures = 0;
 let fetchHandler = null;
+let activateHandler = null;
 let fetchCalls = 0;
+const deletedCaches = [];
+let networkFetch = async () => {
+    throw new TypeError('Failed to fetch');
+};
 
 function pass(name, detail = '') {
     console.log(`  PASS  ${name}${detail ? `  [${detail}]` : ''}`);
@@ -47,35 +52,41 @@ const cacheStore = new Map([
 const cachesMock = {
     open: async () => ({
         addAll: async () => {},
+        match: async (key) => cacheStore.get(typeof key === 'string' ? key : key.url),
         put: async (request, response) => {
             cacheStore.set(typeof request === 'string' ? request : request.url, response);
         },
+        delete: async (key) => cacheStore.delete(typeof key === 'string' ? key : key.url),
     }),
-    keys: async () => ['monea-v4', 'unrelated-cache'],
-    delete: async () => true,
+    keys: async () => ['monea-v4', 'monea-v6', 'monea-v7', 'monea-v8', 'monea-v9', 'unrelated-cache'],
+    delete: async (name) => {
+        deletedCaches.push(name);
+        return true;
+    },
     match: async (key) => cacheStore.get(typeof key === 'string' ? key : key.url),
 };
 
 const sandboxSelf = {
     addEventListener: (type, handler) => {
         if (type === 'fetch') fetchHandler = handler;
+        if (type === 'activate') activateHandler = handler;
     },
     skipWaiting: () => {},
     location: { origin: ORIGIN },
     clients: { claim: async () => {} },
 };
 
-/** Any network access from the worker fails — the offline / flaky-3G case. */
-const failingFetch = async () => {
+/** Count all worker network requests while allowing each contract test to control the response. */
+const trackedFetch = async (...args) => {
     fetchCalls += 1;
-    throw new TypeError('Failed to fetch');
+    return networkFetch(...args);
 };
 
 // eslint-disable-next-line no-new-func
 new Function('self', 'caches', 'fetch', 'Response', 'console', source)(
     sandboxSelf,
     cachesMock,
-    failingFetch,
+    trackedFetch,
     Response,
     // Silence the worker's own warnings; failures are asserted below.
     { ...console, warn: () => {}, log: () => {} },
@@ -83,6 +94,10 @@ new Function('self', 'caches', 'fetch', 'Response', 'console', source)(
 
 if (typeof fetchHandler !== 'function') {
     console.error('  FAIL  fetch listener was not registered');
+    process.exit(1);
+}
+if (typeof activateHandler !== 'function') {
+    console.error('  FAIL  activate listener was not registered');
     process.exit(1);
 }
 
@@ -122,6 +137,59 @@ async function dispatch(request) {
 
 console.log('\nService worker contract check\n');
 
+// A new deployment generation must remove old app asset caches on activation.
+{
+    let activationPromise = null;
+    activateHandler({ waitUntil: (promise) => { activationPromise = promise; } });
+    await activationPromise;
+    if (
+        deletedCaches.includes('monea-v6')
+        && deletedCaches.includes('monea-v4')
+        && deletedCaches.includes('monea-v7')
+        && deletedCaches.includes('monea-v8')
+        && !deletedCaches.includes('monea-v9')
+        && !deletedCaches.includes('unrelated-cache')
+    ) {
+        pass('new worker purges previous app caches', 'keeps v9 and unrelated caches');
+    } else {
+        fail('new worker purges previous app caches', `deleted: ${deletedCaches.join(', ')}`);
+    }
+}
+
+// 0. A stale SPA fallback cached at a script URL must be discarded rather than
+//    served as JavaScript. The network response should replace it.
+{
+    const assetUrl = `${ORIGIN}/chunks/DashboardLayout-abc123.js`;
+    cacheStore.set(assetUrl, new Response(SHELL_BODY, { status: 200, headers: { 'Content-Type': 'text/html' } }));
+    const freshScript = new Response('export {};', {
+        status: 200,
+        headers: { 'Content-Type': 'application/javascript' },
+    });
+    Object.defineProperty(freshScript, 'type', { value: 'basic' });
+    networkFetch = async () => freshScript;
+    const before = fetchCalls;
+    const result = await dispatch(makeRequest({
+        url: assetUrl,
+        mode: 'cors',
+        destination: 'script',
+        headers: new Headers({ accept: '*/*' }),
+    }));
+    if (result?.error) {
+        fail('stale HTML script cache must be replaced', result.error.message);
+    } else if (
+        result?.response?.headers.get('Content-Type')?.includes('javascript')
+        && cacheStore.get(assetUrl)?.headers.get('Content-Type')?.includes('javascript')
+        && fetchCalls === before + 1
+    ) {
+        pass('stale HTML script cache is discarded', 'fresh JavaScript fetched and cached');
+    } else {
+        fail('stale HTML script cache must be replaced', `status ${result?.response?.status}, type=${result?.response?.headers.get('Content-Type')}`);
+    }
+    networkFetch = async () => {
+        throw new TypeError('Failed to fetch');
+    };
+}
+
 // 1. Regression: the reported failure. A document request that is not reported
 //    with mode "navigate" used to reach the asset branch and reject.
 {
@@ -133,6 +201,30 @@ console.log('\nService worker contract check\n');
         pass('non-navigate document falls back to HTML', `status 200, network tries=${fetchCalls - before}`);
     } else {
         fail('non-navigate document falls back to HTML', `status ${result?.response?.status}`);
+    }
+}
+
+// 4b. A host SPA fallback must never be returned as a successful script response.
+{
+    networkFetch = async () => new Response(SHELL_BODY, {
+        status: 200,
+        headers: { 'Content-Type': 'text/html' },
+    });
+    const result = await dispatch(makeRequest({
+        url: `${ORIGIN}/chunks/missing.js`,
+        mode: 'cors',
+        destination: 'script',
+        headers: new Headers({ accept: '*/*' }),
+    }));
+    networkFetch = async () => {
+        throw new TypeError('Failed to fetch');
+    };
+    if (result?.error) {
+        fail('HTML fallback must not be returned for a script', result.error.message);
+    } else if (result?.response?.status === 502 && result.response.headers.get('Content-Type')?.includes('text/plain')) {
+        pass('HTML fallback is rejected for missing scripts', '502 text/plain');
+    } else {
+        fail('HTML fallback must not be returned for a script', `status ${result?.response?.status}, type=${result?.response?.headers.get('Content-Type')}`);
     }
 }
 

@@ -80,23 +80,23 @@ export function InstallAppPrompt() {
     if (!visible || !installEvent) return null;
 
     return (
-        <div className="mb-3 flex flex-wrap items-center gap-3 rounded-2xl border border-teal-500/20 bg-teal-500/[0.08] p-3 shadow-sm sm:flex-nowrap">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-teal-500 text-white">
+        <div className="mb-3 flex flex-wrap items-center gap-3 rounded-2xl border border-primary/20 bg-accent/40 p-3 shadow-sm sm:flex-nowrap">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
                 <Download aria-hidden="true" className="h-4 w-4" />
             </div>
             <div className="min-w-[calc(100%-3rem)] flex-1 font-kantumruy sm:min-w-0">
                 <p className="text-xs font-black text-foreground">
-                    {t("dashboard.installPrompt.title", { defaultValue: "Install MONEA as an app" })}
+                    {t("dashboard.installPrompt.title", { defaultValue: "Install MONEO as an app" })}
                 </p>
-                <p className="text-[11px] text-muted-foreground">
-                    {t("dashboard.installPrompt.description", { defaultValue: "Open MONEA faster and use it easily on your phone." })}
+                <p className="text-xs text-muted-foreground">
+                    {t("dashboard.installPrompt.description", { defaultValue: "Open MONEO faster and use it easily on your phone." })}
                 </p>
             </div>
             <button
                 type="button"
                 onClick={install}
                 disabled={isInstalling}
-                className="min-h-11 shrink-0 rounded-xl bg-teal-600 px-4 py-2 text-xs font-bold text-white outline-none transition active:scale-95 focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-60"
+                className="min-h-11 shrink-0 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground outline-none transition active:scale-95 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-60"
             >
                 {isInstalling
                     ? t("dashboard.installPrompt.installing", { defaultValue: "Opening..." })
@@ -106,7 +106,7 @@ export function InstallAppPrompt() {
                 type="button"
                 onClick={dismiss}
                 aria-label={t("dashboard.installPrompt.dismiss", { defaultValue: "Dismiss install prompt" })}
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-muted-foreground outline-none transition hover:bg-teal-500/10 active:scale-95 focus-visible:ring-2 focus-visible:ring-teal-500/60"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-muted-foreground outline-none transition hover:bg-accent hover:text-accent-foreground active:scale-95 focus-visible:ring-2 focus-visible:ring-ring"
             >
                 <X aria-hidden="true" className="h-4 w-4" />
             </button>

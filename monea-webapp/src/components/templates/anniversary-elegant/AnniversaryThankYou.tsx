@@ -3,9 +3,10 @@ import { m } from 'framer-motion';
 import { Heart, Sparkles } from 'lucide-react';
 import type { WeddingData } from '../types';
 import { getWeddingSectionPhoto } from "../shared/weddingPhotos";
+import { CoupleNamesLine } from "../shared/OneLineName";
 
 export const AnniversaryThankYou = ({ wedding }: { wedding: WeddingData }) => {
-    const thankYouPhoto = getWeddingSectionPhoto(wedding, 4)?.url;
+    const thankYouPhoto = getWeddingSectionPhoto(wedding, "thankYou")?.url;
 
     return (
         <section className="relative w-full overflow-hidden bg-gradient-to-b from-[#24191B] via-[#3A2527] to-[#1B1415] text-white py-16 sm:py-20 px-4 text-center font-kantumruy">
@@ -66,14 +67,14 @@ export const AnniversaryThankYou = ({ wedding }: { wedding: WeddingData }) => {
                 <div className="pt-2">
                     <p className="font-khmer-moul text-sm sm:text-base text-amber-300 drop-shadow-md flex items-center justify-center gap-1.5">
                         <Sparkles size={14} className="text-amber-400" />
-                        <span>{wedding.groomName} & {wedding.brideName}</span>
+                        <CoupleNamesLine groom={wedding.groomName} bride={wedding.brideName} />
                         <Sparkles size={14} className="text-amber-400" />
                     </p>
                 </div>
 
                 {/* Footer Brand */}
                 <div className="pt-8 text-[11px] text-amber-200/40 tracking-widest uppercase font-mono">
-                    Designed with MONEA
+                    Designed with MONEO
                 </div>
             </div>
         </section>

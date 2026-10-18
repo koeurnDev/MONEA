@@ -49,15 +49,15 @@ export function DynamicGallery({
     const galleryStyle = getGalleryDisplayStyle(wedding.themeSettings?.galleryStyle);
 
     return (
-        <section id="gallery-sections" className="py-10 md:py-20 px-3 sm:px-6 md:px-12 bg-white relative overflow-hidden font-kantumruy">
+        <section id="gallery-sections" className="relative overflow-hidden bg-white px-3 py-10 font-kantumruy">
             {/* Background subtle luxury watermark */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] md:w-[1000px] h-[600px] bg-[radial-gradient(circle_at_center,_rgba(212,175,55,0.04)_0%,_transparent_70%)] pointer-events-none" />
 
-            <div className="max-w-3xl mx-auto space-y-6 sm:space-y-8 relative z-10">
+            <div className="relative z-10 mx-auto w-full max-w-sm space-y-6">
                 {/* Section Title */}
                 <RevealSection>
                     <div className="text-center space-y-2 mb-6 sm:mb-8">
-                        <h2 className="font-khmer-moul text-2xl sm:text-3xl md:text-4xl text-gold-gradient text-gold-embossed tracking-wide leading-relaxed py-1">
+                        <h2 className="py-1 font-khmer-moul text-2xl leading-relaxed tracking-wide text-gold-gradient text-gold-embossed">
                             {titleText}
                         </h2>
                         <div className="w-16 md:w-24 h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent mx-auto" />
@@ -65,7 +65,7 @@ export function DynamicGallery({
                 </RevealSection>
 
                 {galleryStyle === "masonry" ? (
-                <div className="space-y-3 sm:space-y-4">
+                <div className="space-y-3">
                     {imagePairs.map((pair, pairIdx) => {
                         const isEven = pairIdx % 2 === 0;
 
@@ -73,7 +73,7 @@ export function DynamicGallery({
                         if (!pair.right) {
                             return (
                                 <RevealSection key={pairIdx} delay={0.1}>
-                                    <div className="w-full aspect-[16/9] sm:aspect-[21/9] bg-white p-1 rounded-2xl sm:rounded-3xl shadow-[0_8px_24px_rgba(0,0,0,0.06)] border border-[#D4AF37]/20 overflow-hidden relative group">
+                                    <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl group">
                                         <img 
                                             src={pair.left} 
                                             className={`w-full h-full object-cover rounded-xl sm:rounded-2xl transition-transform duration-700 group-hover:scale-105 ${pans[pair.leftIdx % pans.length]?.isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
@@ -92,14 +92,13 @@ export function DynamicGallery({
                             );
                         }
 
-                        // Alternating Pair: Even = (Portrait 5/12 + Landscape 7/12), Odd = (Landscape 7/12 + Portrait 5/12)
                         return (
                             <RevealSection key={pairIdx} delay={0.06 * (pairIdx % 4)}>
-                                <div className="grid grid-cols-12 gap-2.5 sm:gap-4 items-center">
+                                <div className="grid grid-cols-2 items-center gap-2.5">
                                     {isEven ? (
                                         <>
-                                            {/* Left: Portrait 5/12 */}
-                                            <div className="col-span-5 aspect-[3/4] bg-white p-1 rounded-2xl sm:rounded-3xl shadow-[0_8px_24px_rgba(0,0,0,0.06)] border border-[#D4AF37]/20 overflow-hidden relative group">
+                                            {/* Left photo */}
+                                            <div className="relative aspect-[4/5] overflow-hidden rounded-2xl group">
                                                 <img 
                                                     src={pair.left} 
                                                     className={`w-full h-full object-cover rounded-xl sm:rounded-2xl transition-transform duration-700 group-hover:scale-105 ${pans[pair.leftIdx % pans.length]?.isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
@@ -115,8 +114,8 @@ export function DynamicGallery({
                                                 />
                                             </div>
 
-                                            {/* Right: Landscape 7/12 */}
-                                            <div className="col-span-7 aspect-[4/3] bg-white p-1 rounded-2xl sm:rounded-3xl shadow-[0_8px_24px_rgba(0,0,0,0.06)] border border-[#D4AF37]/20 overflow-hidden relative group">
+                                            {/* Right photo */}
+                                            <div className="relative aspect-[4/5] overflow-hidden rounded-2xl group">
                                                 <img 
                                                     src={pair.right} 
                                                     className={`w-full h-full object-cover rounded-xl sm:rounded-2xl transition-transform duration-700 group-hover:scale-105 ${pans[pair.rightIdx! % pans.length]?.isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
@@ -134,8 +133,8 @@ export function DynamicGallery({
                                         </>
                                     ) : (
                                         <>
-                                            {/* Left: Landscape 7/12 */}
-                                            <div className="col-span-7 aspect-[16/10] bg-white p-1 rounded-2xl sm:rounded-3xl shadow-[0_8px_24px_rgba(0,0,0,0.06)] border border-[#D4AF37]/20 overflow-hidden relative group">
+                                            {/* Left photo */}
+                                            <div className="relative aspect-[4/5] overflow-hidden rounded-2xl group">
                                                 <img 
                                                     src={pair.left} 
                                                     className={`w-full h-full object-cover rounded-xl sm:rounded-2xl transition-transform duration-700 group-hover:scale-105 ${pans[pair.leftIdx % pans.length]?.isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
@@ -152,7 +151,7 @@ export function DynamicGallery({
                                             </div>
 
                                             {/* Right: Portrait 5/12 */}
-                                            <div className="col-span-5 aspect-[3/4] bg-white p-1 rounded-2xl sm:rounded-3xl shadow-[0_8px_24px_rgba(0,0,0,0.06)] border border-[#D4AF37]/20 overflow-hidden relative group">
+                                            <div className="relative aspect-[4/5] overflow-hidden rounded-2xl group">
                                                 <img 
                                                     src={pair.right} 
                                                     className={`w-full h-full object-cover rounded-xl sm:rounded-2xl transition-transform duration-700 group-hover:scale-105 ${pans[pair.rightIdx! % pans.length]?.isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
@@ -181,12 +180,12 @@ export function DynamicGallery({
                             return (
                                 <div
                                     key={`${image}-${index}`}
-                                    className={`relative overflow-hidden rounded-2xl shadow-[0_8px_24px_rgba(0,0,0,0.12)] ${galleryStyle === "polaroid" ? "" : "border border-[#D4AF37]/20"} ${getGalleryCardClass(galleryStyle, index)}`}
+                                    className={`relative overflow-hidden rounded-2xl ${galleryStyle === "polaroid" ? "aspect-square" : getGalleryCardClass(galleryStyle, index)}`}
                                 >
                                     <img
                                         src={image}
                                         alt={`Gallery ${index + 1}`}
-                                        className={`${getGalleryImageClass(galleryStyle)} cursor-grab`}
+                                        className={`${galleryStyle === "polaroid" ? "h-full w-full object-cover" : getGalleryImageClass(galleryStyle)} cursor-grab`}
                                         style={{
                                             objectPosition: `${pan?.localX} ${pan?.localY}`,
                                             userSelect: "none",

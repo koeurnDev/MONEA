@@ -1,4 +1,4 @@
-﻿import { AnimatePresence, m } from 'framer-motion';
+import { AnimatePresence, m } from 'framer-motion';
 import { RotateCcw, AlertTriangle, GitBranch, X, Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -61,7 +61,7 @@ export function RollbackModal({ confirmModal, setConfirmModal, rollingBack, succ
                                         <GitBranch size={18} className="text-slate-500" />
                                     </div>
                                     <div>
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rollback Target</p>
+                                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Rollback Target</p>
                                         <p className="text-sm font-black text-slate-900">{confirmModal.versionName}</p>
                                     </div>
                                 </div>
@@ -102,7 +102,7 @@ export function RollbackModal({ confirmModal, setConfirmModal, rollingBack, succ
                         <CheckCircle2 size={20} className="text-emerald-200" />
                         <div>
                             <p className="font-black text-sm">Rollback ជោគជ័យ! ✅</p>
-                            <p className="text-emerald-200 text-[11px]">System is reverting, reloading...</p>
+                            <p className="text-emerald-200 text-xs">System is reverting, reloading...</p>
                         </div>
                     </m.div>
                 )}

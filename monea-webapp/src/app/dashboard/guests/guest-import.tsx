@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 // Dynamic loading for XLSX to save bundle size
 const loadXLSX = () => import("xlsx");
 import { Button } from "@/components/ui/button";
@@ -79,7 +79,7 @@ export function GuestImport({ onSuccess, className }: { onSuccess: () => void, c
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Guest Template");
 
-        XLSX.writeFile(workbook, "Monea_Guest_Template.xlsx");
+        XLSX.writeFile(workbook, "MONEO_Guest_Template.xlsx");
     };
 
     return (
@@ -88,7 +88,7 @@ export function GuestImport({ onSuccess, className }: { onSuccess: () => void, c
                 <Button
                     variant="outline"
                     className={cn(
-                        "h-9 px-3 border-border text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl font-kantumruy font-bold transition-all text-[11px]",
+                        "h-11 px-3 border-border text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl font-kantumruy font-bold transition-all text-xs",
                         className
                     )}
                 >
@@ -109,7 +109,7 @@ export function GuestImport({ onSuccess, className }: { onSuccess: () => void, c
                             <Button
                                 variant="link"
                                 onClick={downloadTemplate}
-                                className="p-0 h-auto text-blue-600 hover:text-blue-700 font-bold flex items-center gap-1"
+                                className="p-0 h-auto text-primary hover:text-primary/80 font-bold flex items-center gap-1"
                             >
                                 <Download className="w-4 h-4" /> {t("guests.import.downloadTemplate")}
                             </Button>

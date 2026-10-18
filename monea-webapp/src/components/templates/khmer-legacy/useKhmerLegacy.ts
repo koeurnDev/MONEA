@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { WeddingData } from "../types";
 import { useImagePan } from "../shared/CinematicComponents";
 import { useTranslation } from "@/i18n/LanguageProvider";
-import { getWeddingHeroImage, isDemoPhoto } from "../shared/weddingPhotos";
+import { getWeddingGeneralPhotos, getWeddingHeroImage, isDemoPhoto } from "../shared/weddingPhotos";
 
 export const useSmartColor = (imageUrl: string) => {
     return { primary: '#D4AF37', secondary: '#8E5A5A', dark: '#1a1a1a' };
@@ -38,25 +38,16 @@ export function useKhmerLegacy(wedding: WeddingData) {
     const galleryImages = useMemo(() => {
         const items = (wedding?.galleryItems || []).map(item => isDemoPhoto(item?.url) ? "" : item?.url || "");
         const couplePhoto = items[1] || items[0] || "";
-        const hiddenSlots = new Set(wedding.themeSettings?.hiddenPhotoSlots || []);
-        const withFallbacks = items.map((url, index) => (
-            url || index === 0 || hiddenSlots.has(index) ? url : couplePhoto
-        ));
+        const withFallbacks = items.map((url, index) => url || index === 0 ? url : couplePhoto);
         // Pad with empty strings if needed to ensure stable indices for the 11 special slots
         const padded = [...withFallbacks];
         while (padded.length < 11) padded.push("");
         return padded;
-    }, [wedding?.galleryItems, wedding.themeSettings?.hiddenPhotoSlots]);
+    }, [wedding?.galleryItems]);
 
     const dynamicPool = useMemo(() => {
-        const items = (wedding?.galleryItems || [])
-            .filter(item => item.type !== 'CERTIFICATE')
-            .map(item => isDemoPhoto(item?.url) ? "" : item?.url || "")
-            .filter(url => url !== "");
-        
-        // Everything from index 11 onwards is "General Gallery"
-        return items.slice(11);
-    }, [wedding?.galleryItems]);
+        return getWeddingGeneralPhotos(wedding);
+    }, [wedding]);
 
     const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 

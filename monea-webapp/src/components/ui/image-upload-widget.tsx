@@ -135,7 +135,7 @@ export default function ImageUploadWidget({
                                     onClick={() => fileInputRef.current?.click()}
                                     aria-label="ប្តូររូបភាព"
                                     size="sm"
-                                    className="h-8 rounded-lg px-3 text-[11px] font-bold bg-white text-slate-900 hover:bg-white/90 shadow-lg"
+                                    className="h-8 rounded-lg px-3 text-xs font-bold bg-white text-slate-900 hover:bg-white/90 shadow-lg"
                                 >
                                     <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
                                     ប្តូររូប
@@ -147,7 +147,7 @@ export default function ImageUploadWidget({
                                     aria-label="លុបរូបភាព"
                                     variant="destructive"
                                     size="sm"
-                                    className="h-8 rounded-lg px-3 text-[11px] font-bold bg-rose-600 hover:bg-rose-700 shadow-lg"
+                                    className="h-8 rounded-lg px-3 text-xs font-bold bg-rose-600 hover:bg-rose-700 shadow-lg"
                                 >
                                     <Trash className="h-3.5 w-3.5 mr-1.5" />
                                     លុបចេញ
@@ -165,7 +165,7 @@ export default function ImageUploadWidget({
                                     disabled={disabled || uploading}
                                     onClick={() => fileInputRef.current?.click()}
                                     size="sm"
-                                    className="h-8 flex-1 rounded-lg bg-white/95 px-2 text-[10px] font-bold text-slate-900 shadow-lg"
+                                    className="h-8 flex-1 rounded-lg bg-white/95 px-2 text-xs font-bold text-slate-900 shadow-lg"
                                 >
                                     <RefreshCw className="mr-1 h-3.5 w-3.5" /> ប្តូរ
                                 </Button>
@@ -175,7 +175,7 @@ export default function ImageUploadWidget({
                                     onClick={() => onRemove?.()}
                                     variant="destructive"
                                     size="sm"
-                                    className="h-8 flex-1 rounded-lg bg-rose-600/95 px-2 text-[10px] font-bold text-white shadow-lg"
+                                    className="h-8 flex-1 rounded-lg bg-rose-600/95 px-2 text-xs font-bold text-white shadow-lg"
                                 >
                                     <Trash className="mr-1 h-3.5 w-3.5" /> លុប
                                 </Button>
@@ -205,7 +205,7 @@ export default function ImageUploadWidget({
                                                 transition={{ duration: 0.3 }}
                                             />
                                         </div>
-                                        <p className="text-[10px] font-bold text-muted-foreground font-mono">{progress}%</p>
+                                        <p className="text-xs font-bold text-muted-foreground font-mono">{progress}%</p>
                                     </div>
                                 </div>
                             ) : (
@@ -218,7 +218,7 @@ export default function ImageUploadWidget({
                                         <p className="text-xs font-bold text-foreground font-kantumruy">
                                             {label || "អូសរូបភាពទម្លាក់ ឬចុចរើសរូបភាព"}
                                         </p>
-                                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-mono">
+                                        <p className="text-xs text-muted-foreground uppercase tracking-wider font-mono">
                                             JPG, PNG, WEBP (Max 10MB)
                                         </p>
                                     </div>
@@ -260,7 +260,7 @@ export default function ImageUploadWidget({
                             size="sm"
                             disabled={disabled || uploading}
                             onClick={retryUpload}
-                            className="h-8 rounded-lg px-3 text-[11px] font-bold"
+                            className="h-8 rounded-lg px-3 text-xs font-bold"
                         >
                             សាកល្បងម្តងទៀត
                         </Button>

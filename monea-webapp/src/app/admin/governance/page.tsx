@@ -1,4 +1,4 @@
-﻿import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -43,7 +43,7 @@ export default function GovernancePage() {
     ];
 
     if (loading) return (
-        <div className="min-h-screen bg-[#FDFCFB] flex flex-col items-center justify-center gap-4">
+        <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-slate-900 flex items-center justify-center shadow-xl">
                 <Loader2 className="w-6 h-6 text-white animate-spin" />
             </div>
@@ -52,7 +52,7 @@ export default function GovernancePage() {
     );
 
     return (
-        <div className="min-h-screen bg-[#F7F6F3]">
+        <div className="min-h-screen bg-background">
             <RollbackModal
                 confirmModal={confirmModal}
                 setConfirmModal={setConfirmModal}
@@ -90,10 +90,10 @@ export default function GovernancePage() {
                         <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-1.5">
                             <div className="flex items-center gap-1.5">
                                 <div className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse" />
-                                <span className="text-[10px] text-sky-400 font-black uppercase tracking-widest">Live</span>
+                                <span className="text-xs text-sky-400 font-black uppercase tracking-widest">Live</span>
                             </div>
                             {lastUpdated && (
-                                <span className="text-[10px] text-slate-500 font-bold">
+                                <span className="text-xs text-slate-500 font-bold">
                                     {lastUpdated.toLocaleTimeString("km-KH", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false, timeZone: "Asia/Phnom_Penh" })}
                                 </span>
                             )}
@@ -107,7 +107,7 @@ export default function GovernancePage() {
                             </button>
                         </div>
                         <div className="w-px h-6 bg-white/10" />
-                        <span className="text-[10px] text-slate-500 font-bold">PLATFORM OWNER ACCESS</span>
+                        <span className="text-xs text-slate-500 font-bold">PLATFORM OWNER ACCESS</span>
                     </div>
                 </div>
             </div>
@@ -122,7 +122,7 @@ export default function GovernancePage() {
                             </div>
                             <div>
                                 <p className="text-xl font-black text-slate-900">{s.value}</p>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{s.label}</p>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{s.label}</p>
                             </div>
                         </div>
                     ))}
@@ -141,13 +141,13 @@ export default function GovernancePage() {
                                     </div>
                                     <div>
                                         <h3 className="font-black text-slate-900 text-sm">បោះពុម្ពផ្សាយ Version ថ្មី</h3>
-                                        <p className="text-[10px] text-slate-400 font-bold">Create System Snapshot</p>
+                                        <p className="text-xs text-slate-400 font-bold">Create System Snapshot</p>
                                     </div>
                                 </div>
                             </div>
                             <div className="p-6 space-y-4">
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Version Name</label>
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Version Name</label>
                                     <Input
                                         placeholder="e.g. v1.2.0-stable"
                                         className="h-11 rounded-xl bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-slate-900 font-bold text-sm"
@@ -156,7 +156,7 @@ export default function GovernancePage() {
                                     />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Release Notes</label>
+                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Release Notes</label>
                                     <Input
                                         placeholder="What changed in this version?"
                                         className="h-11 rounded-xl bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-slate-900 text-sm"
@@ -183,13 +183,13 @@ export default function GovernancePage() {
                                 </div>
                                 <div>
                                     <h4 className="font-black text-sm">ប្រព័ន្ធសុវត្ថិភាព</h4>
-                                    <p className="text-[10px] text-slate-400">Security & Tracking</p>
+                                    <p className="text-xs text-slate-400">Security & Tracking</p>
                                 </div>
                             </div>
                             <p className="text-xs text-slate-300 leading-relaxed">
                                 រាល់សកម្មភាពសំខាន់ៗរបស់អ្នកប្រើប្រាស់ត្រូវបានកត់ត្រាទុកដោយស្វ័យប្រវត្តិ ដើម្បីធានាបាននូវតម្លាភាព និងសុវត្ថិភាពទិន្នន័យ។
                             </p>
-                            <div className="flex items-center justify-between pt-2 border-t border-white/10 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                            <div className="flex items-center justify-between pt-2 border-t border-white/10 text-xs font-bold text-slate-500 uppercase tracking-widest">
                                 <span>Status: Active</span>
                                 <div className="flex items-center gap-1.5">
                                     <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
@@ -211,8 +211,8 @@ export default function GovernancePage() {
                                     { n: "៣", text: "ចូលមើល **Audit Logs** ដើម្បីតាមដានរាល់សកម្មភាពរបស់អ្នកប្រើប្រាស់ក្នុងប្រព័ន្ធ។" },
                                 ].map((item, i) => (
                                     <div key={i} className="flex gap-3">
-                                        <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-black text-blue-600 flex-shrink-0 mt-0.5">{item.n}</div>
-                                        <p className="text-[11px] text-slate-600 leading-snug">
+                                        <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-xs font-black text-blue-600 flex-shrink-0 mt-0.5">{item.n}</div>
+                                        <p className="text-xs text-slate-600 leading-snug">
                                             {item.text.split('**').map((part, index) => 
                                                 index % 2 === 1 ? <strong key={index} className="text-slate-900">{part}</strong> : part
                                             )}
@@ -236,7 +236,7 @@ export default function GovernancePage() {
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id as any)}
-                                    className={`flex min-h-11 shrink-0 items-center gap-2 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all sm:px-4 sm:text-xs ${activeTab === tab.id
+                                    className={`flex min-h-11 shrink-0 items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all sm:px-4 sm:text-xs ${activeTab === tab.id
                                         ? "bg-slate-900 text-white shadow-sm"
                                         : "text-slate-400 hover:text-slate-700"
                                         }`}

@@ -170,7 +170,7 @@ export default function UserManagementPage() {
             <div className="flex flex-col gap-6">
                 <Button
                     variant="ghost"
-                    className="w-fit text-slate-500 hover:text-red-600 p-0 hover:bg-transparent -ml-2 gap-2 transition-colors font-bold uppercase text-[10px] tracking-widest"
+                    className="w-fit text-slate-500 hover:text-red-600 p-0 hover:bg-transparent -ml-2 gap-2 transition-colors font-bold uppercase text-xs tracking-widest"
                     onClick={() => router(-1)}
                 >
                     <ArrowLeft size={14} /> Back to Users
@@ -185,7 +185,7 @@ export default function UserManagementPage() {
                         </div>
                         <div className="min-w-0 space-y-1">
                             <h2 className="text-xl font-black tracking-tight text-foreground font-kantumruy sm:text-3xl">គ្រប់គ្រងគណនី</h2>
-                            <div className="flex w-fit max-w-full items-center gap-2 break-all rounded-full bg-muted/50 px-3 py-1 font-mono text-[10px] text-muted-foreground sm:text-xs">
+                            <div className="flex w-fit max-w-full items-center gap-2 break-all rounded-full bg-muted/50 px-3 py-1 font-mono text-xs text-muted-foreground sm:text-xs">
                                 <Mail size={12} />
                                 {user.email}
                             </div>
@@ -209,7 +209,7 @@ export default function UserManagementPage() {
                                 {ROLE_LABELS[user.role as keyof typeof ROLE_LABELS] || user.role}
                             </Badge>
                         )}
-                        <span className="text-[10px] text-muted-foreground font-mono uppercase tracking-tighter">ID: {user.id}</span>
+                        <span className="text-xs text-muted-foreground font-mono uppercase tracking-tighter">ID: {user.id}</span>
                     </div>
                 </div>
             </div>
@@ -269,11 +269,11 @@ export default function UserManagementPage() {
                                 )}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
                                     <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 dark:bg-slate-900/50 dark:border-slate-800">
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">User</p>
+                                        <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">User</p>
                                         <p className="text-xs font-medium text-slate-600 dark:text-slate-400 leading-tight">អាចគ្រប់គ្រងមង្គលការ និងភ្ញៀវទាំងអស់។</p>
                                     </div>
                                     <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 dark:bg-slate-900/50 dark:border-slate-800">
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Support Staff</p>
+                                        <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Support Staff</p>
                                         <p className="text-xs font-medium text-slate-600 dark:text-slate-400 leading-tight">ជំនួយការ Admin អាចមើលទិន្នន័យបាន។</p>
                                     </div>
                                 </div>
@@ -307,12 +307,12 @@ export default function UserManagementPage() {
                                                 <span className="text-lg font-black text-foreground font-kantumruy transition-colors">
                                                     {w.groomName} & {w.brideName}
                                                 </span>
-                                                <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">CODE: {w.weddingCode || "N/A"}</span>
+                                                <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">CODE: {w.weddingCode || "N/A"}</span>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-4">
                                             <Badge variant="outline" className={cn(
-                                                "uppercase tracking-widest text-[10px] font-black px-3 py-1 rounded-full",
+                                                "uppercase tracking-widest text-xs font-black px-3 py-1 rounded-full",
                                                 w.status === "ACTIVE" ? "border-emerald-500/30 text-emerald-600 bg-emerald-500/10" : "border-border text-muted-foreground bg-muted/50"
                                             )}>
                                                 {w.status}
@@ -344,9 +344,9 @@ export default function UserManagementPage() {
                                     <Clock size={14} className="text-slate-500" />
                                 </div>
                                 <div>
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Joined At</label>
+                                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Joined At</label>
                                     <p className="text-sm font-bold text-foreground/80">{new Date(user.createdAt).toLocaleDateString('km-KH', { timeZone: 'Asia/Phnom_Penh' })}</p>
-                                    <p className="text-[10px] text-muted-foreground font-mono">{new Date(user.createdAt).toLocaleTimeString('km-KH', { timeZone: 'Asia/Phnom_Penh' })}</p>
+                                    <p className="text-xs text-muted-foreground font-mono">{new Date(user.createdAt).toLocaleTimeString('km-KH', { timeZone: 'Asia/Phnom_Penh' })}</p>
                                 </div>
                             </div>
                             
@@ -355,7 +355,7 @@ export default function UserManagementPage() {
                                     <Fingerprint size={14} className="text-slate-500" />
                                 </div>
                                 <div>
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Status</label>
+                                    <label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Status</label>
                                     <div className="flex items-center gap-2 mt-1">
                                         {user.deletedAt ? (
                                             <>
@@ -420,7 +420,7 @@ export default function UserManagementPage() {
                         )}
                         
                         {!user.deletedAt && isPlatformOwner && (
-                            <p className="text-[10px] text-center mt-4 text-muted-foreground font-bold uppercase tracking-widest opacity-50 italic">
+                            <p className="text-xs text-center mt-4 text-muted-foreground font-bold uppercase tracking-widest opacity-50 italic">
                                 Cannot delete Platform Owners
                             </p>
                         )}

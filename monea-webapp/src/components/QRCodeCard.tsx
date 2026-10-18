@@ -47,7 +47,7 @@ export function QRCodeCard({ weddingId }: { weddingId: string }) {
                     <SafeQRCode value={url} size={160} style={{ height: "auto", maxWidth: "100%", width: "100%" }} />
                 </div>
                 <div className="space-y-3 w-full max-w-[240px] text-center">
-                    <p className="text-[11px] font-medium text-muted-foreground/50 break-all leading-relaxed bg-muted/30 p-3 rounded-xl border border-border/30">
+                    <p className="text-xs font-medium text-muted-foreground/50 break-all leading-relaxed bg-muted/30 p-3 rounded-xl border border-border/30">
                         {url}
                     </p>
                     <Link to={`/invite/${weddingId}`} target="_blank" className="inline-flex items-center gap-2 text-sm font-bold text-teal-700 hover:text-teal-800 dark:text-teal-400 dark:hover:text-teal-300 transition-colors font-kantumruy group">

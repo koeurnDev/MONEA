@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -136,19 +136,19 @@ export default function AdminWeddingsPage() {
                     EVENT MANAGEMENT
                 </div>
                 <h1 className="text-3xl font-black text-foreground tracking-tight font-kantumruy">គ្រប់គ្រងមង្គលការ</h1>
-                <p className="text-muted-foreground font-medium font-kantumruy text-base opacity-70">មើល កែប្រែគម្រោង និងគ្រប់គ្រងស្ថានភាពមង្គលការទាំងអស់ក្នុងប្រព័ន្ធ MONEA ។</p>
+                <p className="text-muted-foreground font-medium font-kantumruy text-base opacity-70">មើល កែប្រែគម្រោង និងគ្រប់គ្រងស្ថានភាពមង្គលការទាំងអស់ក្នុងប្រព័ន្ធ MONEO។</p>
             </div>
 
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
                 <Table>
                     <TableHeader className="bg-slate-50 dark:bg-slate-800/50">
                         <TableRow className="border-b border-slate-200 dark:border-slate-800 hover:bg-transparent">
-                            <TableHead className="text-slate-500 font-semibold uppercase text-[10px] tracking-wider py-4 px-6">អ្នកប្រើប្រាស់</TableHead>
-                            <TableHead className="text-slate-500 font-semibold uppercase text-[10px] tracking-wider">ឈ្មោះប្តីប្រពន្ធ</TableHead>
-                            <TableHead className="text-slate-500 font-semibold uppercase text-[10px] tracking-wider">កញ្ចប់សេវាកម្ម</TableHead>
-                            <TableHead className="text-slate-500 font-semibold uppercase text-[10px] tracking-wider">ថ្ងៃផុតកំណត់</TableHead>
-                            <TableHead className="text-slate-500 font-semibold uppercase text-[10px] tracking-wider">ស្ថានភាព</TableHead>
-                            <TableHead className="text-right text-slate-500 font-semibold uppercase text-[10px] tracking-wider px-6">សកម្មភាព</TableHead>
+                            <TableHead className="text-slate-500 font-semibold uppercase text-xs tracking-wider py-4 px-6">អ្នកប្រើប្រាស់</TableHead>
+                            <TableHead className="text-slate-500 font-semibold uppercase text-xs tracking-wider">ឈ្មោះប្តីប្រពន្ធ</TableHead>
+                            <TableHead className="text-slate-500 font-semibold uppercase text-xs tracking-wider">កញ្ចប់សេវាកម្ម</TableHead>
+                            <TableHead className="text-slate-500 font-semibold uppercase text-xs tracking-wider">ថ្ងៃផុតកំណត់</TableHead>
+                            <TableHead className="text-slate-500 font-semibold uppercase text-xs tracking-wider">ស្ថានភាព</TableHead>
+                            <TableHead className="text-right text-slate-500 font-semibold uppercase text-xs tracking-wider px-6">សកម្មភាព</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -177,7 +177,7 @@ export default function AdminWeddingsPage() {
                                     <TableCell className="text-slate-900 dark:text-white font-medium font-kantumruy">{w.groomName} & {w.brideName}</TableCell>
                                     <TableCell>
                                         <span className={cn(
-                                            "px-2.5 py-1 rounded-md text-[10px] font-semibold tracking-wider uppercase border",
+                                            "px-2.5 py-1 rounded-md text-xs font-semibold tracking-wider uppercase border",
                                             w.packageType === 'PREMIUM' ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/20' :
                                                 w.packageType === 'PRO' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20' :
                                                     'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
@@ -194,7 +194,7 @@ export default function AdminWeddingsPage() {
                                     <TableCell>
                                         <div className="flex flex-col gap-1.5">
                                             <span className={cn(
-                                                "px-2.5 py-1 rounded-md text-[10px] font-semibold tracking-wider uppercase inline-flex items-center gap-1.5 border w-fit",
+                                                "px-2.5 py-1 rounded-md text-xs font-semibold tracking-wider uppercase inline-flex items-center gap-1.5 border w-fit",
                                                 w.status === 'ACTIVE' 
                                                     ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20' 
                                                     : 'bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20'
@@ -206,7 +206,7 @@ export default function AdminWeddingsPage() {
                                                 {w.status === 'ACTIVE' ? 'Active' : 'Archived'}
                                             </span>
                                             {w.paymentStatus === 'AWAITING_VERIFICATION' && (
-                                                <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20 text-[9px] font-semibold uppercase tracking-wider w-fit">
+                                                <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20 text-xs font-semibold uppercase tracking-wider w-fit">
                                                     Need Proof
                                                 </span>
                                             )}
@@ -303,7 +303,7 @@ export default function AdminWeddingsPage() {
                                     type="button"
                                     variant={editForm.paymentStatus === 'PAID' ? 'default' : 'outline'}
                                     className={cn(
-                                        "flex-1 rounded-xl h-12 text-[10px] font-black uppercase tracking-widest",
+                                        "flex-1 rounded-xl h-12 text-xs font-black uppercase tracking-widest",
                                         editForm.paymentStatus === 'PAID' ? 'bg-emerald-600 hover:bg-emerald-700' : ''
                                     )}
                                     onClick={() => setEditForm({ ...editForm, paymentStatus: 'PAID', status: 'ACTIVE' })}
@@ -314,7 +314,7 @@ export default function AdminWeddingsPage() {
                                     type="button"
                                     variant={editForm.paymentStatus === 'AWAITING_VERIFICATION' ? 'default' : 'outline'}
                                     className={cn(
-                                        "flex-1 rounded-xl h-12 text-[10px] font-black uppercase tracking-widest",
+                                        "flex-1 rounded-xl h-12 text-xs font-black uppercase tracking-widest",
                                         editForm.paymentStatus === 'AWAITING_VERIFICATION' ? 'bg-amber-500 hover:bg-amber-600' : ''
                                     )}
                                     onClick={() => setEditForm({ ...editForm, paymentStatus: 'AWAITING_VERIFICATION' })}

@@ -122,7 +122,7 @@ export function optimizeMediaUrl(url: unknown, options: MediaTransformOptions = 
  */
 export function buildSrcSet(
   url: unknown,
-  widths: number[],
+  widths: readonly number[],
   options: Omit<MediaTransformOptions, 'width'> = {}
 ): string | undefined {
   if (!isRenderableUrl(url)) return undefined;

@@ -16,7 +16,7 @@ export const AnniversaryStory = ({ wedding }: { wedding: WeddingData }) => {
 
     const storyImages: string[] = Array.isArray(settings?.storyImages) ? settings.storyImages.filter(Boolean) : [];
     const storyPhoto = storyImages[0] || (storyText?.trim()
-        ? getWeddingSectionPhoto(wedding, 6)?.url
+        ? getWeddingSectionPhoto(wedding, "story")?.url
         : undefined);
     const displayedStoryImages = storyImages.length > 0 ? storyImages : storyPhoto ? [storyPhoto] : [];
     if (!storyText?.trim() && storyImages.length === 0) return null;

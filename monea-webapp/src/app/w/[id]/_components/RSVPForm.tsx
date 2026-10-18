@@ -29,6 +29,7 @@ export function RSVPForm({ weddingId, guestId, primaryColor, theme = 'dark' }: R
     const [website, setWebsite] = React.useState(""); // Honeypot field
     const [loading, setLoading] = React.useState(false);
     const [turnstileToken, setTurnstileToken] = React.useState("");
+    const [turnstileWidgetKey, setTurnstileWidgetKey] = React.useState(0);
     const [submitError, setSubmitError] = React.useState("");
 
     React.useEffect(() => {
@@ -72,6 +73,8 @@ export function RSVPForm({ weddingId, guestId, primaryColor, theme = 'dark' }: R
             setSubmitError("មិនអាចបញ្ជូនចម្លើយរបស់អ្នកបានទេ។ សូមព្យាយាមម្តងទៀត។");
         } finally {
             setLoading(false);
+            setTurnstileToken("");
+            setTurnstileWidgetKey((key) => key + 1);
         }
     };
 
@@ -158,7 +161,7 @@ export function RSVPForm({ weddingId, guestId, primaryColor, theme = 'dark' }: R
                                     </div>
                                     <div className="grid grid-cols-2 gap-6">
                                         <div className="space-y-3">
-                                            <label className="text-[11px] text-white/40 uppercase font-black tracking-widest ml-1">{t("invitation.rsvp.adults")}</label>
+                                            <label className="text-xs text-white/40 uppercase font-black tracking-widest ml-1">{t("invitation.rsvp.adults")}</label>
                                             <Input
                                                 type="number"
                                                 value={adults}
@@ -167,7 +170,7 @@ export function RSVPForm({ weddingId, guestId, primaryColor, theme = 'dark' }: R
                                             />
                                         </div>
                                         <div className="space-y-3">
-                                            <label className="text-[11px] text-white/40 uppercase font-black tracking-widest ml-1">{t("invitation.rsvp.children")}</label>
+                                            <label className="text-xs text-white/40 uppercase font-black tracking-widest ml-1">{t("invitation.rsvp.children")}</label>
                                             <Input
                                                 type="number"
                                                 value={children}
@@ -215,10 +218,12 @@ export function RSVPForm({ weddingId, guestId, primaryColor, theme = 'dark' }: R
                                 </div>
                                 <div className="flex justify-center my-4">
                                     <Turnstile 
+                                        key={turnstileWidgetKey}
                                         siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || "0x4AAAAAACqptbDqodh591Td"}
                                         onSuccess={(token) => setTurnstileToken(token)}
                                         // @ts-ignore
                                         theme={isLight ? 'light' : 'dark'}
+                                        options={{ action: "rsvp" }}
                                     />
                                 </div>
                                 {submitError && (

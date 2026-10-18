@@ -17,15 +17,15 @@ export const GallerySection = ({ wedding }: { wedding: WeddingData }) => {
     if (validImages.length === 0) return null;
 
     return (
-        <section className="py-20 md:py-32 bg-white relative overflow-hidden" id="gallery-modern">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8">
+        <section className="relative overflow-hidden bg-[#fbfaf7] px-4 py-16 sm:px-6 md:py-24" id="gallery-modern">
+            <div className="mx-auto max-w-6xl">
                 {/* Header */}
                 <m.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8 }}
                     viewport={{ once: true }}
-                    className="mb-12 text-center flex flex-col items-center space-y-2.5"
+                    className="mb-8 flex flex-col items-center space-y-2.5 text-center sm:mb-10"
                 >
                     <h2 className="text-2xl md:text-3xl font-khmer-moul text-slate-900 tracking-tight leading-relaxed">
                         {titleText}
@@ -33,29 +33,31 @@ export const GallerySection = ({ wedding }: { wedding: WeddingData }) => {
                     <div className="w-12 h-1 bg-slate-900/80 rounded-full mx-auto" />
                 </m.div>
 
-                {/* Clean Masonry Collage Grid without blank grey boxes */}
                 <div className={getGalleryContainerClass(galleryStyle)}>
-                    {validImages.map((url, idx) => {
-                        return (
-                            <m.div
-                                key={idx}
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.6, delay: (idx % 4) * 0.08 }}
-                                viewport={{ once: true }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={() => setSelectedIdx(idx)}
-                                className={`relative overflow-hidden rounded-2xl cursor-pointer group shadow-sm hover:shadow-lg transition-all duration-300 ${getGalleryCardClass(galleryStyle, idx)}`}
-                            >
-                                <PhotoImage
-                                    src={url}
-                                    alt={`Gallery ${idx + 1}`} 
-                                    className={`${getGalleryImageClass(galleryStyle)} transition-transform duration-700 group-hover:scale-105`}
-                                    loading="lazy"
-                                />
-                            </m.div>
-                        );
-                    })}
+                    {validImages.map((url, idx) => (
+                        <m.button
+                            key={`${url}-${idx}`}
+                            type="button"
+                            aria-label={`រូបទី ${idx + 1} - ចុចដើម្បីពង្រីកមើល`}
+                            initial={{ opacity: 0, y: 16 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.45, delay: (idx % 6) * 0.05 }}
+                            viewport={{ once: true, amount: 0.15 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => setSelectedIdx(idx)}
+                            className={`group relative cursor-pointer overflow-hidden rounded-2xl border border-black/[0.04] bg-white shadow-sm transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9b8055] focus-visible:ring-offset-2 ${getGalleryCardClass(galleryStyle, idx)}`}
+                        >
+                            <PhotoImage
+                                src={url}
+                                alt={`Gallery ${idx + 1}`}
+                                className={`${getGalleryImageClass(galleryStyle)} transition-transform duration-500 group-hover:scale-[1.03]`}
+                                sizes={galleryStyle === "slider"
+                                    ? "(max-width: 640px) 82vw, 60vw"
+                                    : "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 320px"}
+                                loading="lazy"
+                            />
+                        </m.button>
+                    ))}
                 </div>
             </div>
 
@@ -110,7 +112,7 @@ export const GallerySection = ({ wedding }: { wedding: WeddingData }) => {
                             <PhotoImage
                                 src={validImages[selectedIdx]}
                                 alt="Full preview"
-                                className="max-w-full max-h-[82vh] object-contain rounded-xl shadow-2xl"
+                                className="max-w-full max-h-[82vh] object-contain"
                             />
                         </m.div>
 

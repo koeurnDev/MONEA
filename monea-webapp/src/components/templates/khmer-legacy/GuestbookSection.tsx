@@ -97,7 +97,7 @@ export default function GuestbookSection({ wedding, guestName }: { wedding: Wedd
                     initial={{ opacity: 0, scale: 0.95 }}
                     whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: true }}
-                    className="max-w-3xl mx-auto bg-white/60 backdrop-blur-2xl p-8 md:p-12 rounded-[3rem] border border-white/60 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.08)] mb-16 relative group"
+                    className="max-w-3xl mx-auto mb-16 relative"
                 >
                     <div className="absolute -top-20 -left-20 w-80 h-80 bg-gold-main/5 rounded-full blur-3xl" />
                     
@@ -169,13 +169,10 @@ export default function GuestbookSection({ wedding, guestName }: { wedding: Wedd
                                 whileInView={{ opacity: 1, y: 0, scale: 1 }}
                                 transition={{ delay: (idx % 3) * 0.1, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                                 viewport={{ once: true }}
-                                className="w-[min(85vw,360px)] flex-shrink-0 bg-white/80 backdrop-blur-xl p-8 sm:p-12 rounded-[2.5rem] border border-slate-100 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] relative group overflow-hidden transition-all duration-700 snap-center hover:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.1)] hover:-translate-y-2"
+                                className="w-[min(85vw,360px)] flex-shrink-0 py-6 px-2 border-b border-slate-200 relative group overflow-hidden transition-all duration-700 snap-center"
                             >
-                                <div className="absolute -top-12 -right-12 w-48 h-48 bg-gold-main/[0.03] rounded-full transition-all group-hover:bg-gold-main/[0.07] group-hover:scale-125 duration-1000" />
-                                <Heart className="absolute -right-6 -top-6 text-rose-500/5 opacity-0 group-hover:opacity-100 transition-all scale-[2.5] rotate-12 duration-700" size={100} />
-                                
-                                <div className="flex items-center gap-6 mb-10">
-                                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-100 flex items-center justify-center text-gold-main font-black text-2xl font-playfair shadow-sm">
+                                <div className="flex items-center gap-4 mb-6">
+                                    <div className="w-12 h-12 rounded-full border border-gold-main/30 flex items-center justify-center text-gold-main font-black text-xl font-playfair">
                                         {wish.guestName?.charAt(0)}
                                     </div>
                                     <div className="space-y-1.5">
@@ -189,7 +186,7 @@ export default function GuestbookSection({ wedding, guestName }: { wedding: Wedd
                                     <p className="font-khmer-content text-lg text-slate-600 leading-relaxed italic font-black">
                                         &ldquo;{wish.message}&rdquo;
                                     </p>
-                                    <div className="w-12 h-[1px] bg-gold-main/20 mt-8" />
+                                    <div className="w-12 h-[1px] bg-gold-main/20 mt-6" />
                                 </div>
                             </m.div>
                         ))}
@@ -198,21 +195,17 @@ export default function GuestbookSection({ wedding, guestName }: { wedding: Wedd
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 whileInView={{ opacity: 1, scale: 1 }}
                                 viewport={{ once: true }}
-                                className="w-full max-w-2xl mx-auto p-16 md:p-24 bg-white/40 backdrop-blur-xl rounded-[4rem] border border-gold-main/10 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.05)] text-center space-y-8 relative overflow-hidden group"
+                                className="w-full max-w-2xl mx-auto py-12 text-center space-y-8 relative overflow-hidden"
                             >
-                                <div className="absolute inset-0 premium-texture opacity-[0.03] pointer-events-none" />
-                                <div className="absolute -top-20 -right-20 w-80 h-80 bg-gold-main/5 rounded-full blur-3xl group-hover:bg-gold-main/10 transition-colors duration-1000" />
-                                
                                 <div className="relative">
                                     <m.div 
                                         animate={{ y: [0, -10, 0] }}
                                         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                                        className="w-24 h-24 bg-gold-main/5 rounded-[2rem] flex items-center justify-center mx-auto text-gold-main border border-gold-main/10 relative z-10"
+                                        className="w-16 h-16 flex items-center justify-center mx-auto text-gold-main relative z-10"
                                     >
                                         <MessageSquare size={40} strokeWidth={1.5} />
                                         <Heart size={20} className="absolute -top-2 -right-2 text-rose-400 animate-pulse" fill="currentColor" />
                                     </m.div>
-                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-gold-main/5 blur-3xl rounded-full" />
                                 </div>
                                 
                                 <div className="space-y-4 relative z-10">

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { isNetworkError, NETWORK_ERROR_MESSAGE } from "@/lib/network-errors";
 
 interface UseCloudinaryOptions {
     onSuccess?: (items: { url: string; publicId: string; type?: "IMAGE" | "VIDEO" }[]) => void;
@@ -68,6 +69,7 @@ export function useCloudinary(options: UseCloudinaryOptions = {}) {
         const totalFiles = filesArray.length;
         let completedFiles = 0;
         const failedUploads: File[] = [];
+        let networkFailure = false;
 
         try {
             const uploadPromises = filesArray.map(async (file) => {
@@ -123,6 +125,7 @@ export function useCloudinary(options: UseCloudinaryOptions = {}) {
                     };
                 } catch (err) {
                     console.error("Single file upload failed", err);
+                    if (isNetworkError(err)) networkFailure = true;
                     failedUploads.push(file);
                     return null;
                 }
@@ -136,9 +139,11 @@ export function useCloudinary(options: UseCloudinaryOptions = {}) {
                     publicId: item.publicId,
                     type: item.type === "VIDEO" ? "VIDEO" : "IMAGE",
                 }));
+            setFailedFiles(failedUploads);
             if (failedUploads.length > 0) {
-                setFailedFiles(failedUploads);
-                setError(`បង្ហោះបាន ${successItems.length}/${totalFiles} ឯកសារ។ ${failedUploads.length} ឯកសារបរាជ័យ។`);
+                setError(networkFailure
+                    ? NETWORK_ERROR_MESSAGE
+                    : `បង្ហោះបាន ${successItems.length}/${totalFiles} ឯកសារ។ ${failedUploads.length} ឯកសារបរាជ័យ។`);
             }
 
             if (options.onSuccess) {
@@ -149,7 +154,9 @@ export function useCloudinary(options: UseCloudinaryOptions = {}) {
 
         } catch (err) {
             console.error("Upload error:", err);
-            setError(err instanceof Error ? err.message : "ការបង្ហោះឯកសារបរាជ័យ។");
+            setError(isNetworkError(err)
+                ? NETWORK_ERROR_MESSAGE
+                : err instanceof Error ? err.message : "ការបង្ហោះឯកសារបរាជ័យ។");
             if (options.onError) {
                 options.onError(err);
             }

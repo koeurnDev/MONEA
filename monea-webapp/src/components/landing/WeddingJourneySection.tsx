@@ -68,7 +68,7 @@ const STEPS: StepItem[] = [
         title: "បញ្ចាំង Live Display លើកញ្ចក់ទូរទស្សន៍",
         subtitle: "បរិយាកាសក្នុងរោងការកាន់តែអធិកអធម",
         highlight: "ភ្ញៀវថតរូបបង្ហោះឡើងអេក្រង់ផ្ទាល់",
-        description: "ភ្ជាប់ទូរទស្សន៍ក្នុងរោងការជាមួយ MONEA ដើម្បីចាក់ស្លាយរូបថត Pre-wedding, រាប់ថយក្រោយដល់ម៉ោងកាត់នំ, និងឱ្យភ្ញៀវផ្ញើសារជូនពរ ឬរូបថតផ្ទាល់ពីទូរស័ព្ទ។",
+        description: "ភ្ជាប់ទូរទស្សន៍ក្នុងរោងការជាមួយ MONEO ដើម្បីចាក់ស្លាយរូបថត Pre-wedding, រាប់ថយក្រោយដល់ម៉ោងកាត់នំ, និងឱ្យភ្ញៀវផ្ញើសារជូនពរ ឬរូបថតផ្ទាល់ពីទូរស័ព្ទ។",
         points: [
             "ចាក់ Slide រូបភាព Pre-Wedding កម្រិត 4K ច្បាស់ត្រជាក់ភ្នែក",
             "ភ្ញៀវថតរូប Selfie បង្ហោះឡើងអេក្រង់ក្នុងរោងការ (Live Photo Wall)",
@@ -116,11 +116,11 @@ export function WeddingJourneySection() {
                         ដំណើរការនៃថ្ងៃមង្គលការ
                         <br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-600 to-amber-600 dark:from-rose-400 dark:to-amber-300">
-                            ជាមួយ MONEA តាំងពីដើមរហូតដល់ចប់
+                            ជាមួយ MONEO តាំងពីដើមរហូតដល់ចប់
                         </span>
                     </h2>
                     <p className="text-muted-foreground text-xs sm:text-sm max-w-xl mx-auto leading-relaxed">
-                        មិនមែនត្រឹមតែជាធៀបការធម្មតាទេ MONEA ជួយសម្រាលការងារមង្គលការរបស់អ្នកគ្រប់ជំហាន។
+                        មិនមែនត្រឹមតែជាធៀបការធម្មតាទេ MONEO ជួយសម្រាលការងារមង្គលការរបស់អ្នកគ្រប់ជំហាន។
                     </p>
                 </div>
 
@@ -141,7 +141,7 @@ export function WeddingJourneySection() {
                                 }`}
                             >
                                 <div className="flex items-center justify-between mb-2">
-                                    <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${
+                                    <span className={`text-xs font-black uppercase px-2 py-0.5 rounded-md ${
                                         isSelected ? "bg-rose-600 text-white" : "bg-muted text-muted-foreground"
                                     }`}>
                                         ជំហាន {step.stepNumber}
@@ -169,7 +169,7 @@ export function WeddingJourneySection() {
                         {/* Left Details */}
                         <div className="lg:col-span-7 space-y-6">
                             <div className="space-y-2">
-                                <span className="text-[11px] font-black text-rose-600 dark:text-rose-400 uppercase tracking-wider">
+                                <span className="text-xs font-black text-rose-600 dark:text-rose-400 uppercase tracking-wider">
                                     {currentStep.badge}
                                 </span>
                                 <h3 className="text-xl sm:text-3xl font-black text-foreground tracking-tight leading-snug">
@@ -205,13 +205,13 @@ export function WeddingJourneySection() {
                                             <Smartphone className="w-6 h-6" />
                                             <div className="text-left text-xs font-bold text-foreground">
                                                 <span>សារ Telegram ជូនភ្ញៀវ៖</span>
-                                                <div className="text-[10px] text-muted-foreground">« ជម្រាបសួរលោកពូ សុខ... »</div>
+                                                <div className="text-xs text-muted-foreground">« ជម្រាបសួរលោកពូ សុខ... »</div>
                                             </div>
                                         </div>
                                         <div className="bg-card p-3 rounded-2xl border border-border text-left space-y-1.5 shadow-xs">
-                                            <div className="text-[11px] font-bold text-foreground">💌 ធៀបមង្គលការ សុវណ្ណ & មុន្នី</div>
-                                            <div className="text-[10px] text-muted-foreground">សូមគោរពអញ្ជើញ លោកពូ សុខ និងភរិយា...</div>
-                                            <div className="text-[10px] text-rose-600 font-bold underline">monea.app/w/demo-invitation</div>
+                                            <div className="text-xs font-bold text-foreground">💌 ធៀបមង្គលការ សុវណ្ណ & មុន្នី</div>
+                                            <div className="text-xs text-muted-foreground">សូមគោរពអញ្ជើញ លោកពូ សុខ និងភរិយា...</div>
+                                            <div className="text-xs text-rose-600 font-bold underline">moneoez.com/w/demo-invitation</div>
                                         </div>
                                     </div>
                                 )}
@@ -231,10 +231,10 @@ export function WeddingJourneySection() {
                                     <div className="w-full space-y-3">
                                         <div className="aspect-video w-full rounded-2xl bg-black flex flex-col items-center justify-center text-white p-3 border border-white/20">
                                             <Tv className="w-8 h-8 text-rose-400 mb-1" />
-                                            <span className="text-[11px] font-bold">LIVE SCREEN 4K</span>
-                                            <span className="text-[9px] text-white/70">ស្វាគមន៍ភ្ញៀវកិត្តិយស</span>
+                                            <span className="text-xs font-bold">LIVE SCREEN 4K</span>
+                                            <span className="text-xs text-white/70">ស្វាគមន៍ភ្ញៀវកិត្តិយស</span>
                                         </div>
-                                        <div className="text-[11px] text-muted-foreground font-bold">
+                                        <div className="text-xs text-muted-foreground font-bold">
                                             ចាក់ Slide រូបថត & សារជូនពរលើកញ្ចក់ទូរទស្សន៍
                                         </div>
                                     </div>
@@ -243,11 +243,11 @@ export function WeddingJourneySection() {
                                 {currentStep.previewType === "gifts" && (
                                     <div className="w-full space-y-2.5">
                                         <div className="bg-amber-500/10 p-3 rounded-2xl border border-amber-500/30 text-left space-y-1">
-                                            <div className="text-[11px] font-bold text-foreground">💰 សរុបចំណងដៃថ្ងៃមង្គលការ</div>
+                                            <div className="text-xs font-bold text-foreground">💰 សរុបចំណងដៃថ្ងៃមង្គលការ</div>
                                             <div className="text-lg font-black text-amber-600">$12,450.00 / ៛8,200,000</div>
-                                            <div className="text-[10px] text-muted-foreground">ភ្ញៀវចងដៃសរុប៖ ៤៨០ នាក់</div>
+                                            <div className="text-xs text-muted-foreground">ភ្ញៀវចងដៃសរុប៖ ៤៨០ នាក់</div>
                                         </div>
-                                        <div className="w-full h-9 rounded-xl bg-emerald-600 text-white text-[11px] font-bold flex items-center justify-center gap-1.5 shadow-xs">
+                                        <div className="w-full h-9 rounded-xl bg-emerald-600 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs">
                                             <FileSpreadsheet className="w-4 h-4" />
                                             <span>Export ជា Excel ភ្លាមៗ</span>
                                         </div>

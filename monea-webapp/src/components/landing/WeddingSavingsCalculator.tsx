@@ -39,7 +39,7 @@ export function WeddingSavingsCalculator() {
                         ប្រៀបធៀប៖ ធៀបក្រដាសបុរាណ
                         <br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-600 to-amber-600 dark:from-rose-400 dark:to-amber-300">
-                            VS MONEA ឌីជីថលទំនើប
+                            VS MONEO ឌីជីថលទំនើប
                         </span>
                     </h2>
                     <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed">
@@ -69,7 +69,7 @@ export function WeddingSavingsCalculator() {
                             className="w-full h-2.5 bg-muted rounded-lg appearance-none cursor-pointer accent-rose-600"
                         />
 
-                        <div className="flex justify-between text-[11px] text-muted-foreground font-medium">
+                        <div className="flex justify-between text-xs text-muted-foreground font-medium">
                             <span>១០០ នាក់ (កម្មវិធីតូច)</span>
                             <span>៥០០ នាក់ (មធ្យម)</span>
                             <span>១,២០០+ នាក់ (កម្មវិធីធំ)</span>
@@ -105,12 +105,12 @@ export function WeddingSavingsCalculator() {
                             </div>
                         </div>
 
-                        {/* Column 2: MONEA Digital Invitation */}
+                        {/* Column 2: MONEO Digital Invitation */}
                         <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-b from-rose-500/10 to-amber-500/10 border-2 border-rose-500/40 space-y-4 relative overflow-hidden">
                             <div className="flex items-center justify-between pb-3 border-b border-rose-500/20">
                                 <div>
-                                    <span className="text-sm font-black text-foreground">MONEA ឌីជីថល</span>
-                                    <div className="text-[10px] text-emerald-600 font-bold">សន្សំបាន ~${savingsAmount}</div>
+                                    <span className="text-sm font-black text-foreground">MONEO ឌីជីថល</span>
+                                    <div className="text-xs text-emerald-600 font-bold">សន្សំបាន ~${savingsAmount}</div>
                                 </div>
                                 <span className="text-xl font-black text-rose-600 dark:text-rose-400">
                                     ត្រឹម ${moneaCost}
@@ -148,7 +148,7 @@ export function WeddingSavingsCalculator() {
                                 <h4 className="text-xs sm:text-sm font-bold text-foreground">
                                     ចាប់ផ្តើមរចនាធៀបការរបស់អ្នកឥឡូវនេះ
                                 </h4>
-                                <p className="text-[11px] text-muted-foreground">
+                                <p className="text-xs text-muted-foreground">
                                     មិនចាំបាច់មានបទពិសោធន៍រចនា — ងាយស្រួល និងរហ័សបំផុត
                                 </p>
                             </div>

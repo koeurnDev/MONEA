@@ -40,7 +40,7 @@ export function MobileGuestList({
     if (loading) {
         return (
             <div className="h-64 flex flex-col items-center justify-center gap-4">
-                <div className="w-8 h-8 border-4 border-teal-600/20 border-t-teal-600 rounded-full animate-spin" />
+                <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
                 <span className="text-[12px] font-black text-muted-foreground/50 uppercase tracking-widest">{t("guests.loading")}</span>
             </div>
         );
@@ -49,8 +49,8 @@ export function MobileGuestList({
     if (guests.length === 0) {
         return (
             <div className="h-[300px] flex flex-col items-center justify-center text-center space-y-5 px-6 animate-in fade-in zoom-in-95 duration-500">
-                <div className="w-20 h-20 bg-teal-50 dark:bg-teal-950/20 rounded-full flex items-center justify-center border border-teal-100 dark:border-teal-900/30">
-                    <Users className="w-8 h-8 text-teal-300 dark:text-teal-700" />
+                <div className="w-20 h-20 bg-accent rounded-full flex items-center justify-center border border-primary/20">
+                    <Users className="w-8 h-8 text-primary/60" />
                 </div>
                 <div className="space-y-2">
                     <h3 className="text-lg font-black text-foreground font-kantumruy">
@@ -77,7 +77,7 @@ export function MobileGuestList({
                     <Button
                         type="button"
                         onClick={() => onEdit(null)}
-                        className="h-12 w-full max-w-[200px] bg-teal-600 hover:bg-teal-700 text-white rounded-2xl shadow-lg shadow-teal-600/20 font-bold font-kantumruy transition-all active:scale-95"
+                        className="h-12 w-full max-w-[200px] bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl shadow-lg font-bold font-kantumruy transition-all active:scale-95"
                     >
                         <Plus className="w-5 h-5 mr-2" />
                         {t("dashboard.actions.addGuest", { defaultValue: "បន្ថែមភ្ញៀវដំបូង" })}
@@ -91,17 +91,17 @@ export function MobileGuestList({
         <div className="md:hidden space-y-2.5 p-3 sm:p-4 print:hidden">
             <div className="flex items-center justify-between px-3 pb-1">
                 <span className="text-xs font-bold font-kantumruy text-muted-foreground opacity-70">{t("guests.cols.name")}</span>
-                <span className="text-[11px] font-bold font-kantumruy text-muted-foreground opacity-70">{guests.length} {t("guests.personUnit")}</span>
+                <span className="text-xs font-bold font-kantumruy text-muted-foreground opacity-70">{guests.length} {t("guests.personUnit")}</span>
             </div>
             {guests.slice(0, visibleCount).map((g: any) => (
                 <div key={g.id} className="bg-background rounded-2xl px-3.5 py-3.5 shadow-[0_4px_20px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.2)] grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 border border-black/[0.02] dark:border-white/[0.02]">
                     <div className="min-w-0 flex items-center gap-2">
-                        <div className={cn("w-2 h-2 shrink-0 rounded-full", g.rsvpStatus === 'CONFIRMED' ? 'bg-green-500' : g.rsvpStatus === 'DECLINED' ? 'bg-red-500' : 'bg-slate-300 dark:bg-slate-700')} title={g.rsvpStatus || 'PENDING'} />
+                        <div className={cn("w-2 h-2 shrink-0 rounded-full", g.rsvpStatus === 'CONFIRMED' ? 'bg-green-500' : g.rsvpStatus === 'DECLINED' ? 'bg-red-500' : 'bg-muted-foreground/40')} title={g.rsvpStatus || 'PENDING'} />
                         <span className="font-bold text-foreground font-kantumruy text-[15px] leading-tight truncate">{g.name}</span>
                     </div>
 
                     <div className="row-start-2 min-w-0 pt-1 pl-4">
-                        <span className="inline-block max-w-full rounded-lg bg-zinc-100 px-2 py-0.5 text-[10px] font-bold tracking-tight text-muted-foreground dark:bg-zinc-800/80 truncate">
+                        <span className="inline-block max-w-full truncate rounded-lg bg-muted px-2 py-0.5 text-xs font-bold tracking-tight text-muted-foreground">
                             {g.group && g.group !== "None" ? g.group : (g.source && g.source !== "GIFT_ENTRY" && g.source !== "None" ? g.source : t("guests.general"))}
                         </span>
                     </div>
@@ -140,10 +140,10 @@ export function MobileGuestList({
                                 {!isArchived && (
                                     <>
                                         <DropdownMenuItem onClick={() => onEdit(g)} className="gap-3 py-3 rounded-xl cursor-pointer">
-                                            <Edit size={16} className="text-blue-600" />
+                                            <Edit size={16} className="text-primary" />
                                             <span className="font-bold">កែប្រែ</span>
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => onDelete(g.id, g.name)} className="gap-3 py-3 rounded-xl cursor-pointer text-rose-600 focus:text-rose-700 focus:bg-rose-50">
+                                        <DropdownMenuItem onClick={() => onDelete(g.id, g.name)} className="gap-3 py-3 rounded-xl cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10">
                                             <Trash2 size={16} />
                                             <span className="font-bold">លុប</span>
                                         </DropdownMenuItem>

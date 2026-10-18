@@ -18,6 +18,14 @@ import path from 'path'
  */
 function forbidDevReactRuntime(): Plugin {
   const DEV_MARKERS = ['jsxDEV', 'react-dom.development']
+  const SERVER_ONLY_MARKERS = [
+    'BAKONG_API_TOKEN',
+    'CLOUDINARY_API_SECRET',
+    'CLOUDINARY_SECRET',
+    'DATABASE_URL',
+    'JWT_SECRET',
+    'SESSION_SECRET',
+  ]
   return {
     name: 'monea:forbid-dev-react-runtime',
     apply: 'build',
@@ -25,9 +33,28 @@ function forbidDevReactRuntime(): Plugin {
     generateBundle(_options, bundle) {
       const offenders: string[] = []
       for (const [fileName, output] of Object.entries(bundle)) {
+        if (fileName.endsWith('.map')) {
+          offenders.push(`${fileName} (source map)`)
+          continue
+        }
+        const source =
+          output.type === 'chunk'
+            ? output.code
+            : typeof output.source === 'string'
+              ? output.source
+              : ''
+        if (source.includes('sourceMappingURL=')) {
+          offenders.push(`${fileName} (source map reference)`)
+        }
+        for (const marker of SERVER_ONLY_MARKERS) {
+          if (source.includes(marker)) {
+            offenders.push(`${fileName} (server-only marker: ${marker})`)
+            break
+          }
+        }
         if (output.type !== 'chunk') continue
         for (const marker of DEV_MARKERS) {
-          if (output.code.includes(marker)) {
+          if (source.includes(marker)) {
             offenders.push(`${fileName} (${marker})`)
             break
           }
@@ -54,6 +81,25 @@ export default defineConfig(({ command, mode }) => {
   // because the plugin reads process.env.NODE_ENV when it is instantiated.
   if (command === 'build') {
     process.env.NODE_ENV = 'production'
+
+    const clientEnv = { ...env, ...process.env }
+    if (clientEnv.VITE_DEV_BYPASS_AUTH === 'true') {
+      throw new Error(
+        'Refusing to build with VITE_DEV_BYPASS_AUTH=true. The development auth bypass must never ship to production.'
+      )
+    }
+
+    const secretLikeClientVariables = Object.keys(clientEnv).filter(
+      (key) =>
+        /^(VITE_|NEXT_PUBLIC_|PUBLIC_)/.test(key) &&
+        /(SECRET|PRIVATE|PASSWORD|CREDENTIAL|ACCESS_TOKEN|AUTH_TOKEN|JWT)/i.test(key)
+    )
+    if (secretLikeClientVariables.length > 0) {
+      throw new Error(
+        'Refusing to build with secret-like client environment variables: ' +
+          `${secretLikeClientVariables.join(', ')}. Keep secrets in the API Worker environment.`
+      )
+    }
   }
 
   return {
@@ -74,7 +120,8 @@ export default defineConfig(({ command, mode }) => {
     },
     build: {
       outDir: 'dist',
-      sourcemap: false, // Disable sourcemaps for mobile performance
+      sourcemap: false,
+      minify: true,
       // Use Vite 8's default minifier (oxc). Setting 'esbuild' here fails
       // outright because the `esbuild` package is not a dependency of the
       // rolldown-based Vite, and oxc produces equivalent or smaller output.

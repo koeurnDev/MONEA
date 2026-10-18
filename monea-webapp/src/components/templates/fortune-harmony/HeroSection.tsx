@@ -4,6 +4,7 @@ import { Heart, Sparkles } from 'lucide-react';
 import { WeddingData } from '../types';
 import { getWeddingSectionPhoto } from "../shared/weddingPhotos";
 import { PhotoImage } from "../shared/PhotoImage";
+import { OneLineName } from "../shared/OneLineName";
 
 interface HeroSectionProps {
     wedding: WeddingData;
@@ -14,11 +15,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
     const isEngagement = wedding.eventType === 'anniversary';
     const groomName = wedding.groomName || "កូនកំលោះ";
     const brideName = wedding.brideName || "កូនក្រមុំ";
+    const coupleNamesLength = Array.from(`${groomName}${brideName}`).length;
+    const coupleNameFontSize = Math.min(37, Math.max(15, 300 / coupleNamesLength));
     const eventDate = useMemo(
         () => wedding.date ? new Date(wedding.date) : new Date(),
         [wedding.date],
     );
-    const couplePhoto = getWeddingSectionPhoto(wedding, 0)?.url;
+    const couplePhoto = getWeddingSectionPhoto(wedding, "cover")?.url;
 
     const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
@@ -66,7 +69,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
                             transition={{ duration: 0.6 }}
                             className="mb-4"
                         >
-                            <span className="block font-khmer-moul text-[26px] tracking-[0.08em] text-[#4b5648] sm:text-[30px]">
+                            <span className="fh-khmer-safe block px-2 font-khmer-moul text-lg text-[#4b5648] sm:text-2xl">
                                 {isEngagement ? "សិរីមង្គលពិធីភ្ជាប់ពាក្យ" : "សិរីមង្គលអាពាហ៍ពិពាហ៍"}
                             </span>
                         </motion.div>
@@ -76,7 +79,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
                                 initial={{ opacity: 0, scale: 0.96 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ duration: 0.7, delay: 0.15 }}
-                                className="relative mx-auto mb-5 w-full max-w-[240px] overflow-hidden rounded-[7rem] border-4 border-amber-200/70 shadow-xl"
+                                className="relative mx-auto mb-5 w-full max-w-[240px] overflow-hidden rounded-[7rem]"
                             >
                                 <PhotoImage
                                     src={couplePhoto}
@@ -108,20 +111,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
                         >
                             <h1
                                 aria-label={`${groomName} និង ${brideName}`}
-                                className="m05-font-name text-[37px] tracking-[0.04em] text-[#2d352b] sm:text-[52px]"
+                                className="fh-khmer-safe m05-font-name flex w-full flex-nowrap items-center justify-center gap-2 text-[#2d352b] sm:gap-3"
+                                style={{ fontSize: `${coupleNameFontSize}px` }}
                             >
-                                {groomName}
+                                <OneLineName name={groomName} className="min-w-0 flex-1 text-center" />
+                                <Heart aria-hidden="true" className="h-3.5 w-3.5 shrink-0 fill-[#5b6a53] text-[#5b6a53] sm:h-4 sm:w-4" />
+                                <OneLineName name={brideName} className="min-w-0 flex-1 text-center" />
                             </h1>
-
-                            <div className="flex items-center justify-center gap-4 text-[#5b6a53]">
-                                <span className="h-px w-11 bg-[#8ea07a]" />
-                                <Heart size={16} className="fill-[#5b6a53] text-[#5b6a53]" />
-                                <span className="h-px w-11 bg-[#8ea07a]" />
-                            </div>
-
-                            <p aria-hidden="true" className="m05-font-name text-[37px] tracking-[0.04em] text-[#2d352b] sm:text-[52px]">
-                                {brideName}
-                            </p>
                         </motion.div>
 
                         <motion.div
@@ -130,11 +126,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
                             transition={{ duration: 0.6, delay: 0.4 }}
                             className="mt-6"
                         >
-                            <p className="text-[16px] tracking-[0.06em] text-[#4d5649] sm:text-[18px]" style={{ fontFamily: 'serif' }}>
+                            <p className="fh-khmer-safe font-kantumruy text-base text-[#4d5649] sm:text-lg">
                                 {formatKhmerDate(eventDate)}
                             </p>
                             {wedding.themeSettings?.lunarDate && (
-                                <p className="mt-2 text-[12px] tracking-[0.1em] text-[#586551]" style={{ fontFamily: 'serif' }}>
+                                <p className="fh-khmer-safe mt-2 break-words font-kantumruy text-xs text-[#586551]">
                                     {wedding.themeSettings.lunarDate}
                                 </p>
                             )}
@@ -152,11 +148,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
                                 { label: "នាទី", value: timeLeft.minutes },
                                 { label: "វិនាទី", value: timeLeft.seconds },
                             ].map((item, idx) => (
-                                <div key={idx} className="flex flex-col items-center justify-center p-2 text-center">
-                                    <span className="block text-[28px] font-bold leading-none text-[#455444]" style={{ fontFamily: 'serif' }}>
+                                <div key={idx} className="flex min-w-0 flex-col items-center justify-center p-1.5 text-center sm:p-2">
+                                    <span className="fh-khmer-safe block whitespace-nowrap font-kantumruy text-xl font-bold leading-tight tracking-[-0.04em] text-[#455444] sm:text-2xl">
                                         {toKhmerNumber(item.value).padStart(2, '០')}
                                     </span>
-                                    <span className="mt-1.5 block text-[11px] tracking-[0.12em] text-[#556156]" style={{ fontFamily: 'serif' }}>
+                                    <span className="fh-khmer-safe mt-1.5 block font-kantumruy text-[11px] text-[#556156]">
                                         {item.label}
                                     </span>
                                 </div>

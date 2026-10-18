@@ -30,13 +30,12 @@ const BankCard = ({ account, onZoom, customLabels }: BankCardProps) => {
             initial={{ opacity: 0, y: 25 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            whileHover={{ y: -4 }}
-            className="relative max-w-sm mx-auto w-full bg-gradient-to-b from-[#FFFDF9] via-[#FAF6EE] to-[#F5EFE4] border-2 border-[#E5D7C2] rounded-[2rem] p-6 shadow-[0_15px_35px_rgba(180,140,80,0.1)] hover:shadow-[0_22px_45px_rgba(180,140,80,0.18)] transition-all duration-300 flex flex-col items-center text-center space-y-4"
+            className="relative max-w-sm mx-auto w-full py-6 flex flex-col items-center text-center space-y-4"
         >
             {/* Top Badge: Bank Name */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-400/30 text-[#A27A1E] text-[11px] font-bold tracking-wider uppercase font-kantumruy">
+            <div className="inline-flex items-center gap-2 text-[#A27A1E] text-[11px] font-bold tracking-wider uppercase font-kantumruy">
                 <CreditCard size={13} className="text-[#C5A027]" />
-                <span>{account.bankName || "KHQR Bank"}</span>
+                <span>KHQR</span>
             </div>
 
             {/* Account Holder Name */}
@@ -68,7 +67,7 @@ const BankCard = ({ account, onZoom, customLabels }: BankCardProps) => {
 
             {/* Account Number Box */}
             <div className="w-full space-y-2.5 pt-1">
-                {account.accountNumber && <div className="w-full bg-white/90 py-2.5 px-4 rounded-xl border border-amber-200/60 shadow-sm flex items-center justify-between">
+                {account.accountNumber && <div className="w-full py-2.5 px-1 border-b border-amber-200/60 flex items-center justify-between">
                     <span className="text-[11px] text-slate-400 font-kantumruy font-medium">លេខគណនី</span>
                     <span className="text-base font-bold font-mono tracking-wider text-slate-800">
                         {account.accountNumber}
@@ -240,8 +239,8 @@ export default function GiftSection({ wedding }: { wedding: WeddingData }) {
                     </p>
                 </m.div>
 
-                {/* Bank Account Cards Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 justify-center max-w-2xl mx-auto">
+                {/* Payment accounts */}
+                <div className="mx-auto grid w-full max-w-sm grid-cols-1 justify-items-center gap-8">
                     {bankAccounts.map((acc, idx) => (
                         <BankCard 
                             key={idx} 

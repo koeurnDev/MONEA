@@ -10,6 +10,67 @@ export interface TemplatePresentationMetadata {
     eventType: TemplateEventType | "both";
 }
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+    value !== null && typeof value === "object" && !Array.isArray(value);
+
+const isTemplateEventType = (value: unknown): value is TemplatePresentationMetadata["eventType"] =>
+    value === "wedding" || value === "anniversary" || value === "both";
+
+export function normalizeTemplateAvailability(value: unknown): Record<string, boolean> {
+    if (!isRecord(value)) {
+        throw new TypeError("Template availability response must be an object");
+    }
+
+    return Object.fromEntries(
+        Object.entries(TEMPLATE_DEFINITIONS).map(([id, template]) => {
+            const enabled = value[id];
+            if (enabled !== undefined && typeof enabled !== "boolean") {
+                throw new TypeError(`Template availability for "${id}" must be a boolean`);
+            }
+            return [id, enabled ?? template.selectable];
+        }),
+    );
+}
+
+export function normalizeTemplatePresentationMetadata(
+    value: unknown,
+): Record<string, TemplatePresentationMetadata> {
+    if (!isRecord(value)) {
+        throw new TypeError("Template metadata response must be an object");
+    }
+
+    return Object.fromEntries(
+        Object.entries(TEMPLATE_DEFINITIONS).map(([id, template]) => {
+            const metadata = value[id];
+            if (metadata === undefined) {
+                return [id, {
+                    title: template.title,
+                    description: template.description,
+                    image: template.image,
+                    eventType: template.eventType,
+                }];
+            }
+
+            if (
+                !isRecord(metadata)
+                || typeof metadata.title !== "string"
+                || typeof metadata.description !== "string"
+                || typeof metadata.image !== "string"
+                || !isTemplateEventType(metadata.eventType)
+            ) {
+                throw new TypeError(`Template metadata for "${id}" is invalid`);
+            }
+
+            return [id, {
+                title: metadata.title,
+                description: metadata.description,
+                image: metadata.image,
+                eventType: metadata.eventType,
+            }];
+        }),
+    );
+}
+
 export interface TemplateConfig {
     code: string;
     id: string;
@@ -126,6 +187,20 @@ export const TEMPLATE_DEFINITIONS = {
         visibilityControls: STANDARD_VISIBILITY_CONTROLS,
         component: lazy(() => import("./AnniversaryElegant")),
     },
+    "garden-editorial": {
+        code: "M-08",
+        id: "garden-editorial",
+        title: "Palace Bloom",
+        description: "រចនាបែបវិមានផ្កា ទន់ភ្លន់ និងប្រណីត ជាមួយពណ៌មាស",
+        eventType: "wedding",
+        image: "/assets/blossom-romance/blossom-arch-bg.jpg",
+        primaryColor: "#A78337",
+        isFree: false,
+        comingSoon: false,
+        selectable: true,
+        visibilityControls: STANDARD_VISIBILITY_CONTROLS,
+        component: lazy(() => import("./GardenEditorial")),
+    },
 } satisfies Record<string, TemplateConfig>;
 
 export const TEMPLATE_REGISTRY: Record<string, ComponentType<TemplateProps>> =
@@ -160,6 +235,7 @@ const TEMPLATE_IMPORTERS: Record<string, () => Promise<unknown>> = {
     "emerald-garden": () => import("./EmeraldGarden"),
     "nea-m05": () => import("./NeaM05"),
     "anniversary-elegant": () => import("./AnniversaryElegant"),
+    "garden-editorial": () => import("./GardenEditorial"),
 };
 
 export function preloadTemplate(templateId?: string | null): void {

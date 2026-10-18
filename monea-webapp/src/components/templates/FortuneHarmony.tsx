@@ -14,7 +14,7 @@ import { isSectionVisible } from "./shared/template-settings";
 import { GuestbookSection } from "./shared/GuestbookSection";
 
 export const FortuneHarmony: React.FC<TemplateProps> = ({ wedding, guestName, config }) => {
-    const [revealed, setRevealed] = useState(true);
+    const [revealed, setRevealed] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -53,7 +53,7 @@ export const FortuneHarmony: React.FC<TemplateProps> = ({ wedding, guestName, co
     return (
         <div 
             style={getTemplatePaletteStyles(wedding.themeSettings, "#D4AF37", "#FDFBF7")}
-            className="monea-full-palette monea-paper-canvas m05-type-system w-full font-kantumruy bg-[#FDFBF7] text-[#2d352b] relative min-h-screen selection:bg-amber-400 selection:text-red-950"
+            className="monea-full-palette monea-paper-canvas m05-type-system fortune-harmony-type-system w-full font-kantumruy bg-[#FDFBF7] text-[#2d352b] relative min-h-screen selection:bg-amber-400 selection:text-red-950"
         >
             {/* Background Audio */}
             {musicUrl && (
@@ -73,7 +73,7 @@ export const FortuneHarmony: React.FC<TemplateProps> = ({ wedding, guestName, co
             {revealed && musicUrl && (
                 <button
                     onClick={togglePlay}
-                    className="fixed bottom-6 right-6 z-40 w-11 h-11 rounded-full bg-black/80 backdrop-blur-md border border-amber-400/60 text-amber-300 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all"
+                    className="invitation-floating-control fixed bottom-6 z-40 w-11 h-11 rounded-full bg-black/80 backdrop-blur-md border border-amber-400/60 text-amber-300 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all"
                     aria-label="Toggle Music"
                 >
                     {isPlaying ? <Volume2 size={18} className="animate-pulse" /> : <VolumeX size={18} />}
@@ -81,7 +81,7 @@ export const FortuneHarmony: React.FC<TemplateProps> = ({ wedding, guestName, co
             )}
 
             {revealed && (
-            <main className="monea-paper-canvas relative z-10 mx-auto flex min-h-screen max-w-[540px] flex-col overflow-hidden bg-transparent shadow-2xl">
+            <main className="monea-paper-canvas relative z-10 mx-auto flex min-h-screen max-w-[540px] flex-col overflow-hidden bg-transparent">
                 <div className="absolute inset-0 bg-[#f7f2eb]/5" />
                 {/* 1. Hero Section */}
                 <HeroSection wedding={wedding} primaryColor={primaryColor} />
@@ -90,16 +90,16 @@ export const FortuneHarmony: React.FC<TemplateProps> = ({ wedding, guestName, co
                 <ParentsSection wedding={wedding} primaryColor={primaryColor} />
 
                 {isSectionVisible(config, "story") && (loveStory || storyImage) && (
-                    <section className="relative overflow-hidden bg-[#3b070e] px-5 py-16 text-center text-[#fff5e8] sm:py-20">
-                        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,.2),transparent_65%)]" />
-                        <div className="relative mx-auto max-w-md rounded-[2rem] border border-amber-300/30 bg-[#4b0b13]/70 p-6 shadow-[0_20px_60px_rgba(0,0,0,.25)] sm:p-8">
-                            <Heart aria-hidden="true" className="mx-auto mb-3 h-6 w-6 fill-amber-200/30 text-amber-300" />
-                            <h2 className="font-khmer-moul text-xl leading-relaxed text-amber-100 sm:text-2xl">
+                    <section className="relative overflow-hidden bg-[#f7f2eb] px-5 py-10 text-center sm:py-14">
+                        <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,.12),transparent_65%)]" />
+                        <div className="relative mx-auto max-w-md rounded-3xl border border-[#d4af37]/35 bg-[#3b070e] px-5 py-8 text-[#fff5e8] shadow-[0_14px_36px_rgba(59,7,14,0.14)] sm:px-8 sm:py-10">
+                            <Heart aria-hidden="true" className="mx-auto mb-3 h-5 w-5 fill-amber-200/30 text-amber-300" />
+                            <h2 className="fh-khmer-safe font-khmer-moul text-xl text-amber-100 sm:text-2xl">
                                 {wedding.themeSettings?.customLabels?.storyTitle || "រឿងរ៉ាវស្នេហារបស់យើង"}
                             </h2>
-                            <div className="mx-auto mb-5 mt-3 h-px w-16 bg-gradient-to-r from-transparent via-amber-300/70 to-transparent" />
+                            <div className="mx-auto mb-4 mt-3 h-px w-14 bg-gradient-to-r from-transparent via-amber-300/70 to-transparent" />
                             {loveStory && (
-                                <p className="whitespace-pre-line break-words text-sm leading-8 text-[#fff5e8]/90 sm:text-base">
+                                <p className="fh-khmer-safe whitespace-pre-line break-words text-sm text-[#fff5e8]/90 sm:text-base">
                                     {loveStory}
                                 </p>
                             )}
@@ -110,12 +110,12 @@ export const FortuneHarmony: React.FC<TemplateProps> = ({ wedding, guestName, co
                                             <img
                                                 src={image}
                                                 alt={`រូបភាពរឿងរ៉ាវស្នេហាទី ${index + 1}`}
-                                                className="max-h-[28rem] aspect-[4/3] w-full rounded-2xl border border-amber-200/30 object-cover shadow-xl"
+                                                className="max-h-[28rem] aspect-[4/3] w-full rounded-2xl object-cover"
                                                 loading="lazy"
                                                 decoding="async"
                                             />
                                             {wedding.themeSettings?.storyImageCaptions?.[index]?.trim() && (
-                                                <figcaption className="mt-2 text-sm leading-relaxed text-[#fff5e8]/90">
+                                                <figcaption className="fh-khmer-safe mt-2 text-sm text-[#fff5e8]/90">
                                                     {wedding.themeSettings.storyImageCaptions[index]}
                                                 </figcaption>
                                             )}
@@ -147,7 +147,7 @@ export const FortuneHarmony: React.FC<TemplateProps> = ({ wedding, guestName, co
                     <GiftSection wedding={wedding} primaryColor={primaryColor} />
                 )}
 
-                {isSectionVisible(config, "guestbook") && <GuestbookSection wedding={wedding} />}
+                {isSectionVisible(config, "guestbook") && <GuestbookSection wedding={wedding} khmerSpacing unboxed />}
 
                 {/* 7. Thank You & Blessings */}
                 <ThankYouSection wedding={wedding} primaryColor={primaryColor} />

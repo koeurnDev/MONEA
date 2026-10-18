@@ -1,5 +1,6 @@
 import React from 'react';
 import { WeddingData } from '../types';
+import { OneLineName } from "../shared/OneLineName";
 
 interface ParentsSectionProps {
     wedding: WeddingData;
@@ -17,7 +18,7 @@ export const ParentsSection: React.FC<ParentsSectionProps> = ({ wedding, primary
     const brideMother = (wedding.themeSettings?.parents?.brideMother ?? wedding.brideMother)?.trim();
 
     return (
-        <section className="py-12 px-4 sm:px-6 bg-gradient-to-b from-white via-emerald-50/40 to-white text-center font-kantumruy relative overflow-hidden">
+        <section className="py-12 px-4 sm:px-6 bg-gradient-to-b from-white via-emerald-50/40 to-white text-center font-kantumruy relative overflow-hidden" style={{ backgroundColor: "var(--emerald-card-surface)" }}>
             <div className="max-w-md mx-auto space-y-8 relative z-10">
                 {/* Header Decoration */}
                 <div className="flex flex-col items-center space-y-2">
@@ -30,27 +31,27 @@ export const ParentsSection: React.FC<ParentsSectionProps> = ({ wedding, primary
                 {/* Parents Grid */}
                 {(groomFather || groomMother || brideFather || brideMother) && <div className="grid grid-cols-2 gap-4 text-xs sm:text-sm">
                     {/* Groom Parents */}
-                    {(groomFather || groomMother) && <div className="bg-white/90 border border-emerald-200/80 rounded-2xl p-4 shadow-sm space-y-1.5">
-                        <span className="text-[11px] font-bold text-emerald-800 block uppercase tracking-wider">
+                    {(groomFather || groomMother) && <div className="space-y-2 px-1 py-2">
+                        <span className="text-[11px] font-bold text-emerald-800 block">
                             មាតាបិតាខាងប្រុស
                         </span>
-                        {groomFather && <p className="font-bold text-slate-800">ឪពុក៖ {groomFather}</p>}
-                        {groomMother && <p className="font-bold text-slate-800">ម្តាយ៖ {groomMother}</p>}
+                        {groomFather && <p className="whitespace-nowrap text-[10px] font-medium leading-relaxed text-slate-800 sm:text-sm">ឪពុក៖ {groomFather}</p>}
+                        {groomMother && <p className="whitespace-nowrap text-[10px] font-medium leading-relaxed text-slate-800 sm:text-sm">ម្តាយ៖ {groomMother}</p>}
                     </div>}
 
                     {/* Bride Parents */}
-                    {(brideFather || brideMother) && <div className={`bg-white/90 border border-emerald-200/80 rounded-2xl p-4 shadow-sm space-y-1.5 ${!groomFather && !groomMother ? "col-start-2" : ""}`}>
-                        <span className="text-[11px] font-bold text-emerald-800 block uppercase tracking-wider">
+                    {(brideFather || brideMother) && <div className={`space-y-2 px-1 py-2 ${!groomFather && !groomMother ? "col-start-2" : ""}`}>
+                        <span className="text-[11px] font-bold text-emerald-800 block">
                             មាតាបិតាខាងស្រី
                         </span>
-                        {brideFather && <p className="font-bold text-slate-800">ឪពុក៖ {brideFather}</p>}
-                        {brideMother && <p className="font-bold text-slate-800">ម្តាយ៖ {brideMother}</p>}
+                        {brideFather && <p className="whitespace-nowrap text-[10px] font-medium leading-relaxed text-slate-800 sm:text-sm">ឪពុក៖ {brideFather}</p>}
+                        {brideMother && <p className="whitespace-nowrap text-[10px] font-medium leading-relaxed text-slate-800 sm:text-sm">ម្តាយ៖ {brideMother}</p>}
                     </div>}
                 </div>}
 
                 {/* Formal Invitation Paragraph */}
-                <div className="bg-emerald-50/80 border border-emerald-200/60 rounded-3xl p-5 sm:p-6 text-xs sm:text-sm leading-relaxed text-slate-700 space-y-3 shadow-sm">
-                    <p className="font-bold text-emerald-900 text-sm">
+                <div className="mx-auto max-w-lg px-2 py-1 text-sm leading-[2] text-slate-700 sm:text-base">
+                    <p className="mb-2 font-bold text-emerald-900">
                         សូមគោរពអញ្ជើញ
                     </p>
                     <p>
@@ -64,11 +65,11 @@ export const ParentsSection: React.FC<ParentsSectionProps> = ({ wedding, primary
                     <div className="grid grid-cols-2 gap-4 items-center">
                         <div className="text-right">
                             <span className="text-[11px] text-muted-foreground block">កូនប្រុសនាម</span>
-                            <span className="text-base sm:text-lg font-khmer-moul text-[#1B4332]">{groomName}</span>
+                            <OneLineName name={groomName} className="text-xs font-khmer-moul text-[#1B4332] sm:text-lg" />
                         </div>
                         <div className="text-left">
                             <span className="text-[11px] text-muted-foreground block">កូនស្រីនាម</span>
-                            <span className="text-base sm:text-lg font-khmer-moul text-[#1B4332]">{brideName}</span>
+                            <OneLineName name={brideName} className="text-xs font-khmer-moul text-[#1B4332] sm:text-lg" />
                         </div>
                     </div>
                 </div>

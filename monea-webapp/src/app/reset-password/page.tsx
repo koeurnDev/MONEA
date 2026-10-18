@@ -86,27 +86,27 @@ function ResetPasswordForm() {
     }
 
     if (!token && !error) {
-        return <div className="text-center text-white/50"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>;
+        return <div className="text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>;
     }
 
     return (
-        <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
+        <div className="relative overflow-hidden rounded-3xl border border-border bg-card/95 p-6 shadow-2xl backdrop-blur-xl md:p-8">
             <div className="text-center mb-8">
                 <Link to="/" className="inline-flex justify-center">
-                    <MoneaLogo showText size="md" variant="dark" />
+                    <MoneaLogo showText size="md" />
                 </Link>
-                <h1 className="text-2xl font-bold text-white mb-2 font-kantumruy mt-4">{t('common.auth.resetPasswordTitle') || "Reset Password"}</h1>
-                <p className="text-white/40 text-xs font-kantumruy">{t('common.auth.resetPasswordSubtitle') || "Please enter your new password below."}</p>
+                <h1 className="mt-4 mb-2 text-2xl font-bold text-foreground font-kantumruy">{t('common.auth.resetPasswordTitle') || "Reset Password"}</h1>
+                <p className="text-xs text-muted-foreground font-kantumruy">{t('common.auth.resetPasswordSubtitle') || "Please enter your new password below."}</p>
             </div>
 
             {successMessage ? (
                 <div className="text-center py-6">
-                    <div className="w-16 h-16 bg-green-500/20 text-green-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <div className="w-16 h-16 bg-emerald-600/10 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300 rounded-full flex items-center justify-center mx-auto mb-4">
                         <CheckCircle2 size={32} />
                     </div>
-                    <h3 className="text-white font-bold mb-2">Success!</h3>
-                    <p className="text-white/60 text-sm mb-6">{successMessage}</p>
-                    <p className="text-white/40 text-xs">Redirecting to login...</p>
+                    <h3 className="text-foreground font-bold mb-2">Success!</h3>
+                    <p className="text-muted-foreground text-sm mb-6">{successMessage}</p>
+                    <p className="text-muted-foreground text-xs">Redirecting to login...</p>
                 </div>
             ) : (
                 <Form {...form}>
@@ -116,13 +116,13 @@ function ResetPasswordForm() {
                             name="password"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="text-white/80 text-xs uppercase tracking-wider font-bold ml-1">{t('common.auth.newPassword') || "New Password"}</FormLabel>
+                                    <FormLabel className="text-foreground text-xs uppercase tracking-wider font-bold ml-1">{t('common.auth.newPassword') || "New Password"}</FormLabel>
                                     <div className="relative group">
-                                        <div className="absolute left-3 top-3 text-white/40 group-focus-within:text-teal-300 transition-colors">
+                                        <div className="absolute left-3 top-3 text-muted-foreground group-focus-within:text-primary transition-colors">
                                             <KeyRound className="w-5 h-5" />
                                         </div>
-                                        <Input type={showPassword ? "text" : "password"} placeholder="••••••••" className="pl-10 pr-10 bg-white/5 border-white/10 text-white rounded-xl focus:border-teal-500/50 h-11" {...field} />
-                                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-3 text-white/40 hover:text-white transition-colors">
+                                        <Input type={showPassword ? "text" : "password"} placeholder="••••••••" className="pl-10 pr-10 bg-background border-input text-foreground rounded-xl focus:border-ring focus-visible:ring-2 focus-visible:ring-ring/25 h-11" {...field} />
+                                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors">
                                             {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                         </button>
                                     </div>
@@ -136,13 +136,13 @@ function ResetPasswordForm() {
                             name="confirmPassword"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="text-white/80 text-xs uppercase tracking-wider font-bold ml-1">{t('common.auth.confirmNewPassword') || "Confirm New Password"}</FormLabel>
+                                    <FormLabel className="text-foreground text-xs uppercase tracking-wider font-bold ml-1">{t('common.auth.confirmNewPassword') || "Confirm New Password"}</FormLabel>
                                     <div className="relative group">
-                                        <div className="absolute left-3 top-3 text-white/40 group-focus-within:text-teal-300 transition-colors">
+                                        <div className="absolute left-3 top-3 text-muted-foreground group-focus-within:text-primary transition-colors">
                                             <KeyRound className="w-5 h-5" />
                                         </div>
-                                        <Input type={showConfirmPassword ? "text" : "password"} placeholder="••••••••" className="pl-10 pr-10 bg-white/5 border-white/10 text-white rounded-xl focus:border-teal-500/50 h-11" {...field} />
-                                        <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-3 text-white/40 hover:text-white transition-colors">
+                                        <Input type={showConfirmPassword ? "text" : "password"} placeholder="••••••••" className="pl-10 pr-10 bg-background border-input text-foreground rounded-xl focus:border-ring focus-visible:ring-2 focus-visible:ring-ring/25 h-11" {...field} />
+                                        <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors">
                                             {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                         </button>
                                     </div>
@@ -164,7 +164,7 @@ function ResetPasswordForm() {
                             )}
                         </AnimatePresence>
 
-                        <Button type="submit" disabled={isLoading || !!error} className="w-full bg-gradient-to-r from-teal-600 to-teal-700 rounded-xl font-bold uppercase tracking-wide h-11 border border-white/10 hover:shadow-lg hover:shadow-teal-500/20 transition-all mt-6 text-white text-sm">
+                        <Button type="submit" disabled={isLoading || !!error} className="w-full bg-primary hover:bg-primary/90 rounded-xl font-bold uppercase tracking-wide h-11 border border-primary/20 transition-all mt-6 text-primary-foreground text-sm">
                             {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (t('common.auth.resetButton') || "Reset Password")}
                         </Button>
                     </form>
@@ -172,7 +172,7 @@ function ResetPasswordForm() {
             )}
 
             <div className="text-center mt-8">
-                <Link to={AUTH_URLS.SIGN_IN} className="font-semibold text-white/50 hover:text-white transition-colors flex items-center justify-center gap-2 text-xs font-kantumruy">
+                <Link to={AUTH_URLS.SIGN_IN} className="font-semibold text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center gap-2 text-xs font-kantumruy">
                     <ArrowLeft className="w-3 h-3" /> {t('common.auth.backToSignIn') || "Back to Sign In"}
                 </Link>
             </div>
@@ -182,14 +182,11 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
     return (
-        <div className="min-h-screen w-full relative flex items-center justify-center bg-black py-10">
+        <div className="min-h-screen w-full relative flex items-center justify-center bg-gradient-to-br from-background via-background to-secondary py-10">
             {/* Background Image with Overlay */}
-            <div className="absolute inset-0 z-0">
-                <div
-                    className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-40"
-                    style={{ backgroundPosition: 'center 40%' }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/60 backdrop-blur-[2px]"></div>
+            <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+                <div className="absolute -left-[10%] -top-[15%] h-[50vw] w-[50vw] rounded-full bg-sage/10 blur-[130px]" />
+                <div className="absolute -bottom-[15%] -right-[10%] h-[45vw] w-[45vw] rounded-full bg-gold/15 blur-[130px]" />
             </div>
 
             {/* Content Container */}
@@ -199,7 +196,7 @@ export default function ResetPasswordPage() {
                 transition={{ duration: 0.8, ease: "easeOut" }}
                 className="relative z-10 w-full max-w-md p-4 md:p-6"
             >
-                <Suspense fallback={<div className="text-center text-white/50 p-10"><Loader2 className="w-8 h-8 animate-spin mx-auto" /></div>}>
+                <Suspense fallback={<div className="text-center text-muted-foreground p-10"><Loader2 className="w-8 h-8 animate-spin mx-auto" /></div>}>
                     <ResetPasswordForm />
                 </Suspense>
             </m.div>

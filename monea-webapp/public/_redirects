@@ -1,1 +1,12 @@
-/* /index.html 200
+# Static files must be explicitly served BEFORE the SPA wildcard.
+# Without these rules, Cloudflare redirects /sitemap.xml → index.html
+# which causes Google Search Console "Couldn't fetch" errors.
+/sitemap.xml         /sitemap.xml         200
+/robots.txt          /robots.txt          200
+/manifest.json       /manifest.json       200
+/sw.js               /sw.js               200
+/favicon.png         /favicon.png         200
+/a98f86937b194cfdb17978afbe9d45ad.txt /a98f86937b194cfdb17978afbe9d45ad.txt 200
+
+# SPA fallback — must be last
+/*                   /index.html          200

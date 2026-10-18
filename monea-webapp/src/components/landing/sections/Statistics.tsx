@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { m, useSpring, useTransform } from 'framer-motion';
 import { useTranslation } from "@/i18n/LanguageProvider";
 
@@ -83,7 +83,7 @@ export function Statistics() {
     ];
 
     return (
-        <section className="py-24 bg-white dark:bg-[#0A0A0A] relative border-t border-slate-100 dark:border-white/10 overflow-hidden">
+        <section className="py-24 bg-white dark:bg-background relative border-t border-slate-100 dark:border-white/10 overflow-hidden">
             <div className="container mx-auto px-6 max-w-6xl relative z-10">
                 <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-8">
                     {stats.map((stat, idx) => (
@@ -99,11 +99,11 @@ export function Statistics() {
                                 <CountUp value={stat.value} />
                             </h3>
                             
-                            <div className="text-slate-500 dark:text-white/40 font-bold font-kantumruy text-[11px] md:text-sm uppercase tracking-[0.2em] leading-tight text-center min-h-[40px] flex flex-col justify-start">
+                            <div className="text-slate-500 dark:text-white/40 font-bold font-kantumruy text-xs md:text-sm uppercase tracking-[0.2em] leading-tight text-center min-h-[40px] flex flex-col justify-start">
                                 {stat.label.includes("(") ? (
                                     <>
                                         <span className="group-hover:text-slate-900 dark:group-hover:text-white transition-colors">{stat.label.split("(")[0]}</span>
-                                        <span className="text-[10px] text-slate-400 dark:text-white/30 mt-1.5 uppercase tracking-wider italic">({stat.label.split("(")[1]}</span>
+                                        <span className="text-xs text-slate-400 dark:text-white/30 mt-1.5 uppercase tracking-wider italic">({stat.label.split("(")[1]}</span>
                                     </>
                                 ) : (
                                     <span className="group-hover:text-slate-900 dark:group-hover:text-white transition-colors">{stat.label}</span>

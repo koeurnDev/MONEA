@@ -1,6 +1,7 @@
 ﻿import React, { Component, ErrorInfo, ReactNode } from "react";
 import { AlertCircle, RefreshCcw, Home } from "lucide-react";
 import { Button } from "./ui/button";
+import { CHUNK_RELOAD_KEY, clearAppAssetCaches } from "@/lib/chunk-recovery";
 
 interface Props {
     children?: ReactNode;
@@ -11,23 +12,72 @@ interface Props {
 interface State {
     hasError: boolean;
     error?: Error;
+    isOffline: boolean;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
     public state: State = {
-        hasError: false
+        hasError: false,
+        isOffline: false
+    };
+
+    private handleConnectionChange = () => {
+        this.setState({ isOffline: !navigator.onLine });
     };
 
     public static getDerivedStateFromError(error: Error): State {
-        return { hasError: true, error };
+        return { hasError: true, error, isOffline: typeof navigator !== "undefined" && !navigator.onLine };
+    }
+
+    public componentDidMount() {
+        window.addEventListener("online", this.handleConnectionChange);
+        window.addEventListener("offline", this.handleConnectionChange);
+        this.handleConnectionChange();
+    }
+
+    public componentWillUnmount() {
+        window.removeEventListener("online", this.handleConnectionChange);
+        window.removeEventListener("offline", this.handleConnectionChange);
     }
 
     public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
         console.error(`Error in component [${this.props.name || "Unknown"}]:`, error, errorInfo);
+        if (this.isAssetLoadError(error)) {
+            void this.recoverFromAssetError();
+        }
     }
 
-    private handleReset = () => {
-        this.setState({ hasError: false });
+    private isAssetLoadError(error: Error): boolean {
+        return /chunk|dynamically imported module|failed to fetch dynamically imported module|importing a module script failed|loading css chunk/i.test(
+            error.message,
+        );
+    }
+
+    private recoverFromAssetError = async () => {
+        try {
+            const lastReload = Number(sessionStorage.getItem(CHUNK_RELOAD_KEY) || 0);
+            if (Date.now() - lastReload < 15_000) return;
+
+            sessionStorage.setItem(CHUNK_RELOAD_KEY, String(Date.now()));
+            window.setTimeout(() => sessionStorage.removeItem(CHUNK_RELOAD_KEY), 15_000);
+            await clearAppAssetCaches();
+            window.location.reload();
+        } catch (error) {
+            console.error("[ErrorBoundary] Could not recover from a stale app asset:", error);
+        }
+    };
+
+    private handleReset = async () => {
+        try {
+            await clearAppAssetCaches();
+        } catch (error) {
+            console.error("[ErrorBoundary] Could not clear cached assets before retrying:", error);
+        }
+        try {
+            sessionStorage.removeItem(CHUNK_RELOAD_KEY);
+        } catch (error) {
+            console.error("[ErrorBoundary] Could not clear the dynamic-import retry state:", error);
+        }
         window.location.reload();
     };
 
@@ -47,10 +97,12 @@ export class ErrorBoundary extends Component<Props, State> {
                             <AlertCircle aria-hidden="true" size={32} strokeWidth={2.25} />
                         </div>
                         <h2 id="app-error-title" className="mb-3 font-kantumruy text-xl font-black leading-snug text-slate-900 sm:text-2xl">
-                            សុំទោស! កម្មវិធីមានបញ្ហា
+                            {this.state.isOffline ? "គ្មានការតភ្ជាប់អ៊ីនធឺណិត" : "សុំទោស! កម្មវិធីមានបញ្ហា"}
                         </h2>
                         <p className="mx-auto mb-7 max-w-sm text-sm font-medium leading-7 text-slate-600 sm:text-base">
-                            មានបញ្ហាមិនរំពឹងទុកកើតឡើង។ សូមព្យាយាមផ្ទុកទំព័រឡើងវិញ។
+                            {this.state.isOffline
+                                ? "សូមពិនិត្យការតភ្ជាប់អ៊ីនធឺណិតរបស់អ្នក រួចចុច «ព្យាយាមម្ដងទៀត»។"
+                                : "មានបញ្ហាមិនរំពឹងទុកកើតឡើង។ សូមព្យាយាមផ្ទុកទំព័រឡើងវិញ។"}
                         </p>
                         <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-center">
                         <Button
@@ -63,7 +115,7 @@ export class ErrorBoundary extends Component<Props, State> {
                         <Button
                             variant="outline"
                             onClick={() => window.location.href = "/"}
-                            className="h-12 w-full rounded-xl border-slate-200 px-5 font-bold text-slate-700 hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 sm:w-auto"
+                            className="h-12 w-full rounded-xl border-slate-200 !bg-white px-5 font-bold !text-slate-700 hover:!bg-slate-50 focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 sm:w-auto"
                         >
                             <Home aria-hidden="true" size={18} />
                             ទៅទំព័រដើម

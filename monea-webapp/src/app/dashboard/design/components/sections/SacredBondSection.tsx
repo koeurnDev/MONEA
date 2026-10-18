@@ -1,7 +1,8 @@
-﻿import React from 'react';
+import React from 'react';
 import { Plus, Trash2, Sparkles } from "lucide-react";
 // next/image replaced with <img>;
 import clsx from "clsx";
+import { moneaClient } from "@/lib/api-client";
 
 interface SacredBondSectionProps {
     wedding: any;
@@ -20,44 +21,78 @@ export const SacredBondSection: React.FC<SacredBondSectionProps> = ({
     slotUploading,
     t
 }) => {
+    const cert = wedding.galleryItems?.find((item: any) => item.type === 'CERTIFICATE');
+    const certIdx = wedding.galleryItems?.findIndex((item: any) => item.type === 'CERTIFICATE');
+    const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
+
+    React.useEffect(() => {
+        let active = true;
+        setPreviewUrl(null);
+        if (!cert?.publicId || !wedding.id || !cert.url) return () => { active = false; };
+
+        let format = "";
+        try {
+            const filename = new URL(cert.url).pathname.split("/").pop() || "";
+            format = filename.split(".").pop()?.toLowerCase() || "";
+        } catch {
+            return () => { active = false; };
+        }
+
+        void moneaClient.post<{ url: string }>("/api/cloudinary/private-certificate-preview", {
+            weddingId: wedding.id,
+            publicId: cert.publicId,
+            format,
+        }).then((response) => {
+            if (response.error) throw new Error(response.error);
+            if (!response.data?.url) throw new Error("Private certificate preview URL was missing");
+            if (active) setPreviewUrl(response.data.url);
+        }).catch((error) => {
+            console.error("Could not load private certificate preview:", error);
+        });
+
+        return () => { active = false; };
+    }, [cert?.publicId, cert?.url, wedding.id]);
+
     return (
         <section className="space-y-8">
             <div className="space-y-1">
-                <h4 className="text-[11px] font-bold text-slate-900 dark:text-white uppercase tracking-widest flex items-center gap-2">
-                    <div className="w-1 h-1 rounded-full bg-slate-300" />
+                <h4 className="text-xs font-bold text-foreground uppercase tracking-widest flex items-center gap-2">
+                    <div className="w-1 h-1 rounded-full bg-muted-foreground/40" />
                     {t("wizard.steps.4.bondTitle")}
                 </h4>
-                <p className="text-[10px] text-slate-400 dark:text-white/30 font-medium pl-3">{t("wizard.steps.4.bondSubtitle")}</p>
+                <p className="text-xs text-muted-foreground font-medium pl-3">{t("wizard.steps.4.bondSubtitle")}</p>
             </div>
             
             <div className="mx-3">
                 {(() => {
-                    const cert = wedding.galleryItems?.find((i: any) => i.type === 'CERTIFICATE');
-                    const certIdx = wedding.galleryItems?.findIndex((i: any) => i.type === 'CERTIFICATE');
                     const hasCert = !!cert?.url;
 
                     return (
                         <div className={clsx(
-                            "relative rounded-xl overflow-hidden bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 flex flex-col items-center justify-center group transition-all duration-500 min-h-[260px]",
-                            !hasCert && "hover:border-teal-100 dark:hover:border-teal-500/10"
+                            "relative rounded-xl overflow-hidden bg-muted/30 border border-border flex flex-col items-center justify-center group transition-all duration-500 min-h-[260px]",
+                            !hasCert && "hover:border-primary/20"
                         )}>
                             {hasCert ? (
                                 <>
-                                    <img src={cert.url} alt="Sacred Bond" loading="lazy" decoding="async" className="object-cover transition-transform duration-1000 group-hover:scale-105"   />
-                                    <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center gap-4 backdrop-blur-[2px]">
+                                    {previewUrl ? (
+                                        <img src={previewUrl} alt="Sacred Bond" loading="lazy" decoding="async" className="object-cover transition-transform duration-1000 group-hover:scale-105" />
+                                    ) : (
+                                        <p className="px-4 text-center text-xs text-muted-foreground">កំពុងបើកមើលឯកសារឯកជន…</p>
+                                    )}
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center gap-4 backdrop-blur-[2px]">
                                         <div className="flex gap-3">
                                             <button
                                                 onClick={() => {
                                                     setActiveSlotIdx(-1);
                                                     slotInputRef.current?.click();
                                                 }}
-                                                className="bg-white text-teal-500 p-3 rounded-lg hover:bg-teal-500 hover:text-white transition-all shadow-xl"
+                                                className="bg-card text-primary p-3 rounded-lg hover:bg-primary hover:text-primary-foreground transition-all shadow-xl"
                                             >
                                                 <Plus size={20} />
                                             </button>
                                             <button
                                                 onClick={() => certIdx !== undefined && certIdx !== -1 && removeGalleryItem(certIdx)}
-                                                className="bg-white text-red-500 p-3 rounded-lg hover:bg-red-500 hover:text-white transition-all shadow-xl"
+                                                className="bg-background text-destructive p-3 rounded-lg hover:bg-destructive hover:text-destructive-foreground transition-all shadow-xl"
                                             >
                                                 <Trash2 size={20} />
                                             </button>
@@ -73,12 +108,12 @@ export const SacredBondSection: React.FC<SacredBondSectionProps> = ({
                                     }} 
                                     className="w-full h-full flex flex-col items-center justify-center gap-4 p-8 text-center"
                                 >
-                                    <div className="w-16 h-16 rounded-xl bg-white dark:bg-white/5 flex items-center justify-center text-slate-200 group-hover:text-teal-500 shadow-sm transition-all">
+                                    <div className="w-16 h-16 rounded-xl bg-card flex items-center justify-center text-muted-foreground/30 group-hover:text-primary shadow-sm transition-all">
                                         <Sparkles size={32} />
                                     </div>
                                     <div className="space-y-1">
-                                        <span className="text-xs text-slate-600 dark:text-white/40 font-bold block group-hover:text-teal-500 transition-colors">{t("wizard.steps.4.uploadBond")}</span>
-                                        <span className="text-[9px] text-slate-400 font-bold block uppercase tracking-widest">{t("wizard.steps.4.recommendSize")}</span>
+                                        <span className="text-xs text-muted-foreground font-bold block group-hover:text-primary transition-colors">{t("wizard.steps.4.uploadBond")}</span>
+                                        <span className="text-xs text-muted-foreground/70 font-bold block uppercase tracking-widest">{t("wizard.steps.4.recommendSize")}</span>
                                     </div>
                                 </button>
                             )}

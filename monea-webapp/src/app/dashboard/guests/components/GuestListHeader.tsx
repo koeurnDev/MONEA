@@ -43,23 +43,23 @@ export function GuestListHeader({
 
             <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
                 <div className="flex items-center gap-2 flex-1 sm:flex-none">
-                    {!isArchived && <GuestImport onSuccess={loadData} className="h-10 px-4 text-[11px] sm:px-6 sm:text-sm rounded-xl" />}
+                    {!isArchived && <GuestImport onSuccess={loadData} className="h-10 px-4 text-xs sm:px-6 sm:text-sm rounded-xl" />}
                     <Button
                         variant="outline"
                         onClick={() => isPremium ? onExportExcel() : null}
                         className={cn(
-                            "h-10 px-4 sm:px-6 border-none bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground rounded-xl font-kantumruy font-bold transition-all text-[11px] sm:text-sm shadow-sm flex-1 sm:flex-none",
+                            "h-10 px-4 sm:px-6 border-none bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground rounded-xl font-kantumruy font-bold transition-all text-xs sm:text-sm shadow-sm flex-1 sm:flex-none",
                             !isPremium && "opacity-50"
                         )}
                         title={!isPremium ? t("guests.upgradeHint") : ""}
                     >
-                        <Download className={cn("mr-1.5 h-4 w-4", isPremium ? "text-blue-600" : "text-gray-400")} /> Excel
+                        <Download className={cn("mr-1.5 h-4 w-4", isPremium ? "text-primary" : "text-muted-foreground")} /> Excel
                     </Button>
                     <Button
                         variant="outline"
                         onClick={() => isPremium ? onPrintPdf() : null}
                         className={cn(
-                            "h-10 px-4 sm:px-6 border-none bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground rounded-xl font-kantumruy font-bold transition-all text-[11px] sm:text-sm shadow-sm flex-1 sm:flex-none",
+                            "h-10 px-4 sm:px-6 border-none bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground rounded-xl font-kantumruy font-bold transition-all text-xs sm:text-sm shadow-sm flex-1 sm:flex-none",
                             !isPremium && "opacity-50"
                         )}
                         title={!isPremium ? t("guests.upgradeHint") : ""}
@@ -76,7 +76,7 @@ export function GuestListHeader({
                             <DialogTrigger asChild>
                                 <Button
                                     onClick={() => setEditingGuest(null)}
-                                    className="h-11 w-full sm:w-auto px-5 sm:px-6 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 backdrop-blur-xl border border-red-500/20 shadow-[0_8px_32px_rgba(239,68,68,0.15)] rounded-xl transition-all font-kantumruy font-bold text-sm"
+                                    className="h-11 w-full sm:w-auto px-5 sm:px-6 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl transition-all font-kantumruy font-bold text-sm"
                                 >
                                     <Plus className="mr-2 h-4 w-4" /> {t("guests.form.addBtn")}
                                 </Button>

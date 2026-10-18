@@ -140,5 +140,5 @@ export class OptimizedApiClient {
 export const optimizedApi = new OptimizedApiClient(
     process.env.NODE_ENV === 'development' 
         ? 'http://localhost:8787/api' 
-        : 'https://monea-api.seabkoeurn64.workers.dev/api'
+        : 'https://api.moneoez.com/api'
 );

@@ -1,265 +1,184 @@
-import React from 'react';
-import ImageCropperModal from "@/components/ui/image-cropper-modal";
+import React from "react";
 import { useTranslation } from "@/i18n/LanguageProvider";
-import { useCloudinaryUpload } from "@/hooks/use-cloudinary-upload";
-import type { WeddingData } from '@/components/templates/types';
-import { CategorizedSlots } from './sections/CategorizedSlots';
-import { SacredBondSection } from './sections/SacredBondSection';
-import { GeneralGallerySection } from './sections/GeneralGallerySection';
-import { AudioVideoSection } from './sections/AudioVideoSection';
-import { getWeddingPhotoSlotAspectRatio } from "@/lib/wedding-photo-layout";
+import type { WeddingData } from "@/components/templates/types";
+import { GeneralGallerySection } from "./sections/GeneralGallerySection";
+import { AudioVideoSection } from "./sections/AudioVideoSection";
 
 interface Step4MediaProps {
     wedding: WeddingData;
-    updateTheme: (key: string, value: any, autoSave?: boolean) => void;
+    onPreviewInvitation: () => void;
+    photoMigrationNotice: string | null;
+    onDismissPhotoMigrationNotice: () => void;
+    updateTheme: (key: string | Record<string, unknown>, value?: any, autoSave?: boolean) => void;
     removeThemeAsset: (urlKey: string, publicIdKey: string) => Promise<void>;
-    addGalleryItem: (url: string, publicId?: string, index?: number, type?: string) => void;
     removeGalleryItem: (index: number) => void;
-    handleGalleryDirectUpload: (files: FileList | File[]) => Promise<void>;
+    replaceGalleryPhoto: (index: number, url: string, publicId?: string) => Promise<boolean>;
+    moveGalleryPhoto: (fromIndex: number, toIndex: number) => Promise<boolean>;
+    handleGalleryDirectUpload: (files: FileList | File[]) => Promise<boolean>;
     galleryUploading: boolean;
     galleryProgress: number;
     galleryUploadError: string | null;
     failedGalleryFileCount: number;
-    retryGalleryUpload: () => Promise<unknown> | undefined;
-    isDraggingGallery: boolean;
-    setIsDraggingGallery: (val: boolean) => void;
-    TEMPLATE_LAYOUTS: Record<string, { slots: number, labels: string[] }>;
-    updateGalleryOrder: (items: any[]) => void;
+    retryGalleryUpload: () => Promise<boolean>;
     onUploadingChange: (uploading: boolean) => void;
 }
 
 const Step4Media: React.FC<Step4MediaProps> = ({
     wedding,
+    onPreviewInvitation,
+    photoMigrationNotice,
+    onDismissPhotoMigrationNotice,
     updateTheme,
     removeThemeAsset,
-    addGalleryItem,
     removeGalleryItem,
+    replaceGalleryPhoto,
+    moveGalleryPhoto,
     handleGalleryDirectUpload,
     galleryUploading,
     galleryProgress,
     galleryUploadError,
     failedGalleryFileCount,
     retryGalleryUpload,
-    isDraggingGallery,
-    setIsDraggingGallery,
-    TEMPLATE_LAYOUTS,
-    updateGalleryOrder,
-    onUploadingChange
+    onUploadingChange,
 }) => {
     const { t } = useTranslation();
-    const isAnniv = wedding.eventType === 'anniversary';
-    const layout = TEMPLATE_LAYOUTS[wedding.templateId || "khmer-legacy"];
-    const [activeSlotIdx, setActiveSlotIdx] = React.useState<number | null>(null);
-    const [isCropModalOpen, setIsCropModalOpen] = React.useState(false);
-    const [selectedFileUrl, setSelectedFileUrl] = React.useState<string | null>(null);
     const [showExtraMedia, setShowExtraMedia] = React.useState(false);
-    const [galleryUploadStatus, setGalleryUploadStatus] = React.useState<"idle" | "uploading" | "success" | "error">("idle");
-    const [slotUploadStatus, setSlotUploadStatus] = React.useState<"idle" | "success" | "error">("idle");
-    const galleryWasUploading = React.useRef(false);
-    const slotInputRef = React.useRef<HTMLInputElement>(null);
-    const generalInputRef = React.useRef<HTMLInputElement>(null);
+    const [uploadStatus, setUploadStatus] = React.useState<"idle" | "uploading" | "success" | "error">("idle");
+    const [saveError, setSaveError] = React.useState<string | null>(null);
+    const [savingPhotoBatch, setSavingPhotoBatch] = React.useState(false);
+    const [cropUploading, setCropUploading] = React.useState(false);
+    const inputRef = React.useRef<HTMLInputElement>(null);
 
-    const {
-        uploading: slotUploading,
-        progress: slotProgress,
-        error: slotUploadError,
-        uploadFile: uploadSlotFile,
-        retryUpload: retrySlotUpload,
-    } = useCloudinaryUpload({
-        onSuccess: (url, publicId, type) => {
-            if (activeSlotIdx !== null) {
-                const mediaType = type === "VIDEO" ? "VIDEO" : "IMAGE";
-                if (activeSlotIdx === -1) {
-                    const certIdx = wedding.galleryItems?.findIndex(i => i.type === 'CERTIFICATE');
-                    addGalleryItem(url, publicId, certIdx !== -1 ? certIdx : undefined, 'CERTIFICATE');
-                } else {
-                    addGalleryItem(url, publicId, activeSlotIdx, mediaType);
-                }
-                setSlotUploadStatus("success");
-                setActiveSlotIdx(null);
-            }
-        },
-        onError: (err) => {
-            console.error("Slot upload error:", err);
-            setSlotUploadStatus("error");
-        },
-        folder: wedding.id
-    });
     React.useEffect(() => {
-        if (galleryUploading) {
-            galleryWasUploading.current = true;
-        } else if (galleryWasUploading.current) {
-            setGalleryUploadStatus(galleryUploadError ? "error" : "success");
-            galleryWasUploading.current = false;
+        onUploadingChange(galleryUploading || savingPhotoBatch || cropUploading);
+    }, [cropUploading, galleryUploading, onUploadingChange, savingPhotoBatch]);
+    React.useEffect(() => () => onUploadingChange(false), [onUploadingChange]);
+    React.useEffect(() => {
+        if (uploadStatus === "success" && failedGalleryFileCount > 0) {
+            setSaveError(galleryUploadError || "រូបខ្លះបានដាក់ និងរក្សាទុករួចហើយ ប៉ុន្តែមានរូបខ្លះបរាជ័យ។ សូមសាកដាក់រូបដែលបរាជ័យម្ដងទៀត។");
+            setUploadStatus("error");
         }
-    }, [galleryUploadError, galleryUploading]);
+    }, [failedGalleryFileCount, galleryUploadError, uploadStatus]);
 
-    const uploadGalleryFiles = async (files: FileList | File[]) => {
-        const fileArray = Array.from(files);
-        if (fileArray.length === 0) return;
-        const hasSupportedMedia = fileArray.some((file) => file.type.startsWith("image/") || file.type.startsWith("video/"));
-        if (!hasSupportedMedia) {
-            setGalleryUploadStatus("error");
-            await handleGalleryDirectUpload(fileArray);
+    const uploadFiles = async (files: FileList | File[]) => {
+        const selectedFiles = Array.from(files);
+        if (selectedFiles.length === 0) return;
+        const invalidFile = selectedFiles.find((file) => !file.type.startsWith("image/"));
+        if (invalidFile) {
+            setSaveError("សូមជ្រើសរើសឯកសាររូបភាពប៉ុណ្ណោះ។ រូបភាពនឹងត្រូវដាក់តាមលំដាប់ស្វ័យប្រវត្តិ។");
+            setUploadStatus("error");
             return;
         }
-        setGalleryUploadStatus("uploading");
-        await handleGalleryDirectUpload(fileArray);
+
+        setUploadStatus("uploading");
+        setSaveError(null);
+        setSavingPhotoBatch(true);
+        try {
+            const saved = await handleGalleryDirectUpload(selectedFiles);
+            if (saved) {
+                setUploadStatus("success");
+            } else {
+                setSaveError(galleryUploadError || "រូបបានផ្ទុកឡើង ប៉ុន្តែរក្សាទុកមិនបាន។ សូមពិនិត្យអ៊ីនធឺណិត ហើយសាកម្ដងទៀត។");
+                setUploadStatus("error");
+            }
+        } catch (error) {
+            console.error("Photo batch upload failed:", error);
+            setSaveError(error instanceof Error ? error.message : "មិនអាចដាក់ និងរក្សាទុករូបបានទេ។");
+            setUploadStatus("error");
+        } finally {
+            setSavingPhotoBatch(false);
+        }
     };
 
-    const retryGalleryFiles = () => {
-        setGalleryUploadStatus("uploading");
-        return retryGalleryUpload();
+    const retryFailedFiles = async () => {
+        setUploadStatus("uploading");
+        setSaveError(null);
+        setSavingPhotoBatch(true);
+        try {
+            const saved = await retryGalleryUpload();
+            if (saved) {
+                setUploadStatus("success");
+            } else {
+                setSaveError(galleryUploadError || "មិនអាចរក្សាទុករូបបានទេ។ សូមសាកម្ដងទៀត។");
+                setUploadStatus("error");
+            }
+        } catch (error) {
+            console.error("Retrying photo upload failed:", error);
+            setSaveError(error instanceof Error ? error.message : "មិនអាចសាកដាក់រូបម្ដងទៀតបានទេ។");
+            setUploadStatus("error");
+        } finally {
+            setSavingPhotoBatch(false);
+        }
     };
-    React.useEffect(() => {
-        onUploadingChange(slotUploading || galleryUploading);
-    }, [galleryUploading, onUploadingChange, slotUploading]);
-
-    React.useEffect(() => () => onUploadingChange(false), [onUploadingChange]);
 
     return (
-        <div className="space-y-3 sm:space-y-8 font-kantumruy">
-            <div className="rounded-2xl border border-slate-200/80 bg-white/80 p-3 sm:p-4 shadow-sm dark:border-white/10 dark:bg-white/[0.02]">
+        <div className="space-y-3 font-kantumruy sm:space-y-8">
+            <div className="rounded-2xl border border-border bg-card p-3 shadow-sm sm:p-4">
                 <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-sm font-black text-foreground">រូបភាពលើធៀប</h3>
-                    <span className="rounded-full bg-slate-500/10 px-2 py-0.5 text-[10px] font-bold text-muted-foreground">អាចរំលងបាន</span>
+                    <h3 className="text-sm font-black text-foreground">រូបភាពសម្រាប់ធៀប</h3>
+                    <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-bold text-muted-foreground">អាចរំលងបាន</span>
                 </div>
-                {(slotUploading || galleryUploading) && (
-                    <p role="status" className="rounded-xl border border-amber-300/70 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
-                        កំពុងបង្ហោះរូបភាព។ សូមរង់ចាំរហូតដល់ការបង្ហោះចប់ មុនពេលរក្សាទុក។
-                    </p>
-                )}
-                {slotUploadStatus === "success" && !slotUploading && (
-                    <p role="status" className="mt-2 text-xs font-bold text-emerald-700 dark:text-emerald-300">
-                        រូបបានបង្ហោះជោគជ័យ។
-                    </p>
-                )}
-                {slotUploadStatus === "error" && (
-                    <div role="alert" className="mt-2 flex flex-wrap items-center gap-2 text-xs font-bold text-rose-700 dark:text-rose-300">
-                        <span>{slotUploadError || "បង្ហោះរូបមិនបាន។ សូមពិនិត្យអ៊ីនធឺណិត ហើយសាកល្បងម្ដងទៀត។"}</span>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setSlotUploadStatus("idle");
-                                void retrySlotUpload();
-                            }}
-                            disabled={slotUploading}
-                            className="rounded-lg border border-rose-300 px-2.5 py-1.5"
-                        >
-                            សាកល្បងម្ដងទៀត
-                        </button>
-                    </div>
-                )}
+                <ol className="mt-3 grid gap-2 rounded-xl bg-muted/50 p-3 text-xs leading-relaxed text-muted-foreground sm:grid-cols-3">
+                    <li><span className="font-bold text-foreground">១. ជ្រើសរើសរូបទាំងអស់</span><br />អាចជ្រើសរើសច្រើនសន្លឹកម្ដង។</li>
+                    <li><span className="font-bold text-foreground">២. រូបទី១ជារូបគម្រប</span><br />រូបបន្ទាប់ៗទៅផ្នែកផ្សេងៗដោយស្វ័យប្រវត្តិ។</li>
+                    <li><span className="font-bold text-foreground">៣. ពិនិត្យលទ្ធផល</span><br />ចុច «មើលរូបនៅលើធៀប» ដើម្បីមើល។</li>
+                </ol>
                 <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                    ជ្រើសរូបក្នុងប្រអប់នីមួយៗ ហើយកាត់តម្រឹមតាមស៊ុម។
+                    រូបដែលមានរួចនឹងមិនត្រូវបានជំនួសទេ។ រូបថ្មីបំពេញកន្លែងទំនេរបន្ទាប់ ហើយរូបបន្ថែមលើសនឹងចូលកម្រងរូប។
                 </p>
+                <button
+                    type="button"
+                    onClick={onPreviewInvitation}
+                    className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-primary/30 bg-card px-4 text-sm font-bold text-primary transition-colors hover:bg-accent md:hidden"
+                >
+                    មើលរូបនៅលើធៀប
+                </button>
             </div>
 
-            <input 
-                type="file" 
-                accept="image/*,video/*" 
-                className="hidden" 
-                ref={slotInputRef}
-                onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    if (file.type.startsWith("video/")) {
-                        void uploadSlotFile(file);
-                        e.target.value = '';
-                        return;
-                    }
-
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                        setSelectedFileUrl(reader.result as string);
-                        setIsCropModalOpen(true);
-                    };
-                    reader.readAsDataURL(file);
-                    e.target.value = '';
-                }}
-            />
-
-            <input 
-                type="file" 
-                multiple 
-                accept="image/*,video/*" 
-                className="hidden" 
-                ref={generalInputRef} 
-                onChange={(e) => {
-                    if (e.target.files) void uploadGalleryFiles(e.target.files);
-                }}
-            />
-
-            {/* Categorized Visual Photo Slots */}
-            <CategorizedSlots 
-                wedding={wedding} 
-                layout={layout} 
-                isAnniv={isAnniv} 
-                getSlotAspectRatio={getWeddingPhotoSlotAspectRatio}
-                setActiveSlotIdx={setActiveSlotIdx} 
-                slotInputRef={slotInputRef} 
-                removeGalleryItem={removeGalleryItem} 
-                updateTheme={updateTheme}
-                slotUploading={slotUploading} 
-                slotProgress={slotProgress} 
-                activeSlotIdx={activeSlotIdx} 
-                onStartUpload={() => setSlotUploadStatus("idle")}
-                t={t} 
-            />
+            {photoMigrationNotice && (
+                <div role="status" className="flex items-start justify-between gap-3 rounded-xl border border-sky-200 bg-sky-50 px-3 py-2 text-xs font-semibold text-sky-900 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-100">
+                    <span>{photoMigrationNotice}</span>
+                    <button type="button" onClick={onDismissPhotoMigrationNotice} aria-label="បិទសារព័ត៌មាន" className="min-h-8 min-w-8 shrink-0 rounded-lg hover:bg-sky-900/10">×</button>
+                </div>
+            )}
 
             <GeneralGallerySection
                 wedding={wedding}
-                layout={layout}
+                inputRef={inputRef}
+                uploading={galleryUploading || savingPhotoBatch}
+                progress={galleryProgress}
+                uploadStatus={uploadStatus}
+                uploadError={saveError || galleryUploadError}
+                failedFileCount={failedGalleryFileCount}
+                onUpload={uploadFiles}
+                onRetry={retryFailedFiles}
+                onReplacePhoto={replaceGalleryPhoto}
+                onMovePhoto={moveGalleryPhoto}
+                onMediaOperationChange={setCropUploading}
                 removeGalleryItem={removeGalleryItem}
-                generalInputRef={generalInputRef}
-                galleryUploading={galleryUploading}
-                galleryProgress={galleryProgress}
-                isDraggingGallery={isDraggingGallery}
-                setIsDraggingGallery={setIsDraggingGallery}
-                handleGalleryDirectUpload={uploadGalleryFiles}
-                galleryUploadStatus={galleryUploadStatus}
-                galleryUploadError={galleryUploadError}
-                canRetryGalleryUpload={failedGalleryFileCount > 0}
-                retryGalleryUpload={retryGalleryFiles}
                 updateTheme={updateTheme}
-                updateGalleryOrder={updateGalleryOrder}
-                t={t}
             />
 
             <button
                 type="button"
                 onClick={() => setShowExtraMedia((value) => !value)}
                 aria-expanded={showExtraMedia}
-                className="flex w-full items-center justify-between rounded-2xl border border-slate-200/80 bg-slate-50/70 px-4 py-3 text-left dark:border-white/10 dark:bg-white/[0.02]"
+                className="flex w-full items-center justify-between rounded-2xl border border-border bg-muted/30 px-4 py-3 text-left"
             >
-                <span className="font-kantumruy text-xs font-bold text-foreground">តន្ត្រី និងវីដេអូ (ស្រេចចិត្ត)</span>
+                <span className="text-xs font-bold text-foreground">តន្ត្រី និងវីដេអូ (ស្រេចចិត្ត)</span>
                 <span className={`text-muted-foreground transition-transform ${showExtraMedia ? "rotate-180" : ""}`}>⌄</span>
             </button>
-
-            {showExtraMedia && <>
-            <AudioVideoSection 
-                wedding={wedding} 
-                isAnniv={isAnniv} 
-                updateTheme={updateTheme} 
-                removeThemeAsset={removeThemeAsset} 
-                t={t} 
-            />
-            </>}
-
-            <ImageCropperModal
-                isOpen={isCropModalOpen}
-                onClose={() => {
-                    setIsCropModalOpen(false);
-                    setSelectedFileUrl(null);
-                }}
-                imageSrc={selectedFileUrl}
-                onCropComplete={async (croppedBlob) => {
-                    const file = new File([croppedBlob], "cropped.jpg", { type: "image/jpeg" });
-                    await uploadSlotFile(file);
-                }}
-                aspectRatio={activeSlotIdx !== null ? (activeSlotIdx === -1 ? 16/10 : getWeddingPhotoSlotAspectRatio(activeSlotIdx)) : 3/4}
-                title="កាត់តម្រឹមរូបភាព (Crop Photo)"
-            />
+            {showExtraMedia && (
+                <>
+                    <AudioVideoSection
+                        wedding={wedding}
+                        isAnniv={wedding.eventType === "anniversary"}
+                        updateTheme={updateTheme}
+                        removeThemeAsset={removeThemeAsset}
+                        t={t}
+                    />
+                </>
+            )}
         </div>
     );
 };

@@ -403,7 +403,7 @@ export function DigitalPassModal({
         // Official Watermark / Footer
         ctx.fillStyle = "rgba(243, 186, 89, 0.65)";
         ctx.font = "bold 15px 'Inter', 'Kantumruy Pro', sans-serif";
-        ctx.fillText("MONEA VIP PASS • OFFICIAL WEDDING INVITATION", width / 2, qrBoxY + qrBoxSize + 90);
+        ctx.fillText("MONEO • OFFICIAL WEDDING INVITATION", width / 2, qrBoxY + qrBoxSize + 90);
 
         // 7. Outer Luxury Gold Border Frame
         ctx.strokeStyle = "rgba(243, 186, 89, 0.35)";
@@ -536,7 +536,7 @@ ${inviteUrl}`;
                         <Ticket className="w-5 h-5 text-amber-500" />
                         <span>សំបុត្រឌីជីថល</span>
                     </DialogTitle>
-                    <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25">
+                    <span className="text-xs uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/25">
                         VIP PASS
                     </span>
                 </div>
@@ -549,7 +549,7 @@ ${inviteUrl}`;
                         className="w-full max-w-[325px] xs:max-w-[340px] sm:max-w-[350px] rounded-3xl overflow-hidden shadow-2xl border border-amber-500/30 dark:border-amber-400/25 bg-gradient-to-b from-[#1c1a17] via-[#161513] to-[#11100f] text-white select-none relative"
                     >
                         {/* Top Card Section: Couple Photo & Details */}
-                        <div className="relative h-40 xs:h-44 sm:h-52 w-full flex flex-col items-center justify-end p-3.5 sm:p-4 pb-4 text-center overflow-hidden">
+                        <div className="relative h-36 xs:h-40 sm:h-44 w-full flex flex-col items-center justify-end p-3 sm:p-3.5 pb-3.5 text-center overflow-hidden">
                             <img
                                 src={heroImage}
                                 alt="Couple Cover"
@@ -559,7 +559,7 @@ ${inviteUrl}`;
 
                             <div className="relative z-10 space-y-1 w-full px-2">
                                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-black/40 backdrop-blur-md border border-amber-400/30 shadow-sm">
-                                    <span className="text-amber-300 font-extrabold text-[10px] sm:text-xs tracking-wide font-kantumruy">
+                                    <span className="text-amber-300 font-extrabold text-xs sm:text-xs tracking-wide font-kantumruy">
                                         ✦ {eventType} ✦
                                     </span>
                                 </div>
@@ -567,11 +567,11 @@ ${inviteUrl}`;
                                     {groomName} និង {brideName}
                                 </h3>
 
-                                <div className="pt-1 text-[11px] sm:text-xs text-amber-100 font-kantumruy leading-tight">
+                                <div className="pt-1 text-xs sm:text-xs text-amber-100 font-kantumruy leading-tight">
                                     <p>{dateKhmerFormatted}</p>
                                     <p className="opacity-90">{timeKh}</p>
                                 </div>
-                                <p className="text-[9px] sm:text-[10px] text-white/70 font-sans tracking-tight">
+                                <p className="text-xs sm:text-xs text-white/70 font-sans tracking-tight">
                                     {dateEnglishFormatted} {timeEnglishFormatted}
                                 </p>
                             </div>
@@ -585,9 +585,9 @@ ${inviteUrl}`;
                         </div>
 
                         {/* Bottom Card Section: Guest Name & QR */}
-                        <div className="bg-gradient-to-b from-[#161513] to-[#11100f] p-4 sm:p-5 pt-3.5 text-center flex flex-col items-center space-y-2.5 sm:space-y-3 font-kantumruy">
+                        <div className="bg-gradient-to-b from-[#161513] to-[#11100f] p-3 sm:p-4 pt-3 text-center flex flex-col items-center space-y-2 sm:space-y-2.5 font-kantumruy">
                             <div className="space-y-0.5">
-                                <span className="text-amber-400/90 text-[11px] sm:text-xs font-bold tracking-wider flex items-center gap-1.5 justify-center">
+                                <span className="text-amber-400/90 text-xs sm:text-xs font-bold tracking-wider flex items-center gap-1.5 justify-center">
                                     <span>❦</span>
                                     <span>សូមគោរពអញ្ជើញ</span>
                                     <span>❦</span>
@@ -597,7 +597,7 @@ ${inviteUrl}`;
                                 </h4>
                                 {guest.group && guest.group !== "None" && (
                                     <div className="pt-0.5">
-                                        <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-400/25">
+                                        <span className="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-400/25">
                                             ✦ {guest.group} ✦
                                         </span>
                                     </div>
@@ -605,7 +605,7 @@ ${inviteUrl}`;
                             </div>
 
                             {/* Jeweled QR Code Container with 4 Golden Corner Accents */}
-                            <div className="relative p-2.5 sm:p-3 bg-white rounded-2xl shadow-[0_4px_25px_rgba(0,0,0,0.5),0_0_20px_rgba(245,158,11,0.18)]">
+                            <div className="relative shrink-0 p-2 sm:p-2.5 bg-white rounded-2xl shadow-[0_4px_25px_rgba(0,0,0,0.5),0_0_20px_rgba(245,158,11,0.18)]">
                                 {/* Corner Brackets */}
                                 <div className="absolute top-1 left-1 w-3.5 h-3.5 border-t-2 border-l-2 border-amber-500 rounded-tl pointer-events-none" />
                                 <div className="absolute top-1 right-1 w-3.5 h-3.5 border-t-2 border-r-2 border-amber-500 rounded-tr pointer-events-none" />
@@ -616,21 +616,21 @@ ${inviteUrl}`;
                                     <img
                                         src={qrDataUrl}
                                         alt={`QR Code for ${guest.name}`}
-                                        className="w-28 h-28 xs:w-32 xs:h-32 sm:w-36 sm:h-36 object-contain"
+                                        className="block aspect-square w-24 xs:w-28 sm:w-32 shrink-0 object-contain"
                                     />
                                 ) : (
-                                    <div className="w-28 h-28 xs:w-32 xs:h-32 sm:w-36 sm:h-36 flex items-center justify-center">
+                                    <div className="flex aspect-square w-24 xs:w-28 sm:w-32 shrink-0 items-center justify-center">
                                         <Loader2 className="w-6 h-6 animate-spin text-amber-500" />
                                     </div>
                                 )}
                             </div>
 
                             <div className="space-y-0.5 pt-0.5">
-                                <p className="text-[11px] font-bold text-amber-100/80">
+                                <p className="text-xs font-bold text-amber-100/80">
                                     {qrSubtitleLabel}
                                 </p>
-                                <p className="text-[9px] uppercase tracking-widest text-amber-400/50 font-sans font-medium">
-                                    MONEA VIP PASS • OFFICIAL INVITATION
+                                <p className="text-xs uppercase tracking-widest text-amber-400/50 font-sans font-medium">
+                                    MONEO • OFFICIAL INVITATION
                                 </p>
                             </div>
                         </div>
@@ -659,7 +659,7 @@ ${inviteUrl}`;
                         <Button
                             type="button"
                             onClick={handleTelegram}
-                            className="h-10 sm:h-11 rounded-2xl bg-[#229ED9]/15 hover:bg-[#229ED9]/25 text-[#229ED9] border border-[#229ED9]/30 font-bold flex items-center justify-center gap-1.5 active:scale-[0.98] transition-all text-xs sm:text-sm"
+                            className="h-11 rounded-2xl bg-[#229ED9]/15 hover:bg-[#229ED9]/25 text-[#1A6F9E] dark:text-[#229ED9] border border-[#229ED9]/30 font-bold flex items-center justify-center gap-1.5 active:scale-[0.98] transition-all text-xs sm:text-sm"
                         >
                             <Send className="w-3.5 h-3.5" />
                             <span>ផ្ញើ Telegram</span>
@@ -686,4 +686,3 @@ ${inviteUrl}`;
 }
 
 export default DigitalPassModal;
-

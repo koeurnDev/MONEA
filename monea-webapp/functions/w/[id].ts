@@ -9,6 +9,8 @@ interface PublicWedding {
     groomName?: string | null;
     brideName?: string | null;
     date?: string | null;
+    socialPreviewImage?: string | null;
+    socialPreviewTitle?: string | null;
     heroImage?: string | null;
     coverImageUrl?: string | null;
     eventType?: string | null;
@@ -45,47 +47,51 @@ function formatKhmerDate(date: Date): string {
 
 function getHeroImage(wedding: PublicWedding, origin: string): SocialImage {
     const fallback: SocialImage = { url: new URL("/logo.png", origin).href, width: 512, height: 512 };
-    const image = [wedding.heroImage, wedding.coverImageUrl]
-        .find((candidate) => typeof candidate === "string" && candidate.length <= 2048);
-    if (!image) return fallback;
+    const candidates = [wedding.socialPreviewImage, wedding.heroImage, wedding.coverImageUrl];
 
-    try {
-        const imageUrl = new URL(image, origin);
-        const hasCredentials = Boolean(imageUrl.username || imageUrl.password);
-        const hasUnexpectedPort = imageUrl.port !== "";
-        const safeImage = (imageUrl.protocol === "https:" || imageUrl.protocol === "http:") && !hasCredentials && !hasUnexpectedPort;
-        if (!safeImage) return fallback;
+    for (const candidate of candidates) {
+        if (typeof candidate !== "string" || candidate.length === 0 || candidate.length > 2048) continue;
 
-        if (imageUrl.hostname === "res.cloudinary.com" && imageUrl.pathname.includes("/image/upload/")) {
-            const marker = "/image/upload/";
-            const uploadIndex = imageUrl.pathname.indexOf(marker);
-            const transform = "c_fill,w_1200,h_630,g_auto,q_auto,f_jpg";
-            const transformStart = uploadIndex + marker.length;
-            if (!imageUrl.pathname.slice(transformStart).startsWith(`${transform}/`)) {
-                imageUrl.pathname = `${imageUrl.pathname.slice(0, transformStart)}${transform}/${imageUrl.pathname.slice(transformStart)}`;
+        try {
+            const imageUrl = new URL(candidate, origin);
+            const hasCredentials = Boolean(imageUrl.username || imageUrl.password);
+            const hasUnexpectedPort = imageUrl.port !== "";
+            const safeImage = (imageUrl.protocol === "https:" || imageUrl.protocol === "http:") && !hasCredentials && !hasUnexpectedPort;
+            if (!safeImage) continue;
+
+            if (imageUrl.hostname === "res.cloudinary.com" && imageUrl.pathname.includes("/image/upload/")) {
+                const marker = "/image/upload/";
+                const uploadIndex = imageUrl.pathname.indexOf(marker);
+                const transform = "c_fill,w_1200,h_630,g_auto,q_auto,f_jpg";
+                const transformStart = uploadIndex + marker.length;
+                if (!imageUrl.pathname.slice(transformStart).startsWith(`${transform}/`)) {
+                    imageUrl.pathname = `${imageUrl.pathname.slice(0, transformStart)}${transform}/${imageUrl.pathname.slice(transformStart)}`;
+                }
+                return { url: imageUrl.href, width: 1200, height: 630 };
             }
-            return { url: imageUrl.href, width: 1200, height: 630 };
-        }
 
-        if (imageUrl.hostname === "images.unsplash.com" || imageUrl.hostname === "plus.unsplash.com") {
-            imageUrl.searchParams.set("w", "1200");
-            imageUrl.searchParams.set("h", "630");
-            imageUrl.searchParams.set("fit", "crop");
-            imageUrl.searchParams.set("auto", "format");
-            imageUrl.searchParams.set("fm", "jpg");
-            imageUrl.searchParams.set("q", "80");
-            return { url: imageUrl.href, width: 1200, height: 630 };
-        }
+            if (imageUrl.hostname === "images.unsplash.com" || imageUrl.hostname === "plus.unsplash.com") {
+                imageUrl.searchParams.set("w", "1200");
+                imageUrl.searchParams.set("h", "630");
+                imageUrl.searchParams.set("fit", "crop");
+                imageUrl.searchParams.set("auto", "format");
+                imageUrl.searchParams.set("fm", "jpg");
+                imageUrl.searchParams.set("q", "80");
+                return { url: imageUrl.href, width: 1200, height: 630 };
+            }
 
-        if (imageUrl.hostname === "ik.imagekit.io") {
-            imageUrl.searchParams.set("tr", "w-1200,h-630,c-at_least,fo-auto,f-jpg");
-            return { url: imageUrl.href, width: 1200, height: 630 };
-        }
+            if (imageUrl.hostname === "ik.imagekit.io") {
+                imageUrl.searchParams.set("tr", "w-1200,h-630,c-at_least,fo-auto,f-jpg");
+                return { url: imageUrl.href, width: 1200, height: 630 };
+            }
 
-        return { url: imageUrl.href, width: 1200, height: 630 };
-    } catch {
-        return fallback;
+            return { url: imageUrl.href, width: 1200, height: 630 };
+        } catch {
+            continue;
+        }
     }
+
+    return fallback;
 }
 
 function escapeHtml(value: string): string {
@@ -117,7 +123,7 @@ export async function onRequest(context: PagesFunctionContext): Promise<Response
     if (!/^[\w-]{1,128}$/.test(weddingId)) return pageResponse;
 
     try {
-        const apiUrl = `https://monea-api.seabkoeurn64.workers.dev/api/wedding/${encodeURIComponent(weddingId)}/seo`;
+        const apiUrl = `https://api.moneoez.com/api/wedding/${encodeURIComponent(weddingId)}/seo`;
         const weddingResponse = await fetch(apiUrl, {
             headers: { Accept: "application/json" },
             signal: AbortSignal.timeout(3000),
@@ -164,7 +170,8 @@ export async function onRequest(context: PagesFunctionContext): Promise<Response
         // Title: Personalized VIP invitation for guest, or elegant couple title
         const title = guestName
             ? `ធៀបអញ្ជើញពិសេសជូនចំពោះ ${guestName} 💌`
-            : (names ? `ធៀបអញ្ជើញ៖ ${names} 💍` : `${eventPrefix} | MONEA`);
+            : cleanText(wedding.socialPreviewTitle, 120)
+                || (names ? `ធៀបអញ្ជើញ៖ ${names} 💍` : `${eventPrefix} | MONEA`);
 
         const parsedDate = typeof wedding.date === "string" ? new Date(wedding.date) : null;
         const date = parsedDate && Number.isFinite(parsedDate.getTime())

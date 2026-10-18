@@ -28,7 +28,7 @@ export function getApiUrl(path: string): string {
   }
 
   // Production: use environment variable, fallback to production worker URL
-  const apiBase = (import.meta.env.VITE_API_URL || 'https://monea-api.seabkoeurn64.workers.dev').replace(/\/$/, '');
+  const apiBase = (import.meta.env.VITE_API_URL || 'https://api.moneoez.com').replace(/\/$/, '');
   const finalUrl = `${apiBase}/${cleanPath}`;
   
   return finalUrl;

@@ -51,6 +51,7 @@ export default function AdminLoginPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [require2FA, setRequire2FA] = useState(false);
     const [captchaToken, setCaptchaToken] = useState("");
+    const [captchaWidgetKey, setCaptchaWidgetKey] = useState(0);
     const isDev = import.meta.env.DEV;
 
     // Auto-bypass Turnstile in local dev mode
@@ -120,9 +121,13 @@ export default function AdminLoginPage() {
             }
         } catch (err) {
             console.error("Admin login error", err);
-            setError("មិនអាចភ្ជាប់ទៅកាន់ Security Server បានទេ");
+            setError("សូមពិនិត្យសេវាអ៊ីនធឺណិតរបស់អ្នក ហើយព្យាយាមម្ដងទៀត។");
         } finally {
             setIsLoading(false);
+            if (!isDev) {
+                setCaptchaToken("");
+                setCaptchaWidgetKey((key) => key + 1);
+            }
         }
     }
 
@@ -139,11 +144,11 @@ export default function AdminLoginPage() {
                     <span>ត្រឡប់ទៅទំព័រដើម</span>
                 </Link>
                 <div className="flex items-center gap-3">
-                    <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-wider">
+                    <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-wider">
                         <CheckCircle2 size={12} />
                         <span>256-Bit TLS Encrypted</span>
                     </div>
-                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-bold uppercase tracking-wider">
+                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold uppercase tracking-wider">
                         <ShieldCheck size={13} />
                         <span>Master Security Portal</span>
                     </div>
@@ -300,14 +305,15 @@ export default function AdminLoginPage() {
                             {/* Cloudflare Turnstile Bot Defense */}
                             <div className="flex justify-center pt-2">
                                 {isDev ? (
-                                    <div className="px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[11px] font-bold text-center">
+                                    <div className="px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-bold text-center">
                                         ⚡ Dev Mode — Turnstile Bypassed
                                     </div>
                                 ) : (
                                 <Turnstile
+                                    key={captchaWidgetKey}
                                     siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY || "0x4AAAAAACqptbDqodh591Td"}
                                     onSuccess={(token) => setCaptchaToken(token)}
-                                    options={{ theme: 'dark' }}
+                                    options={{ theme: 'dark', action: "signin" }}
                                 />
                                 )}
                             </div>
@@ -332,13 +338,13 @@ export default function AdminLoginPage() {
             </m.div>
 
             {/* Security Footer Protocol */}
-            <div className="w-full max-w-5xl flex flex-col sm:flex-row items-center justify-between gap-2 z-10 text-[11px] text-slate-500 font-medium border-t border-white/5 pt-4">
+            <div className="w-full max-w-5xl flex flex-col sm:flex-row items-center justify-between gap-2 z-10 text-xs text-slate-500 font-medium border-t border-white/5 pt-4">
                 <div className="flex items-center gap-2">
                     <ShieldAlert size={14} className="text-red-500" />
                     <span>Protected by Cloudflare WAF & End-to-End Encryption</span>
                 </div>
                 <div>
-                    © 2026 MONEA Enterprise Security System.
+                    © 2026 MONEO Enterprise Security System.
                 </div>
             </div>
         </div>

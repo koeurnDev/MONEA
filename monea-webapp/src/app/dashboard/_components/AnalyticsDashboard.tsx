@@ -1,4 +1,4 @@
-﻿import * as React from 'react';
+import * as React from 'react';
 import useSWR from 'swr';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,15 +18,19 @@ const fetcher = async (url: string) => {
 export function AnalyticsDashboard({ weddingId }: { weddingId: string }) {
     const { t } = useTranslation();
     const [mounted, setMounted] = React.useState(false);
+    const [sessionActive, setSessionActive] = React.useState(true);
     const [activeTooltip, setActiveTooltip] = React.useState<number | null>(null);
 
     const { data, error, isLoading, mutate } = useSWR(
-        mounted ? `/api/wedding/analytics/stats?weddingId=${encodeURIComponent(weddingId)}` : null,
+        mounted && sessionActive ? `/api/wedding/analytics/stats?weddingId=${encodeURIComponent(weddingId)}` : null,
         fetcher
     );
 
     React.useEffect(() => {
+        const handleAuthExpired = () => setSessionActive(false);
+        window.addEventListener("monea:auth-expired", handleAuthExpired);
         setMounted(true);
+        return () => window.removeEventListener("monea:auth-expired", handleAuthExpired);
     }, []);
 
     if (!mounted) return null;
@@ -84,40 +88,40 @@ export function AnalyticsDashboard({ weddingId }: { weddingId: string }) {
             value: Number(data.totalViews) || 0,
             sub: t("dashboard.analytics.totalViewsSub"),
             icon: Users,
-            color: "text-blue-600 dark:text-blue-400",
-            bg: "bg-blue-50 dark:bg-blue-500/10",
+            color: "text-primary",
+            bg: "bg-primary/10",
         },
         {
             title: t("dashboard.analytics.mapClicks"),
             value: Number(data.mapClicks) || 0,
             sub: t("dashboard.analytics.mapClicksSub"),
             icon: MousePointer2,
-            color: "text-teal-600 dark:text-teal-400",
-            bg: "bg-teal-50 dark:bg-teal-500/10",
+            color: "text-sage",
+            bg: "bg-sage/10",
         },
         {
             title: t("dashboard.analytics.saveDate"),
             value: Number(data.saveDateClicks) || 0,
             sub: t("dashboard.analytics.saveDateSub"),
             icon: Calendar,
-            color: "text-amber-600 dark:text-amber-400",
-            bg: "bg-amber-50 dark:bg-amber-500/10",
+            color: "text-gold",
+            bg: "bg-gold/10",
         },
         {
             title: t("dashboard.analytics.rsvpOpens"),
             value: Number(data.rsvpOpens) || 0,
             sub: t("dashboard.analytics.rsvpOpensSub"),
             icon: MousePointer2,
-            color: "text-purple-600 dark:text-purple-400",
-            bg: "bg-purple-50 dark:bg-purple-500/10",
+            color: "text-secondary-foreground",
+            bg: "bg-secondary",
         },
         {
             title: t("dashboard.analytics.rsvpSubmits"),
             value: Number(data.rsvpSubmits) || 0,
             sub: t("dashboard.analytics.rsvpSubmitsSub"),
             icon: Check,
-            color: "text-emerald-600 dark:text-emerald-400",
-            bg: "bg-emerald-50 dark:bg-emerald-500/10",
+            color: "text-olive",
+            bg: "bg-olive/10",
         },
     ];
 
@@ -140,7 +144,7 @@ export function AnalyticsDashboard({ weddingId }: { weddingId: string }) {
                                         <s.icon className="w-5 h-5 md:w-6 md:h-6" />
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                        <p className="text-[9px] md:text-[10px] font-bold text-muted-foreground uppercase truncate opacity-70">{s.title}</p>
+                                        <p className="text-xs md:text-xs font-bold text-muted-foreground uppercase truncate opacity-70">{s.title}</p>
                                         <h3 className="text-xl md:text-2xl font-black font-kantumruy tabular-nums text-foreground">{s.value}</h3>
                                     </div>
                                 </div>
@@ -156,8 +160,8 @@ export function AnalyticsDashboard({ weddingId }: { weddingId: string }) {
                     <CardHeader className="px-0 pt-0 pb-4 border-b border-border/40 mb-4 flex-row items-center justify-between">
                         <div>
                             <CardTitle className="text-sm md:text-md font-black font-kantumruy flex items-center gap-2">
-                                <div className="p-1.5 bg-emerald-500/10 rounded-lg">
-                                    <TrendingUp className="w-4 h-4 text-emerald-500" />
+                                <div className="p-1.5 bg-primary/10 rounded-lg">
+                                    <TrendingUp className="w-4 h-4 text-primary" />
                                 </div>
                                 {t("dashboard.analytics.viewTrend")}
                             </CardTitle>
@@ -170,7 +174,7 @@ export function AnalyticsDashboard({ weddingId }: { weddingId: string }) {
 
                     <CardContent className="px-0 pt-2">
                         {dailyTrend.length === 0 ? (
-                            <div className="h-48 flex items-center justify-center text-muted-foreground text-[10px] uppercase font-bold tracking-widest bg-muted/10 rounded-2xl border border-dashed border-border/30">
+                            <div className="h-48 flex items-center justify-center text-muted-foreground text-xs uppercase font-bold tracking-widest bg-muted/10 rounded-2xl border border-dashed border-border/30">
                                 {t("dashboard.analytics.noFlowData")}
                             </div>
                         ) : (() => {
@@ -199,12 +203,12 @@ export function AnalyticsDashboard({ weddingId }: { weddingId: string }) {
                                     {/* Active Tooltip Info Display on Tap/Hover */}
                                     <div className="h-7 flex items-center justify-center">
                                         {activeTooltip !== null ? (
-                                            <div className="bg-foreground text-background text-[10px] font-bold py-1 px-3 rounded-full shadow-md flex items-center gap-2 animate-fade-in">
+                                            <div className="bg-foreground text-background text-xs font-bold py-1 px-3 rounded-full shadow-md flex items-center gap-2 animate-fade-in">
                                                 <Users size={12} />
                                                 <span>{t("dashboard.analytics.tooltip", { count: dailyTrend[activeTooltip].count, date: dailyTrend[activeTooltip].date })}</span>
                                             </div>
                                         ) : (
-                                            <span className="text-[10px] text-muted-foreground/50 italic">{t("dashboard.analytics.tapPointPrompt", { defaultValue: "ចុចលើដ្យាក្រាមដើម្បីមើលលម្អិតតាមថ្ងៃ" })}</span>
+                                            <span className="text-xs text-muted-foreground/50 italic">{t("dashboard.analytics.tapPointPrompt", { defaultValue: "ចុចលើដ្យាក្រាមដើម្បីមើលលម្អិតតាមថ្ងៃ" })}</span>
                                         )}
                                     </div>
 
@@ -212,13 +216,13 @@ export function AnalyticsDashboard({ weddingId }: { weddingId: string }) {
                                         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-visible" preserveAspectRatio="none">
                                             <defs>
                                                 <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
-                                                    <stop offset="0%" stopColor="#10b981" stopOpacity="0.3" />
-                                                    <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+                                                    <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.3" />
+                                                    <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
                                                 </linearGradient>
                                             </defs>
 
                                             <path d={areaPath} fill="url(#lineGradient)" />
-                                            <path d={linePath} fill="none" stroke="#10b981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                                            <path d={linePath} fill="none" stroke="hsl(var(--primary))" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
 
                                             {/* Interactive Tap/Click Points */}
                                             {points.map((p: any, i: number) => {
@@ -229,8 +233,8 @@ export function AnalyticsDashboard({ weddingId }: { weddingId: string }) {
                                                             cx={p.x}
                                                             cy={p.y}
                                                             r={isSelected ? 8 : 5}
-                                                            fill={isSelected ? "#10b981" : "var(--background)"}
-                                                            stroke="#10b981"
+                                                            fill={isSelected ? "hsl(var(--primary))" : "var(--background)"}
+                                                            stroke="hsl(var(--primary))"
                                                             strokeWidth="3"
                                                             className="transition-all"
                                                         />
@@ -243,7 +247,7 @@ export function AnalyticsDashboard({ weddingId }: { weddingId: string }) {
                                     {/* X-Axis Dates */}
                                     <div className="flex justify-between px-1">
                                         {dailyTrend.filter((_: any, i: number) => i % Math.max(Math.floor(dailyTrend.length / 5), 1) === 0 || i === dailyTrend.length - 1).map((item: any, i: number) => (
-                                            <span key={i} className="text-[9px] font-bold text-muted-foreground/60">
+                                            <span key={i} className="text-xs font-bold text-muted-foreground/60">
                                                 {item.date.split('-').slice(1).join('/')}
                                             </span>
                                         ))}
@@ -258,8 +262,8 @@ export function AnalyticsDashboard({ weddingId }: { weddingId: string }) {
                 <Card className="lg:col-span-2 border border-border/60 shadow-xs rounded-3xl p-5 md:p-7 bg-card flex flex-col">
                     <CardHeader className="px-0 pt-0 pb-4 border-b border-border/40 mb-4 flex-row items-center justify-between">
                         <CardTitle className="text-sm md:text-md font-black font-kantumruy flex items-center gap-2">
-                            <div className="p-1.5 bg-indigo-500/10 rounded-lg">
-                                <BarChart3 className="w-4 h-4 text-indigo-500" />
+                            <div className="p-1.5 bg-accent rounded-lg">
+                                <BarChart3 className="w-4 h-4 text-accent-foreground" />
                             </div>
                             {t("dashboard.analytics.devices")}
                         </CardTitle>
@@ -275,7 +279,7 @@ export function AnalyticsDashboard({ weddingId }: { weddingId: string }) {
 
                                 return (
                                     <div key={i} className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-muted/20 border border-transparent">
-                                        <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${isMobile ? 'bg-indigo-100 dark:bg-indigo-500/10 text-indigo-600' : 'bg-slate-100 dark:bg-slate-500/10 text-slate-600'}`}>
+                                        <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${isMobile ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
                                             {isMobile ? <Smartphone size={20} /> : <Monitor size={20} />}
                                         </div>
                                         <div className="min-w-0 flex-1 space-y-1.5">
@@ -288,7 +292,7 @@ export function AnalyticsDashboard({ weddingId }: { weddingId: string }) {
                                             <div className="w-full h-2 bg-background rounded-full overflow-hidden">
                                                 <div
                                                     style={{ width: `${percentage}%` }}
-                                                    className={`h-full rounded-full transition-all duration-1000 ${isMobile ? 'bg-indigo-500' : 'bg-slate-500'}`}
+                                                    className={`h-full rounded-full transition-all duration-1000 ${isMobile ? 'bg-primary' : 'bg-muted-foreground'}`}
                                                 />
                                             </div>
                                         </div>
@@ -298,7 +302,7 @@ export function AnalyticsDashboard({ weddingId }: { weddingId: string }) {
                         ) : (
                             <div className="h-full min-h-[140px] flex flex-col items-center justify-center text-muted-foreground gap-2 bg-muted/5 rounded-2xl border border-dashed border-border/30">
                                 <Monitor size={32} className="text-muted-foreground/20" />
-                                <span className="text-[10px] uppercase font-bold tracking-widest">{t("dashboard.analytics.noDataYet")}</span>
+                                <span className="text-xs uppercase font-bold tracking-widest">{t("dashboard.analytics.noDataYet")}</span>
                             </div>
                         )}
                     </CardContent>

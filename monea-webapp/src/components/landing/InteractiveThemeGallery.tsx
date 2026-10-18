@@ -107,7 +107,7 @@ export function InteractiveThemeGallery() {
                                 
                                 {/* Badge */}
                                 <div className="absolute top-3 left-3">
-                                    <span className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-[10px] font-black border border-white/20">
+                                    <span className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-xs font-black border border-white/20">
                                         {tmpl.tag}
                                     </span>
                                 </div>
@@ -122,7 +122,7 @@ export function InteractiveThemeGallery() {
                                     <h3 className="text-base font-black tracking-wide">
                                         {tmpl.khmerTitle}
                                     </h3>
-                                    <div className="text-[11px] text-white/80 font-medium">
+                                    <div className="text-xs text-white/80 font-medium">
                                         {tmpl.title}
                                     </div>
                                 </div>

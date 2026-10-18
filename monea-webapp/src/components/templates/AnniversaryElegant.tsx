@@ -15,6 +15,7 @@ import { AnniversaryThankYou } from './anniversary-elegant/AnniversaryThankYou';
 import { getTemplatePaletteStyles } from "@/lib/template-color-palette";
 import { isSectionVisible } from "./shared/template-settings";
 import { GuestbookSection } from "./shared/GuestbookSection";
+import { CoupleNamesLine, OneLineName } from "./shared/OneLineName";
 
 export default function AnniversaryElegant({ wedding, guestName, config }: TemplateProps) {
     const { groomName, brideName } = wedding;
@@ -88,7 +89,7 @@ export default function AnniversaryElegant({ wedding, guestName, config }: Templ
     return (
         <div 
             style={getTemplatePaletteStyles(wedding.themeSettings, "#8B4B55", "#F1ECE5")}
-            className="monea-full-palette monea-paper-canvas w-full bg-[#F1ECE5] font-kantumruy text-[#2D2928] relative min-h-screen selection:bg-[var(--primary)] selection:text-white"
+            className="monea-full-palette monea-paper-canvas khmer-readable-type-system w-full bg-[#F1ECE5] font-kantumruy text-[#2D2928] relative min-h-screen selection:bg-[var(--primary)] selection:text-white"
         >
             {/* Background Audio */}
             {musicUrl && (
@@ -202,10 +203,10 @@ export default function AnniversaryElegant({ wedding, guestName, config }: Templ
                             transition={{ duration: 0.5, delay: isOpening ? 0.32 : 0, ease: [0.2, 0.75, 0.25, 1] }}
                         >
                             <span className="mb-3 text-[10px] tracking-[0.18em] text-[#A27B4D]">សូមគោរពអញ្ជើញ</span>
-                            <span className="font-khmer-moul text-[13px] leading-loose text-[#56343A]">
-                                {groomName}
+                            <span className="w-full font-khmer-moul text-[13px] leading-loose text-[#56343A]">
+                                <OneLineName name={groomName} />
                                 <span className="block text-[10px] text-[#A27B4D]">និង</span>
-                                {brideName}
+                                <OneLineName name={brideName} ariaHidden />
                             </span>
                             <span className="my-4 h-px w-12 bg-[#B99766]/70" />
                             <span className="font-kantumruy text-[10px] leading-relaxed text-[#80656A]">
@@ -264,7 +265,7 @@ export default function AnniversaryElegant({ wedding, guestName, config }: Templ
                             >
                                 {(groomName || brideName) && (
                                     <h1 className="font-khmer-moul text-base leading-relaxed text-[#F3E8D0] drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-                                        {groomName}{groomName && brideName ? " & " : ""}{brideName}
+                                        <CoupleNamesLine groom={groomName} bride={brideName} />
                                     </h1>
                                 )}
                                 <p className="font-khmer-moul text-[11px] text-[#D9BDA0]">
@@ -315,10 +316,11 @@ export default function AnniversaryElegant({ wedding, guestName, config }: Templ
 
             {/* Floating Music Button */}
             {musicUrl && (
-                <div className="fixed bottom-6 right-6 z-40">
+                <div className="invitation-floating-control fixed top-[max(1.5rem,env(safe-area-inset-top))] z-40">
                     <button
+                        type="button"
                         onClick={togglePlay}
-                        className="w-12 h-12 rounded-full bg-[#2D2928] text-[#E7C783] border border-[#E7C783]/70 flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition-all"
+                        className="flex h-11 w-11 items-center justify-center rounded-full border border-[#E7C783]/70 bg-[#2D2928]/90 text-[#E7C783] shadow-xl backdrop-blur-sm transition-all hover:scale-105 active:scale-95"
                         aria-label="Toggle Music"
                     >
                         {isPlaying ? <Volume2 size={20} /> : <VolumeX size={20} />}

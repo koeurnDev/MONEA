@@ -1,4 +1,4 @@
-﻿import * as React from "react";
+import * as React from "react";
 import { m } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/i18n/LanguageProvider";
@@ -33,7 +33,7 @@ export default function AdminHealthPulse() {
     }, []);
 
     return (
-        <div className="mx-8 my-6 p-6 rounded-[2rem] bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 relative overflow-hidden group/pulse">
+        <div className="mx-8 my-6 p-6 rounded-[2rem] bg-card border border-border relative overflow-hidden group/pulse">
             <div className="absolute inset-0 bg-gradient-to-br from-red-600/5 to-transparent opacity-0 group-hover/pulse:opacity-100 transition-opacity" />
             <div className="relative z-10 space-y-5">
                 <div className="flex items-center justify-between">
@@ -48,16 +48,16 @@ export default function AdminHealthPulse() {
                                 pulseData.status === 'HEALTHY' ? "bg-emerald-500" : "bg-red-500"
                             )} />
                         </div>
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest italic font-mono">{t("admin.sidebar.pulse")}</span>
+                        <span className="text-xs font-black text-muted-foreground uppercase tracking-widest italic font-mono">{t("admin.sidebar.pulse")}</span>
                     </div>
                     <span className={cn(
-                        "text-[9px] font-black font-mono tracking-tighter",
+                        "text-xs font-black font-mono tracking-tighter",
                         pulseData.status === 'HEALTHY' ? "text-emerald-500" : "text-red-500"
                     )}>
                         {pulseData.uptime} {pulseData.status === 'HEALTHY' ? 'Up' : 'Degraded'}
                     </span>
                 </div>
-                <div className="h-1 bg-slate-200 dark:bg-white/5 rounded-full overflow-hidden">
+                <div className="h-1 bg-muted rounded-full overflow-hidden">
                     <m.div
                         initial={{ width: "0%" }}
                         animate={{ width: pulseData.status === 'HEALTHY' ? "100%" : "60%" }}

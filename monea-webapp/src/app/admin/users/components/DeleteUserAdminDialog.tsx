@@ -1,4 +1,4 @@
-﻿import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, Trash2, Loader2, ShieldAlert, Sparkles } from "lucide-react";
 
@@ -38,7 +38,7 @@ export function DeleteUserAdminDialog({
                     <DialogHeader className="space-y-4">
                         <div className="flex items-center justify-center gap-2 mb-2">
                            <div className="h-[1px] w-8 bg-gradient-to-r from-transparent to-red-200" />
-                           <span className="text-[10px] font-black uppercase tracking-[0.3em] text-red-600/60">Danger Zone</span>
+                           <span className="text-xs font-black uppercase tracking-[0.3em] text-red-600/60">Danger Zone</span>
                            <div className="h-[1px] w-8 bg-gradient-to-l from-transparent to-red-200" />
                         </div>
                         <DialogTitle className="text-4xl font-black text-slate-900 dark:text-white font-kantumruy leading-tight tracking-tight">
@@ -58,7 +58,7 @@ export function DeleteUserAdminDialog({
                             <AlertCircle className="text-red-500" size={24} />
                         </div>
                         <div className="space-y-1 relative z-10">
-                            <h4 className="text-[11px] font-black uppercase tracking-[0.1em] text-red-600/80 mb-1">គោលការណ៍សុវត្ថិភាពខ្ពស់</h4>
+                            <h4 className="text-xs font-black uppercase tracking-[0.1em] text-red-600/80 mb-1">គោលការណ៍សុវត្ថិភាពខ្ពស់</h4>
                             <p className="text-xs font-bold font-kantumruy text-slate-600 dark:text-slate-300 leading-relaxed">
                                 គណនីនឹងត្រូវលុបជាស្ថាពរបន្ទាប់ពី ៣០ ថ្ងៃ ប្រសិនបើមិនមានការស្នើសុំយកវិញ។
                             </p>

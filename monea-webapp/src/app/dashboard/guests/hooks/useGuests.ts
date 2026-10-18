@@ -241,7 +241,7 @@ export function useGuests() {
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, t("guests.title"));
         
-        const fileName = `MONEA_GuestList_${wedding?.groomName || 'Wedding'}.xlsx`;
+        const fileName = `MONEO_GuestList_${wedding?.groomName || 'Wedding'}.xlsx`;
         XLSX.writeFile(workbook, fileName);
     };
 

@@ -1,7 +1,9 @@
 import React from 'react';
 import { MapPin, Navigation } from 'lucide-react';
 import { WeddingData } from '../types';
-import { getDirectMapUrl, getMapEmbedUrl } from '../shared/mapUtils';
+import { getDirectMapUrl } from '../shared/mapUtils';
+import { getWeddingHeroImage, getWeddingSectionPhoto } from "../shared/weddingPhotos";
+import { PhotoImage } from "../shared/PhotoImage";
 
 interface LocationSectionProps {
     wedding: WeddingData;
@@ -14,46 +16,43 @@ export const LocationSection: React.FC<LocationSectionProps> = ({ wedding, prima
     const mapLocation = mapLink || location;
     if (!mapLocation) return null;
 
-    const canEmbedMap = !mapLocation.startsWith("http")
-        || mapLocation.includes("google.com/maps/embed")
-        || (mapLocation.includes("google.com") && mapLocation.includes("q="));
-    const embedUrl = canEmbedMap ? getMapEmbedUrl(mapLocation, location) : null;
     const directUrl = getDirectMapUrl(mapLocation, location);
+    const locationPhoto = getWeddingSectionPhoto(wedding, "location")?.url || getWeddingHeroImage(wedding);
 
     return (
-        <section className="py-12 px-4 sm:px-6 bg-emerald-50/30 font-kantumruy relative overflow-hidden text-center">
-            <div className="max-w-md mx-auto space-y-6 relative z-10">
+        <section className="relative overflow-hidden bg-emerald-50/30 px-4 py-12 text-center font-kantumruy sm:px-6" style={{ backgroundColor: "var(--emerald-card-surface)" }}>
+            <div className="relative z-10 mx-auto max-w-md space-y-6">
                 <div className="space-y-1">
-                    <span className="text-xl sm:text-2xl font-khmer-moul text-[#1B4332] block">
+                    <h2 className="block font-khmer-moul text-xl text-[#1B4332] sm:text-2xl">
                         ទីតាំងប្រារព្ធពិធី
-                    </span>
-                    <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-emerald-600 to-transparent mx-auto" />
+                    </h2>
+                    <div className="mx-auto h-0.5 w-12 bg-gradient-to-r from-transparent via-emerald-600 to-transparent" />
                 </div>
 
-                <div className="bg-white/90 border border-emerald-200/80 rounded-3xl p-5 shadow-sm space-y-4">
-                    <div className="flex items-center justify-center gap-2 text-emerald-800 font-bold text-sm">
-                        <MapPin size={18} />
-                        <span>{location || mapLink}</span>
-                    </div>
-
-                    {embedUrl && (
-                        <div className="w-full h-56 rounded-2xl overflow-hidden border border-emerald-200 shadow-inner">
-                            <iframe
-                                title="Wedding Map"
-                                src={embedUrl}
-                                className="w-full h-full border-0"
+                <div className={`grid items-center gap-4 text-left ${locationPhoto ? "grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]" : "grid-cols-1"}`}>
+                    {locationPhoto && (
+                        <div className="aspect-[4/3] overflow-hidden">
+                            <PhotoImage
+                                src={locationPhoto}
+                                alt="រូបភាពទីតាំងប្រារព្ធពិធី"
+                                className="h-full w-full object-cover"
                                 loading="lazy"
-                                allowFullScreen
-                                referrerPolicy="no-referrer-when-downgrade"
                             />
                         </div>
                     )}
 
+                    <div className="flex min-w-0 items-start gap-2 text-left text-sm font-bold leading-relaxed text-emerald-900">
+                        <MapPin size={18} className="mt-0.5 shrink-0 text-emerald-700" />
+                        <span className="break-words">{location || mapLink}</span>
+                    </div>
+                </div>
+
+                <div>
                     <a
                         href={directUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md hover:brightness-105 active:scale-98 transition-all"
+                        className="flex w-full items-center justify-center gap-2 bg-gradient-to-r from-emerald-700 to-teal-700 px-4 py-3 text-xs font-bold text-white shadow-md transition-all hover:brightness-105 active:scale-98"
                     >
                         <Navigation size={14} />
                         <span>បើកមើលផ្លូវតាម Google Maps</span>

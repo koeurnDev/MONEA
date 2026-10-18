@@ -1,4 +1,4 @@
-﻿import { History, Database, Clock, RotateCcw, Loader2 } from "lucide-react";
+import { History, Database, Clock, RotateCcw, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format, formatDistanceToNow } from "date-fns";
@@ -17,13 +17,13 @@ export function SystemVersionsTab({ history, rollingBack, setConfirmModal }: Sys
                     <History size={16} className="text-red-500" />
                     ប្រវត្តិ System Version ({history.length})
                 </h3>
-                <span className="text-[10px] text-slate-400 font-bold uppercase">Latest first</span>
+                <span className="text-xs text-slate-400 font-bold uppercase">Latest first</span>
             </div>
             {history.length === 0 ? (
                 <div className="bg-white rounded-3xl border-2 border-dashed border-slate-100 p-16 text-center">
                     <Database className="w-10 h-10 text-slate-200 mx-auto mb-3" />
                     <p className="text-slate-400 text-sm font-bold">មិនទាន់មានទិន្នន័យ Version ទេ</p>
-                    <p className="text-[11px] text-slate-300 mt-1">អ្នកអាចបង្កើត Version ថ្មីបាននៅផ្នែកខាងឆ្វេង។</p>
+                    <p className="text-xs text-slate-300 mt-1">អ្នកអាចបង្កើត Version ថ្មីបាននៅផ្នែកខាងឆ្វេង។</p>
                 </div>
             ) : (
                 <div className="relative">
@@ -40,21 +40,21 @@ export function SystemVersionsTab({ history, rollingBack, setConfirmModal }: Sys
                                     <div>
                                         <div className="flex items-center gap-2 mb-1">
                                             <h4 className="font-black text-slate-900 text-sm">{v.versionName}</h4>
-                                            {idx === 0 && <Badge className="bg-emerald-100 text-emerald-700 border-none text-[9px] uppercase font-black">Latest</Badge>}
-                                            {v.isStable && <Badge className="bg-blue-100 text-blue-700 border-none text-[9px] uppercase font-black">Stable</Badge>}
+                                            {idx === 0 && <Badge className="bg-emerald-100 text-emerald-700 border-none text-xs uppercase font-black">Latest</Badge>}
+                                            {v.isStable && <Badge className="bg-blue-100 text-blue-700 border-none text-xs uppercase font-black">Stable</Badge>}
                                         </div>
-                                        <p className="text-[10px] text-slate-400 font-bold flex items-center gap-2">
+                                        <p className="text-xs text-slate-400 font-bold flex items-center gap-2">
                                             <Clock size={10} />
                                             {format(new Date(v.createdAt), "MMM d, yyyy • h:mm a")} · {formatDistanceToNow(new Date(v.createdAt), { addSuffix: true })}
                                         </p>
-                                        {v.description && <p className="text-[11px] text-slate-500 mt-2 italic">&quot;{v.description}&quot;</p>}
+                                        {v.description && <p className="text-xs text-slate-500 mt-2 italic">&quot;{v.description}&quot;</p>}
                                     </div>
                                     <Button
                                         variant="outline"
                                         size="sm"
                                         disabled={rollingBack === v.id}
                                         onClick={() => setConfirmModal({ open: true, versionId: v.id, versionName: v.versionName })}
-                                        className="h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest gap-1.5 border-2 transition-all border-red-100 text-red-600 bg-red-50/50 hover:bg-red-600 hover:text-white hover:border-red-600"
+                                        className="h-9 px-4 rounded-xl text-xs font-black uppercase tracking-widest gap-1.5 border-2 transition-all border-red-100 text-red-600 bg-red-50/50 hover:bg-red-600 hover:text-white hover:border-red-600"
                                     >
                                         {rollingBack === v.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <RotateCcw size={12} />}
                                         Rollback

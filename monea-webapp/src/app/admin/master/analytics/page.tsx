@@ -73,7 +73,7 @@ export default function MasterAnalyticsPage() {
                             </Button>
                         </Link>
                         <div>
-                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-teal-800 dark:text-teal-300">
+                            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-teal-800 dark:text-teal-300">
                                 <TrendingUp size={13} />
                                 <span>Platform Analytics</span>
                             </div>
@@ -104,7 +104,7 @@ export default function MasterAnalyticsPage() {
                             <div>
                                 <p className="text-xs font-bold text-muted-foreground">{isKm ? "ចំណូលពីកញ្ចប់សេវា" : "Plan Revenue"}</p>
                                 <h3 className="text-2xl font-black text-teal-800 dark:text-teal-300 mt-1">${summary.totalPlanRevenue.toFixed(2)}</h3>
-                                <p className="text-[10px] text-emerald-600 font-bold mt-0.5">USD ({summary.proCount + summary.premiumCount} កម្មវិធី)</p>
+                                <p className="text-xs text-emerald-600 font-bold mt-0.5">USD ({summary.proCount + summary.premiumCount} កម្មវិធី)</p>
                             </div>
                             <div className="w-12 h-12 rounded-xl bg-teal-600/10 text-teal-800 dark:text-teal-300 flex items-center justify-center font-bold">
                                 <DollarSign size={22} />
@@ -117,7 +117,7 @@ export default function MasterAnalyticsPage() {
                             <div>
                                 <p className="text-xs font-bold text-muted-foreground">{isKm ? "អត្រាដំឡើងកញ្ចប់" : "Upgrade Rate"}</p>
                                 <h3 className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{conversionRate}%</h3>
-                                <p className="text-[10px] text-muted-foreground font-bold mt-0.5">នៃមង្គលការសរុបទាំង {summary.totalWeddings}</p>
+                                <p className="text-xs text-muted-foreground font-bold mt-0.5">នៃមង្គលការសរុបទាំង {summary.totalWeddings}</p>
                             </div>
                             <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-bold">
                                 <Crown size={22} />
@@ -135,7 +135,7 @@ export default function MasterAnalyticsPage() {
                                 <BarChart3 size={18} className="text-teal-700 dark:text-teal-300" />
                                 <span>{isKm ? "ស្ថិតិកំណើនបង្កើតមង្គលការប្រចាំខែ" : "Monthly Wedding Registrations"}</span>
                             </CardTitle>
-                            <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-lg bg-teal-600/10 text-teal-800 dark:text-teal-300">
+                            <span className="text-xs font-black uppercase px-2.5 py-1 rounded-lg bg-teal-600/10 text-teal-800 dark:text-teal-300">
                                 {summary.totalWeddings} {isKm ? "កម្មវិធីសរុប" : "Total Weddings"}
                             </span>
                         </CardHeader>
@@ -197,7 +197,7 @@ export default function MasterAnalyticsPage() {
                                             <div className={cn("w-2.5 h-2.5 rounded-full", p.color)} />
                                             <div>
                                                 <span className="text-xs font-bold text-foreground block">{p.name}</span>
-                                                <span className="text-[10px] text-muted-foreground">{p.price} / កម្មវិធី</span>
+                                                <span className="text-xs text-muted-foreground">{p.price} / កម្មវិធី</span>
                                             </div>
                                         </div>
                                         <span className={cn("text-xs font-black px-2.5 py-1 rounded-md", p.bg, p.text)}>

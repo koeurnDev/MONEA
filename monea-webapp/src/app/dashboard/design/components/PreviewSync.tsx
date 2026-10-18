@@ -59,6 +59,7 @@ export function PreviewSync({ wedding, iframeRef, currentStep, enableScrollSync 
     const paperColor = settings?.paperColor;
     const m05ColorPreset = settings?.m05ColorPreset;
     const m05EnvelopeColor = settings?.m05EnvelopeColor;
+    const m05CardColor = settings?.m05CardColor;
     const m05SealColor = settings?.m05SealColor;
     const m05SurfaceColor = settings?.m05SurfaceColor;
     const m05HighlightColor = settings?.m05HighlightColor;
@@ -66,6 +67,8 @@ export function PreviewSync({ wedding, iframeRef, currentStep, enableScrollSync 
     const m05PhotoTint = settings?.m05PhotoTint;
     const m05TitleFont = settings?.m05TitleFont;
     const m05NameFont = settings?.m05NameFont;
+    const emeraldCardColor = settings?.emeraldCardColor;
+    const m07CardColor = settings?.m07CardColor;
 
     useEffect(() => {
         if (pendingEmit.current !== null) {
@@ -107,13 +110,16 @@ export function PreviewSync({ wedding, iframeRef, currentStep, enableScrollSync 
                 colorPalettePreset: currentSettings.colorPalettePreset,
                 m05ColorPreset: currentSettings.m05ColorPreset,
                 m05EnvelopeColor: currentSettings.m05EnvelopeColor,
+                m05CardColor: currentSettings.m05CardColor,
                 m05SealColor: currentSettings.m05SealColor,
                 m05SurfaceColor: currentSettings.m05SurfaceColor,
                 m05HighlightColor: currentSettings.m05HighlightColor,
                 m05FoilShadeColor: currentSettings.m05FoilShadeColor,
                 m05PhotoTint: currentSettings.m05PhotoTint,
                 m05TitleFont: currentSettings.m05TitleFont,
-                m05NameFont: currentSettings.m05NameFont
+                m05NameFont: currentSettings.m05NameFont,
+                emeraldCardColor: currentSettings.emeraldCardColor,
+                m07CardColor: currentSettings.m07CardColor
             };
             const hasPreviewControlChange = Object.values(payload).some(value => value !== undefined);
             if (!hasPreviewControlChange) return;
@@ -164,6 +170,7 @@ export function PreviewSync({ wedding, iframeRef, currentStep, enableScrollSync 
         paperColor,
         m05ColorPreset,
         m05EnvelopeColor,
+        m05CardColor,
         m05SealColor,
         m05SurfaceColor,
         m05HighlightColor,
@@ -171,6 +178,8 @@ export function PreviewSync({ wedding, iframeRef, currentStep, enableScrollSync 
         m05PhotoTint,
         m05TitleFont,
         m05NameFont,
+        emeraldCardColor,
+        m07CardColor,
         iframeRef
     ]);
 
@@ -281,7 +290,7 @@ export function MobilePreviewWrapper({
                 <div className="absolute inset-0 flex items-center justify-center bg-background/95 p-6 text-center font-kantumruy">
                     {previewState === 'loading' ? (
                         <div className="space-y-3">
-                            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-teal-500/20 border-t-teal-500" />
+                            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
                             <p className="text-xs font-bold text-muted-foreground">កំពុងរៀបចំ Preview...</p>
                         </div>
                     ) : (
@@ -291,7 +300,7 @@ export function MobilePreviewWrapper({
                             <button
                                 type="button"
                                 onClick={retryPreview}
-                                className="rounded-xl bg-teal-600 px-4 py-2 text-xs font-bold text-white active:scale-95"
+                                className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground active:scale-95 hover:bg-primary/90"
                             >
                                 សាកល្បងម្តងទៀត
                             </button>

@@ -18,7 +18,8 @@ import {
     ShieldCheck,
     ChevronRight,
     ChevronDown,
-    User
+    User,
+    Share2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
@@ -57,7 +58,8 @@ export function AdminSidebar({ onCloseMobile }: AdminSidebarProps) {
         "/admin/master/support",
         "/admin/master/templates",
         "/admin/master/audit",
-        "/admin/master/analytics"
+        "/admin/master/analytics",
+        "/admin/master/social-links"
     ]);
 
     const handleLogout = async () => {
@@ -90,6 +92,7 @@ export function AdminSidebar({ onCloseMobile }: AdminSidebarProps) {
                 { href: "/admin/master/maintenance", label: "ការថែទាំប្រព័ន្ធ", shortLabel: "ថែទាំ", enLabel: "Maintenance", icon: Wrench },
                 { href: "/admin/master/templates", label: "គ្រប់គ្រង Template", shortLabel: "Template", enLabel: "Templates", icon: LayoutGrid },
                 { href: "/admin/master/analytics", label: "ស្ថិតិទូទាំងប្រទេស", shortLabel: "ស្ថិតិ", enLabel: "Analytics", icon: TrendingUp },
+                { href: "/admin/master/social-links", label: "បណ្តាញសង្គម", shortLabel: "Social", enLabel: "Social Media", icon: Share2 },
             ]
         },
         {
@@ -109,7 +112,7 @@ export function AdminSidebar({ onCloseMobile }: AdminSidebarProps) {
                 <div className="flex items-center justify-between border-b border-border px-5 pb-4 pt-5">
                     <Link to="/admin/master" onClick={onCloseMobile} className="flex items-center gap-3 group">
                         <MoneaLogo showText size="sm" />
-                        <span className="rounded-full border border-teal-600/20 bg-teal-600/[0.07] px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-teal-800 dark:text-teal-300">
+                        <span className="rounded-full border border-border bg-accent px-2 py-0.5 text-xs font-black uppercase tracking-wider text-primary">
                             Admin
                         </span>
                     </Link>
@@ -125,7 +128,7 @@ export function AdminSidebar({ onCloseMobile }: AdminSidebarProps) {
 
                         return (
                             <div key={sIdx} className="space-y-2">
-                            <div className="px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.16em] text-muted-foreground">
+                            <div className="px-3 py-1.5 text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">
                                     {section.shortTitle || section.title}
                                 </div>
                                 <div className="space-y-1">
@@ -144,14 +147,14 @@ export function AdminSidebar({ onCloseMobile }: AdminSidebarProps) {
                                                 className={cn(
                                                     "flex min-h-[44px] items-center justify-between rounded-xl border px-3.5 py-2.5 text-xs transition-all group",
                                                     isActive
-                                                        ? "border-teal-600/20 bg-teal-600/[0.07] font-bold text-teal-800 shadow-sm dark:text-teal-300"
+                                                        ? "border-primary/20 bg-accent font-bold text-primary shadow-sm"
                                                         : "border-transparent text-muted-foreground hover:border-border hover:bg-muted/60 hover:text-foreground"
                                                 )}
                                             >
                                                 <div className="flex items-center gap-3 min-w-0">
                                                     <Icon size={17} className={cn(
                                                         "shrink-0 transition-transform group-hover:scale-110",
-                                                        isActive ? "text-teal-800 dark:text-teal-300" : "text-muted-foreground group-hover:text-foreground"
+                                                        isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
                                                     )} />
                                                     <span className="truncate">{item.shortLabel || item.label}</span>
                                                 </div>
@@ -189,14 +192,14 @@ export function AdminSidebar({ onCloseMobile }: AdminSidebarProps) {
                 {/* Profile Card */}
                 <div className="p-2.5 rounded-2xl bg-card border border-border/80 flex items-center justify-between shadow-xs">
                     <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-8 h-8 rounded-xl bg-teal-600/10 border border-teal-600/20 flex items-center justify-center text-teal-800 dark:text-teal-300 shrink-0 font-black text-xs uppercase">
+                        <div className="w-8 h-8 rounded-xl bg-accent border border-border flex items-center justify-center text-primary shrink-0 font-black text-xs uppercase">
                             {user?.name && user.name !== '-' ? user.name.replace(/[^a-zA-Z0-9\u1780-\u17FF]/g, '').charAt(0).toUpperCase() || 'A' : (user?.email?.charAt(0).toUpperCase() || 'A')}
                         </div>
                         <div className="min-w-0">
                             <p className="text-xs font-bold text-foreground truncate">
                                 {user?.name && user.name !== '-' ? user.name : (user?.email ? user.email.split('@')[0] : "Master Admin")}
                             </p>
-                            <p className="text-[10px] text-muted-foreground truncate font-mono">
+                            <p className="text-xs text-muted-foreground truncate font-mono">
                                 {user?.email || "kook74532@gmail.com"}
                             </p>
                         </div>

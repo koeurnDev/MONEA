@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { WeddingData } from '../types';
 import { getWeddingPhotos } from "../shared/weddingPhotos";
-import { getGalleryCardClass, getGalleryContainerClass, getGalleryDisplayStyle, getGalleryImageClass } from "../shared/gallery-layout";
+import { getGalleryContainerClass, getGalleryDisplayStyle } from "../shared/gallery-layout";
 import { PhotoImage } from "../shared/PhotoImage";
 
 interface GallerySectionProps {
@@ -15,10 +15,13 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ wedding, primary
     const photos = getWeddingPhotos(wedding);
     const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
     const galleryStyle = getGalleryDisplayStyle(wedding.themeSettings?.galleryStyle);
+    const galleryContainerClass = galleryStyle === "slider"
+        ? getGalleryContainerClass(galleryStyle)
+        : "grid grid-cols-2 gap-3";
     if (photos.length === 0) return null;
 
     return (
-        <section className="py-14 px-4 sm:px-6 bg-white font-kantumruy relative overflow-hidden">
+        <section className="py-14 px-4 sm:px-6 bg-white font-kantumruy relative overflow-hidden" style={{ backgroundColor: "var(--emerald-card-surface)" }}>
             <div className="max-w-md mx-auto space-y-6 relative z-10">
                 <div className="text-center space-y-1">
                     <span className="text-xl sm:text-2xl font-khmer-moul text-[#1B4332] block">
@@ -27,19 +30,24 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ wedding, primary
                     <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-emerald-600 to-transparent mx-auto" />
                 </div>
 
-                <div className={getGalleryContainerClass(galleryStyle)}>
+                <div className={galleryContainerClass}>
                     {photos.map((photo, idx) => (
                         <motion.div
                             key={idx}
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => setSelectedPhoto(idx)}
-                            className={`relative rounded-2xl overflow-hidden cursor-pointer shadow-sm border border-emerald-100 ${getGalleryCardClass(galleryStyle, idx)}`}
+                            className={`relative cursor-pointer overflow-hidden ${galleryStyle === "slider"
+                                ? "h-56 w-[82%] shrink-0 snap-center rounded-2xl sm:h-72 sm:w-[60%]"
+                                : galleryStyle === "polaroid"
+                                    ? "aspect-square"
+                                    : "aspect-[4/5]"
+                            }`}
                         >
                             <PhotoImage
                                 src={photo.url}
                                 alt={`Photo ${idx + 1}`}
-                                className={getGalleryImageClass(galleryStyle)}
+                                className="h-full w-full object-cover"
                                 loading="lazy"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity flex items-end p-2.5">
@@ -63,6 +71,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ wedding, primary
                         onClick={() => setSelectedPhoto(null)}
                     >
                         <button
+                            type="button"
                             onClick={() => setSelectedPhoto(null)}
                             className="absolute top-4 right-4 p-2 text-white/80 hover:text-white bg-white/10 rounded-full"
                         >

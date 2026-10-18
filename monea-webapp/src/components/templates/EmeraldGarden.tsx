@@ -25,6 +25,8 @@ export const EmeraldGarden: React.FC<TemplateProps> = ({ wedding, guestName, con
     }, []);
 
     const primaryColor = wedding.themeSettings?.primaryColor || "#1B4332";
+    const cardColor = wedding.themeSettings?.emeraldCardColor || "#ffffff";
+    const paperStyles = getTemplatePaletteStyles(wedding.themeSettings, "#1B4332", cardColor);
     const musicUrl = wedding.themeSettings?.musicUrl;
     const loveStory = wedding.themeSettings?.loveStory?.trim() || wedding.themeSettings?.story?.kh?.trim() || "";
     const storyImages = wedding.themeSettings?.storyImages?.filter(Boolean) || [];
@@ -51,9 +53,12 @@ export const EmeraldGarden: React.FC<TemplateProps> = ({ wedding, guestName, con
     };
 
     return (
-        <div 
-            style={getTemplatePaletteStyles(wedding.themeSettings, "#1B4332")}
-            className="monea-full-palette w-full bg-[#0A1A14] font-kantumruy text-slate-800 relative min-h-screen selection:bg-emerald-600 selection:text-white"
+        <div
+            style={{
+                ...paperStyles,
+                "--emerald-card-surface": paperStyles["--monea-paper-color"],
+            } as React.CSSProperties}
+            className="monea-full-palette khmer-readable-type-system w-full bg-[#0A1A14] font-kantumruy text-slate-800 relative min-h-screen selection:bg-emerald-600 selection:text-white"
         >
             {/* Background Audio */}
             {musicUrl && (
@@ -73,7 +78,7 @@ export const EmeraldGarden: React.FC<TemplateProps> = ({ wedding, guestName, con
             {revealed && musicUrl && (
                 <button
                     onClick={togglePlay}
-                    className="fixed bottom-6 right-6 z-40 w-11 h-11 rounded-full bg-white/90 dark:bg-black/80 backdrop-blur-md border border-emerald-300 text-emerald-700 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all"
+                    className="invitation-floating-control fixed bottom-6 z-40 w-11 h-11 rounded-full bg-white/90 dark:bg-black/80 backdrop-blur-md border border-emerald-300 text-emerald-700 shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all"
                     aria-label="Toggle Music"
                 >
                     {isPlaying ? <Volume2 size={18} className="animate-pulse" /> : <VolumeX size={18} />}
@@ -81,7 +86,7 @@ export const EmeraldGarden: React.FC<TemplateProps> = ({ wedding, guestName, con
             )}
 
             {revealed && (
-            <main className="relative max-w-[540px] mx-auto min-h-screen shadow-2xl bg-white flex flex-col">
+            <main className="monea-paper-canvas relative max-w-[540px] mx-auto min-h-screen shadow-2xl bg-white flex flex-col" style={{ backgroundColor: "var(--emerald-card-surface)" }}>
                 {/* 1. Hero Section */}
                 <HeroSection wedding={wedding} primaryColor={primaryColor} />
 
@@ -91,7 +96,7 @@ export const EmeraldGarden: React.FC<TemplateProps> = ({ wedding, guestName, con
                 {isSectionVisible(config, "story") && (loveStory || storyImage) && (
                     <section className="relative isolate overflow-hidden bg-[#0d241a] px-5 py-16 text-center text-emerald-50 sm:py-20">
                         <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,.14),transparent_60%)]" />
-                        <div className="relative mx-auto max-w-md border-y border-emerald-200/20 px-5 py-8 sm:px-8">
+                        <div className="relative mx-auto max-w-md px-5 py-8 sm:px-8">
                             <Heart aria-hidden="true" className="mx-auto mb-3 h-6 w-6 fill-emerald-200/30 text-amber-300" />
                             <h2 className="font-khmer-moul text-xl leading-relaxed text-amber-100 sm:text-2xl">
                                 {wedding.themeSettings?.customLabels?.storyTitle || "រឿងរ៉ាវស្នេហារបស់យើង"}
@@ -108,7 +113,7 @@ export const EmeraldGarden: React.FC<TemplateProps> = ({ wedding, guestName, con
                                             <img
                                                 src={image}
                                                 alt={`រូបភាពរឿងរ៉ាវស្នេហាទី ${index + 1}`}
-                                                className="max-h-[28rem] aspect-[4/3] w-full rounded-2xl border border-amber-200/30 object-cover shadow-xl"
+                                                className="max-h-[28rem] aspect-[4/3] w-full rounded-2xl object-cover"
                                                 loading="lazy"
                                                 decoding="async"
                                             />
@@ -145,7 +150,7 @@ export const EmeraldGarden: React.FC<TemplateProps> = ({ wedding, guestName, con
                     <GiftSection wedding={wedding} primaryColor={primaryColor} />
                 )}
 
-                {isSectionVisible(config, "guestbook") && <GuestbookSection wedding={wedding} />}
+                {isSectionVisible(config, "guestbook") && <GuestbookSection wedding={wedding} unboxed />}
 
                 {/* 7. Thank You & Blessings */}
                 <ThankYouSection wedding={wedding} primaryColor={primaryColor} />

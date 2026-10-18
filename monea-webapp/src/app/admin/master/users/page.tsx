@@ -102,39 +102,40 @@ export default function MasterUsersPage() {
         <div className="w-full min-h-full font-kantumruy pb-16">
             {/* Top Bar Header */}
             <div className="bg-card/80 backdrop-blur-md border-b border-border/80 sticky top-0 z-20">
-                <div className="max-w-[1400px] mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                <div className="max-w-[1400px] mx-auto flex items-center justify-between gap-2 px-3 py-3 sm:h-20 sm:px-8 sm:py-0">
+                    <div className="flex min-w-0 items-center gap-2 sm:gap-3">
                         <Link to="/admin/master">
-                            <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10 border border-border bg-card shadow-xs hover:bg-muted">
+                            <Button variant="ghost" size="icon" aria-label={isKm ? "ត្រឡប់ទៅទំព័រគ្រប់គ្រង" : "Back to admin"} className="h-10 w-10 shrink-0 rounded-xl border border-border bg-card shadow-xs hover:bg-muted">
                                 <ArrowLeft size={17} className="text-muted-foreground" />
                             </Button>
                         </Link>
-                        <div>
-                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-teal-800 dark:text-teal-300">
+                        <div className="min-w-0">
+                            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-teal-800 dark:text-teal-300 sm:text-xs">
                                 <Users size={13} />
-                                <span>Platform Account Control</span>
+                                <span className="truncate">Platform Account Control</span>
                             </div>
-                            <h1 className="text-lg sm:text-xl font-bold text-foreground">
+                            <h1 className="line-clamp-2 text-sm font-bold leading-snug text-foreground sm:text-xl">
                                 {isKm ? "គ្រប់គ្រងគណនីអ្នកប្រើប្រាស់ " : "User Directory & Account Roles"}
                             </h1>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="shrink-0">
                         <Button
                             onClick={() => loadData(page)}
                             variant="outline"
                             disabled={loading}
-                            className="h-10 px-4 rounded-xl font-bold text-xs border border-border bg-card shadow-xs flex items-center gap-2"
+                            aria-label={isKm ? "ផ្ទុកឡើងវិញ" : "Refresh"}
+                            className="h-10 w-10 rounded-xl border border-border bg-card p-0 text-xs font-bold shadow-xs sm:w-auto sm:px-4 sm:flex sm:items-center sm:gap-2"
                         >
                             <RefreshCcw size={14} className={loading ? "animate-spin" : ""} />
-                            <span>{isKm ? "ផ្ទុកឡើងវិញ" : "Refresh"}</span>
+                            <span className="hidden sm:inline">{isKm ? "ផ្ទុកឡើងវិញ" : "Refresh"}</span>
                         </Button>
                     </div>
                 </div>
             </div>
 
-            <main className="max-w-[1400px] mx-auto p-4 sm:p-8 space-y-6">
+            <main className="max-w-[1400px] mx-auto space-y-4 p-3 sm:space-y-6 sm:p-8">
                 {/* Search and Filters Bar */}
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div className="relative w-full sm:w-96">
@@ -175,7 +176,7 @@ export default function MasterUsersPage() {
 
                             return (
                                 <Card key={u.id} className="bg-card border border-border/80 rounded-2xl shadow-xs hover:border-border transition-all">
-                                    <CardContent className="p-5">
+                                    <CardContent className="p-4 sm:p-5">
                                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                             {/* Avatar & User Details */}
                                             <div className="flex items-center gap-4 flex-1 min-w-0">
@@ -194,7 +195,7 @@ export default function MasterUsersPage() {
                                                             {displayName}
                                                         </h3>
                                                         <span className={cn(
-                                                            "text-[9px] font-black uppercase px-2 py-0.5 rounded-md border",
+                                                            "text-xs font-black uppercase px-2 py-0.5 rounded-md border",
                                                             isSuperAdmin 
                                                                 ? "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20"
                                                                 : "bg-muted text-muted-foreground border-border/60"
@@ -203,11 +204,11 @@ export default function MasterUsersPage() {
                                                         </span>
                                                     </div>
                                                     <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                                                        <span className="flex items-center gap-1 font-mono text-[11px]">
+                                                        <span className="flex items-center gap-1 font-mono text-xs">
                                                             <Mail size={12} /> {u.email}
                                                         </span>
                                                         <span>•</span>
-                                                        <span className="font-mono text-[10px] bg-slate-100 dark:bg-muted text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded border border-border/80">
+                                                        <span className="max-w-full break-all font-mono text-xs bg-slate-100 dark:bg-muted text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded border border-border/80">
                                                             ID: {u.id}
                                                         </span>
                                                         <span>•</span>
@@ -220,9 +221,9 @@ export default function MasterUsersPage() {
                                             </div>
 
                                             {/* Creation Date & Actions */}
-                                            <div className="flex flex-wrap items-center gap-2 shrink-0 pt-2 md:pt-0">
+                                            <div className="grid w-full grid-cols-1 gap-2 pt-2 sm:grid-cols-2 md:w-auto md:flex md:flex-wrap md:shrink-0 md:pt-0">
                                                 <div className="text-right mr-3 hidden lg:block text-xs">
-                                                    <span className="text-[10px] text-muted-foreground block">ថ្ងៃចុះឈ្មោះ</span>
+                                                    <span className="text-xs text-muted-foreground block">ថ្ងៃចុះឈ្មោះ</span>
                                                     <span className="font-bold text-foreground">
                                                         {new Date(u.createdAt).toLocaleDateString('km-KH', { timeZone: 'Asia/Phnom_Penh' })}
                                                     </span>

@@ -5,6 +5,7 @@ import { HydratedDate } from "@/components/shared/HydratedDate";
 import { useParams } from "react-router-dom";
 import useSWR from "swr";
 import { RefreshCw } from "lucide-react";
+import { NETWORK_ERROR_MESSAGE } from "@/lib/network-errors";
 
 type GuestbookEntry = {
     id: string;
@@ -74,7 +75,7 @@ export default function GuestbookPage() {
                                 មិនអាចផ្ទុកពាក្យជូនពរបានទេ
                             </p>
                             <p className="mt-1 text-xs text-muted-foreground">
-                                សូមពិនិត្យការភ្ជាប់អ៊ីនធឺណិត ហើយព្យាយាមម្តងទៀត។
+                                {NETWORK_ERROR_MESSAGE}
                             </p>
                             <button
                                 type="button"

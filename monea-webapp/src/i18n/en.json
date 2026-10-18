@@ -105,8 +105,8 @@
       "statusTitle": "System Status",
       "statusHalt": "System Halted",
       "statusOnline": "System Online",
-      "maintenanceDesc": "Platform activity is frozen. Users will see a maintenance screen.",
-      "onlineDesc": "Platform is fully operational and accepting requests.",
+      "maintenanceDesc": "Public access is paused; SuperAdmins can still sign in. Turn this switch off to reopen without redeploying.",
+      "onlineDesc": "Services are running normally. Use this switch to start or end maintenance without redeploying.",
       "onboardingTitle": "New Signups",
       "onboardingSubtitle": "Toggle platform registration",
       "engineTitle": "Platform Engine",
@@ -229,7 +229,7 @@
           "features": {
             "1": "Create a basic digital invitation",
             "2": "Download a standard image",
-            "3": "MONEA branding appears on the invitation",
+            "3": "MONEO branding appears on the invitation",
             "4": "Use a limited selection of templates"
           },
           "select": "Free Plan"
@@ -239,7 +239,7 @@
           "features": {
             "1": "Unlock all invitation templates",
             "2": "Download high-resolution HD images",
-            "3": "No MONEA branding on invitations",
+            "3": "No MONEO branding on invitations",
             "4": "Customize dimensions, colors, and fonts",
             "5": "Access animated invitation designs"
           },
@@ -262,7 +262,7 @@
         "std_gallery": "Standard photo gallery",
         "gift_list": "Digital gift registry",
         "one_event": "1 Wedding / Event",
-        "branding": "Includes MONEA branding",
+        "branding": "Includes MONEO branding",
         "qr_checkin": "Unlimited QR check-in",
         "analytics": "Live guest analytics",
         "gift_track": "Digital gift tracking",
@@ -273,7 +273,7 @@
         "custom_engine": "Custom template editor",
         "priority_support": "Priority technical support",
         "data_export": "Data export (Excel/PDF)",
-        "no_branding": "No MONEA branding"
+        "no_branding": "No MONEO branding"
       },
       "live_checking": "Checking live status..."
     },
@@ -303,12 +303,12 @@
       "signInNow": "Sign in to your account",
       "back": "Back",
       "forgotPasswordTitle": "FORGET PW ?",
-      "forgotPasswordSubtitle": "Enter your account email. If Telegram is linked, the recovery code will be sent to your Telegram.",
+      "forgotPasswordSubtitle": "Enter your account email. If an account exists, a password reset link will be sent to this address.",
       "sendLink": "Send Reset Link",
       "rememberPassword": "Remember your password?",
       "backToSignIn": "Back to Sign In",
       "backToHome": "Back to Home",
-      "resetLinkSent": "If your account has Telegram linked, a password reset code will be sent to your Telegram bot chat.",
+      "resetLinkSent": "If an account exists for this email, a password reset link has been sent to it.",
       "resetPasswordTitle": "Reset Password",
       "resetPasswordSubtitle": "Please enter your new password below.",
       "newPassword": "New Password",
@@ -317,8 +317,8 @@
       "passwordMismatched": "Passwords do not match"
     },
     "constants": {
-      "brandName": "MONEA",
-      "brandDomain": "monea.app",
+      "brandName": "MONEO",
+      "brandDomain": "moneoez.com",
       "googleMaps": "Google Maps",
       "qrCode": "QR Code",
       "locale": "en-US"
@@ -434,7 +434,8 @@
     "errors": {
       "unexpected": "An unexpected error occurred.",
       "technical": "There was a technical issue while fetching data. Please try again.",
-      "oops": "Oops!"
+      "oops": "Oops!",
+      "network": "Please check your internet connection and try again."
     },
     "footer": {
       "home": "Home",
@@ -442,7 +443,7 @@
       "howItWorks": "How It Works",
       "templates": "Templates",
       "contact": "Contact",
-      "copyright": "All Rights Reserved © 2026 MONEA",
+      "copyright": "All Rights Reserved © 2026 MONEO",
       "privacyPolicy": "Privacy Policy",
       "termsOfUse": "Terms of Use"
     },
@@ -454,7 +455,7 @@
       "lastUpdated": "Last Updated: 3/19/2026",
       "s1": {
         "title": "1. Agreement to Terms",
-        "p1": "These Terms of Use constitute a legally binding agreement made between you, whether personally or on behalf of an entity (“you”) and MONEA (“we”, “us”, or “our”), concerning your access to and use of our website as well as any other media form, media channel, mobile website or mobile application related, linked, or otherwise connected thereto (collectively, the “Site”)."
+        "p1": "These Terms of Use constitute a legally binding agreement made between you, whether personally or on behalf of an entity (“you”) and MONEO (“we”, “us”, or “our”), concerning your access to and use of our website as well as any other media form, media channel, mobile website or mobile application related, linked, or otherwise connected thereto (collectively, the “Site”)."
       },
       "s2": {
         "title": "2. Intellectual Property Rights",
@@ -505,7 +506,7 @@
       "lastUpdated": "Last Updated: 3/19/2026",
       "s1": {
         "title": "1. Introduction",
-        "p1": "Welcome to MONEA (“we”, “our”, or “us”). We respect your privacy and are committed to protecting your personal data. This privacy policy will inform you as to how we look after your personal data when you visit our website (regardless of where you visit it from) and tell you about your privacy rights and how the law protects you."
+        "p1": "Welcome to MONEO (“we”, “our”, or “us”). We respect your privacy and are committed to protecting your personal data. This privacy policy will inform you as to how we look after your personal data when you visit our website (regardless of where you visit it from) and tell you about your privacy rights and how the law protects you."
       },
       "s2": {
         "title": "2. The Data We Collect About You",
@@ -560,7 +561,7 @@
   "support": {
     "title": "Support Center",
     "titleKm": "មជ្ឈមណ្ឌលជំនួយ",
-    "subtitle": "Encountering technical issues or want additional features? Send us a message directly. The MONEA team is always ready to help you.",
+    "subtitle": "Encountering technical issues or want additional features? Send us a message directly. The MONEO team is always ready to help you.",
     "center": "Help Center",
     "form": {
       "subject": "Subject",
@@ -599,7 +600,7 @@
     "signUp": "Sign Up"
   },
   "hero": {
-    "badge": "MONEA Digital: The New Era of Wedding Bliss",
+    "badge": "MONEO Digital: The New Era of Wedding Bliss",
     "title1": "A Beautiful Beginning",
     "title2": "Starts Here",
     "description": "Craft a luxurious digital invitation experience, manage your guest list effortlessly, and receive blessings and gifts — all in one elegant platform.",
@@ -608,9 +609,9 @@
     "scrollDown": "Scroll Down"
   },
   "features": {
-    "badge": "Features",
-    "title": "What MONEA Offers",
-    "subtitle": "A complete digital system designed to make your wedding planning effortless and modern.",
+    "badge": "Multiple Template Choices",
+    "title": "Engagement or Wedding",
+    "subtitle": "A wide selection of elegant templates for engagement and wedding ceremonies.",
     "card1Title": "Premium Design",
     "card1Desc": "Exquisite, modern, and highly customizable templates that create a lasting impression for your guests.",
     "card2Title": "Guest Management (RSVP)",
@@ -666,14 +667,14 @@
     "bizF3": "Priority Support",
     "priceSuffix": "Per Month",
     "cta": "Subscribe Now",
-    "bizF4": "Access to all current and future MONEA templates"
+    "bizF4": "Access to all current and future MONEO templates"
   },
   "testimonials": {
     "badge": "Testimonials",
     "title": "Real Impressions",
     "t1Name": "Sokha & Sreyleak",
     "t1Role": "Married Oct 2025",
-    "t1Text": "MONEA is so easy to use! Our guests loved the modern look of our invitations. Managing the guest list has never been this simple.",
+    "t1Text": "MONEO is so easy to use! Our guests loved the modern look of our invitations. Managing the guest list has never been this simple.",
     "t2Name": "Ousaphea & Kanhha",
     "t2Role": "Married Dec 2025",
     "t2Text": "The QR gift feature is my favorite. It's secure and convenient for guests who couldn't attend in person. Saved us so much time!",
@@ -687,18 +688,18 @@
     "q1": "Can I edit my invitation after sending it?",
     "a1": "Yes! You can update your date, location, or time anytime. The guest link will update automatically.",
     "q2": "How secure is the Digital Gift (QR) feature?",
-    "a2": "It is highly secure. We simply display your direct bank QR code. Transactions occur directly between the guest's bank app and yours; MONEA does not process the funds.",
+    "a2": "It is highly secure. We simply display your direct bank QR code. Transactions occur directly between the guest's bank app and yours; MONEO does not process the funds.",
     "q3": "How long is the Free package valid?",
-    "a3": "The free package allows you to test core features for 2 weeks with a guest limit of up to 50 people.",
+    "a3": "New accounts can test the core features for 14 days with the M1 template and up to 20 guests.",
     "q4": "Can I add background music to my invitation?",
-    "a4": "Yes, Pro and Business plans allow you to select or upload romantic background music for your invitations."
+    "a4": "Yes, Standard and Pro plans allow you to select or upload romantic background music for your invitations."
   },
   "cta": {
     "title1": "Ready to create your",
     "title2": "digital invitation?",
-    "description": "Join hundreds of happy couples who chose MONEA to make their special day even more unforgettable.",
+    "description": "Join hundreds of happy couples who chose MONEO to make their special day even more unforgettable.",
     "button": "Start Your Wedding Invitation",
-    "badge": "MONEA"
+    "badge": "MONEO"
   },
   "wizard": {
     "title": "Design Your Invitation",
@@ -810,8 +811,8 @@
         "portraitCategoryDesc": "Groom, Bride, and memorable signature shots",
         "addImage": "Add Image",
         "bondTitle": "Sacred Bond of Love",
-        "bondSubtitle": "Displayed below the map for a meaningful memory",
-        "uploadBond": "Upload Sacred Bond Image",
+        "bondSubtitle": "Private to you only; it is not shown to guests.",
+        "uploadBond": "Upload Private Marriage Certificate",
         "recommendSize": "Recommended: Landscape (16:9)",
         "albumTitle": "General Photo Album",
         "albumSubtitle": "Add unlimited photos for the gallery",
@@ -851,7 +852,7 @@
         "socialTitle": "Social Media Preview",
         "socialSubtitle": "How your invitation looks when shared",
         "socialPreviewDesc": "Please join us in celebrating our wedding day...",
-        "socialPreviewDomain": "monea.app",
+        "socialPreviewDomain": "moneoez.com",
         "uploadPreview": "Upload Page Preview Image",
         "searchTitle": "Search Engine Title (SEO)",
         "searchPlaceholder": "e.g. Wedding of Groom & Bride",
@@ -1089,7 +1090,7 @@
     "empty": {
       "message": "Please wait a moment to start creating your wedding program.",
       "noTemplateTitle": "Your invitation isn't ready yet",
-      "noTemplateDesc": "Design and save your invitation first. Then MONEA can create a link and QR code for sharing."
+      "noTemplateDesc": "Design and save your invitation first. Then MONEO can create a link and QR code for sharing."
     },
     "coupleGroomFallback": "Groom",
     "coupleBrideFallback": "Bride",
@@ -1110,7 +1111,7 @@
       "description": "See how your digital invitation appears to guests on their phones."
     },
     "quickstart": {
-      "title": "Welcome to MONEA!",
+      "title": "Welcome to MONEO!",
       "description": "Follow these three simple steps to prepare and manage your event.",
       "designTitle": "1. Design your invitation",
       "designDescription": "Choose a template and customize your invitation details.",
@@ -1122,8 +1123,8 @@
       "finishDesignDescription": "Save an invitation design first, then return here to share it."
     },
     "installPrompt": {
-      "title": "Install MONEA as an app",
-      "description": "Open MONEA faster and use it easily on your phone.",
+      "title": "Install MONEO as an app",
+      "description": "Open MONEO faster and use it easily on your phone.",
       "install": "Install",
       "installing": "Opening...",
       "dismiss": "Dismiss install prompt",
@@ -1165,7 +1166,7 @@
       "guide": "How to Use",
       "account": "Account & Profile",
       "support": "Help & Support",
-      "upgrade": "Upgrade Plan"
+      "upgrade": "Plans & Pricing"
     },
     "cards": {
       "inviteCenter": "Invite Center",
@@ -1186,7 +1187,7 @@
       "staff": "Staff",
       "general": "General",
       "setup": "Setup",
-      "others": "Others",
+      "others": "Account & Support",
       "eventDay": "Event Day",
       "insights": "Reports & Team"
     },
@@ -1270,6 +1271,7 @@
       "invitationCenterDescription": "After saving, return here to view your invitation or copy its share link.",
       "shareDesc": "Send this link to your honored guests or let them scan the QR code to view the invitation.",
       "viewPublic": "View Public Invitation",
+      "viewPublicShort": "View",
       "liveInvitation": "Live Invitation link"
     },
     "logout": {
@@ -1331,7 +1333,7 @@
       "subtitle": "Choose the most suitable package to make your special day even more meaningful.",
       "promoBadge": "Upgrade your plan",
       "promo": {
-        "removeLogo": "Want to remove MONEA logo?",
+        "removeLogo": "Want to remove MONEO logo?",
         "moreFeatures": "Want more features?",
         "description": "Upgrade your plan now for a great experience and unlimited features.",
         "premiumActive": "Your Premium plan is active with access to all features.",
@@ -1344,9 +1346,9 @@
           "price": "0$",
           "desc": "Essential features for your special day.",
           "features": [
-            "Guests: Up to 50 people",
+            "Guests: Up to 20 people",
             "Templates: Standard only",
-            "Storage: 2 weeks only"
+            "Trial: 14 days"
           ]
         },
         "pro": {
@@ -1365,7 +1367,7 @@
           "price": "19$",
           "desc": "White-label experience for perfection.",
           "features": [
-            "Remove Logo: No MONEA watermark",
+            "Remove Logo: No MONEO watermark",
             "Customization: Custom theme colors",
             "Reports: PDF/Excel downloads",
             "Support: 24/7 priority help"
@@ -1405,7 +1407,7 @@
         "checkAgainIn": "Check again in {seconds}s",
         "qrGenerationFailedTitle": "Couldn't generate QR code",
         "invalidQrResponse": "The payment service returned incomplete QR details. Please try again.",
-        "networkError": "A connection problem occurred. Please try again.",
+        "networkError": "Please check your internet connection and try again.",
         "tryAgain": "Please try again.",
         "sessionSaveWarningTitle": "Payment QR created",
         "sessionSaveWarningDescription": "Keep this page open until payment is complete. The QR code may not be restored if you refresh or leave.",
@@ -1474,7 +1476,7 @@
         "title": "Usage",
         "description": "Use this for phone numbers, to-do lists, or coordinator instructions."
       },
-      "premium": "Monea Premium",
+      "premium": "MONEO Premium",
       "adminCenter": "Internal Admin Center",
       "print": {
         "header": "Wedding Planning Notes",
@@ -1541,7 +1543,7 @@
     },
     "locked": {
       "title": "Editing Locked",
-      "description": "Your Free Plan has expired its 3-day editing period. Please update your plan to continue creating your amazing invitation or contact the MONEA team.",
+      "description": "Your Free Plan has expired its 14-day editing period. Please update your plan to continue editing your invitation or contact the MONEO team.",
       "updateBtn": "Update Plan Now",
       "backBtn": "Back to Dashboard"
     },
@@ -1580,6 +1582,7 @@
       "done": "Done",
       "finishing": "Saving...",
       "previewInvitation": "Preview invitation",
+      "previewShort": "Preview",
       "previewMode": {
         "mobile": "Mobile View",
         "desktop": "Desktop View"
@@ -1635,8 +1638,8 @@
       "official": "Official",
       "reportDate": "Report Date",
       "validity": "Document Validity",
-      "officialReport": "Official Guest Report - MONEA System",
-      "footerNote": "This document was automatically generated by the MONEA system and is an official record of the wedding."
+      "officialReport": "Official Guest Report - MONEO System",
+      "footerNote": "This document was automatically generated by the MONEO system and is an official record of the wedding."
     },
     "total": "Total",
     "search": "Search by name or location...",
@@ -1674,8 +1677,8 @@
       "weddingOf": "Wedding of {groom} and {bride}",
       "reportDate": "Report Date",
       "validity": "Document Validity",
-      "officialReport": "Official Gift Report - MONEA System",
-      "footerNote": "This document was automatically generated by the MONEA system and is an official record of the wedding."
+      "officialReport": "Official Gift Report - MONEO System",
+      "footerNote": "This document was automatically generated by the MONEO system and is an official record of the wedding."
     },
     "actions": {
       "showAmount": "Show Amount",
@@ -1790,7 +1793,7 @@
     }
   },
   "meta": {
-    "title": "MONEA | Premium Digital Wedding Invitations & Guest Management",
+    "title": "MONEO | Premium Digital Wedding Invitations & Guest Management",
     "description": "Craft luxurious digital wedding invitations, manage your guest list effortlessly, and receive digital blessings and gifts in one elegant platform."
   },
   "reports": {
@@ -1835,8 +1838,8 @@
       "totalCashGifts": "Total Cash Gifts",
       "reportDate": "Report Generation Date",
       "validity": "Document Validity",
-      "officialMonea": "Official Report - MONEA System",
-      "autoGenerated": "This document was automatically generated by the MONEA system and is the official record of wedding statistics."
+      "officialMonea": "Official Report - MONEO System",
+      "autoGenerated": "This document was automatically generated by the MONEO system and is the official record of wedding statistics."
     }
   },
   "account": {
@@ -1884,7 +1887,7 @@
         "title": "Telegram account recovery",
         "connected": "Telegram connected",
         "notConnected": "Telegram not connected",
-        "description": "Connect Telegram and allow MONEA to send messages so you can receive password reset codes.",
+        "description": "Connect Telegram and allow MONEO to send messages so you can receive password reset codes.",
         "reconnect": "Reconnect / Allow messages",
         "connect": "Connect Telegram",
         "linkedSuccess": "Telegram was connected successfully."
@@ -1903,8 +1906,9 @@
     },
     "security": {
       "title": "Security Configuration",
-      "description": "Keep your account secure with 2FA and session management.",
-      "passwordRequired": "A password is required first",
+      "description": "Manage two-factor authentication and keep your account secure.",
+      "ssoPasswordRequired": "Your Google account does not have a MONEO password yet. Set one using your email first to enable or disable 2FA.",
+      "setPassword": "Set password using email",
       "twoFactor": {
         "title": "Two-Factor Authentication (2FA)",
         "description": "Add an extra layer of security to your account.",
@@ -1912,37 +1916,14 @@
         "disabled": "Two-factor authentication is not enabled. We highly recommend enabling it.",
         "enableBtn": "Setup 2FA Now",
         "disableBtn": "Disable 2FA"
-      },
-      "sessions": {
-        "title": "Active Sessions",
-        "description": "Manage your active login sessions across all devices.",
-        "revokeBtn": "Sign Out From All Devices",
-        "confirm": "Are you sure you want to sign out from all devices?",
-        "success": "Signed out from all devices successfully. You need to login again.",
-        "error": "Failed to revoke sessions."
-      },
-      "logs": {
-        "title": "Security Log Activity",
-        "description": "Recent security events related to your account.",
-        "loading": "Loading logs...",
-        "error": "Unable to load security activity.",
-        "retry": "Try again",
-        "empty": "No security logs available.",
-        "types": {
-          "LOGIN_SUCCESS": "Successful Login",
-          "LOGIN_FAILED": "Failed Login Attempt",
-          "PASSWORD_CHANGE": "Password Changed",
-          "TWO_FACTOR_ENABLED": "2FA Enabled",
-          "TWO_FACTOR_DISABLED": "2FA Disabled"
-        }
       }
     },
     "dangerZone": {
       "badge": "Sensitive Actions",
       "title": "Danger Zone",
-      "description": "Irreversible actions for your account.",
+      "description": "Your account is disabled immediately and can be restored for 30 days before permanent deletion begins.",
       "deleteTitle": "Delete Account",
-      "deleteDescription": "Permanently delete your account and all associated data.",
+      "deleteDescription": "Your account and data are disabled now and scheduled for permanent deletion after 30 days. Media still referenced by another account will be preserved.",
       "deleteBtn": "Delete My Account"
     },
     "dialogs": {
@@ -1991,8 +1972,8 @@
       },
       "deleteAccount": {
         "title": "Delete Account",
-        "description": "This action is permanent and cannot be undone. All your data will be permanently removed.",
-        "alert": "Warning: This action cannot be undone. All wedding templates and guests will be permanently deleted.",
+        "description": "Your account will be disabled immediately. Your data and memories will be retained for 30 days and can be restored during that period. Permanent deletion begins after 30 days; media still referenced by another account is preserved.",
+        "alert": "After confirmation, you will be signed out. To restore your account, sign in with your email and password and choose Restore Account within 30 days.",
         "label": "Confirm Your Password",
         "placeholder": "Enter your password to confirm deletion",
         "passwordLabel": "Confirm Your Password",
@@ -2001,7 +1982,7 @@
         "submit": "Delete My Account",
         "processing": "Deleting...",
         "submitting": "Deleting...",
-        "success": "Your account has been deleted successfully.",
+        "success": "Your account has been disabled. You can restore it within 30 days.",
         "errors": {
           "general": "Failed to delete account",
           "tech": "Technical error occurred"

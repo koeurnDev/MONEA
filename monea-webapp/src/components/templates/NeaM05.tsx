@@ -13,6 +13,8 @@ import { getNeaM05FontStack } from "@/lib/nea-m05-fonts";
 import NeaM05Sections from "./NeaM05Sections";
 import type { TemplateProps } from "./types";
 import { getWeddingHeroImage } from "./shared/weddingPhotos";
+import { getTemplatePaperStyles } from "@/lib/template-color-palette";
+import { OneLineName } from "./shared/OneLineName";
 
 type Stage = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 type Locale = keyof typeof copy;
@@ -90,25 +92,6 @@ const getContrastRatio = (first: string, second: string) => {
     return (lighter + 0.05) / (darker + 0.05);
 };
 
-const getWaxSealFilter = (hex: string) => {
-    const [red, green, blue] = getRgb(hex).map((channel) => channel / 255);
-    const maximum = Math.max(red, green, blue);
-    const minimum = Math.min(red, green, blue);
-    const delta = maximum - minimum;
-    const saturation = maximum === 0 ? 0 : delta / maximum;
-    if (saturation < 0.12) return "grayscale(1) brightness(1.15)";
-
-    let hue = 0;
-    if (delta !== 0) {
-        if (maximum === red) hue = 60 * (((green - blue) / delta) % 6);
-        else if (maximum === green) hue = 60 * ((blue - red) / delta + 2);
-        else hue = 60 * ((red - green) / delta + 4);
-    }
-    if (hue < 0) hue += 360;
-
-    return `sepia(1) saturate(2.5) hue-rotate(${Math.round(hue - 35)}deg)`;
-};
-
 const ensureContrastRatio = (foreground: string, background: string, minimum: number) => {
     if (getContrastRatio(foreground, background) >= minimum) return foreground;
 
@@ -173,7 +156,7 @@ const InvitationCardArtwork = ({
         )}
         <div aria-hidden="true" className="pointer-events-none absolute inset-[5px] border-x border-t border-[#b6a17b]/30" />
         <div className="m05-card-heading">
-            <EnvelopeCrest className="m05-card-crest mx-auto h-4 w-5" />
+            <EnvelopeEmblem className="m05-card-crest mx-auto h-4 w-5" />
             <p className="m05-card-title m05-khmer-safe font-khmer-moul text-[10px] leading-[1.5] text-[#554832]">
                 {title}
             </p>
@@ -182,9 +165,9 @@ const InvitationCardArtwork = ({
             </p>
         </div>
         <div className="m05-card-couple">
-            <span className="m05-card-couple-name">{wedding.groomName || groomPlaceholder}</span>
+            <OneLineName name={wedding.groomName || groomPlaceholder} className="m05-card-couple-name flex-1 text-center" />
             <span className="m05-card-heart" aria-hidden="true">♡</span>
-            <span className="m05-card-couple-name">{wedding.brideName || bridePlaceholder}</span>
+            <OneLineName name={wedding.brideName || bridePlaceholder} className="m05-card-couple-name flex-1 text-center" />
         </div>
         <div className="m05-card-info w-full max-w-[300px] font-kantumruy text-[8px] leading-[1.4] text-[#554832]">
             {invitedName && (
@@ -209,14 +192,12 @@ const InvitationCardArtwork = ({
     </div>
 );
 
-const EnvelopeCrest = ({ className = "" }: { className?: string }) => (
-    <img
-        aria-hidden="true"
-        src="/khmer-invite-starter-kit/elements/crest.svg"
-        className={className}
-        alt=""
-        decoding="async"
-    />
+const EnvelopeEmblem = ({ className = "" }: { className?: string }) => (
+    <svg aria-hidden="true" viewBox="0 0 40 40" className={`${className} text-[#9a7a43]`} fill="none">
+        <path d="M20 2 38 20 20 38 2 20 20 2Z" stroke="currentColor" strokeWidth="1.2" />
+        <path d="M20 9 31 20 20 31 9 20 20 9Z" stroke="currentColor" strokeWidth="1" />
+        <path d="M20 14 26 20 20 26 14 20 20 14Z" fill="currentColor" />
+    </svg>
 );
 
 const CornerScroll = ({
@@ -238,11 +219,13 @@ const NameMark = ({
     bride,
     groomPlaceholder,
     bridePlaceholder,
+    oneLine = false,
 }: {
     groom?: string;
     bride?: string;
     groomPlaceholder: string;
     bridePlaceholder: string;
+    oneLine?: boolean;
 }) => {
     const butterflyRef = useRef<HTMLImageElement>(null);
     const reducedMotion = usePrefersReducedMotion();
@@ -274,19 +257,30 @@ const NameMark = ({
     }, [reducedMotion]);
 
     return (
-        <div className="m05-name-mark relative mx-auto flex w-full max-w-[340px] flex-col items-center text-center">
+        <div className={`m05-name-mark relative mx-auto flex w-full max-w-[340px] flex-col items-center text-center${oneLine ? " m05-name-mark-inline [container-type:inline-size]" : ""}`}>
             <div className="m05-name-crest-wrap relative mb-1 flex h-10 w-14 items-center justify-center sm:h-12 sm:w-16">
                 <span className="absolute inset-x-2 top-1/2 h-px -translate-y-1/2 bg-gradient-to-r from-transparent via-[#c5a15e]/55 to-transparent" />
-                <EnvelopeCrest className="m05-name-crest relative h-8 w-10 drop-shadow-[0_1px_1px_rgba(92,62,20,.25)] sm:h-9 sm:w-12" />
+                <EnvelopeEmblem className="m05-name-crest relative h-8 w-10 drop-shadow-[0_1px_1px_rgba(92,62,20,.25)] sm:h-9 sm:w-12" />
             </div>
-            <motion.span
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.75, delay: 0.12 }}
-                className="m05-name-line m05-foil font-moulpali text-base leading-[2.1] sm:text-lg"
-            >
-                {groom?.trim() || groomPlaceholder}
-            </motion.span>
+            <div className={oneLine ? "m05-name-couple-row flex w-full min-w-0 items-center justify-center gap-1 whitespace-nowrap" : "contents"}>
+                <motion.span
+                    initial={{ opacity: 0, x: -12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.75, delay: 0.12 }}
+                    className={`m05-name-line m05-foil font-moulpali text-base leading-[2.1] sm:text-lg${oneLine ? " m05-name-inline min-w-0 flex-1 whitespace-nowrap text-right text-[clamp(8px,4.7cqi,16px)]" : ""}`}
+                >
+                    {groom?.trim() || groomPlaceholder}
+                </motion.span>
+                {oneLine && <span aria-hidden="true" className="shrink-0 font-moulpali text-[clamp(9px,4.7cqi,16px)] text-[var(--m05-foil)]">♡</span>}
+                <motion.span
+                    initial={{ opacity: 0, x: 12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.75, delay: 0.3 }}
+                    className={`m05-name-line m05-foil font-moulpali text-base leading-[2.1] sm:text-lg${oneLine ? " m05-name-inline min-w-0 flex-1 whitespace-nowrap text-left text-[clamp(8px,4.7cqi,16px)]" : ""}`}
+                >
+                    {bride?.trim() || bridePlaceholder}
+                </motion.span>
+            </div>
             <div className="m05-name-flourish relative my-1 flex h-7 w-56 items-center justify-center text-[var(--m05-foil)]" aria-hidden="true">
                 <motion.svg
                     viewBox="0 0 240 32"
@@ -300,7 +294,7 @@ const NameMark = ({
                     <circle cx="69" cy="16" r="1.2" fill="currentColor" />
                     <circle cx="171" cy="16" r="1.2" fill="currentColor" />
                 </motion.svg>
-                <motion.span
+                {!oneLine && <motion.span
                     initial={{ scale: 0, y: 4, rotate: -12 }}
                     animate={{ scale: 1, y: 0, rotate: 0 }}
                     transition={{ type: "spring", stiffness: 260, damping: 14, delay: 0.75 }}
@@ -310,7 +304,7 @@ const NameMark = ({
                     <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="currentColor">
                         <path d="M12 20.2 4.1 12.7C-.7 7.6 6.1 1.1 12 6.2c5.9-5.1 12.7 1.4 7.9 6.5L12 20.2Z" />
                     </svg>
-                </motion.span>
+                </motion.span>}
                 <img
                     ref={butterflyRef}
                     aria-hidden="true"
@@ -319,14 +313,6 @@ const NameMark = ({
                     className="absolute right-[14%] top-0 h-4 w-4 opacity-0 drop-shadow-[0_1px_1px_rgba(92,62,20,.3)]"
                 />
             </div>
-            <motion.span
-                initial={{ opacity: 0, x: 12 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.75, delay: 0.3 }}
-                className="m05-name-line m05-foil font-moulpali text-base leading-[2.1] sm:text-lg"
-            >
-                {bride?.trim() || bridePlaceholder}
-            </motion.span>
         </div>
     );
 };
@@ -376,16 +362,35 @@ const WaxSeal = ({
             />
             <span
                 aria-hidden="true"
-                className="pointer-events-none absolute left-[24%] top-[18%] z-10 h-[24%] w-[30%] rounded-full bg-[radial-gradient(ellipse,rgba(255,246,218,.46),rgba(255,227,166,.12)_48%,transparent_76%)] blur-[3px]"
+                className="absolute inset-0 rounded-full border-2"
+                style={{
+                    borderColor: mixHex(color, 255, 0.52),
+                    backgroundColor: color,
+                    backgroundImage: "radial-gradient(circle at 32% 26%,rgba(255,246,218,.48),rgba(255,227,166,.08) 38%,transparent 72%)",
+                    boxShadow: "inset 0 2px 4px rgba(255,255,255,.24),inset 0 -5px 8px rgba(20,14,7,.28),0 2px 4px rgba(24,17,8,.2)",
+                }}
             />
-            <img
-                src="/khmer-invite-starter-kit/elements/wax-seal.svg"
-                alt=""
+            <span
                 aria-hidden="true"
-                className="h-full w-full object-contain"
-                style={{ filter: getWaxSealFilter(color) }}
-                decoding="async"
+                className="pointer-events-none absolute inset-[5px] rounded-full border"
+                style={{ borderColor: mixHex(color, 255, 0.62), opacity: 0.65 }}
             />
+            <svg
+                aria-hidden="true"
+                viewBox="0 0 100 100"
+                className="relative z-10 h-[52%] w-[52%] drop-shadow-[0_1px_1px_rgba(30,20,8,.38)]"
+                fill="none"
+                stroke={mixHex(color, 255, 0.76)}
+                strokeWidth="2"
+            >
+                <path d="M50 18 82 50 50 82 18 50 50 18Z" />
+                <path d="M50 32 68 50 50 68 32 50 50 32Z" />
+                <path d="M50 42 58 50 50 58 42 50 50 42Z" fill={mixHex(color, 255, 0.76)} />
+                <circle cx="50" cy="11" r="2" fill="currentColor" stroke="none" />
+                <circle cx="89" cy="50" r="2" fill="currentColor" stroke="none" />
+                <circle cx="50" cy="89" r="2" fill="currentColor" stroke="none" />
+                <circle cx="11" cy="50" r="2" fill="currentColor" stroke="none" />
+            </svg>
             <span className="sr-only">{label}</span>
         </motion.button>
     </div>
@@ -508,8 +513,8 @@ const InvitationEnvelope = ({
             }}
             style={{
                 transformOrigin: "center center",
-                backgroundColor: "var(--m05-paper-surface)",
-                backgroundImage: "linear-gradient(145deg,rgba(255,255,255,.2),rgba(255,255,255,0) 42%,color-mix(in srgb,var(--m05-foil) 4%,transparent)),url('/khmer-invite-starter-kit/textures/paper-cream.webp')",
+                backgroundColor: "var(--m05-card-surface)",
+                backgroundImage: "linear-gradient(145deg,rgba(255,255,255,.2),rgba(255,255,255,0) 42%,color-mix(in srgb,var(--m05-foil) 4%,transparent)),var(--monea-paper-texture)",
                 backgroundSize: "100% 100%,320px",
                 backgroundBlendMode: "normal,multiply",
                 boxShadow: "0 1px 2px rgba(255,255,255,.32) inset, 0 -1px 2px rgba(109,82,43,.08) inset, 0 18px 38px rgba(9,8,6,.34)",
@@ -537,7 +542,7 @@ const InvitationEnvelope = ({
         <MotionConfig reducedMotion="never">
         <motion.section
             aria-label={englishTitle}
-            className="fixed inset-0 z-50 flex min-h-[100svh] flex-col items-center justify-center overflow-hidden bg-[#17130f] px-4 pb-10 pt-20 text-center text-[#f7f0e3]"
+            className="fixed inset-0 z-50 flex min-h-[100svh] flex-col items-center justify-center overflow-hidden bg-[#17130f] px-4 pb-10 pt-20 text-center text-[#f7f0e3] md:px-8 md:py-8"
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: reducedMotion ? 0.35 : 0.6, ease: [0.4, 0, 0.2, 1] }}
             exit={{ opacity: 0, scale: 1 }}
@@ -571,15 +576,15 @@ const InvitationEnvelope = ({
                 className="pointer-events-none absolute inset-0 opacity-[0.09]"
                 style={{ backgroundImage: "url('/noise.svg')" }}
             />
-            <div className="relative z-10 flex w-full max-w-[600px] flex-col items-center">
+            <div className="relative z-10 flex w-full max-w-[760px] flex-col items-center">
                 <motion.p
                     initial={{ opacity: 0, y: -8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="m05-khmer-safe font-khmer-moul text-sm leading-[1.9] text-[#f2e4c5] sm:text-base"
+                    className="m05-khmer-safe font-khmer-moul text-sm leading-[1.9] text-[#f2e4c5] sm:text-base md:text-lg"
                 >
                     {title}
                 </motion.p>
-                <p className="mt-1 font-pinyon-script text-base text-[#d0bb91] sm:text-lg">
+                <p className="mt-1 font-pinyon-script text-base text-[#d0bb91] sm:text-lg md:text-xl">
                     {englishTitle}
                 </p>
 
@@ -600,14 +605,14 @@ const InvitationEnvelope = ({
                         event.currentTarget.style.setProperty("--m05-tilt-x", "0deg");
                         event.currentTarget.style.setProperty("--m05-tilt-y", "0deg");
                     }}
-                    className="relative mt-6 w-[min(88vw,520px)] [perspective:1800px]"
-                    style={{ height: "clamp(200px, 56vw, 320px)", transformStyle: "preserve-3d" }}
+                    className="relative mt-6 aspect-[540/326] w-[min(88vw,520px)] [perspective:1800px] md:mt-8 md:w-[min(72vw,680px)]"
+                    style={{ transformStyle: "preserve-3d" }}
                     transformTemplate={(_latest, generated) =>
                         `rotateX(var(--m05-tilt-x, 0deg)) rotateY(var(--m05-tilt-y, 0deg)) ${generated}`
                     }
                 >
                     <div
-                        className="absolute inset-0 rounded-none border border-[#d5c49d]/35 shadow-[0_28px_32px_rgba(0,0,0,.4),inset_0_1px_0_rgba(255,250,227,.3),inset_0_-2px_4px_rgba(24,29,21,.2)] [transform-style:preserve-3d]"
+                        className="absolute inset-0 rounded-[3px] border border-[#d5c49d]/45 shadow-[0_36px_48px_rgba(0,0,0,.48),inset_0_1px_0_rgba(255,250,227,.36),inset_0_-2px_4px_rgba(24,29,21,.2)] [transform-style:preserve-3d]"
                         style={{
                             backgroundColor: "var(--m05-envelope)",
                             backgroundImage: "linear-gradient(145deg,color-mix(in srgb,var(--m05-envelope-light) 16%,transparent),transparent 32%,color-mix(in srgb,var(--m05-dark-surface) 20%,transparent)),url('/khmer-invite-starter-kit/textures/paper-cream.webp')",
@@ -645,8 +650,8 @@ const InvitationEnvelope = ({
                             }}
                             style={{
                                 transformOrigin: "center bottom",
-                                backgroundColor: "var(--m05-paper-surface)",
-                                backgroundImage: "linear-gradient(145deg,rgba(255,255,255,.2),rgba(255,255,255,0) 42%,color-mix(in srgb,var(--m05-foil) 4%,transparent)),url('/khmer-invite-starter-kit/textures/paper-cream.webp')",
+                                backgroundColor: "var(--m05-card-surface)",
+                                backgroundImage: "linear-gradient(145deg,rgba(255,255,255,.2),rgba(255,255,255,0) 42%,color-mix(in srgb,var(--m05-foil) 4%,transparent)),var(--monea-paper-texture)",
                                 backgroundSize: "100% 100%,320px",
                                 backgroundBlendMode: "normal,multiply",
                                 boxShadow: "0 1px 2px rgba(255,255,255,.32) inset, 0 -1px 2px rgba(109,82,43,.08) inset, 0 2px 4px rgba(0,0,0,.14), 0 12px 24px rgba(9,8,6,.22)",
@@ -814,7 +819,7 @@ const InvitationEnvelope = ({
                                         <path d="M3 58C3 63 6 67 11 71L270 266L529 71C534 67 537 63 537 58" fill="none" stroke="#fff5de" strokeOpacity=".34" strokeWidth=".8" />
                                     </g>
                                 </svg>
-                                <EnvelopeCrest className="absolute left-1/2 top-[12%] h-9 w-11 -translate-x-1/2" />
+                                <EnvelopeEmblem className="absolute left-1/2 top-[12%] h-9 w-11 -translate-x-1/2" />
                             </motion.div>
                         </motion.div>
 
@@ -836,7 +841,7 @@ const InvitationEnvelope = ({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: stage === 0 ? 1 : 0 }}
                     transition={{ duration: 0.4 }}
-                    className="relative z-10 mt-6 flex w-full max-w-[300px] items-center justify-center gap-3 font-kantumruy text-[11px] text-[#e7d7b5]/85 before:h-px before:max-w-8 before:flex-1 before:bg-gradient-to-r before:from-transparent before:to-[#c3a16d]/55 after:h-px after:max-w-8 after:flex-1 after:bg-gradient-to-l after:from-transparent after:to-[#c3a16d]/55"
+                    className="relative z-10 mt-6 flex w-full max-w-[360px] items-center justify-center gap-3 font-kantumruy text-[11px] text-[#e7d7b5]/85 before:h-px before:max-w-8 before:flex-1 before:bg-gradient-to-r before:from-transparent before:to-[#c3a16d]/55 after:h-px after:max-w-8 after:flex-1 after:bg-gradient-to-l after:from-transparent after:to-[#c3a16d]/55 md:text-sm"
                 >
                     {hint}
                 </motion.p>
@@ -878,10 +883,18 @@ const NeaM05: React.FC<TemplateProps> = ({ wedding, guestName, config }) => {
             darkSurface: ensureMaximumLuminance(wedding.themeSettings?.m05SurfaceColor || blendHex(primaryColor, "#25281f", 0.88), 0.06),
         }
         : selectedColorPreset;
-    const paperSurface = blendHex(primaryColor, "#f3ecdc", 0.04);
+    const paperStyles = getTemplatePaperStyles(wedding.themeSettings, "#F3ECDC");
+    const configuredPaperColor = wedding.themeSettings?.paperColor;
+    const hasConfiguredPaperColor = Boolean(configuredPaperColor && /^#[\da-f]{6}$/i.test(configuredPaperColor));
+    const paperSurface = hasConfiguredPaperColor
+        ? paperStyles["--monea-paper-color"]
+        : blendHex(primaryColor, "#f3ecdc", 0.04);
+    const cardSurface = hasConfiguredPaperColor
+        ? paperSurface
+        : wedding.themeSettings?.m05CardColor || paperSurface;
     const sealColor = wedding.themeSettings?.m05SealColor || selectedColorPreset.foil;
     const accessibleFoil = ensureContrastRatio(primaryColor, paletteColors.darkSurface, 4.5);
-    const accessiblePaperFoil = ensureContrastRatio(primaryColor, paperSurface, 4.5);
+    const accessiblePaperFoil = ensureContrastRatio(primaryColor, cardSurface, 4.5);
     const photoTintValue = Number(wedding.themeSettings?.m05PhotoTint ?? 22);
     const photoTint = Number.isFinite(photoTintValue) ? Math.max(0, Math.min(45, photoTintValue)) / 100 : 0.22;
     const isApprovalPreview =
@@ -1007,6 +1020,7 @@ const NeaM05: React.FC<TemplateProps> = ({ wedding, guestName, config }) => {
         <div
             className="m05-template relative min-h-[100svh] overflow-x-clip bg-[#121413] font-kantumruy text-[#f7f0e3] selection:bg-[#b18d55] selection:text-white"
             style={{
+                ...paperStyles,
                 "--m05-foil": primaryColor,
                 "--m05-foil-text": accessibleFoil,
                 "--m05-foil-header": ensureContrastRatio(primaryColor, "#ffffff", 4.5),
@@ -1026,6 +1040,9 @@ const NeaM05: React.FC<TemplateProps> = ({ wedding, guestName, config }) => {
                 "--m05-text-primary": ensureContrastRatio(blendHex(primaryColor, "#f7f0e3", 0.04), paletteColors.darkSurface, 4.5),
                 "--m05-paper-ink": ensureContrastRatio(blendHex(primaryColor, "#554832", 0.82), paperSurface, 4.5),
                 "--m05-paper-surface": paperSurface,
+                "--m05-card-ink": ensureContrastRatio(blendHex(primaryColor, "#554832", 0.82), cardSurface, 4.5),
+                "--m05-card-surface": cardSurface,
+                "--m05-card-foil-text": accessiblePaperFoil,
                 "--m05-photo-tint-opacity": photoTint,
                 "--m05-title-font": getNeaM05FontStack(wedding.themeSettings?.m05TitleFont, "moul"),
                 "--m05-name-font": getNeaM05FontStack(wedding.themeSettings?.m05NameFont, "moulpali"),
@@ -1044,6 +1061,8 @@ const NeaM05: React.FC<TemplateProps> = ({ wedding, guestName, config }) => {
                 }
                 .m05-khmer-safe { padding-block: .45em .5em; line-height: 2.1; }
                 .m05-name-line { display: block; box-sizing: border-box; width: 100%; max-width: 100%; overflow-wrap: anywhere; padding: .42em .16em .5em; line-height: 2.2 !important; }
+                .m05-name-mark-inline .m05-name-line { width: auto; max-width: 100%; overflow-wrap: normal; padding-block: .2em; line-height: 1.8 !important; }
+                .m05-name-mark-inline .m05-name-inline { font-size: clamp(8px,4.7cqi,16px) !important; }
                 .m05-name-flourish svg { transform-origin: center; }
                 .m05-flap-name .m05-name-crest-wrap { width: 2.5rem; height: 1.65rem; margin-bottom: 0; }
                 .m05-flap-name .m05-name-crest { width: 1.75rem; height: 1.35rem; margin-bottom: 0; }
@@ -1074,6 +1093,44 @@ const NeaM05: React.FC<TemplateProps> = ({ wedding, guestName, config }) => {
                 .m05-template .font-kantumruy { line-height: 1.9; letter-spacing: normal; }
                 .m05-template .m05-foil { padding-block: .45em .5em; line-height: 2.1; }
                 .m05-template .m05-khmer-safe { padding-block: .45em .5em; line-height: 2.1 !important; }
+                .m05-template .m05-venue-copy { padding-block: .12em .18em; line-height: 1.7 !important; }
+                #m05-programme { container-type: inline-size; }
+                @container (min-width: 760px) {
+                    #m05-invitation-words .m05-invitation-words-layout {
+                        grid-template-columns: minmax(0,1fr) minmax(260px,340px);
+                    }
+                    #m05-invitation-words .m05-invitation-photo {
+                        grid-column: 2;
+                        grid-row: 1;
+                        margin-left: auto;
+                        margin-right: 0;
+                    }
+                    #m05-invitation-words .m05-invitation-copy {
+                        grid-column: 1;
+                        grid-row: 1;
+                        text-align: left;
+                    }
+                    #m05-invitation-words .m05-invitation-description {
+                        margin-left: 0;
+                        margin-right: 0;
+                    }
+                }
+                @container (min-width: 760px) {
+                    #m05-couple .m05-couple-layout {
+                        grid-template-columns: minmax(0,.9fr) minmax(0,1.1fr);
+                    }
+                }
+                @container (min-width: 600px) {
+                    #m05-venue .m05-venue-details {
+                        grid-template-columns: repeat(2,minmax(0,1fr));
+                        gap: 2.5rem;
+                    }
+                }
+                @container (min-width: 760px) {
+                    #m05-programme .m05-programme-layout {
+                        grid-template-columns: minmax(0,1fr);
+                    }
+                }
                 .m05-template [class*="text-[#c8ad76]"],
                 .m05-template [class*="text-[#c2a56f]"],
                 .m05-template [class*="text-[#b99b68]"],
@@ -1262,10 +1319,10 @@ const NeaM05: React.FC<TemplateProps> = ({ wedding, guestName, config }) => {
                 .m05-template ::selection { background-color: var(--m05-foil); color: #fff; }
                 .m05-template .m05-card-title,
                 .m05-template .m05-card-info,
-                .m05-template .m05-card-couple { color: var(--m05-paper-ink) !important; }
+                .m05-template .m05-card-couple { color: var(--m05-card-ink) !important; }
                 .m05-template .m05-card-invite,
                 .m05-template .m05-card-heart,
-                .m05-template .m05-card-subtitle { color: var(--m05-paper-foil-text) !important; }
+                .m05-template .m05-card-subtitle { color: var(--m05-card-ink) !important; }
                 .m05-template .m05-card-artwork {
                     justify-content: center;
                     gap: 1px;
@@ -1275,13 +1332,15 @@ const NeaM05: React.FC<TemplateProps> = ({ wedding, guestName, config }) => {
                 .m05-template .m05-card-artwork .m05-card-crest { display: none; }
                 .m05-template .m05-card-artwork .m05-card-title {
                     padding-block: .04em !important;
-                    font-size: 10px;
-                    line-height: 1.5 !important;
+                    font-size: 12px;
+                    font-weight: 600;
+                    line-height: 1.55 !important;
                 }
                 .m05-template .m05-card-artwork .m05-card-subtitle {
                     margin: 0;
-                    font-size: 11px;
-                    line-height: 1.2;
+                    font-size: 13px;
+                    font-weight: 600;
+                    line-height: 1.3;
                 }
                 .m05-template .m05-card-artwork .m05-card-couple {
                     display: flex;
@@ -1294,11 +1353,12 @@ const NeaM05: React.FC<TemplateProps> = ({ wedding, guestName, config }) => {
                     padding-top: 4px;
                     color: #6f5125;
                     font-family: var(--m05-name-font);
-                    font-size: 11px;
-                    line-height: 1.55;
+                    font-size: 13px;
+                    font-weight: 600;
+                    line-height: 1.6;
                 }
                 .m05-template .m05-card-artwork .m05-card-couple-name { min-width: 0; overflow-wrap: anywhere; }
-                .m05-template .m05-card-artwork .m05-card-heart { color: #9a7a43; font-size: 14px; }
+                .m05-template .m05-card-artwork .m05-card-heart { color: var(--m05-card-ink); font-size: 16px; }
                 .m05-template .m05-card-artwork .m05-card-info {
                     display: flex;
                     flex: none;
@@ -1306,13 +1366,15 @@ const NeaM05: React.FC<TemplateProps> = ({ wedding, guestName, config }) => {
                     gap: 3px;
                     margin-top: 0 !important;
                     padding-top: 0 !important;
-                    font-size: 9px;
-                    line-height: 1.5;
+                    font-size: 11px;
+                    font-weight: 500;
+                    line-height: 1.55;
                 }
                 .m05-template .m05-card-artwork .m05-card-invite {
                     padding: 0 !important;
-                    font-size: 9px;
-                    line-height: 1.5 !important;
+                    font-size: 11px;
+                    font-weight: 600;
+                    line-height: 1.55 !important;
                 }
                 .m05-template .m05-card-artwork .m05-card-invite-label,
                 .m05-template .m05-card-artwork .m05-card-invite-name { display: block; }
@@ -1350,25 +1412,25 @@ const NeaM05: React.FC<TemplateProps> = ({ wedding, guestName, config }) => {
                         margin-bottom: 0;
                     }
                     .m05-template .m05-card-artwork .m05-card-title {
-                        font-size: 11px;
-                        line-height: 1.4 !important;
+                        font-size: 14px;
+                        line-height: 1.5 !important;
                     }
-                    .m05-template .m05-card-artwork .m05-card-subtitle { font-size: 12px; }
+                    .m05-template .m05-card-artwork .m05-card-subtitle { font-size: 15px; }
                     .m05-template .m05-card-artwork .m05-card-couple {
                         gap: 10px;
                         padding-top: 4px;
-                        font-size: 12px;
+                        font-size: 15px;
                     }
-                    .m05-template .m05-card-artwork .m05-card-heart { font-size: 15px; }
+                    .m05-template .m05-card-artwork .m05-card-heart { font-size: 18px; }
                     .m05-template .m05-card-artwork .m05-card-info {
                         gap: 3px;
                         max-width: 420px;
-                        font-size: 9px;
-                        line-height: 1.4;
+                        font-size: 12px;
+                        line-height: 1.5;
                     }
                     .m05-template .m05-card-artwork .m05-card-invite {
-                        font-size: 10px;
-                        line-height: 1.4 !important;
+                        font-size: 12px;
+                        line-height: 1.5 !important;
                     }
                     .m05-template .m05-card-artwork .m05-card-details {
                         flex-direction: column;
@@ -1448,8 +1510,8 @@ const NeaM05: React.FC<TemplateProps> = ({ wedding, guestName, config }) => {
             {musicUrl && <audio ref={audioRef} src={musicUrl} loop preload="none" />}
 
             {stage === 6 && (
-                <header className="pointer-events-none fixed inset-x-0 top-0 z-[80] flex items-start justify-end bg-gradient-to-b from-[#100f0d]/90 via-[#100f0d]/55 to-transparent px-4 pb-4 pt-2 sm:px-12 sm:pt-8">
-                    <div className="pointer-events-auto flex items-center gap-2">
+                <header className="pointer-events-none fixed inset-x-0 top-0 z-[80] flex items-start justify-center bg-gradient-to-b from-[#100f0d]/90 via-[#100f0d]/55 to-transparent px-4 pb-4 pt-[calc(env(safe-area-inset-top,0px)+1rem)] sm:pt-4">
+                    <div className="pointer-events-auto mx-auto flex w-full max-w-[430px] items-center justify-end gap-3 pr-2">
                         <button
                             type="button"
                             onClick={() => setLocale((current) => current === "km" ? "en" : "km")}
@@ -1528,7 +1590,7 @@ const NeaM05: React.FC<TemplateProps> = ({ wedding, guestName, config }) => {
                         <div className="absolute inset-0 bg-gradient-to-b from-[#15130f]/65 via-[#191713]/44 to-[#100f0d]/85" />
                         <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-24 bg-gradient-to-b from-black/45 to-transparent" />
                         <section className="m05-cover-content relative z-10 mx-auto flex w-full max-w-[540px] flex-col items-center justify-center px-3 py-5">
-                            <div className="m05-cover-ceremony flex flex-col items-center">
+                            <div className="m05-cover-ceremony flex w-full flex-col items-center">
                             <motion.p
                                 initial={{ opacity: 0, y: 12 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -1545,7 +1607,7 @@ const NeaM05: React.FC<TemplateProps> = ({ wedding, guestName, config }) => {
                                 initial={{ opacity: 0, y: 16, scale: 0.92 }}
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 transition={{ delay: 0.28, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-                                className="mt-2"
+                                className="mt-2 w-full"
                                 role="heading"
                                 aria-level={1}
                                 aria-label={`${groomName || text.groomPlaceholder} និង ${brideName || text.bridePlaceholder}`}
@@ -1555,6 +1617,7 @@ const NeaM05: React.FC<TemplateProps> = ({ wedding, guestName, config }) => {
                                     bride={brideName}
                                     groomPlaceholder={text.groomPlaceholder}
                                     bridePlaceholder={text.bridePlaceholder}
+                                    oneLine
                                 />
                             </motion.div>
 

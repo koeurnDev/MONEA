@@ -27,7 +27,9 @@ export const getSecretStr = () => {
   const isProduction =
     process.env.NODE_ENV === "production" || process.env.ENVIRONMENT === "production";
 
-  if (isProduction) {
+  // The published dev key is only used when explicitly opted in, so a deployment
+  // that forgets JWT_SECRET (and NODE_ENV/ENVIRONMENT) can never sign with a public key.
+  if (isProduction || process.env.ALLOW_DEV_JWT_FALLBACK !== "true") {
     throw new Error("[CRITICAL] JWT_SECRET is not configured. Refusing to sign or verify tokens.");
   }
 

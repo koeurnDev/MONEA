@@ -72,12 +72,12 @@ export function CleanHomeHero() {
                             transition={{ delay: 0.15 }}
                             className="w-full max-w-md bg-card/80 backdrop-blur-xl p-3.5 sm:p-4 rounded-2xl border border-border/80 shadow-xs space-y-2"
                         >
-                            <div className="flex items-center justify-between text-[11px] font-bold text-foreground">
+                            <div className="flex items-center justify-between text-xs font-bold text-foreground">
                                 <span className="flex items-center gap-1">
                                     <Heart className="w-3 h-3 text-rose-500 fill-rose-500" />
                                     <span>ឈ្មោះគូស្វាមីភរិយា៖</span>
                                 </span>
-                                <span className="text-[10px] text-muted-foreground">សាកល្បងវាយឈ្មោះ</span>
+                                <span className="text-xs text-muted-foreground">សាកល្បងវាយឈ្មោះ</span>
                             </div>
                             <div className="grid grid-cols-2 gap-2">
                                 <input
@@ -125,7 +125,7 @@ export function CleanHomeHero() {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.25 }}
-                            className="flex flex-wrap items-center justify-center lg:justify-start gap-2 pt-2 text-[11px] text-muted-foreground font-medium"
+                            className="flex flex-wrap items-center justify-center lg:justify-start gap-2 pt-2 text-xs text-muted-foreground font-medium"
                         >
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-card border border-border/80">
                                 <Send className="w-3 h-3 text-rose-500" />
@@ -155,12 +155,12 @@ export function CleanHomeHero() {
                                 
                                 {/* Header Seal */}
                                 <div className="text-center pb-3 border-b border-amber-500/20 space-y-1">
-                                    <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-amber-500/10 text-[10px] font-bold text-amber-300 border border-amber-500/30">
+                                    <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-amber-500/10 text-xs font-bold text-amber-300 border border-amber-500/30">
                                         <Sparkles className="w-3 h-3 text-amber-400" />
                                         <span>សិរីសួស្តី អាពាហ៍ពិពាហ៍</span>
                                     </div>
                                     <h2 className="text-xl font-bold tracking-tight text-white pt-1 font-moul">
-                                        លិខិតអញ្ជើញ
+                                        ធៀបអញ្ជើញ
                                     </h2>
                                 </div>
 
@@ -171,7 +171,7 @@ export function CleanHomeHero() {
                                         <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />
                                         <span>{bride || "កូនក្រមុំ"}</span>
                                     </div>
-                                    <p className="text-[11px] text-amber-200/70">
+                                    <p className="text-xs text-amber-200/70">
                                         សូមគោរពអញ្ជើញ ឯកឧត្តម លោកជំទាវ លោក លោកស្រី
                                     </p>
                                 </div>
@@ -183,8 +183,8 @@ export function CleanHomeHero() {
                                             <Calendar className="w-3.5 h-3.5" />
                                         </div>
                                         <div>
-                                            <div className="font-bold text-white text-[11px]">ថ្ងៃអាទិត្យ ទី១២ ខែធ្នូ ឆ្នាំ២០២៦</div>
-                                            <div className="text-[10px] text-white/60">វេលាម៉ោង ៥:០០ ល្ងាច (ពិធីជប់លៀង)</div>
+                                            <div className="font-bold text-white text-xs">ថ្ងៃអាទិត្យ ទី១២ ខែធ្នូ ឆ្នាំ២០២៦</div>
+                                            <div className="text-xs text-white/60">វេលាម៉ោង ៥:០០ ល្ងាច (ពិធីជប់លៀង)</div>
                                         </div>
                                     </div>
 
@@ -193,19 +193,19 @@ export function CleanHomeHero() {
                                             <MapPin className="w-3.5 h-3.5" />
                                         </div>
                                         <div>
-                                            <div className="font-bold text-white text-[11px]">មជ្ឈមណ្ឌលសន្និបាត ឌឹ ព្រេមៀ សែនសុខ</div>
-                                            <div className="text-[10px] text-white/60">អគារ A សាលមហោស្រព</div>
+                                            <div className="font-bold text-white text-xs">មជ្ឈមណ្ឌលសន្និបាត ឌឹ ព្រេមៀ សែនសុខ</div>
+                                            <div className="text-xs text-white/60">អគារ A សាលមហោស្រព</div>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Action Buttons Preview */}
                                 <div className="grid grid-cols-2 gap-2 pt-1">
-                                    <div className="h-9 rounded-xl bg-amber-500/20 border border-amber-500/30 font-bold text-[11px] text-amber-200 flex items-center justify-center gap-1">
+                                    <div className="h-9 rounded-xl bg-amber-500/20 border border-amber-500/30 font-bold text-xs text-amber-200 flex items-center justify-center gap-1">
                                         <CheckCircle2 className="w-3 h-3 text-emerald-400" />
                                         <span>ឆ្លើយតប RSVP</span>
                                     </div>
-                                    <div className="h-9 rounded-xl bg-white/10 border border-white/15 font-bold text-[11px] text-white flex items-center justify-center gap-1">
+                                    <div className="h-9 rounded-xl bg-white/10 border border-white/15 font-bold text-xs text-white flex items-center justify-center gap-1">
                                         <MapPin className="w-3 h-3 text-rose-400" />
                                         <span>មើលផែនទី</span>
                                     </div>
@@ -219,7 +219,7 @@ export function CleanHomeHero() {
 
             {/* Simple Clean Footer */}
             <footer className="w-full py-4 border-t border-border/60 text-center text-xs text-muted-foreground relative z-10">
-                <p>© 2026 MONEA • រៀបចំមង្គលការ និងកម្មវិធីផ្សេងៗយ៉ាងងាយស្រួល</p>
+                <p>© 2026 MONEO • រៀបចំមង្គលការ និងកម្មវិធីផ្សេងៗយ៉ាងងាយស្រួល</p>
             </footer>
         </main>
     );

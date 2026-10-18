@@ -1,6 +1,7 @@
 import React from 'react';
 import { Heart } from 'lucide-react';
 import { WeddingData } from '../types';
+import { CoupleNamesLine } from "../shared/OneLineName";
 
 interface ThankYouSectionProps {
     wedding: WeddingData;
@@ -14,7 +15,7 @@ export const ThankYouSection: React.FC<ThankYouSectionProps> = ({ wedding, prima
     return (
         <section className="py-16 px-4 sm:px-6 bg-gradient-to-b from-white to-emerald-50/50 text-center font-kantumruy relative overflow-hidden">
             <div className="max-w-md mx-auto space-y-6 relative z-10">
-                <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-700 flex items-center justify-center mx-auto shadow-sm">
+                <div className="text-emerald-700 flex items-center justify-center mx-auto">
                     <Heart size={20} className="fill-emerald-600 text-emerald-600" />
                 </div>
 
@@ -28,14 +29,12 @@ export const ThankYouSection: React.FC<ThankYouSectionProps> = ({ wedding, prima
                 </div>
 
                 <div className="py-3">
-                    <span className="text-lg font-serif italic text-emerald-900 font-bold">
-                        {groomName} & {brideName}
-                    </span>
+                    <CoupleNamesLine groom={groomName} bride={brideName} className="text-lg font-serif italic text-emerald-900 font-bold" />
                 </div>
 
                 <div className="pt-6 border-t border-emerald-200/60 text-[10px] text-muted-foreground flex items-center justify-center gap-1.5">
                     <span>បង្កើតឡើងដោយក្តីស្រឡាញ់ជាមួយ</span>
-                    <span className="font-bold text-emerald-700 font-outfit uppercase tracking-widest">MONEA</span>
+                    <span className="font-bold text-emerald-700 font-outfit tracking-[0.08em]">MONEO</span>
                 </div>
             </div>
         </section>

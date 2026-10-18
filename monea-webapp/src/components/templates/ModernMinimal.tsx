@@ -21,7 +21,7 @@ import { EntranceEnvelope } from './modern-minimal/EntranceEnvelope';
 import { ParallaxDivider } from './modern-minimal/ParallaxDivider';
 
 import { BackgroundMusic } from './modern-minimal/BackgroundMusic';
-import { getWeddingHeroImage, getWeddingSectionPhoto } from "./shared/weddingPhotos";
+import { getWeddingHeroImage } from "./shared/weddingPhotos";
 import { isSectionVisible } from "./shared/template-settings";
 import { GuestbookSection } from "./shared/GuestbookSection";
 
@@ -43,7 +43,7 @@ export default function ModernMinimal({ wedding, guestName, config }: TemplatePr
     return (
         <div 
             style={getTemplatePaletteStyles(wedding.themeSettings, "#0A1226", "#F8F8EC")}
-            className="monea-full-palette monea-paper-canvas modern-minimal-invitation m05-type-system relative min-h-screen bg-[#f8f8ec] font-inter text-slate-900 selection:bg-[var(--primary)] selection:text-white"
+            className="monea-full-palette monea-paper-canvas modern-minimal-invitation m05-type-system khmer-readable-type-system relative min-h-screen bg-[#f8f8ec] font-inter text-slate-900 selection:bg-[var(--primary)] selection:text-white"
         >
             <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_top,_rgba(147,197,253,0.18),_transparent_35%),radial-gradient(circle_at_bottom,_rgba(59,130,246,0.10),_transparent_38%)]" />
             {!revealed && (
@@ -70,24 +70,16 @@ export default function ModernMinimal({ wedding, guestName, config }: TemplatePr
                 <LetterSection wedding={wedding} guestName={guestName} />
                 {isSectionVisible(config, "story") && <LoveStorySection wedding={wedding} />}
 
-                <ParallaxDivider 
-                    imageUrl={getWeddingSectionPhoto(wedding, 1)?.url || heroImage}
-                    text="FOREVER & ALWAYS"
-                />
+                <ParallaxDivider text="FOREVER & ALWAYS" />
 
                 {isSectionVisible(config, "timeline") && <ScheduleSection wedding={wedding} title={config.labels.scheduleTitle} />}
-
-                <ParallaxDivider 
-                    imageUrl={getWeddingSectionPhoto(wedding, 6)?.url || heroImage}
-                    text="THE BEGINNING"
-                />
 
                 {isSectionVisible(config, "map") && <LocationSection wedding={wedding} />}
                 <VideoSection wedding={wedding} />
                 {isSectionVisible(config, "gallery") && <GallerySection wedding={wedding} />}
                 
                 {isSectionVisible(config, "gift") && <GiftSection wedding={wedding} />}
-                {isSectionVisible(config, "guestbook") && <GuestbookSection wedding={wedding} tone="dark" />}
+                {isSectionVisible(config, "guestbook") && <GuestbookSection wedding={wedding} tone="dark" unboxed accentColorOverride="#d6bd83" />}
                 <ThankYouSection wedding={wedding} />
 
                 <footer className="border-t border-slate-800 bg-[#0A1226] px-6 py-14 text-center sm:py-16">
@@ -99,7 +91,7 @@ export default function ModernMinimal({ wedding, guestName, config }: TemplatePr
                             </span>
                             <span className="h-px w-10 bg-gradient-to-l from-transparent to-[#C8A96B]/70" />
                         </div>
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-slate-400">Powered by MONEA</p>
+                        <p className="text-[10px] font-semibold tracking-[0.08em] text-slate-400">Powered by MONEO</p>
                         <p className="text-[11px] text-slate-500">Made for your forever</p>
                     </div>
                 </footer>
@@ -115,12 +107,14 @@ export default function ModernMinimal({ wedding, guestName, config }: TemplatePr
                 />
             )}
 
-            <BackgroundMusic 
-                wedding={wedding} 
-                isPlaying={isPlaying} 
-                setIsPlaying={setIsPlaying} 
-                audioRef={audioRef} 
-            />
+            {revealed && (
+                <BackgroundMusic
+                    wedding={wedding}
+                    isPlaying={isPlaying}
+                    setIsPlaying={setIsPlaying}
+                    audioRef={audioRef}
+                />
+            )}
         </div>
     );
 }

@@ -30,58 +30,61 @@ export const GiftSection: React.FC<GiftSectionProps> = ({ wedding, primaryColor 
                     <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-emerald-600 to-transparent mx-auto" />
                 </div>
 
-                <div className="grid grid-cols-1 gap-4">
-                    {bankAccounts.map((acc, idx) => (
-                        <div
-                            key={idx}
-                            className="bg-white border border-emerald-200/80 rounded-3xl p-5 shadow-sm space-y-4"
-                        >
-                            <div className="flex items-center justify-between">
-                                <span className="text-xs font-bold text-emerald-800 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200/60">
-                                    {acc.bankName || "ធនាគារ"}
-                                </span>
-                                <span className="text-xs font-bold text-slate-800">
-                                    {acc.accountName || "ឈ្មោះគណនី"}
-                                </span>
-                            </div>
+                <div className="space-y-6">
+                    {bankAccounts.map((acc, idx) => {
+                        const qrUrl = acc.qrUrl || acc.qrCodeUrl;
 
-                            {/* QR Code */}
-                            {(acc.qrUrl || (acc as any).qrCodeUrl) && (
-                                <div className="w-44 h-44 mx-auto p-2 bg-white rounded-2xl border border-emerald-200/80 shadow-inner flex items-center justify-center">
-                                    <img
-                                        src={acc.qrUrl || (acc as any).qrCodeUrl}
-                                        alt="KHQR Code"
-                                        className="w-full h-full object-contain rounded-xl"
-                                    />
-                                </div>
-                            )}
-
-                            {/* Account Number with Copy */}
-                            {acc.accountNumber && (
-                                <div className="flex items-center justify-between bg-slate-50 border border-slate-200/80 px-4 py-2.5 rounded-xl text-xs">
-                                    <span className="font-mono font-bold text-slate-800 tracking-wider">
-                                        {acc.accountNumber}
-                                    </span>
-                                    <button
-                                        onClick={() => acc.accountNumber && handleCopy(acc.accountNumber, idx)}
-                                        className="text-emerald-700 hover:text-emerald-800 font-bold flex items-center gap-1 active:scale-95 transition-all"
-                                    >
-                                        {copiedIndex === idx ? (
-                                            <>
-                                                <Check size={14} />
-                                                <span>បានចម្លង</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Copy size={14} />
-                                                <span>ចម្លងលេខ</span>
-                                            </>
+                        return (
+                            <div
+                                key={idx}
+                                className="border-b border-emerald-900/10 pb-6 last:border-0 last:pb-0"
+                            >
+                                    <div className={`grid items-center gap-x-4 gap-y-3 text-left ${qrUrl ? "grid-cols-[minmax(0,1fr)_9rem]" : "grid-cols-1"}`}>
+                                        <div className="min-w-0 space-y-2">
+                                            <span className="block break-words text-xs font-bold text-emerald-800">
+                                                {acc.bankName || "ធនាគារ"}
+                                            </span>
+                                            <span className="block break-words text-xs font-bold text-slate-800">
+                                                {acc.accountName || "ឈ្មោះគណនី"}
+                                            </span>
+                                            {acc.accountNumber && (
+                                                <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-emerald-900/15 py-2.5 text-xs">
+                                                    <span className="min-w-0 break-all font-mono font-bold tracking-wider text-slate-800">
+                                                        {acc.accountNumber}
+                                                    </span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => acc.accountNumber && handleCopy(acc.accountNumber, idx)}
+                                                        className="flex shrink-0 items-center gap-1 font-bold text-emerald-700 transition-all hover:text-emerald-800 active:scale-95"
+                                                    >
+                                                        {copiedIndex === idx ? (
+                                                            <>
+                                                                <Check size={14} />
+                                                                <span>បានចម្លង</span>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Copy size={14} />
+                                                                <span>ចម្លងលេខ</span>
+                                                            </>
+                                                        )}
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                        {qrUrl && (
+                                            <div className="flex h-36 w-36 items-center justify-center bg-white">
+                                                <img
+                                                    src={qrUrl}
+                                                    alt="KHQR Code"
+                                                    className="h-full w-full object-contain"
+                                                />
+                                            </div>
                                         )}
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    ))}
+                                    </div>
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
         </section>

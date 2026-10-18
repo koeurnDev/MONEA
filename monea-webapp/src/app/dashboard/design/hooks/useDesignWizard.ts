@@ -9,6 +9,7 @@ import { getTemplateConfig, getTemplatesForEventType } from "@/components/templa
 import { DEFAULT_WEDDING } from "@/data/wedding";
 import { createSerialTaskQueue } from "@/lib/serial-task-queue";
 import { normalizeWeddingActivities } from "@/lib/wedding-activities";
+import { assignUploadedPhotosToSlots, migrateWeddingPhotoSlots, swapWeddingPhotoSlots, WEDDING_PHOTO_LAYOUTS } from "@/lib/wedding-photo-layout";
 import {
     DEFAULT_WEDDING_ACTIVITIES,
     getDefaultActivitiesForEventType,
@@ -40,120 +41,14 @@ const isNetworkSaveFailure = (status: number, error: string | null) =>
 // --- Constants ---
 export const PRESET_COLORS = ["#8E5A5A", "#1E40AF", "#047857", "#B91C1C", "#D97706", "#4B5563", "#000000", "#D4AF37"];
 
-export const TEMPLATE_LAYOUTS: Record<string, { slots: number, labels: string[] }> = {
-    "khmer-legacy": { 
-        slots: 11, 
-        labels: [
-            "wizard.steps.4.slots.hero", 
-            "wizard.steps.4.slots.editorial1",
-            "wizard.steps.4.slots.editorial2",
-            "wizard.steps.4.slots.editorial3",
-            "wizard.steps.4.slots.editorial4",
-            "wizard.steps.4.slots.map",
-            "wizard.steps.4.slots.sig1",
-            "wizard.steps.4.slots.sig2",
-            "wizard.steps.4.slots.sig3",
-            "wizard.steps.4.slots.groom",
-            "wizard.steps.4.slots.bride"
-        ] 
-    },
-    "modern-minimal": { 
-        slots: 11, 
-        labels: [
-            "wizard.steps.4.slots.hero", 
-            "wizard.steps.4.slots.editorial1",
-            "wizard.steps.4.slots.editorial2",
-            "wizard.steps.4.slots.editorial3",
-            "wizard.steps.4.slots.editorial4",
-            "wizard.steps.4.slots.map",
-            "wizard.steps.4.slots.sig1",
-            "wizard.steps.4.slots.sig2",
-            "wizard.steps.4.slots.sig3",
-            "wizard.steps.4.slots.groom",
-            "wizard.steps.4.slots.bride"
-        ] 
-    },
-    "fortune-harmony": {
-        slots: 11,
-        labels: [
-            "wizard.steps.4.slots.hero",
-            "wizard.steps.4.slots.editorial1",
-            "wizard.steps.4.slots.editorial2",
-            "wizard.steps.4.slots.editorial3",
-            "wizard.steps.4.slots.editorial4",
-            "wizard.steps.4.slots.map",
-            "wizard.steps.4.slots.sig1",
-            "wizard.steps.4.slots.sig2",
-            "wizard.steps.4.slots.sig3",
-            "wizard.steps.4.slots.groom",
-            "wizard.steps.4.slots.bride"
-        ]
-    },
-    "anniversary-elegant": { 
-        slots: 11, 
-        labels: [
-            "wizard.steps.4.slots.hero", 
-            "wizard.steps.4.slots.editorial1",
-            "wizard.steps.4.slots.editorial2",
-            "wizard.steps.4.slots.editorial3",
-            "wizard.steps.4.slots.editorial4",
-            "wizard.steps.4.slots.map",
-            "wizard.steps.4.slots.sig1",
-            "wizard.steps.4.slots.sig2",
-            "wizard.steps.4.slots.sig3",
-            "wizard.steps.4.slots.husband",
-            "wizard.steps.4.slots.wife"
-        ] 
-    },
-    "blossom-romance": {
-        slots: 11,
-        labels: [
-            "wizard.steps.4.slots.hero",
-            "wizard.steps.4.slots.editorial1",
-            "wizard.steps.4.slots.editorial2",
-            "wizard.steps.4.slots.editorial3",
-            "wizard.steps.4.slots.editorial4",
-            "wizard.steps.4.slots.map",
-            "wizard.steps.4.slots.sig1",
-            "wizard.steps.4.slots.sig2",
-            "wizard.steps.4.slots.sig3",
-            "wizard.steps.4.slots.groom",
-            "wizard.steps.4.slots.bride"
-        ]
-    },
-    "nea-m05": {
-        slots: 11,
-        labels: [
-            "wizard.steps.4.slots.hero",
-            "wizard.steps.4.slots.editorial1",
-            "wizard.steps.4.slots.editorial2",
-            "wizard.steps.4.slots.editorial3",
-            "wizard.steps.4.slots.editorial4",
-            "wizard.steps.4.slots.map",
-            "wizard.steps.4.slots.sig1",
-            "wizard.steps.4.slots.sig2",
-            "wizard.steps.4.slots.sig3",
-            "wizard.steps.4.slots.groom",
-            "wizard.steps.4.slots.bride"
-        ]
-    },
-    "emerald-garden": {
-        slots: 11,
-        labels: [
-            "wizard.steps.4.slots.hero",
-            "wizard.steps.4.slots.editorial1",
-            "wizard.steps.4.slots.editorial2",
-            "wizard.steps.4.slots.editorial3",
-            "wizard.steps.4.slots.editorial4",
-            "wizard.steps.4.slots.map",
-            "wizard.steps.4.slots.sig1",
-            "wizard.steps.4.slots.sig2",
-            "wizard.steps.4.slots.sig3",
-            "wizard.steps.4.slots.groom",
-            "wizard.steps.4.slots.bride"
-        ]
-    },
-};
+export const TEMPLATE_LAYOUTS: Record<string, { slots: number, labels: string[] }> =
+    Object.fromEntries(Object.entries(WEDDING_PHOTO_LAYOUTS).map(([templateId, photoLayout]) => [
+        templateId,
+        {
+            slots: photoLayout.slots.length,
+            labels: photoLayout.slots.map((slot) => slot.title),
+        },
+    ]));
 
 const getEditorDefaults = (isPlatformAdmin: boolean): WeddingData => {
     if (isPlatformAdmin) return DEFAULT_WEDDING;
@@ -237,12 +132,12 @@ export function useDesignWizard() {
     const [wedding, setWedding] = useState<WeddingData | null>(null);
     const [loading, setLoading] = useState(false);
     const [currentStep, setCurrentStep] = useState(1);
+    const [photoMigrationNotice, setPhotoMigrationNotice] = useState<string | null>(null);
     const [progress, setProgress] = useState(0);
 
     // UI states
     const [mobileTab, setMobileTab] = useState<'editor' | 'preview'>('editor');
     const [previewMode, setPreviewMode] = useState<'mobile' | 'desktop'>('mobile');
-    const [isDraggingGallery, setIsDraggingGallery] = useState(false);
     const [activeAccordion, setActiveAccordion] = useState<string | null>('theme');
     const { user, isLoading: authLoading } = useAuth();
     const isPlatformAdmin = user?.role === 'SUPERADMIN' || user?.role === 'PLATFORM_OWNER';
@@ -333,6 +228,16 @@ export function useDesignWizard() {
                         reconstructed[idx] = item;
                     });
                     data.galleryItems = reconstructed;
+                }
+                data.galleryItems = Array.isArray(data.galleryItems) ? data.galleryItems : [];
+                if (data.themeSettings?.privateCertificate?.publicId) {
+                    const hasCertificate = data.galleryItems.some((item: any) => item?.type === "CERTIFICATE");
+                    if (!hasCertificate) {
+                        data.galleryItems.push({
+                            ...data.themeSettings.privateCertificate,
+                            type: "CERTIFICATE",
+                        });
+                    }
                 }
 
                 const savedActivities = Array.isArray(data.activities) ? data.activities : [];
@@ -527,9 +432,9 @@ export function useDesignWizard() {
     }, [wedding, mounted, saveChanges]);
 
     // --- Core Update Functions ---
-    const deleteCloudinaryAsset = useCallback(async (publicId: string) => {
+    const deleteCloudinaryAsset = useCallback(async (publicId: string, resourceType: "image" | "video" = "image") => {
         try {
-            await moneaClient.post('/api/cloudinary/delete', { public_id: publicId });
+            await moneaClient.post('/api/cloudinary/delete', { public_id: publicId, resource_type: resourceType });
         } catch (error) {
             console.error("Error deleting asset:", error);
         }
@@ -543,14 +448,20 @@ export function useDesignWizard() {
         setWedding((prev) => {
             if (!prev) return null;
             const changes = typeof keyOrValues === "string" ? { [keyOrValues]: value } : keyOrValues;
-            if (typeof keyOrValues === "string" && keyOrValues === 'musicUrl' && prev.themeSettings?.musicUrlPublicId) {
-                if (value && value !== prev.themeSettings.musicUrl) {
-                    deleteCloudinaryAsset(prev.themeSettings.musicUrlPublicId);
-                }
+            const changesMusicUrl = Object.prototype.hasOwnProperty.call(changes, "musicUrl");
+            const musicUrlChanged = changesMusicUrl && changes.musicUrl !== prev.themeSettings?.musicUrl;
+            if (musicUrlChanged && prev.themeSettings?.musicUrlPublicId) {
+                deleteCloudinaryAsset(prev.themeSettings.musicUrlPublicId, "video");
             }
+            const themeChanges = {
+                ...changes,
+                ...(musicUrlChanged && !Object.prototype.hasOwnProperty.call(changes, "musicUrlPublicId")
+                    ? { musicUrlPublicId: "" }
+                    : {}),
+            };
             const updated = {
                 ...prev,
-                themeSettings: { ...(prev.themeSettings || {}), ...changes }
+                themeSettings: { ...(prev.themeSettings || {}), ...themeChanges }
             };
             if (autoSave) saveChanges(updated, { silent: true });
             return updated;
@@ -567,7 +478,7 @@ export function useDesignWizard() {
                     : [...storyPublicIds, prev.themeSettings?.storyImagePublicId]
                 : [(prev.themeSettings as any)?.[publicIdKey]];
             for (const publicId of new Set(publicIdsToDelete.filter((id): id is string => Boolean(id)))) {
-                deleteCloudinaryAsset(publicId);
+                deleteCloudinaryAsset(publicId, publicIdKey === "musicUrlPublicId" ? "video" : "image");
             }
             const storyImages = prev.themeSettings?.storyImages || [];
             const updated = {
@@ -619,19 +530,43 @@ export function useDesignWizard() {
     }, []);
 
     const updateTemplate = useCallback((templateId: string) => {
+        const migrationPreview = wedding
+            ? migrateWeddingPhotoSlots(
+                wedding.galleryItems,
+                wedding.templateId,
+                templateId,
+                wedding.themeSettings?.hiddenPhotoSlots,
+                wedding.themeSettings?.hiddenGalleryPhotoKeys,
+            )
+            : null;
+        setPhotoMigrationNotice(
+            migrationPreview?.movedToGalleryCount
+                ? `បានរក្សារូប ${migrationPreview.movedToGalleryCount} សន្លឹកក្នុងវិចិត្រសាលបន្ថែម ព្រោះ template ថ្មីមិនមានផ្នែកដូចគ្នា។`
+                : null,
+        );
         setWedding((prev) => {
             if (!prev) return null;
             const config = getTemplateConfig(templateId);
+            const photoMigration = migrateWeddingPhotoSlots(
+                prev.galleryItems,
+                prev.templateId,
+                templateId,
+                prev.themeSettings?.hiddenPhotoSlots,
+                prev.themeSettings?.hiddenGalleryPhotoKeys,
+            );
             return {
                 ...prev,
                 templateId,
+                galleryItems: photoMigration.galleryItems,
                 themeSettings: {
                     ...(prev.themeSettings || {}),
+                    hiddenPhotoSlots: photoMigration.hiddenPhotoSlots,
+                    hiddenGalleryPhotoKeys: photoMigration.hiddenGalleryPhotoKeys,
                     ...(config?.primaryColor ? { primaryColor: config.primaryColor } : {}),
                 },
             };
         });
-    }, []);
+    }, [wedding]);
 
     const updateEventType = useCallback((type: 'wedding' | 'anniversary', allowedTemplateIds?: readonly string[]) => {
         setWedding((prev) => {
@@ -658,13 +593,23 @@ export function useDesignWizard() {
             }
 
             const config = getTemplateConfig(nextTemplate);
+            const photoMigration = migrateWeddingPhotoSlots(
+                prev.galleryItems,
+                currentTemplate,
+                nextTemplate,
+                prev.themeSettings?.hiddenPhotoSlots,
+                prev.themeSettings?.hiddenGalleryPhotoKeys,
+            );
             return {
                 ...prev,
                 eventType: normalizedType,
                 templateId: nextTemplate,
+                galleryItems: photoMigration.galleryItems,
                 activities,
                 themeSettings: {
                     ...(prev.themeSettings || {}),
+                    hiddenPhotoSlots: photoMigration.hiddenPhotoSlots,
+                    hiddenGalleryPhotoKeys: photoMigration.hiddenGalleryPhotoKeys,
                     ...(config?.primaryColor ? { primaryColor: config.primaryColor } : {}),
                 },
             };
@@ -693,37 +638,40 @@ export function useDesignWizard() {
     }, [updateTheme]);
 
     // --- Gallery Handlers ---
-    const addGalleryItem = useCallback((url: string, publicId?: string, index?: number, type: string = "IMAGE") => {
-        setWedding((prev) => {
-            if (!prev) return null;
-            const newItems = [...(prev.galleryItems || [])];
-            const newTheme = { ...(prev.themeSettings || {}) };
+    const addGalleryItem = useCallback(async (url: string, publicId?: string, index?: number, type: string = "IMAGE") => {
+        const currentWedding = weddingRef.current;
+        if (!currentWedding) return false;
 
-            if (typeof index === 'number') {
-                while (newItems.length <= index) newItems.push({ url: "", type: "IMAGE" });
-                const oldItem = newItems[index];
-                if (oldItem?.publicId && oldItem.publicId !== publicId) deleteCloudinaryAsset(oldItem.publicId);
-                newItems[index] = { url, publicId, type };
-                newTheme.hiddenPhotoSlots = (newTheme.hiddenPhotoSlots || []).filter((slot) => slot !== index);
-                if (index === 0) {
-                    newTheme.heroImage = url;
-                    newTheme.coverImageUrl = url;
-                    if (publicId) newTheme.heroImagePublicId = publicId;
-                }
-            } else {
-                newItems.push({ url, publicId, type });
-                if (newItems.length === 1) {
-                    newTheme.heroImage = url;
-                    newTheme.coverImageUrl = url;
-                    if (publicId) newTheme.heroImagePublicId = publicId;
-                }
+        const newItems = [...(currentWedding.galleryItems || [])];
+        const newTheme = { ...(currentWedding.themeSettings || {}) };
+        let replacedPublicId: string | undefined;
+
+        if (typeof index === 'number') {
+            while (newItems.length <= index) newItems.push({ url: "", type: "IMAGE" });
+            const oldItem = newItems[index];
+            if (oldItem?.publicId && oldItem.publicId !== publicId) replacedPublicId = oldItem.publicId;
+            newItems[index] = { url, publicId, type };
+            newTheme.hiddenPhotoSlots = (newTheme.hiddenPhotoSlots || []).filter((slot) => slot !== index);
+            if (index === 0) {
+                newTheme.heroImage = url;
+                newTheme.coverImageUrl = url;
+                if (publicId) newTheme.heroImagePublicId = publicId;
             }
+        } else {
+            newItems.push({ url, publicId, type });
+            if (newItems.length === 1) {
+                newTheme.heroImage = url;
+                newTheme.coverImageUrl = url;
+                if (publicId) newTheme.heroImagePublicId = publicId;
+            }
+        }
 
-            const updated = { ...prev, galleryItems: newItems, themeSettings: newTheme };
-            mutate(updated, false);
-            saveChanges(updated, { silent: true });
-            return updated;
-        });
+        const updated = { ...currentWedding, galleryItems: newItems, themeSettings: newTheme };
+        setWedding(updated);
+        mutate(updated, false);
+        const saved = await saveChanges(updated, { silent: true });
+        if (saved && replacedPublicId) await deleteCloudinaryAsset(replacedPublicId);
+        return saved;
     }, [mutate, deleteCloudinaryAsset, saveChanges]);
 
     const removeGalleryItem = useCallback((index: number) => {
@@ -759,38 +707,72 @@ export function useDesignWizard() {
         });
     }, [mutate, deleteCloudinaryAsset, saveChanges]);
 
+    const moveGalleryPhoto = useCallback(async (fromIndex: number, toIndex: number) => {
+        const currentWedding = weddingRef.current;
+        if (!currentWedding) return false;
+
+        const galleryItems = swapWeddingPhotoSlots(
+            currentWedding.galleryItems || [],
+            fromIndex,
+            toIndex,
+            currentWedding.templateId,
+        );
+        if (!galleryItems) return false;
+
+        const coverPhoto = galleryItems[0];
+        const themeSettings = {
+            ...(currentWedding.themeSettings || {}),
+            heroImage: coverPhoto?.url || "",
+            coverImageUrl: coverPhoto?.url || "",
+            heroImagePublicId: coverPhoto?.publicId || "",
+        };
+        const updated = { ...currentWedding, galleryItems, themeSettings };
+        setWedding(updated);
+        mutate(updated, false);
+        return saveChanges(updated, { silent: true });
+    }, [mutate, saveChanges]);
+
+    const persistUploadedPhotos = useCallback(async (uploadedItems: { url: string; publicId: string; type?: string }[]) => {
+        if (uploadedItems.length === 0) return false;
+        const currentWedding = weddingRef.current;
+        if (!currentWedding) return false;
+
+        const uploadedPhotos = uploadedItems.filter((item) => item.type?.toUpperCase() !== "VIDEO");
+        if (uploadedPhotos.length === 0) return false;
+        const galleryItems = assignUploadedPhotosToSlots(
+            currentWedding.galleryItems || [],
+            uploadedPhotos.map((item) => ({
+                url: item.url,
+                publicId: item.publicId,
+                type: "IMAGE",
+            })),
+            currentWedding.templateId,
+        );
+        const coverPhoto = galleryItems[0];
+        const themeSettings = coverPhoto?.url
+            ? {
+                ...(currentWedding.themeSettings || {}),
+                heroImage: coverPhoto.url,
+                coverImageUrl: coverPhoto.url,
+                ...(coverPhoto.publicId ? { heroImagePublicId: coverPhoto.publicId } : {}),
+            }
+            : currentWedding.themeSettings;
+        const updated = { ...currentWedding, galleryItems, themeSettings };
+        setWedding(updated);
+        mutate(updated, false);
+        return saveChanges(updated, { silent: true });
+    }, [mutate, saveChanges]);
+
     const handleGalleryDirectUpload = async (files: FileList | File[]) => {
         const fileArray = Array.from(files);
         const uploadedItems = await uploadFiles(fileArray);
-        if (uploadedItems.length > 0) {
-            setWedding((prev) => {
-                if (!prev) return null;
-                const updated = {
-                    ...prev,
-                    galleryItems: [
-                        ...(prev.galleryItems || []),
-                        ...uploadedItems.map(item => ({
-                            url: item.url,
-                            publicId: item.publicId,
-                            type: item.type || 'IMAGE',
-                        }))
-                    ]
-                };
-                mutate(updated, false);
-                saveChanges(updated, { silent: true });
-                return updated;
-            });
-        }
+        return persistUploadedPhotos(uploadedItems);
     };
 
-    const updateGalleryOrder = useCallback((newItems: any[]) => {
-        setWedding((prev) => {
-            if (!prev) return null;
-            const updated = { ...prev, galleryItems: newItems };
-            saveChanges(updated, { silent: true });
-            return updated;
-        });
-    }, [saveChanges]);
+    const retryGalleryDirectUpload = async () => {
+        const uploadedItems = await retryFailedUploads();
+        return uploadedItems ? persistUploadedPhotos(uploadedItems) : false;
+    };
 
     // --- Versional Handlers ---
     const fetchVersions = useCallback(async () => {
@@ -849,7 +831,24 @@ export function useDesignWizard() {
                     if (typeof themeSettings === 'string') {
                         try { themeSettings = JSON.parse(themeSettings); } catch (e) { themeSettings = {}; }
                     }
-                    return { ...prev, templateId: result.templateId, themeSettings };
+                    if (!themeSettings || typeof themeSettings !== "object") themeSettings = {};
+                    const photoMigration = migrateWeddingPhotoSlots(
+                        prev.galleryItems,
+                        prev.templateId,
+                        result.templateId,
+                        themeSettings.hiddenPhotoSlots ?? prev.themeSettings?.hiddenPhotoSlots,
+                        themeSettings.hiddenGalleryPhotoKeys ?? prev.themeSettings?.hiddenGalleryPhotoKeys,
+                    );
+                    return {
+                        ...prev,
+                        templateId: result.templateId,
+                        galleryItems: photoMigration.galleryItems,
+                        themeSettings: {
+                            ...themeSettings,
+                            hiddenPhotoSlots: photoMigration.hiddenPhotoSlots,
+                            hiddenGalleryPhotoKeys: photoMigration.hiddenGalleryPhotoKeys,
+                        },
+                    };
                 });
                 setRollbackConfirm({ open: false, versionId: "" });
             }
@@ -881,17 +880,18 @@ export function useDesignWizard() {
 
     return {
         mounted, wedding, setWedding, loading, currentStep, setCurrentStep, progress,
+        photoMigrationNotice, dismissPhotoMigrationNotice: () => setPhotoMigrationNotice(null),
         mobileTab, setMobileTab, previewMode, setPreviewMode,
-        isDraggingGallery, setIsDraggingGallery, activeAccordion, setActiveAccordion,
+        activeAccordion, setActiveAccordion,
         templateVersions, fetchingVersions, newVersionTitle, setNewVersionTitle,
         isSavingVersion, rollbackConfirm, setRollbackConfirm, rollbackLoading,
         deleteVersionConfirm, setDeleteVersionConfirm, saveToast, versionToast,
-        iframeRef, galleryUploading, galleryProgress, galleryUploadError, failedGalleryFileCount, retryGalleryUpload: retryFailedUploads,
+        iframeRef, galleryUploading, galleryProgress, galleryUploadError, failedGalleryFileCount, retryGalleryUpload: retryGalleryDirectUpload,
         loadError: swrError,
         retryLoad: () => mutate(),
         updateWedding, updateTheme, removeThemeAsset, updateLabel, updateParent,
         updateTemplate, updateEventType, addGalleryItem, removeGalleryItem,
-        handleGalleryDirectUpload, updateGalleryOrder, saveChanges, fetchVersions, handleSaveVersion,
+        handleGalleryDirectUpload, moveGalleryPhoto, saveChanges, fetchVersions, handleSaveVersion,
         handleRollback, confirmRollback, handleDeleteVersion, confirmDeleteVersion,
         nextStep, prevStep, isDirty, lastSavedAt
     };

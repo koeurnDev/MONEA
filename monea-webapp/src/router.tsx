@@ -23,6 +23,8 @@ const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'))
 const TermsPage = lazy(() => import('./pages/TermsPage'))
 const ContactPage = lazy(() => import('./pages/ContactPage'))
 const SupportPage = lazy(() => import('./pages/SupportPage'))
+const DigitalWeddingInvitationPage = lazy(() => import('./pages/seo/DigitalWeddingInvitationPage'))
+const PricingPage = lazy(() => import('./pages/seo/PricingPage'))
 const MaintenancePage = lazy(() => import('./pages/MaintenancePage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
@@ -31,6 +33,7 @@ const SignInPage = lazy(() => import('./pages/auth/SignInPage'))
 const SignUpPage = lazy(() => import('./pages/auth/SignUpPage'))
 const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'))
 const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'))
+const VerifyEmailPage = lazy(() => import('./pages/auth/VerifyEmailPage'))
 const AuthCallbackPage = lazy(() => import('./pages/auth/AuthCallbackPage'))
 const TelegramCallbackPage = lazy(() => import('./pages/auth/TelegramCallbackPage'))
 
@@ -68,6 +71,8 @@ const AdminMasterAnalyticsPage = lazy(() => import('./pages/admin/master/Analyti
 const AdminMasterAuditPage = lazy(() => import('./pages/admin/master/AuditPage'))
 const AdminMasterBroadcastPage = lazy(() => import('./pages/admin/master/BroadcastPage'))
 const AdminMasterMaintenancePage = lazy(() => import('./pages/admin/master/MaintenancePage'))
+const AdminMasterLegalContentPage = lazy(() => import('./pages/admin/master/LegalContentPage'))
+const AdminMasterSocialLinksPage = lazy(() => import('./pages/admin/master/SocialLinksPage'))
 const AdminMasterPaymentsPage = lazy(() => import('./pages/admin/master/PaymentsPage'))
 const AdminMasterSecurityPage = lazy(() => import('./pages/admin/master/SecurityPage'))
 const AdminMasterSettingsPage = lazy(() => import('./pages/admin/master/SettingsPage'))
@@ -89,6 +94,8 @@ export default function Router() {
           <Route path="/terms-and-conditions" element={<Suspense fallback={fallback}><TermsPage /></Suspense>} />
           <Route path="/contact" element={<Suspense fallback={fallback}><ContactPage /></Suspense>} />
           <Route path="/support" element={<Suspense fallback={fallback}><SupportPage /></Suspense>} />
+          <Route path="/khmer-digital-wedding-invitation" element={<Suspense fallback={fallback}><DigitalWeddingInvitationPage /></Suspense>} />
+          <Route path="/pricing" element={<Suspense fallback={fallback}><PricingPage /></Suspense>} />
           <Route path="/maintenance" element={<Suspense fallback={fallback}><MaintenancePage /></Suspense>} />
 
           {/* Wedding Public Routes */}
@@ -108,6 +115,7 @@ export default function Router() {
             <Route path="/register" element={<Navigate to="/sign-up" replace />} />
             <Route path="/forgot-password" element={<Suspense fallback={fallback}><ForgotPasswordPage /></Suspense>} />
             <Route path="/reset-password" element={<Suspense fallback={fallback}><ResetPasswordPage /></Suspense>} />
+            <Route path="/verify-email" element={<Suspense fallback={fallback}><VerifyEmailPage /></Suspense>} />
           </Route>
 
           {/* SSO Auth Callback — outside AuthLayout so it shows just a loader */}
@@ -150,6 +158,8 @@ export default function Router() {
             <Route path="/admin/master/audit" element={<Suspense fallback={fallback}><AdminMasterAuditPage /></Suspense>} />
             <Route path="/admin/master/broadcast" element={<Suspense fallback={fallback}><AdminMasterBroadcastPage /></Suspense>} />
             <Route path="/admin/master/maintenance" element={<Suspense fallback={fallback}><AdminMasterMaintenancePage /></Suspense>} />
+            <Route path="/admin/master/legal-content" element={<Suspense fallback={fallback}><AdminMasterLegalContentPage /></Suspense>} />
+            <Route path="/admin/master/social-links" element={<Suspense fallback={fallback}><AdminMasterSocialLinksPage /></Suspense>} />
             <Route path="/admin/master/payments" element={<Suspense fallback={fallback}><AdminMasterPaymentsPage /></Suspense>} />
             <Route path="/admin/master/security" element={<Suspense fallback={fallback}><AdminMasterSecurityPage /></Suspense>} />
             <Route path="/admin/master/settings" element={<Suspense fallback={fallback}><AdminMasterSettingsPage /></Suspense>} />

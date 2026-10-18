@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Clock, Heart } from 'lucide-react';
+import { CalendarDays, Heart } from 'lucide-react';
 import { WeddingData } from '../types';
-import { getWeddingSectionPhoto } from "../shared/weddingPhotos";
+import { getWeddingHeroImage, getWeddingSectionPhoto } from "../shared/weddingPhotos";
 import { PhotoImage } from "../shared/PhotoImage";
+import { OneLineName } from "../shared/OneLineName";
 
 interface HeroSectionProps {
     wedding: WeddingData;
@@ -15,7 +16,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
     const groomName = wedding.groomName || "កូនកំលោះ";
     const brideName = wedding.brideName || "កូនក្រមុំ";
     const eventDate = wedding.date ? new Date(wedding.date) : new Date();
-    const couplePhoto = getWeddingSectionPhoto(wedding, 0)?.url;
+    const couplePhoto = getWeddingSectionPhoto(wedding, "cover")?.url
+        || getWeddingHeroImage(wedding, "/assets/blossom-romance/blossom-arch-bg.jpg");
 
     // Countdown State
     const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number }>({
@@ -44,28 +46,34 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
     }, [wedding.date]);
 
     // Format Khmer Date
+    const toKhmerDigits = (value: number | string) =>
+        String(value).replace(/\d/g, (digit) => "០១២៣៤៥៦៧៨៩"[Number(digit)]);
+
     const formatKhmerDate = (date: Date) => {
         const monthsKh = ["មករា", "កុម្ភៈ", "មីនា", "មេសា", "ឧសភា", "មិថុនា", "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ"];
-        const day = date.getDate();
+        const day = toKhmerDigits(date.getDate());
         const month = monthsKh[date.getMonth()];
-        const year = date.getFullYear();
+        const year = toKhmerDigits(date.getFullYear());
         return `ថ្ងៃទី ${day} ខែ ${month} ឆ្នាំ ${year}`;
     };
 
     return (
-        <section className="relative w-full min-h-[640px] flex flex-col items-center justify-center p-6 text-center overflow-hidden">
-            <div className="relative z-10 max-w-lg mx-auto flex flex-col items-center space-y-6 pt-16 pb-12">
-                {/* Header Tag */}
+        <section className="relative isolate flex min-h-[min(100svh,780px)] w-full flex-col items-center justify-center overflow-hidden bg-[#fbf4f1] px-5 py-8 text-center">
+            <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(244,190,190,0.28),transparent_48%),radial-gradient(ellipse_at_bottom,rgba(180,83,9,0.08),transparent_44%)]" />
+            <div className="relative z-10 mx-auto flex w-full max-w-md flex-col items-center gap-3.5 sm:gap-4">
                 <motion.div
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6 }}
-                    className="space-y-1"
+                    className="space-y-2"
                 >
-                    <span className="text-xl sm:text-2xl font-khmer-moul text-[#5d604e] tracking-wider block">
-                        {isEngagement ? "សិរីសួស្តី ពិធីភ្ជាប់ពាក្យ" : "សិរីមង្គលអាពាហ៍ពិពាហ៍"}
+                    <span className="block font-playfair text-[9px] font-medium uppercase tracking-[0.3em] text-[#a66a71]">
+                        Rose Garden
                     </span>
-                    <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-[#9ea58a] to-transparent mx-auto mt-1" />
+                    <h2 className="block font-khmer-moul text-base text-[#5d604e] sm:text-lg">
+                        {isEngagement ? "សិរីសួស្តី ពិធីភ្ជាប់ពាក្យ" : "សិរីមង្គលអាពាហ៍ពិពាហ៍"}
+                    </h2>
+                    <div className="mx-auto h-px w-12 bg-gradient-to-r from-transparent via-[#c48b88] to-transparent" />
                 </motion.div>
 
                 {couplePhoto && (
@@ -73,75 +81,69 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
                         initial={{ opacity: 0, scale: 0.96 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.7, delay: 0.15 }}
-                        className="relative w-full max-w-[220px] overflow-hidden rounded-[7rem] border-4 border-white/90 shadow-xl"
+                        className="relative w-full max-w-[230px] rounded-t-[8rem] rounded-b-[1.5rem] border border-[#c48b88]/45 bg-white p-1.5 shadow-[0_16px_38px_rgba(120,65,65,0.14)]"
                     >
                         <PhotoImage
                             src={couplePhoto}
                             alt={`${groomName} និង ${brideName}`}
-                            className="aspect-[4/5] w-full object-cover"
+                            className="aspect-[4/5] w-full rounded-t-[7.5rem] rounded-b-[1.1rem] object-cover"
                             loading="eager"
                             decoding="async"
                         />
+                        <span aria-hidden="true" className="pointer-events-none absolute inset-3 rounded-t-[7rem] rounded-b-[0.9rem] border border-white/70" />
                     </motion.div>
                 )}
 
-                {/* Monogram / Crest */}
                 <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
+                    initial={{ opacity: 0, y: 10 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ duration: 0.7, delay: 0.2 }}
-                    className="mt-4 flex items-center justify-center gap-4 text-[#7a8f65]"
-                    style={{ fontFamily: 'serif' }}
+                    className="flex w-full items-center justify-center gap-3 text-[#a66a71]"
+                    aria-hidden="true"
                 >
-                    <span className="h-px w-10 bg-[#96a087]" />
-                    <span className="text-[28px] leading-none tracking-[0.2em]">◆</span>
-                    <span className="h-px w-10 bg-[#96a087]" />
+                    <span className="h-px w-8 bg-[#d6b0a5]" />
+                    <Heart size={14} className="fill-[#c48b88]/20" />
+                    <span className="h-px w-8 bg-[#d6b0a5]" />
                 </motion.div>
 
-                {/* Couple Names */}
                 <motion.div
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.3 }}
-                    className="space-y-2 py-2"
+                    className="space-y-2"
                 >
                     <h1
                         aria-label={`${groomName} និង ${brideName}`}
-                        className="m05-font-name text-3xl sm:text-4xl font-khmer-moul text-[#2d352b]"
+                        className="m05-font-name font-khmer-moul text-2xl leading-relaxed text-[#3e3b37] sm:text-3xl"
                     >
-                        <span className="block">{groomName}</span>
-                        <span aria-hidden="true" className="my-2 flex items-center justify-center gap-3">
-                            <span className="h-px w-10 bg-[#98a78e]" />
-                            <Heart size={16} className="text-[#5b6a53] fill-[#5b6a53]" />
-                            <span className="h-px w-10 bg-[#98a78e]" />
-                        </span>
-                        <span aria-hidden="true" className="block">{brideName}</span>
+                        <OneLineName name={groomName} />
+                        <span aria-hidden="true" className="my-1 block font-playfair text-base font-normal text-[#a66a71]">&amp;</span>
+                        <OneLineName name={brideName} ariaHidden />
                     </h1>
                 </motion.div>
 
-                {/* Date Display */}
                 <motion.div
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.4 }}
-                    className="space-y-1.5"
+                    className="flex flex-col items-center gap-1"
                 >
-                    <p className="text-sm sm:text-base font-bold font-khmer-moul text-[#4d5649] inline-block">
-                        📅 {formatKhmerDate(eventDate)}
+                    <p className="inline-flex items-center gap-2 font-khmer-moul text-xs font-medium text-[#5d604e] sm:text-sm">
+                        <CalendarDays aria-hidden="true" size={14} style={{ color: primaryColor }} />
+                        {formatKhmerDate(eventDate)}
                     </p>
                     {wedding.themeSettings?.lunarDate && (
-                        <p className="text-xs text-[#7a5d6a] font-khmer-moul">
+                        <p className="font-khmer-moul text-[10px] text-[#8a7773] sm:text-xs">
                             {wedding.themeSettings.lunarDate}
                         </p>
                     )}
                 </motion.div>
 
-                {/* Live Countdown Timer */}
                 <motion.div
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.5 }}
-                    className="flex items-center justify-center gap-3 pt-2"
+                    className="grid w-full max-w-[330px] grid-cols-4 divide-x divide-[#ead9d2] rounded-2xl border border-[#ead9d2] bg-white/70 px-2 py-3 shadow-sm"
                 >
                     {[
                         { label: "ថ្ងៃ", value: timeLeft.days },
@@ -149,11 +151,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
                         { label: "នាទី", value: timeLeft.minutes },
                         { label: "វិនាទី", value: timeLeft.seconds },
                     ].map((item, idx) => (
-                        <div key={idx} className="min-w-[54px] text-center">
-                            <span className="text-lg sm:text-xl font-bold font-khmer-moul text-[#881337] block leading-none">
-                                {item.value < 10 ? `0${item.value}` : item.value}
+                        <div key={idx} className="min-w-0 text-center">
+                            <span className="block font-khmer-moul text-base font-bold tabular-nums leading-none text-[#881337] sm:text-lg">
+                                {toKhmerDigits(item.value < 10 ? `0${item.value}` : item.value)}
                             </span>
-                            <span className="text-[10px] font-khmer-moul text-[#5d604e] block mt-1">
+                            <span className="mt-1 block font-khmer-moul text-[9px] text-[#7a6c67]">
                                 {item.label}
                             </span>
                         </div>

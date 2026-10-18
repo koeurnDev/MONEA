@@ -2,6 +2,7 @@
 import { motion as m } from 'framer-motion';
 import { AlertCircle, RefreshCcw, MessageCircle, WifiOff, Database } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useSocialLinks } from "@/hooks/useSocialLinks";
 
 interface ErrorStateProps {
     title?: string;
@@ -20,6 +21,7 @@ export default function ErrorState({
     className,
     showContact = true,
 }: ErrorStateProps) {
+    const telegramLink = useSocialLinks().find((link) => link.platform === "telegram");
     const getContent = () => {
         switch (type) {
             case 'connection':
@@ -90,10 +92,10 @@ export default function ErrorState({
                         ព្យាយាមម្តងទៀត
                     </Button>
                 )}
-                {showContact && (
+                {showContact && telegramLink && (
                     <Button
                         variant="ghost"
-                        onClick={() => window.open('https://t.me/monea_support', '_blank')}
+                        onClick={() => window.open(telegramLink.url, '_blank', 'noopener,noreferrer')}
                         className="h-12 rounded-xl border border-white/10 text-white hover:bg-white/5 transition-all font-medium text-sm gap-2"
                     >
                         <MessageCircle className="w-4 h-4" />

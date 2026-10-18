@@ -1,8 +1,52 @@
-﻿import { m } from 'framer-motion';
-import { ShieldAlert, Clock, Sparkles, Heart } from "lucide-react";
+import { useEffect, useState } from 'react';
+import { m } from 'framer-motion';
+import { ShieldAlert, Sparkles, Heart, RefreshCw } from "lucide-react";
 import PageTransition from '@/components/layout/PageTransition';
+import { getApiUrl } from '@/lib/api-url';
+import { useSocialLinks } from "@/hooks/useSocialLinks";
 
 export default function MaintenancePage() {
+    const telegramLink = useSocialLinks().find((link) => link.platform === "telegram");
+    const [isChecking, setIsChecking] = useState(false);
+    const [checkError, setCheckError] = useState('');
+
+    const checkMaintenanceStatus = async () => {
+        setIsChecking(true);
+        setCheckError('');
+        try {
+            const response = await fetch(getApiUrl('/system/status'), {
+                cache: 'no-store',
+                credentials: 'include',
+            });
+            if (!response.ok && response.status !== 503) {
+                throw new Error(`Status check failed with HTTP ${response.status}`);
+            }
+
+            const status: unknown = await response.json();
+            const maintenance = response.status === 503 ||
+                (typeof status === 'object' && status !== null && 'maintenance' in status && typeof status.maintenance === 'boolean'
+                    ? status.maintenance
+                    : undefined);
+            if (maintenance === undefined) {
+                throw new Error('Status check returned an invalid response');
+            }
+            if (!maintenance) {
+                window.location.replace('/');
+            }
+        } catch (error) {
+            console.error('[MaintenancePage] Could not check maintenance status:', error);
+            setCheckError('មិនអាចពិនិត្យស្ថានភាពបានទេ។ សូមសាកល្បងម្ដងទៀត។');
+        } finally {
+            setIsChecking(false);
+        }
+    };
+
+    useEffect(() => {
+        void checkMaintenanceStatus();
+        const interval = window.setInterval(() => void checkMaintenanceStatus(), 30000);
+        return () => window.clearInterval(interval);
+    }, []);
+
     return (
         <PageTransition>
             <div className="min-h-screen bg-black flex items-center justify-center p-6 text-center selection:bg-red-500/30">
@@ -20,33 +64,38 @@ export default function MaintenancePage() {
                             <ShieldAlert size={48} className="drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]" />
                         </div>
 
-                        <h1 className="text-4xl md:text-6xl font-black text-white tracking-tighter mb-6 uppercase leading-tight">
-                            System Under <br /> 
+                        <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight mb-6 leading-tight font-kantumruy">
+                            ប្រព័ន្ធកំពុង <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-orange-500 to-red-500 animate-gradient-x">
-                                Maintenance
+                                ថែទាំបណ្ដោះអាសន្ន
                             </span>
                         </h1>
 
-                        <p className="text-white/60 font-medium font-kantumruy text-lg mb-12 max-w-md mx-auto leading-relaxed">
-                            យើងខ្ញុំកំពុងធ្វើការអភិវឌ្ឍន៍ប្រព័ន្ធដើម្បីផ្តល់ជូននូវបទពិសោធន៍កាន់តែប្រសើរ។ <br />
-                            <span className="text-white/40 text-sm">សូមអភ័យទោសចំពោះការរំខាននេះ។</span>
+                        <p className="text-white/70 font-medium font-kantumruy text-base mb-8 max-w-md mx-auto leading-relaxed">
+                            យើងខ្ញុំកំពុងកែលម្អប្រព័ន្ធ។ សូមអភ័យទោសចំពោះការរំខាននេះ។
                         </p>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left max-w-lg mx-auto mb-12 relative z-20">
-                            <div className="p-6 rounded-[2rem] bg-white/5 backdrop-blur-md border border-white/10 hover:border-red-500/30 transition-all group shadow-2xl">
-                                <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                                    <Clock className="text-blue-400" size={20} />
-                                </div>
-                                <h4 className="font-bold text-white text-sm mb-1 uppercase tracking-widest">Expected Back</h4>
-                                <p className="text-xs text-white/40 font-medium">Within 30-60 minutes</p>
-                            </div>
-                            <div className="p-6 rounded-[2rem] bg-white/5 backdrop-blur-md border border-white/10 hover:border-red-500/30 transition-all group shadow-2xl">
-                                <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                                    <Sparkles className="text-amber-400" size={20} />
-                                </div>
-                                <h4 className="font-bold text-white text-sm mb-1 uppercase tracking-widest">Support</h4>
-                                <p className="text-xs text-white/40 font-medium">t.me/monea_support</p>
-                            </div>
+                        <div className="relative z-20 mb-8 flex flex-col items-center gap-3">
+                            <button
+                                type="button"
+                                onClick={() => void checkMaintenanceStatus()}
+                                disabled={isChecking}
+                                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-red-600 px-6 py-3 font-kantumruy font-bold text-white shadow-lg shadow-red-950/30 transition hover:bg-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-300 disabled:cursor-wait disabled:opacity-70"
+                            >
+                                <RefreshCw size={18} className={isChecking ? "animate-spin" : ""} />
+                                {isChecking ? "កំពុងពិនិត្យ..." : "ពិនិត្យស្ថានភាពម្ដងទៀត"}
+                            </button>
+                            {checkError && <p role="alert" className="max-w-sm font-kantumruy text-sm text-red-200">{checkError}</p>}
+                            {telegramLink && <a
+                                href={telegramLink.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                aria-label={telegramLink.label}
+                                className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-white/15 px-4 py-2 font-kantumruy text-sm font-semibold text-white/70 transition hover:border-amber-300/50 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
+                            >
+                                <Sparkles className="text-amber-400" size={16} />
+                                ទាក់ទងជំនួយ
+                            </a>}
                         </div>
 
                         <m.div 
@@ -55,9 +104,9 @@ export default function MaintenancePage() {
                             transition={{ delay: 1 }}
                             className="flex flex-col items-center gap-4"
                         >
-                            <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">
+                            <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-xs font-black text-white/30 uppercase tracking-[0.2em]">
                                 <Heart size={10} className="text-red-500 animate-pulse" /> 
-                                Powered by MONEA Premium
+                                Powered by MONEO Premium
                             </div>
                         </m.div>
                     </m.div>

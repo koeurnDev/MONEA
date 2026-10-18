@@ -26,7 +26,7 @@ export function PageHeader({
   return (
     <div
       className={cn(
-        "flex flex-row items-center justify-between gap-3 border-b border-white/10 bg-transparent pb-4 pt-1",
+        "flex flex-row items-center justify-between gap-3 border-b border-border/60 bg-transparent pb-4 pt-1",
         stackActionOnMobile && "flex-col items-stretch sm:flex-row sm:items-center",
         className
       )}
@@ -34,7 +34,7 @@ export function PageHeader({
       {/* Left: Icon + Title */}
       <div className="flex min-w-0 items-center gap-3">
         {Icon && (
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-teal-600/20 bg-teal-600/10 shadow-sm shadow-teal-600/10 shrink-0">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-primary/20 bg-accent shadow-sm shrink-0">
             <Icon className={cn("h-5 w-5", iconColor)} />
           </div>
         )}

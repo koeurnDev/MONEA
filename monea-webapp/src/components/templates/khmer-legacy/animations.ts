@@ -2,7 +2,12 @@
 
 export const overlayVariants: Variants = {
     initial: { opacity: 1 },
-    exit: { opacity: 0, scale: 1.1 },
+    exit: {
+        opacity: 0,
+        scale: 1.1,
+        pointerEvents: 'none',
+        transition: { duration: 0.3 },
+    },
 };
 
 export const containerVariants: Variants = {

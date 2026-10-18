@@ -28,5 +28,5 @@ export async function getSecret(name: string, fallback?: string): Promise<string
 export const secrets = {
   getJwtSecret: () => getSecret("JWT_SECRET"),
   getEncryptionKey: () => getSecret("ENCRYPTION_KEY"),
-  getTelegramToken: () => getSecret("TELEGRAM_BOT_TOKEN", "your_bot_token_here"),
+  getTelegramToken: () => getSecret("TELEGRAM_BOT_TOKEN"),
 };

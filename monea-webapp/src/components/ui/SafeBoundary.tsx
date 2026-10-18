@@ -1,4 +1,4 @@
-﻿import React, { Component, ErrorInfo, ReactNode } from "react";
+import React, { Component, ErrorInfo, ReactNode } from "react";
 import { AlertCircle, RefreshCcw } from "lucide-react";
 import { Button } from "./button";
 
@@ -53,7 +53,7 @@ export class SafeBoundary extends Component<Props, State> {
           <Button 
             variant="outline" 
             size="sm" 
-            className="h-8 text-[10px] font-bold uppercase tracking-wider"
+            className="h-8 text-xs font-bold uppercase tracking-wider"
             onClick={() => this.setState({ hasError: false })}
           >
             <RefreshCcw className="w-3 h-3 mr-2" />

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { m } from 'framer-motion';
-import { Clock, Heart } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import type { WeddingData } from '../types';
 import { getWeddingSectionPhoto } from "../shared/weddingPhotos";
+import { CoupleNamesLine } from "../shared/OneLineName";
 
 export const AnniversaryCountdown = ({ wedding }: { wedding: WeddingData }) => {
     const { date } = wedding;
@@ -46,7 +47,7 @@ export const AnniversaryCountdown = ({ wedding }: { wedding: WeddingData }) => {
         return () => clearInterval(interval);
     }, [date]);
 
-    const countdownPhoto = getWeddingSectionPhoto(wedding, 1)?.url ||
+    const countdownPhoto = getWeddingSectionPhoto(wedding, "countdown")?.url ||
                            '/assets/khmer-legacy/621811002_905396558712142_5126771807004187076_n.jpg';
 
     if (!date) return null;
@@ -85,12 +86,12 @@ export const AnniversaryCountdown = ({ wedding }: { wedding: WeddingData }) => {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
                     <div className="absolute bottom-3 left-4 text-white text-left font-serif italic text-xs sm:text-sm drop-shadow-md">
-                        {wedding.groomName} & {wedding.brideName}
+                        <CoupleNamesLine groom={wedding.groomName} bride={wedding.brideName} className="text-left" />
                     </div>
                 </m.div>
 
                 {/* 4 Countdown Timer Boxes */}
-                <div className="grid grid-cols-4 gap-2 sm:gap-3">
+                <div className="grid grid-cols-4 items-stretch gap-2 sm:gap-3">
                     {timerCards.map((card, idx) => (
                         <m.div
                             key={idx}
@@ -98,12 +99,12 @@ export const AnniversaryCountdown = ({ wedding }: { wedding: WeddingData }) => {
                             whileInView={{ opacity: 1, scale: 1 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.5, delay: idx * 0.08 }}
-                            className="bg-gradient-to-b from-white to-[#F0E3D1] p-2.5 sm:p-3.5 rounded-2xl border border-[#D9C6AA] shadow-md text-center space-y-0.5"
+                            className="min-w-0 overflow-hidden rounded-2xl border border-[#D9C6AA] bg-gradient-to-b from-white to-[#F0E3D1] p-2 text-center shadow-md sm:p-3.5"
                         >
-                            <span className="font-mono text-lg sm:text-2xl font-black text-[#633E42] block tracking-tight">
-                                {String(card.val).padStart(2, '0')}
+                            <span className="block whitespace-nowrap font-kantumruy text-lg font-black leading-tight tabular-nums tracking-tight text-[#633E42] sm:text-2xl">
+                                {toKhmerNum(card.val)}
                             </span>
-                            <span className="text-[10px] sm:text-xs font-bold text-[#966B4E] block whitespace-nowrap">
+                            <span className="block whitespace-nowrap text-[10px] font-bold leading-tight text-[#966B4E] sm:text-xs">
                                 {card.label}
                             </span>
                         </m.div>

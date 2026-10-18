@@ -8,6 +8,7 @@ import {
     DialogDescription,
     DialogTitle,
 } from "@/components/ui/dialog";
+import { NETWORK_ERROR_MESSAGE } from "@/lib/network-errors";
 
 const fetcher = async (url: string) => {
     const response = await fetch(url);
@@ -71,7 +72,7 @@ export default function GalleryPage() {
                 </div>
                 <h1 className="text-base font-bold text-foreground">មិនអាចផ្ទុកកម្រងរូបភាពបានទេ</h1>
                 <p className="mt-2 text-sm text-muted-foreground">
-                    សូមពិនិត្យការភ្ជាប់អ៊ីនធឺណិត ហើយព្យាយាមម្តងទៀត។
+                    {NETWORK_ERROR_MESSAGE}
                 </p>
                 <button
                     type="button"
@@ -99,7 +100,7 @@ export default function GalleryPage() {
                         </Link>
                         <div>
                             <h1 className="text-lg sm:text-2xl font-black text-foreground">កម្រងរូបភាព</h1>
-                            <p className="text-[11px] sm:text-xs text-muted-foreground">រូបថតអនុស្សាវរីយ៍ពីភ្ញៀវកិត្តិយស</p>
+                            <p className="text-xs sm:text-xs text-muted-foreground">រូបថតអនុស្សាវរីយ៍ពីភ្ញៀវកិត្តិយស</p>
                         </div>
                     </div>
 
@@ -142,7 +143,7 @@ export default function GalleryPage() {
                                 </button>
                             )}
                             {item.caption && (
-                                <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/80 via-black/40 to-transparent text-white text-[10px] font-bold line-clamp-1">
+                                <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/80 via-black/40 to-transparent text-white text-xs font-bold line-clamp-1">
                                     {item.caption}
                                 </div>
                             )}

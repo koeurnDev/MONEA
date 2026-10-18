@@ -31,25 +31,25 @@ const STAT_CONFIGS = [
     {
         key: 'totalUsers',
         icon: Users,
-        gradient: "from-blue-500 to-indigo-600",
-        glow: "shadow-blue-500/25",
-        bg: "bg-blue-500/10",
-        iconColor: "text-blue-400",
-        border: "border-blue-500/20",
+        gradient: "from-primary to-olive",
+        glow: "shadow-primary/10",
+        bg: "bg-accent",
+        iconColor: "text-primary",
+        border: "border-primary/20",
     },
     {
         key: 'totalProjects',
         icon: PartyPopper,
-        gradient: "from-violet-500 to-purple-600",
-        glow: "shadow-violet-500/25",
-        bg: "bg-violet-500/10",
-        iconColor: "text-violet-400",
-        border: "border-violet-500/20",
+        gradient: "from-sage to-primary",
+        glow: "shadow-sage/10",
+        bg: "bg-accent",
+        iconColor: "text-sage",
+        border: "border-sage/20",
     },
     {
         key: 'activeProjects',
         icon: CalendarCheck,
-        gradient: "from-emerald-500 to-teal-600",
+        gradient: "from-emerald-500 to-sage",
         glow: "shadow-emerald-500/25",
         bg: "bg-emerald-500/10",
         iconColor: "text-emerald-400",
@@ -58,11 +58,11 @@ const STAT_CONFIGS = [
     {
         key: 'totalRevenue',
         icon: TrendingUp,
-        gradient: "from-amber-500 to-orange-500",
-        glow: "shadow-amber-500/25",
-        bg: "bg-amber-500/10",
-        iconColor: "text-amber-400",
-        border: "border-amber-500/20",
+        gradient: "from-gold to-olive",
+        glow: "shadow-gold/10",
+        bg: "bg-gold/10",
+        iconColor: "text-gold",
+        border: "border-gold/20",
     },
 ];
 
@@ -93,13 +93,13 @@ export default function AdminDashboardClient({ initialStats, initialLogs, userRo
     ];
 
     const quickLinks = [
-        { to: "/admin/users", icon: Users, label: "អ្នកប្រើ", color: "text-blue-400", bg: "bg-blue-500/10 hover:bg-blue-500/20 border-blue-500/20 hover:border-blue-500/40" },
-        { to: "/admin/weddings", icon: PartyPopper, label: "មង្គលការ", color: "text-violet-400", bg: "bg-violet-500/10 hover:bg-violet-500/20 border-violet-500/20 hover:border-violet-500/40" },
-        { to: "/admin/master/payments", icon: TrendingUp, label: "ការទូទាត់", color: "text-amber-400", bg: "bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/20 hover:border-amber-500/40" },
-        { to: "/admin/master/broadcast", icon: Megaphone, label: "ប្រកាស", color: "text-teal-400", bg: "bg-teal-500/10 hover:bg-teal-500/20 border-teal-500/20 hover:border-teal-500/40" },
-        { to: "/admin/master/audit", icon: Activity, label: "សវនកម្ម", color: "text-teal-400", bg: "bg-teal-500/10 hover:bg-teal-500/20 border-teal-500/20 hover:border-teal-500/40" },
+        { to: "/admin/users", icon: Users, label: "អ្នកប្រើ", color: "text-primary", bg: "bg-accent hover:bg-accent/80 border-primary/20 hover:border-primary/40" },
+        { to: "/admin/weddings", icon: PartyPopper, label: "មង្គលការ", color: "text-sage", bg: "bg-accent hover:bg-accent/80 border-sage/20 hover:border-sage/40" },
+        { to: "/admin/master/payments", icon: TrendingUp, label: "ការទូទាត់", color: "text-gold", bg: "bg-gold/10 hover:bg-gold/20 border-gold/20 hover:border-gold/40" },
+        { to: "/admin/master/broadcast", icon: Megaphone, label: "ប្រកាស", color: "text-primary", bg: "bg-accent hover:bg-accent/80 border-primary/20 hover:border-primary/40" },
+        { to: "/admin/master/audit", icon: Activity, label: "សវនកម្ម", color: "text-sage", bg: "bg-accent hover:bg-accent/80 border-sage/20 hover:border-sage/40" },
         ...(userRole === "PLATFORM_OWNER" ? [
-            { to: "/admin/master/settings", icon: Settings, label: "កំណត់", color: "text-slate-400", bg: "bg-slate-500/10 hover:bg-slate-500/20 border-slate-500/20 hover:border-slate-500/40" },
+            { to: "/admin/master/settings", icon: Settings, label: "កំណត់", color: "text-muted-foreground", bg: "bg-muted hover:bg-muted/80 border-border hover:border-primary/30" },
         ] : []),
     ];
 
@@ -112,31 +112,31 @@ export default function AdminDashboardClient({ initialStats, initialLogs, userRo
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4 }}
-                    className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-teal-700 via-teal-600 to-cyan-600 p-6 text-white shadow-xl shadow-teal-900/20"
+                    className="relative overflow-hidden rounded-2xl bg-primary p-6 text-primary-foreground shadow-xl shadow-primary/10"
                 >
                     {/* Decorative blobs */}
                     <div className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-white/10 blur-2xl" />
-                    <div className="pointer-events-none absolute -bottom-8 right-24 h-32 w-32 rounded-full bg-orange-300/20 blur-xl" />
-                    <div className="pointer-events-none absolute left-1/3 top-0 h-24 w-24 rounded-full bg-teal-300/20 blur-xl" />
+                    <div className="pointer-events-none absolute -bottom-8 right-24 h-32 w-32 rounded-full bg-gold/20 blur-xl" />
+                    <div className="pointer-events-none absolute left-1/3 top-0 h-24 w-24 rounded-full bg-sage/20 blur-xl" />
 
                     <div className="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                         <div>
-                            <p className="text-xs font-bold uppercase tracking-[0.25em] text-teal-100/80">
+                            <p className="text-xs font-bold uppercase tracking-[0.25em] text-primary-foreground/80">
                                 Admin Overview
                             </p>
                             <h1 className="mt-1.5 text-2xl font-black tracking-tight md:text-3xl font-kantumruy">
                                 ទិដ្ឋភាពទូទៅ
                             </h1>
-                            <p className="mt-1 text-sm text-white/70 font-kantumruy">
+                            <p className="mt-1 text-sm text-primary-foreground/70 font-kantumruy">
                                 ស្វាគមន៍ការត្រឡប់មកវិញ! ប្រព័ន្ធដំណើរការបានល្អ ✨
                             </p>
                         </div>
-                        <div className="flex items-center gap-2 self-start rounded-full bg-white/15 px-4 py-2 backdrop-blur-sm border border-white/20">
+                        <div className="flex items-center gap-2 self-start rounded-full bg-primary-foreground/10 px-4 py-2 backdrop-blur-sm border border-primary-foreground/20">
                             <span className="relative flex h-2.5 w-2.5">
                                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-300 opacity-75" />
                                 <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
                             </span>
-                            <span className="text-sm font-semibold text-white/90 font-kantumruy">ប្រព័ន្ធដំណើរការល្អ</span>
+                            <span className="text-sm font-semibold text-primary-foreground/90 font-kantumruy">ប្រព័ន្ធដំណើរការល្អ</span>
                         </div>
                     </div>
                 </m.div>
@@ -153,7 +153,7 @@ export default function AdminDashboardClient({ initialStats, initialLogs, userRo
                         >
                             <div className={cn(
                                 "relative overflow-hidden rounded-2xl border p-5 transition-all duration-300",
-                                "bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm",
+                                "bg-card/80 backdrop-blur-sm",
                                 "hover:shadow-lg hover:-translate-y-0.5",
                                 stat.border,
                                 stat.glow,
@@ -163,8 +163,8 @@ export default function AdminDashboardClient({ initialStats, initialLogs, userRo
                                 <div className={cn("absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r opacity-60", stat.gradient)} />
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="min-w-0">
-                                        <p className="text-xs font-medium text-slate-500 dark:text-slate-400 font-kantumruy">{stat.label}</p>
-                                        <p className="mt-2.5 text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+                                        <p className="text-xs font-medium text-muted-foreground font-kantumruy">{stat.label}</p>
+                                        <p className="mt-2.5 text-3xl font-black tracking-tight text-foreground">
                                             {typeof stat.value === 'number' ? stat.value.toLocaleString() : stat.value}
                                         </p>
                                     </div>
@@ -189,44 +189,44 @@ export default function AdminDashboardClient({ initialStats, initialLogs, userRo
                         initial={{ opacity: 0, x: -16 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.35, duration: 0.4 }}
-                        className="rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm overflow-hidden"
+                        className="rounded-2xl border border-border bg-card/80 backdrop-blur-sm overflow-hidden"
                     >
-                        <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-5 py-4">
+                        <div className="flex items-center justify-between border-b border-border px-5 py-4">
                             <div className="flex items-center gap-2.5">
-                                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800">
-                                    <Activity className="h-3.5 w-3.5 text-slate-600 dark:text-slate-400" />
+                                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted">
+                                    <Activity className="h-3.5 w-3.5 text-muted-foreground" />
                                 </div>
-                                <h2 className="text-sm font-bold text-slate-900 dark:text-white font-kantumruy">
+                                <h2 className="text-sm font-bold text-foreground font-kantumruy">
                                     សកម្មភាពថ្មីៗ
                                 </h2>
                             </div>
                             <Link to="/admin/logs">
-                                <Button variant="ghost" size="sm" className="h-8 gap-1 text-xs text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
+                                <Button variant="ghost" size="sm" className="h-8 gap-1 text-xs text-muted-foreground hover:text-foreground">
                                     ទាំងអស់ <ArrowRight className="h-3 w-3" />
                                 </Button>
                             </Link>
                         </div>
-                        <div className="divide-y divide-slate-50 dark:divide-slate-800/70">
+                        <div className="divide-y divide-border/70">
                             {(initialLogs || []).slice(0, 6).map((log, i) => (
                                 <m.div
                                     key={log.id || i}
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     transition={{ delay: 0.4 + i * 0.05 }}
-                                    className="flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-800/40"
+                                    className="flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-muted/50"
                                 >
-                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
                                         <Zap className="h-3.5 w-3.5" />
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                        <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-200">
+                                        <p className="truncate text-sm font-semibold text-foreground">
                                             {log.actorName || log.actorEmail || "System"}
                                         </p>
-                                        <p className="mt-0.5 text-[11px] text-slate-400 font-kantumruy">
+                                        <p className="mt-0.5 text-xs text-muted-foreground font-kantumruy">
                                             {log.action || "Updated account"}
                                         </p>
                                     </div>
-                                    <span className="shrink-0 rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-medium text-slate-500 dark:text-slate-400 tabular-nums">
+                                    <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground tabular-nums">
                                         {log.createdAt ? new Date(log.createdAt).toLocaleTimeString('km-KH', {
                                             hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Phnom_Penh'
                                         }) : ''}
@@ -235,10 +235,10 @@ export default function AdminDashboardClient({ initialStats, initialLogs, userRo
                             ))}
                             {(!initialLogs || initialLogs.length === 0) && (
                                 <div className="flex flex-col items-center justify-center py-14 gap-3">
-                                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
-                                        <Activity className="h-6 w-6 text-slate-300 dark:text-slate-600" />
+                                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted">
+                                        <Activity className="h-6 w-6 text-muted-foreground/50" />
                                     </div>
-                                    <p className="text-sm text-slate-400 font-kantumruy">មិនមានសកម្មភាពថ្មី</p>
+                                    <p className="text-sm text-muted-foreground font-kantumruy">មិនមានសកម្មភាពថ្មី</p>
                                 </div>
                             )}
                         </div>
@@ -252,13 +252,13 @@ export default function AdminDashboardClient({ initialStats, initialLogs, userRo
                             initial={{ opacity: 0, x: 16 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.4, duration: 0.4 }}
-                            className="rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm overflow-hidden"
+                            className="rounded-2xl border border-border bg-card/80 backdrop-blur-sm overflow-hidden"
                         >
-                            <div className="flex items-center gap-2.5 border-b border-slate-100 dark:border-slate-800 px-5 py-4">
-                                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800">
-                                    <Zap className="h-3.5 w-3.5 text-slate-600 dark:text-slate-400" />
+                            <div className="flex items-center gap-2.5 border-b border-border px-5 py-4">
+                                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted">
+                                    <Zap className="h-3.5 w-3.5 text-muted-foreground" />
                                 </div>
-                                <h2 className="text-sm font-bold text-slate-900 dark:text-white font-kantumruy">
+                                <h2 className="text-sm font-bold text-foreground font-kantumruy">
                                     ការចូលប្រើរហ័ស
                                 </h2>
                             </div>
@@ -269,10 +269,10 @@ export default function AdminDashboardClient({ initialStats, initialLogs, userRo
                                             "flex flex-col items-center gap-2 rounded-xl border p-3 transition-all duration-200",
                                             link.bg
                                         )}>
-                                            <div className={cn("flex h-9 w-9 items-center justify-center rounded-xl bg-white/60 dark:bg-slate-900/60 transition-transform group-hover:scale-110", link.color)}>
+                                            <div className={cn("flex h-9 w-9 items-center justify-center rounded-xl bg-card/80 transition-transform group-hover:scale-110", link.color)}>
                                                 <link.icon className="h-4 w-4" />
                                             </div>
-                                            <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 font-kantumruy text-center leading-tight">{link.label}</span>
+                                            <span className="text-xs font-bold text-foreground font-kantumruy text-center leading-tight">{link.label}</span>
                                         </div>
                                     </Link>
                                 ))}
@@ -284,13 +284,13 @@ export default function AdminDashboardClient({ initialStats, initialLogs, userRo
                             initial={{ opacity: 0, x: 16 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.48, duration: 0.4 }}
-                            className="rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm overflow-hidden"
+                            className="rounded-2xl border border-border bg-card/80 backdrop-blur-sm overflow-hidden"
                         >
-                            <div className="flex items-center gap-2.5 border-b border-slate-100 dark:border-slate-800 px-5 py-4">
-                                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800">
-                                    <Shield className="h-3.5 w-3.5 text-slate-600 dark:text-slate-400" />
+                            <div className="flex items-center gap-2.5 border-b border-border px-5 py-4">
+                                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted">
+                                    <Shield className="h-3.5 w-3.5 text-muted-foreground" />
                                 </div>
-                                <h2 className="text-sm font-bold text-slate-900 dark:text-white font-kantumruy">
+                                <h2 className="text-sm font-bold text-foreground font-kantumruy">
                                     ស្ថានភាពប្រព័ន្ធ
                                 </h2>
                             </div>
@@ -333,7 +333,7 @@ export default function AdminDashboardClient({ initialStats, initialLogs, userRo
                                             </div>
                                         </div>
                                         <span className={cn(
-                                            "rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider",
+                                            "rounded-full px-2.5 py-1 text-xs font-black uppercase tracking-wider",
                                             item.color === "emerald"
                                                 ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
                                                 : "bg-sky-500/15 text-sky-700 dark:text-sky-300"

@@ -68,12 +68,12 @@ export function UserDetailsDialog({
                                 
                                 <div className="flex flex-col items-end gap-2">
                                     {selectedUserDetails.deletedAt ? (
-                                        <Badge className="bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20 px-3 py-1 rounded-md text-[10px] font-semibold tracking-wider uppercase">
+                                        <Badge className="bg-red-50 text-red-700 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20 px-3 py-1 rounded-md text-xs font-semibold tracking-wider uppercase">
                                             SUSPENDED
                                         </Badge>
                                     ) : (
                                         <Badge className={cn(
-                                            "px-3 py-1 rounded-md text-[10px] font-semibold tracking-wider uppercase border",
+                                            "px-3 py-1 rounded-md text-xs font-semibold tracking-wider uppercase border",
                                             selectedUserDetails.role === ROLES.PLATFORM_OWNER
                                                 ? "bg-slate-900 text-white border-slate-900 dark:bg-white dark:text-slate-900 dark:border-white"
                                                 : selectedUserDetails.role === ROLES.EVENT_MANAGER
@@ -83,7 +83,7 @@ export function UserDetailsDialog({
                                             {ROLE_LABELS[selectedUserDetails.role as keyof typeof ROLE_LABELS] || selectedUserDetails.role}
                                         </Badge>
                                     )}
-                                    <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono uppercase tracking-wider">UID: {selectedUserDetails.id}</span>
+                                    <span className="text-xs text-slate-400 dark:text-slate-500 font-mono uppercase tracking-wider">UID: {selectedUserDetails.id}</span>
                                 </div>
                             </div>
                         </div>
@@ -161,7 +161,7 @@ export function UserDetailsDialog({
                                                             <span className="text-sm font-black text-foreground font-kantumruy">
                                                                 {w.groomName} & {w.brideName}
                                                             </span>
-                                                            <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">{w.weddingCode || w.id.substring(0, 8)}</span>
+                                                            <span className="text-xs font-mono text-muted-foreground uppercase tracking-widest">{w.weddingCode || w.id.substring(0, 8)}</span>
                                                         </div>
                                                     </div>
                                                     <ArrowRight size={14} className="text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
@@ -183,19 +183,19 @@ export function UserDetailsDialog({
                                         <div className="flex items-center gap-3">
                                             <Clock size={16} className="text-muted-foreground" />
                                             <div>
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Joined At</p>
+                                                <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Joined At</p>
                                                 <p className="text-xs font-bold">{new Date(selectedUserDetails.createdAt).toLocaleDateString('km-KH', { timeZone: 'Asia/Phnom_Penh' })}</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <Fingerprint size={16} className="text-muted-foreground" />
                                             <div>
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Account Status</p>
+                                                <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Account Status</p>
                                                 <div className="flex items-center gap-2 mt-1">
                                                     {selectedUserDetails.deletedAt ? (
-                                                        <span className="text-[10px] font-black text-red-600 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/10">SUSPENDED</span>
+                                                        <span className="text-xs font-black text-red-600 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/10">SUSPENDED</span>
                                                     ) : (
-                                                        <span className="text-[10px] font-black text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/10">ACTIVE</span>
+                                                        <span className="text-xs font-black text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/10">ACTIVE</span>
                                                     )}
                                                 </div>
                                             </div>
@@ -218,7 +218,7 @@ export function UserDetailsDialog({
                                         {selectedUserDetails.deletedAt ? "Account Recovery" : "Security Actions"}
                                     </h3>
                                     <p className={cn(
-                                        "text-[10px] font-bold font-kantumruy leading-relaxed mb-6",
+                                        "text-xs font-bold font-kantumruy leading-relaxed mb-6",
                                         selectedUserDetails.deletedAt ? "text-white/80" : "text-muted-foreground"
                                     )}>
                                         {selectedUserDetails.deletedAt 
@@ -228,7 +228,7 @@ export function UserDetailsDialog({
 
                                     {selectedUserDetails.deletedAt ? (
                                         <Button 
-                                            className="w-full rounded-2xl font-black font-kantumruy text-[10px] tracking-widest h-14 bg-white text-emerald-700 hover:bg-slate-50 transition-all uppercase shadow-lg shadow-black/10 active:scale-95"
+                                            className="w-full rounded-2xl font-black font-kantumruy text-xs tracking-widest h-14 bg-white text-emerald-700 hover:bg-slate-50 transition-all uppercase shadow-lg shadow-black/10 active:scale-95"
                                             onClick={handleRestoreUser}
                                             disabled={savingRole}
                                         >
@@ -237,7 +237,7 @@ export function UserDetailsDialog({
                                     ) : (
                                         <Button 
                                             variant="destructive" 
-                                            className="w-full rounded-2xl font-black font-kantumruy text-[10px] tracking-widest h-14 bg-red-600 hover:bg-red-700 transition-all uppercase shadow-lg shadow-red-600/20 active:scale-95"
+                                            className="w-full rounded-2xl font-black font-kantumruy text-xs tracking-widest h-14 bg-red-600 hover:bg-red-700 transition-all uppercase shadow-lg shadow-red-600/20 active:scale-95"
                                             onClick={() => setShowDeleteDialog(true)}
                                             disabled={deletingUser || selectedUserDetails.role === ROLES.PLATFORM_OWNER}
                                         >
@@ -247,7 +247,7 @@ export function UserDetailsDialog({
                                 </div>
                                 <Button 
                                     variant="outline" 
-                                    className="w-full h-12 rounded-2xl border-border font-black uppercase tracking-widest text-[10px] opacity-40 hover:opacity-100 transition-all"
+                                    className="w-full h-12 rounded-2xl border-border font-black uppercase tracking-widest text-xs opacity-40 hover:opacity-100 transition-all"
                                     onClick={() => window.location.href = `/admin/users/${selectedUserDetails.id}`}
                                 >
                                     Open Full View

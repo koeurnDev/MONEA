@@ -1,4 +1,4 @@
-﻿import * as React from "react";
+import * as React from "react";
 import { differenceInSeconds } from "date-fns";
 
 interface CountdownProps {
@@ -45,7 +45,7 @@ export default function Countdown({ targetDate }: CountdownProps) {
                         <div className="bg-gradient-to-br from-pink-600 to-pink-700 w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center shadow-lg shadow-pink-900/20 mb-2 border border-pink-500/20">
                             <span className="text-2xl sm:text-3xl font-bold font-mono">{value}</span>
                         </div>
-                        <p className="text-[10px] sm:text-xs uppercase tracking-wider text-gray-400">
+                        <p className="text-xs sm:text-xs uppercase tracking-wider text-gray-400">
                             {label === 'days' ? 'ថ្ងៃ' : label === 'hours' ? 'ម៉ោង' : label === 'mins' ? 'នាទី' : 'វិនាទី'}
                         </p>
                     </div>

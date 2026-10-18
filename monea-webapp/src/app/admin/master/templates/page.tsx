@@ -102,14 +102,14 @@ export default function TemplateAvailabilityPage() {
     };
 
     return (
-        <div className="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
-            <header className="flex items-start gap-4">
-                <div className="rounded-2xl bg-teal-500/10 p-3 text-teal-600 dark:text-teal-300">
-                    <LayoutGrid className="h-6 w-6" />
+        <div className="mx-auto max-w-5xl space-y-5 p-3 sm:space-y-6 sm:p-6">
+            <header className="flex items-start gap-3 sm:gap-4">
+                <div className="shrink-0 rounded-2xl bg-teal-500/10 p-2.5 text-teal-600 dark:text-teal-300 sm:p-3">
+                    <LayoutGrid className="h-5 w-5 sm:h-6 sm:w-6" />
                 </div>
-                <div>
-                    <h1 className="text-2xl font-black text-foreground">គ្រប់គ្រង Template</h1>
-                    <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+                <div className="min-w-0">
+                    <h1 className="text-xl font-black text-foreground sm:text-2xl">គ្រប់គ្រង Template</h1>
+                    <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted-foreground sm:text-sm">
                         បើក ឬបិទ template សម្រាប់ការជ្រើសរើសថ្មី។ ការបិទមិនប៉ះពាល់ដល់ invitation ដែលកំពុងប្រើ template នោះទេ។
                     </p>
                 </div>
@@ -137,40 +137,48 @@ export default function TemplateAvailabilityPage() {
                         const isEditing = editingId === template.id && draft;
                         return (
                             <Card key={template.id}>
-                                <CardContent className="space-y-4 p-4 sm:p-5">
-                                    <div className="flex items-center gap-4">
-                                        <img
-                                            src={details?.image || template.image}
-                                            alt={details?.title || template.title}
-                                            className="h-20 w-14 shrink-0 rounded-lg border object-cover"
-                                        />
-                                        <div className="min-w-0 flex-1">
-                                            <p className="truncate font-bold text-foreground">{details?.title || template.title}</p>
-                                            <p className="mt-1 text-xs text-muted-foreground">
-                                                {template.id} · {details?.eventType === "both" ? "អាពាហ៍ពិពាហ៍ និងភ្ជាប់ពាក្យ" : details?.eventType === "anniversary" ? "ភ្ជាប់ពាក្យ" : "អាពាហ៍ពិពាហ៍"}
-                                            </p>
-                                            <p className="mt-1 text-xs text-muted-foreground">
-                                                {enabled ? "បើកសម្រាប់អ្នកប្រើថ្មី" : "បិទសម្រាប់អ្នកប្រើថ្មី"}
-                                            </p>
-                                        </div>
-                                        <div className="flex shrink-0 items-center gap-3">
-                                            {busy && <Loader2 aria-label="កំពុងរក្សាទុក" className="h-4 w-4 animate-spin text-muted-foreground" />}
-                                            <Switch
-                                                checked={enabled}
-                                                disabled={savingId !== null || savingMetadata}
-                                                onCheckedChange={(checked) => void updateAvailability(template.id, checked)}
-                                                aria-label={`${enabled ? "បិទ" : "បើក"} ${details?.title || template.title}`}
+                                <CardContent className="space-y-3 p-3 sm:space-y-4 sm:p-5">
+                                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+                                        <div className="flex min-w-0 items-center gap-3 sm:flex-1 sm:gap-4">
+                                            <img
+                                                src={details?.image || template.image}
+                                                alt={details?.title || template.title}
+                                                className="h-16 w-12 shrink-0 rounded-lg border object-cover sm:h-20 sm:w-14"
                                             />
+                                            <div className="min-w-0 flex-1">
+                                                <p className="break-words font-bold leading-snug text-foreground">{details?.title || template.title}</p>
+                                                <p className="mt-1 break-words text-[11px] leading-relaxed text-muted-foreground sm:text-xs">
+                                                    <span className="font-medium">{template.id}</span>
+                                                    <span className="px-1">·</span>
+                                                    {details?.eventType === "both" ? "អាពាហ៍ពិពាហ៍ និងភ្ជាប់ពាក្យ" : details?.eventType === "anniversary" ? "ភ្ជាប់ពាក្យ" : "អាពាហ៍ពិពាហ៍"}
+                                                </p>
+                                                <p className="mt-1 text-[11px] text-muted-foreground sm:text-xs">
+                                                    {enabled ? "បើកសម្រាប់អ្នកប្រើថ្មី" : "បិទសម្រាប់អ្នកប្រើថ្មី"}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="flex w-full shrink-0 items-center justify-between gap-3 border-t pt-3 sm:w-auto sm:justify-end sm:border-0 sm:pt-0">
+                                            <div className="flex items-center gap-2">
+                                                {busy && <Loader2 aria-label="កំពុងរក្សាទុក" className="h-4 w-4 animate-spin text-muted-foreground" />}
+                                                <Switch
+                                                    checked={enabled}
+                                                    disabled={savingId !== null || savingMetadata}
+                                                    onCheckedChange={(checked) => void updateAvailability(template.id, checked)}
+                                                    aria-label={`${enabled ? "បិទ" : "បើក"} ${details?.title || template.title}`}
+                                                />
+                                            </div>
                                             {!isEditing && (
                                                 <Button
                                                     type="button"
                                                     variant="outline"
                                                     size="sm"
+                                                    aria-label={`កែប្រែ ${details?.title || template.title}`}
                                                     disabled={editingId !== null || savingId !== null}
                                                     onClick={() => startEditing(template.id)}
+                                                    className="h-9 px-3"
                                                 >
-                                                    <Pencil className="mr-2 h-3.5 w-3.5" />
-                                                    កែ
+                                                    <Pencil className="h-3.5 w-3.5 sm:mr-2" />
+                                                    <span className="hidden sm:inline">កែប្រែ</span>
                                                 </Button>
                                             )}
                                         </div>

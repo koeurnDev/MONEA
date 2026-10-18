@@ -12,7 +12,7 @@ export default function AnniversaryLocation({ wedding }: { wedding: WeddingData 
     if (!locationString && !venueName) return null;
 
     const directMapUrl = getDirectMapUrl(locationString);
-    const couplePhoto = getWeddingSectionPhoto(wedding, 2)?.url;
+    const couplePhoto = getWeddingSectionPhoto(wedding, "location")?.url;
 
     // Safe Maps QR code URL
     const mapQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(directMapUrl)}&color=4A154B`;

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { moneaClient } from '@/lib/api-client';
 
 interface UseCloudinaryUploadProps {
-    onSuccess: (url: string, publicId?: string, type?: "IMAGE" | "VIDEO") => void;
+    onSuccess: (url: string, publicId?: string, type?: "IMAGE" | "VIDEO") => void | Promise<void>;
     onError?: (error: any) => void;
     uploadPreset?: string;
     resourceType?: "auto" | "image" | "video" | "raw";
@@ -21,20 +21,24 @@ export function useCloudinaryUpload({
     const [error, setError] = useState<string | null>(null);
     const [lastFile, setLastFile] = useState<File | null>(null);
 
-    const uploadFile = async (file: File) => {
+    const [lastDeliveryType, setLastDeliveryType] = useState<"authenticated" | undefined>();
+
+    const uploadFile = async (file: File, deliveryType?: "authenticated") => {
         try {
             setLastFile(file);
+            setLastDeliveryType(deliveryType);
             setError(null);
             setUploading(true);
             setProgress(0);
 
             // 1. Get signature
             const timestamp = Math.round((new Date()).getTime() / 1000);
-            const response = await moneaClient.post<{ signature: string; folder: string }>('/api/cloudinary/sign', {
+            const response = await moneaClient.post<{ signature: string; folder: string; type?: string }>('/api/cloudinary/sign', {
                 paramsToSign: {
                     timestamp,
                     upload_preset: uploadPreset,
-                    folder
+                    folder,
+                    ...(deliveryType ? { type: deliveryType } : {}),
                 }
             });
 
@@ -52,6 +56,7 @@ export function useCloudinaryUpload({
             formData.append("signature", signature);
             formData.append("upload_preset", uploadPreset);
             formData.append("folder", response.data.folder);
+            if (response.data.type) formData.append("type", response.data.type);
 
             const xhr = new XMLHttpRequest();
             const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
@@ -65,12 +70,12 @@ export function useCloudinaryUpload({
             };
 
             await new Promise<void>((resolve) => {
-                xhr.onload = () => {
+                xhr.onload = async () => {
                     try {
                         if (xhr.status === 200) {
                             const result = JSON.parse(xhr.responseText);
                             const detectedType = result.resource_type === "video" ? "VIDEO" : "IMAGE";
-                            onSuccess(result.secure_url, result.public_id, detectedType);
+                            await onSuccess(result.secure_url, result.public_id, detectedType);
                         } else {
                             const uploadError = xhr.responseText;
                             console.error("Upload failed", uploadError);
@@ -115,6 +120,6 @@ export function useCloudinaryUpload({
         progress,
         error,
         uploadFile,
-        retryUpload: () => lastFile ? uploadFile(lastFile) : undefined
+        retryUpload: () => lastFile ? uploadFile(lastFile, lastDeliveryType) : undefined
     };
 }

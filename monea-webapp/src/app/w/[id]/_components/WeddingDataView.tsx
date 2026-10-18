@@ -2,12 +2,14 @@ import React, { Suspense, useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { useSearchParams } from "react-router-dom";
 import { getApiUrl } from "@/lib/api-url";
+import { NETWORK_ERROR_MESSAGE } from "@/lib/network-errors";
 import { optimizeMediaUrl } from "@/lib/media";
 import { TemplateRenderer } from "@/components/templates/TemplateRenderer";
-import { getWeddingWithPhotoVisibility } from "@/components/templates/photo-visibility";
 import { preloadTemplate } from "@/components/templates/template-config";
 import { WeddingSkeleton } from "./WeddingSkeleton";
 import { GuestViewTracker } from "@/components/analytics/GuestViewTracker";
+import { WeddingDataCache } from "@/lib/wedding-data-cache";
+import { ErrorBoundary } from "@/components/error-boundary";
 
 type PublicWeddingData = {
     id: string;
@@ -22,43 +24,21 @@ type PublicWeddingData = {
     galleryItems: any[];
 };
 
-// Fast memory & session cache for instant subsequent loads
-const weddingMemoryCache = new Map<string, { data: PublicWeddingData; timestamp: number }>();
 const CACHE_TTL_MS = 3 * 60 * 1000; // 3 minutes fresh cache
-
-function getCachedWedding(id: string): PublicWeddingData | null {
-    const mem = weddingMemoryCache.get(id);
-    if (mem && Date.now() - mem.timestamp < CACHE_TTL_MS) {
-        return mem.data;
-    }
-    if (typeof window !== "undefined") {
-        try {
-            const raw = sessionStorage.getItem(`monea_w_${id}`);
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                if (parsed && Date.now() - parsed.timestamp < CACHE_TTL_MS) {
-                    weddingMemoryCache.set(id, parsed);
-                    return parsed.data;
-                }
-            }
-        } catch {
-            // Ignore storage errors
-        }
-    }
-    return null;
-}
-
-function setCachedWedding(id: string, data: PublicWeddingData) {
-    const entry = { data, timestamp: Date.now() };
-    weddingMemoryCache.set(id, entry);
-    if (typeof window !== "undefined") {
-        try {
-            sessionStorage.setItem(`monea_w_${id}`, JSON.stringify(entry));
-        } catch {
-            // Ignore storage quota errors
-        }
+const MAX_WEDDING_CACHE_ENTRIES = 12;
+let weddingCacheStorage: Storage | null = null;
+if (typeof window !== "undefined") {
+    try {
+        weddingCacheStorage = window.sessionStorage;
+    } catch {
+        // Memory cache remains available when browser storage is disabled.
     }
 }
+const weddingDataCache = new WeddingDataCache<PublicWeddingData>(
+    weddingCacheStorage,
+    CACHE_TTL_MS,
+    MAX_WEDDING_CACHE_ENTRIES,
+);
 
 interface WeddingDataViewProps {
     id: string;
@@ -81,7 +61,7 @@ export default function WeddingDataView({
     const resolvedGuestId = propGuestId || searchParams.get("g") || searchParams.get("guestId") || undefined;
 
     // Check cache synchronously for 0ms reloads
-    const cached = getCachedWedding(id);
+    const cached = weddingDataCache.get(id);
     const [wedding, setWedding] = useState<PublicWeddingData | null>(cached);
     const [loading, setLoading] = useState(!cached);
     const [error, setError] = useState<"not-found" | "load-failed" | null>(null);
@@ -139,7 +119,7 @@ export default function WeddingDataView({
                 if (isCancelled) return;
 
                 setWedding(data);
-                setCachedWedding(id, data);
+                weddingDataCache.set(id, data);
                 setError(null);
 
                 // Prefetch the template code immediately as soon as API responds
@@ -180,7 +160,7 @@ export default function WeddingDataView({
                     <p className="mb-6 break-words font-kantumruy text-sm font-medium leading-relaxed text-slate-500 sm:mb-8">
                         {error === "not-found"
                             ? "ទំព័រដែលអ្នកកំពុងស្វែងរកប្រហែលជាត្រូវបានលុប ប្ដូរឈ្មោះ ឬមិនមានតាំងពីដំបូង។"
-                            : "សូមពិនិត្យការភ្ជាប់អ៊ីនធឺណិត ហើយព្យាយាមម្តងទៀត។"}
+                            : NETWORK_ERROR_MESSAGE}
                     </p>
                     {error === "load-failed" && (
                         <button
@@ -273,28 +253,32 @@ export default function WeddingDataView({
         };
     });
 
-    const weddingForTemplate = getWeddingWithPhotoVisibility({
+    const weddingForTemplate = {
         ...wedding,
         themeSettings: optimizedThemeSettings,
         activities: parsedActivities,
         galleryItems: parsedGalleryItems,
         eventType: (wedding.eventType || "wedding") as "wedding" | "anniversary",
         guestId: resolvedGuestId,
-    } as any);
+    } as any;
 
-    const shareTitle = `${wedding.groomName || "កូនកំលោះ"} & ${wedding.brideName || "កូនក្រមុំ"} - អាពាហ៍ពិពាហ៍ | MONEA`;
+    const customShareTitle = wedding.themeSettings?.customLabels?.invite_title?.trim();
+    const shareTitle = customShareTitle || `${wedding.groomName || "កូនកំលោះ"} & ${wedding.brideName || "កូនក្រមុំ"} - អាពាហ៍ពិពាហ៍ | MONEO`;
     const shareDesc = `សូមគោរពអញ្ជើញចូលរួមពិធីអាពាហ៍ពិពាហ៍របស់យើងខ្ញុំ ${wedding.date ? "នៅថ្ងៃ " + new Date(wedding.date).toLocaleDateString("km-KH", { dateStyle: "full" }) : ""}`;
-    const rawHeroImage = weddingForTemplate.themeSettings?.heroImage || weddingForTemplate.galleryItems?.[0]?.url;
-    const imageSource = typeof rawHeroImage === "string" && !/^(?:data|blob):/i.test(rawHeroImage)
-        ? rawHeroImage
-        : "/logo.png";
+    const imageSource = [
+        weddingForTemplate.themeSettings?.socialPreviewImage,
+        weddingForTemplate.themeSettings?.heroImage,
+        weddingForTemplate.galleryItems?.[0]?.url,
+    ].find((candidate): candidate is string =>
+        typeof candidate === "string" && candidate.length > 0 && !/^(?:data|blob):/i.test(candidate)
+    ) || "/icons/icon-512x512.png";
     const optimizedHeroImage = optimizeMediaUrl(imageSource, {
         width: 1200,
         height: 630,
         quality: "auto",
         crop: "fill",
     });
-    const heroImg = new URL(optimizedHeroImage || "/logo.png", window.location.origin).href;
+    const heroImg = new URL(optimizedHeroImage || "/icons/icon-512x512.png", window.location.origin).href;
 
     const requestedTemplate = template || wedding.templateId || "blossom-romance";
     const selectedTemplate = wedding.eventType === "anniversary" && requestedTemplate === "anniversary-elegant"
@@ -306,6 +290,7 @@ export default function WeddingDataView({
             <Helmet>
                 <title>{shareTitle}</title>
                 <meta name="description" content={shareDesc} />
+                <meta name="robots" content={resolvedGuestId || resolvedGuestName ? "noindex, nofollow" : "index, follow, max-image-preview:large"} />
                 <meta property="og:title" content={shareTitle} />
                 <meta property="og:description" content={shareDesc} />
                 <meta property="og:image" content={heroImg} />
@@ -313,6 +298,7 @@ export default function WeddingDataView({
                 <meta property="og:image:alt" content={`${wedding.groomName} និង ${wedding.brideName}`} />
                 <meta property="og:type" content="website" />
                 <link rel="canonical" href={`${window.location.origin}/w/${encodeURIComponent(wedding.id)}`} />
+                <meta property="og:url" content={`${window.location.origin}/w/${encodeURIComponent(wedding.id)}`} />
                 <meta name="twitter:card" content="summary_large_image" />
                 <meta name="twitter:title" content={shareTitle} />
                 <meta name="twitter:description" content={shareDesc} />
@@ -338,11 +324,32 @@ export default function WeddingDataView({
             <main className="relative isolate z-10 min-h-screen bg-transparent font-kantumruy">
                 <div className="w-full min-h-screen scroll-smooth" id="mobile-scroll-container">
                     <Suspense fallback={<WeddingSkeleton />}>
-                        <TemplateRenderer
-                            wedding={weddingForTemplate}
-                            templateId={selectedTemplate}
-                            guestName={resolvedGuestName}
-                        />
+                        <ErrorBoundary
+                            name={`Wedding template ${selectedTemplate}`}
+                            fallback={
+                                <div className="flex min-h-[100dvh] items-center justify-center bg-[#0b0d12] px-4 py-8 text-center text-white">
+                                    <div className="max-w-sm space-y-4">
+                                        <h1 className="font-kantumruy text-xl font-black">មិនអាចបង្ហាញធៀបការបានទេ</h1>
+                                        <p className="font-kantumruy text-sm leading-7 text-white/70">
+                                            សូមផ្ទុកទំព័រឡើងវិញ ឬទាក់ទងក្រុមការងារ ប្រសិនបើបញ្ហានេះនៅតែបន្ត។
+                                        </p>
+                                        <button
+                                            type="button"
+                                            onClick={() => window.location.reload()}
+                                            className="rounded-xl bg-white px-5 py-3 font-kantumruy text-sm font-bold text-slate-900"
+                                        >
+                                            ផ្ទុកឡើងវិញ
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        >
+                            <TemplateRenderer
+                                wedding={weddingForTemplate}
+                                templateId={selectedTemplate}
+                                guestName={resolvedGuestName}
+                            />
+                        </ErrorBoundary>
                     </Suspense>
                 </div>
             </main>

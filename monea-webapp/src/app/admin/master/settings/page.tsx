@@ -25,7 +25,8 @@ import {
     Calendar,
     LayoutGrid,
     AlertTriangle,
-    Activity
+    Activity,
+    Smartphone
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -34,13 +35,16 @@ import { useToast } from "@/components/ui/Toast";
 import { SecurityAuditFeed } from "@/components/admin/SecurityAuditFeed";
 import { useTranslation } from "@/i18n/LanguageProvider";
 import { cn } from "@/lib/utils";
+import { isPhoneFrameColor, PHONE_FRAME_COLORS, type PhoneFrameColor } from "@/lib/phone-frame-colors";
 
 export default function MasterSettingsPage() {
     const { t, locale } = useTranslation();
     const isKm = locale === 'km';
     const [config, setConfig] = useState<any>(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'pricing' | 'security' | 'bakong' | 'maintenance' | 'audit'>('pricing');
+    const [activeTab, setActiveTab] = useState<'pricing' | 'appearance' | 'security' | 'bakong' | 'maintenance' | 'audit'>('pricing');
+    const [phoneFrameColor, setPhoneFrameColor] = useState<PhoneFrameColor>("black");
+    const [isSavingPhoneFrameColor, setIsSavingPhoneFrameColor] = useState(false);
     const { showToast } = useToast();
 
     // Dedicated Pricing States (Allows typing freely e.g. 9, 19, 29.50)
@@ -66,7 +70,7 @@ export default function MasterSettingsPage() {
     // Receiving account the KHQR codes are generated against. Required — without
     // it /api/payment/generate-qr returns "Payment system not configured".
     const [bakongAccountID, setBakongAccountID] = useState("");
-    const [bakongMerchantName, setBakongMerchantName] = useState("MONEA");
+    const [bakongMerchantName, setBakongMerchantName] = useState("MONEO");
     const [isSavingBakongAccount, setIsSavingBakongAccount] = useState(false);
     const [bakongInfo, setBakongInfo] = useState<{
         email?: string;
@@ -94,6 +98,9 @@ export default function MasterSettingsPage() {
             .then(res => {
                 const data = res.data as any;
                 setConfig(data);
+                if (isPhoneFrameColor(data?.phoneFrameColor)) {
+                    setPhoneFrameColor(data.phoneFrameColor);
+                }
                 if (data?.stadPrice !== undefined && data?.stadPrice !== null) {
                     setStadPrice(String(data.stadPrice));
                 }
@@ -177,6 +184,27 @@ export default function MasterSettingsPage() {
         }
     };
 
+    const handleSavePhoneFrameColor = async () => {
+        setIsSavingPhoneFrameColor(true);
+        try {
+            const res = await moneaClient.post("/api/admin/master/settings", {
+                ...config,
+                phoneFrameColor,
+            });
+            if (res.error) {
+                showToast({ title: isKm ? "បរាជ័យក្នុងការរក្សាទុក" : "Failed to save", description: res.error, type: "error" });
+                return;
+            }
+            setConfig({ ...config, phoneFrameColor });
+            showToast({ title: isKm ? "បានរក្សាទុកពណ៌ស៊ុមទូរស័ព្ទជាសកល" : "Global phone frame color saved", type: "success" });
+        } catch (error) {
+            console.error("[AdminSettings] Could not save global phone frame color:", error);
+            showToast({ title: isKm ? "បរាជ័យក្នុងការរក្សាទុក" : "Failed to save", type: "error" });
+        } finally {
+            setIsSavingPhoneFrameColor(false);
+        }
+    };
+
     const handleSetup2FA = async () => {
         if (!passwordFor2FA) {
             showToast({ title: "Password Required", type: "error" });
@@ -246,7 +274,7 @@ export default function MasterSettingsPage() {
         try {
             const res = await moneaClient.post<any>("/api/admin/bakong/account", {
                 accountID,
-                merchantName: bakongMerchantName.trim() || "MONEA",
+                merchantName: bakongMerchantName.trim() || "MONEO",
             });
             if (!res.error && res.data) {
                 showToast({ title: "Saved", description: "Bakong receiving account updated.", type: "success" });
@@ -327,6 +355,7 @@ export default function MasterSettingsPage() {
 
     const tabs = [
         { id: 'pricing', label: "កញ្ចប់តម្លៃ", enLabel: "Pricing", icon: DollarSign },
+        { id: 'appearance', label: "រូបរាង Preview", enLabel: "Preview Appearance", icon: Smartphone },
         { id: 'security', label: "សុវត្ថិភាព & គណនី", enLabel: "Security & Account", icon: Lock },
         { id: 'bakong', label: "Bakong KHQR", enLabel: "Gateway", icon: CreditCard },
         { id: 'maintenance', label: "ការថែទាំប្រព័ន្ធ", enLabel: "Maintenance", icon: Wrench },
@@ -345,19 +374,19 @@ export default function MasterSettingsPage() {
         <div className="w-full min-h-full font-kantumruy pb-16">
             {/* Top Bar Header */}
             <div className="bg-card/80 backdrop-blur-md border-b border-border/80 sticky top-0 z-20">
-                <div className="max-w-[1400px] mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                <div className="max-w-[1400px] mx-auto px-3 py-3 sm:px-8 sm:py-0 sm:h-20 flex items-center justify-between gap-2">
+                    <div className="flex min-w-0 items-center gap-2 sm:gap-3">
                         <Link to="/admin/master">
-                            <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10 border border-border bg-card shadow-xs hover:bg-muted">
+                            <Button variant="ghost" size="icon" aria-label="ត្រឡប់ទៅទំព័រគ្រប់គ្រង" className="shrink-0 rounded-xl h-10 w-10 border border-border bg-card shadow-xs hover:bg-muted">
                                 <ArrowLeft size={17} className="text-muted-foreground" />
                             </Button>
                         </Link>
-                        <div>
-                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-teal-800 dark:text-teal-300">
+                        <div className="min-w-0">
+                            <div className="flex items-center gap-2 text-xs sm:text-xs font-black uppercase tracking-wider text-teal-800 dark:text-teal-300">
                                 <ShieldCheck size={13} />
-                                <span>Master Config</span>
+                                <span className="truncate">Master Config</span>
                             </div>
-                            <h1 className="text-lg sm:text-xl font-bold text-foreground">
+                            <h1 className="truncate text-base sm:text-xl font-bold text-foreground">
                                 {t("admin.overview.globalSettings", { defaultValue: "ការកំណត់ប្រព័ន្ធរួម" })}
                             </h1>
                         </div>
@@ -372,25 +401,28 @@ export default function MasterSettingsPage() {
                 </div>
             </div>
 
-            <main className="max-w-[1400px] mx-auto p-4 sm:p-8 space-y-6">
+            <main className="max-w-[1400px] mx-auto p-3 sm:p-8 space-y-4 sm:space-y-6">
                 {/* Clean Segmented Tab Navigation */}
-                <div className="flex items-center gap-1.5 p-1.5 bg-muted/50 border border-border/80 rounded-2xl overflow-x-auto scrollbar-none">
+                <div role="tablist" aria-label="Master settings" className="grid grid-cols-2 gap-1.5 p-1.5 bg-muted/50 border border-border/80 rounded-2xl sm:flex sm:items-center sm:overflow-x-auto scrollbar-none">
                     {tabs.map((tab) => {
                         const Icon = tab.icon;
                         const isActive = activeTab === tab.id;
                         return (
                             <button
                                 key={tab.id}
+                                type="button"
+                                role="tab"
+                                aria-selected={isActive}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={cn(
-                                    "flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 select-none",
+                                    "flex min-w-0 min-h-11 items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-center text-xs font-bold leading-tight transition-all select-none sm:min-h-0 sm:shrink-0 sm:gap-2 sm:px-4 sm:py-2.5 sm:text-xs",
                                     isActive
                                         ? "bg-card text-foreground shadow-xs border border-border/80 font-bold"
                                         : "text-muted-foreground hover:text-foreground hover:bg-card/50"
                                 )}
                             >
-                                <Icon size={16} className={cn(isActive ? "text-teal-800 dark:text-teal-300" : "text-muted-foreground")} />
-                                <span>{tab.label}</span>
+                                <Icon size={14} className={cn("shrink-0 sm:h-4 sm:w-4", isActive ? "text-teal-800 dark:text-teal-300" : "text-muted-foreground")} />
+                                <span className="min-w-0 break-words">{tab.label}</span>
                             </button>
                         );
                     })}
@@ -398,22 +430,22 @@ export default function MasterSettingsPage() {
 
                 {/* ─── TAB 1: PRICING (កញ្ចប់តម្លៃ) ─── */}
                 {activeTab === 'pricing' && (
-                    <div className="space-y-6 max-w-4xl">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="max-w-4xl space-y-4 sm:space-y-6">
+                        <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
                             {/* Standard Plan */}
                             <Card className="bg-card border border-border/80 rounded-2xl shadow-xs">
-                                <CardContent className="p-6 sm:p-8 space-y-6">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center">
+                                <CardContent className="space-y-5 p-4 sm:space-y-6 sm:p-8">
+                                    <div className="flex items-start justify-between gap-2">
+                                        <div className="flex min-w-0 items-center gap-3">
+                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600">
                                                 <Zap size={20} />
                                             </div>
-                                            <div>
-                                                <h3 className="font-bold text-base text-foreground">កញ្ចប់ STANDARD</h3>
-                                                <p className="text-xs text-muted-foreground">Pro Tier Wedding Invitation</p>
+                                            <div className="min-w-0">
+                                                <h3 className="break-words font-bold text-sm text-foreground sm:text-base">កញ្ចប់ STANDARD</h3>
+                                                <p className="text-xs text-muted-foreground sm:text-xs">Pro Tier Wedding Invitation</p>
                                             </div>
                                         </div>
-                                        <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400">
+                                        <span className="shrink-0 rounded-full bg-blue-100 px-2 py-1 text-xs font-black uppercase text-blue-700 dark:bg-blue-500/20 dark:text-blue-400 sm:px-2.5 sm:text-xs">
                                             TIER 01
                                         </span>
                                     </div>
@@ -439,7 +471,7 @@ export default function MasterSettingsPage() {
                                         </div>
                                     </div>
 
-                                    <p className="text-xs text-muted-foreground">
+                                    <p className="text-xs leading-relaxed text-muted-foreground">
                                         តម្លៃនេះនឹងត្រូវគិតប្រាក់ដោយស្វ័យប្រវត្តិកាលណាអតិថិជនជ្រើសរើសកញ្ចប់ Standard។
                                     </p>
                                 </CardContent>
@@ -447,18 +479,18 @@ export default function MasterSettingsPage() {
 
                             {/* Pro Master Plan */}
                             <Card className="bg-card border border-border/80 rounded-2xl shadow-xs">
-                                <CardContent className="p-6 sm:p-8 space-y-6">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center">
+                                <CardContent className="space-y-5 p-4 sm:space-y-6 sm:p-8">
+                                    <div className="flex items-start justify-between gap-2">
+                                        <div className="flex min-w-0 items-center gap-3">
+                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600">
                                                 <Crown size={20} />
                                             </div>
-                                            <div>
-                                                <h3 className="font-bold text-base text-foreground">កញ្ចប់ PRO MASTER</h3>
-                                                <p className="text-xs text-muted-foreground">Premium White-Label Wedding</p>
+                                            <div className="min-w-0">
+                                                <h3 className="break-words font-bold text-sm text-foreground sm:text-base">កញ្ចប់ PRO MASTER</h3>
+                                                <p className="text-xs text-muted-foreground sm:text-xs">Premium White-Label Wedding</p>
                                             </div>
                                         </div>
-                                        <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400">
+                                        <span className="shrink-0 rounded-full bg-amber-100 px-2 py-1 text-xs font-black uppercase text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 sm:px-2.5 sm:text-xs">
                                             PREMIUM
                                         </span>
                                     </div>
@@ -484,7 +516,7 @@ export default function MasterSettingsPage() {
                                         </div>
                                     </div>
 
-                                    <p className="text-xs text-muted-foreground">
+                                    <p className="text-xs leading-relaxed text-muted-foreground">
                                         កញ្ចប់ពេញលេញគ្មាន Watermark, មុខងារ RSVP គ្មានដែនកំណត់ និង Custom Domain។
                                     </p>
                                 </CardContent>
@@ -492,11 +524,11 @@ export default function MasterSettingsPage() {
                         </div>
 
                         {/* Save Pricing Action Button */}
-                        <div className="flex items-center justify-end gap-3 pt-2">
+                        <div className="flex justify-stretch pt-1 sm:justify-end sm:gap-3 sm:pt-2">
                             <Button
                                 onClick={handleSavePricing}
                                 disabled={isSavingPricing}
-                                className="h-12 px-8 bg-teal-700 hover:bg-teal-800 text-white rounded-xl font-bold text-sm shadow-md shadow-teal-700/20 flex items-center gap-2"
+                                className="h-auto min-h-12 w-full whitespace-normal px-4 py-3 text-center text-xs bg-teal-700 hover:bg-teal-800 text-white rounded-xl font-bold shadow-md shadow-teal-700/20 flex items-center justify-center gap-2 sm:w-auto sm:px-8 sm:text-sm"
                             >
                                 {isSavingPricing ? (
                                     <>
@@ -514,19 +546,69 @@ export default function MasterSettingsPage() {
                     </div>
                 )}
 
+                {activeTab === 'appearance' && (
+                    <Card className="max-w-3xl rounded-2xl border border-border/80 bg-card shadow-xs">
+                        <CardContent className="space-y-6 p-4 sm:p-8">
+                            <div className="flex items-start gap-3">
+                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-600/10 text-teal-800 dark:text-teal-300">
+                                    <Smartphone size={20} />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-base text-foreground">
+                                        {isKm ? "ពណ៌ស៊ុម iPhone Preview" : "iPhone Preview Frame Color"}
+                                    </h3>
+                                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                                        {isKm
+                                            ? "ពណ៌នេះនឹងបង្ហាញជាសកលក្នុង Phone Preview របស់អ្នកប្រើទាំងអស់។"
+                                            : "This color is applied globally to every user's phone preview."}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                                {(Object.entries(PHONE_FRAME_COLORS) as [PhoneFrameColor, typeof PHONE_FRAME_COLORS[PhoneFrameColor]][]).map(([color, option]) => (
+                                    <button
+                                        key={color}
+                                        type="button"
+                                        aria-pressed={phoneFrameColor === color}
+                                        onClick={() => setPhoneFrameColor(color)}
+                                        className={cn(
+                                            "flex min-h-24 flex-col items-center justify-center gap-2 rounded-xl border-2 p-3 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+                                            phoneFrameColor === color ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+                                        )}
+                                    >
+                                        <span className="h-8 w-12 rounded-lg border border-black/15 shadow-sm" style={{ background: option.gradient }} />
+                                        <span className="text-xs font-semibold text-foreground">{option.label}</span>
+                                    </button>
+                                ))}
+                            </div>
+
+                            <Button
+                                type="button"
+                                onClick={() => void handleSavePhoneFrameColor()}
+                                disabled={isSavingPhoneFrameColor || phoneFrameColor === (config?.phoneFrameColor ?? "black")}
+                                className="h-11 w-full rounded-xl bg-teal-700 font-bold text-white hover:bg-teal-800 sm:w-auto sm:px-8"
+                            >
+                                {isSavingPhoneFrameColor ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                                {isKm ? "រក្សាទុកជាសកល" : "Save Globally"}
+                            </Button>
+                        </CardContent>
+                    </Card>
+                )}
+
                 {/* ─── TAB 2: SECURITY & 2FA (សុវត្ថិភាព) ─── */}
                 {activeTab === 'security' && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
                         {/* 2FA Setup Card */}
                         <Card className="bg-card border border-border/80 rounded-2xl shadow-xs">
-                            <CardContent className="p-6 sm:p-8 space-y-6">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-teal-600/10 text-teal-800 dark:text-teal-300 flex items-center justify-center">
+                            <CardContent className="space-y-5 p-4 sm:space-y-6 sm:p-8">
+                                <div className="flex items-start gap-3">
+                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-600/10 text-teal-800 dark:text-teal-300">
                                         <Lock size={20} />
                                     </div>
-                                    <div>
-                                        <h3 className="font-bold text-base text-foreground">ផ្ទៀងផ្ទាត់ចូល (2FA Setup)</h3>
-                                        <p className="text-xs text-muted-foreground">ការពារគណនី SuperAdmin ជាមួយ Google Authenticator</p>
+                                    <div className="min-w-0">
+                                        <h3 className="break-words font-bold text-sm text-foreground sm:text-base">ផ្ទៀងផ្ទាត់ចូល (2FA Setup)</h3>
+                                        <p className="text-xs leading-relaxed text-muted-foreground">ការពារគណនី SuperAdmin ជាមួយ Google Authenticator</p>
                                     </div>
                                 </div>
 
@@ -609,13 +691,13 @@ export default function MasterSettingsPage() {
                         {/* Master Admin Profile & Email Card */}
                         <Card className="bg-card border border-border/80 rounded-2xl shadow-xs">
                             <CardContent className="p-6 sm:p-8 space-y-5">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center">
+                                <div className="flex items-start gap-3">
+                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600">
                                         <FileText size={20} />
                                     </div>
-                                    <div>
-                                        <h3 className="font-bold text-base text-foreground">គណនី និង អ៊ីមែល Master Admin</h3>
-                                        <p className="text-xs text-muted-foreground">ផ្លាស់ប្តូរឈ្មោះ និង Email សម្រាប់ចូលប្រើប្រាស់</p>
+                                    <div className="min-w-0">
+                                        <h3 className="break-words font-bold text-sm text-foreground sm:text-base">គណនី និង អ៊ីមែល Master Admin</h3>
+                                        <p className="text-xs leading-relaxed text-muted-foreground">ផ្លាស់ប្តូរឈ្មោះ និង Email សម្រាប់ចូលប្រើប្រាស់</p>
                                     </div>
                                 </div>
 
@@ -654,14 +736,14 @@ export default function MasterSettingsPage() {
 
                         {/* Master Admin Change Password Card */}
                         <Card className="bg-card border border-border/80 rounded-2xl shadow-xs">
-                            <CardContent className="p-6 sm:p-8 space-y-5">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-teal-600/10 text-teal-800 dark:text-teal-300 flex items-center justify-center">
+                            <CardContent className="space-y-4 p-4 sm:space-y-5 sm:p-8">
+                                <div className="flex items-start gap-3">
+                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-600/10 text-teal-800 dark:text-teal-300">
                                         <Lock size={20} />
                                     </div>
-                                    <div>
-                                        <h3 className="font-bold text-base text-foreground">ផ្លាស់ប្តូរលេខសម្ងាត់ (Password)</h3>
-                                        <p className="text-xs text-muted-foreground">កំណត់ Password ថ្មីយ៉ាងតិច ៨ ខ្ទង់</p>
+                                    <div className="min-w-0">
+                                        <h3 className="break-words font-bold text-sm text-foreground sm:text-base">ផ្លាស់ប្តូរលេខសម្ងាត់ (Password)</h3>
+                                        <p className="text-xs leading-relaxed text-muted-foreground">កំណត់ Password ថ្មីយ៉ាងតិច ៨ ខ្ទង់</p>
                                     </div>
                                 </div>
 
@@ -715,43 +797,43 @@ export default function MasterSettingsPage() {
 
                 {/* ─── TAB 3: BAKONG KHQR GATEWAY ─── */}
                 {activeTab === 'bakong' && (
-                    <Card className="bg-card border border-border/80 rounded-2xl shadow-xs max-w-2xl">
-                        <CardContent className="p-6 sm:p-8 space-y-6">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-teal-600/10 text-teal-800 dark:text-teal-300 flex items-center justify-center">
+                    <Card className="w-full max-w-2xl bg-card border border-border/80 rounded-2xl shadow-xs">
+                        <CardContent className="space-y-5 p-4 sm:space-y-6 sm:p-8">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                <div className="flex min-w-0 items-start gap-3">
+                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-600/10 text-teal-800 dark:text-teal-300">
                                         <CreditCard size={20} />
                                     </div>
-                                    <div>
-                                        <h3 className="font-bold text-base text-foreground">Bakong KHQR Gateway</h3>
-                                        <p className="text-xs text-muted-foreground">Manage NBC Bakong Payment Connection</p>
+                                    <div className="min-w-0">
+                                        <h3 className="break-words font-bold text-sm text-foreground sm:text-base">Bakong KHQR Gateway</h3>
+                                        <p className="text-xs leading-relaxed text-muted-foreground">Manage NBC Bakong Payment Connection</p>
                                     </div>
                                 </div>
                                 {bakongInfo?.isConnected && (
                                     <div className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center gap-1.5">
                                         <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                        <span className="text-[10px] font-black text-emerald-600 uppercase tracking-wider">Connected</span>
+                                        <span className="text-xs font-black text-emerald-600 uppercase tracking-wider">Connected</span>
                                     </div>
                                 )}
                             </div>
 
                             {/* Receiving account — required, otherwise QR generation fails with
                                 "Payment system not configured". */}
-                            <div className="space-y-3 p-4 rounded-2xl border border-border bg-muted/30">
-                                <div className="flex items-center justify-between gap-3">
-                                    <div>
+                            <div className="space-y-3 rounded-2xl border border-border bg-muted/30 p-3 sm:p-4">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                <div className="min-w-0">
                                         <p className="text-xs font-bold text-foreground">Bakong Receiving Account</p>
-                                        <p className="text-[11px] text-muted-foreground">គណនីទទួលប្រាក់ (Required for KHQR)</p>
+                                        <p className="text-xs text-muted-foreground">គណនីទទួលប្រាក់ (Required for KHQR)</p>
                                     </div>
                                     {bakongInfo?.isPaymentReady ? (
                                         <div className="px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center gap-1.5">
                                             <CheckCircle2 size={12} className="text-emerald-600" />
-                                            <span className="text-[10px] font-black text-emerald-600 uppercase tracking-wider">Payment Ready</span>
+                                            <span className="text-xs font-black text-emerald-600 uppercase tracking-wider">Payment Ready</span>
                                         </div>
                                     ) : (
                                         <div className="px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full flex items-center gap-1.5">
                                             <AlertTriangle size={12} className="text-amber-600" />
-                                            <span className="text-[10px] font-black text-amber-600 uppercase tracking-wider">Not Ready</span>
+                                            <span className="text-xs font-black text-amber-600 uppercase tracking-wider">Not Ready</span>
                                         </div>
                                     )}
                                 </div>
@@ -771,7 +853,7 @@ export default function MasterSettingsPage() {
                                         <label className="text-xs font-bold text-muted-foreground">Merchant Name</label>
                                         <input
                                             type="text"
-                                            placeholder="MONEA"
+                                            placeholder="MONEO"
                                             className="w-full px-3 py-2.5 rounded-xl border border-input bg-background text-xs focus:border-teal-600 focus:ring-2 focus:ring-teal-600/10 outline-none transition-all"
                                             value={bakongMerchantName}
                                             onChange={(e) => setBakongMerchantName(e.target.value)}
@@ -782,7 +864,7 @@ export default function MasterSettingsPage() {
                                 <Button
                                     onClick={handleBakongAccountSave}
                                     disabled={isSavingBakongAccount || !bakongAccountID.trim()}
-                                    className="w-full h-11 bg-teal-700 hover:bg-teal-800 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2"
+                                    className="h-auto min-h-11 w-full whitespace-normal bg-teal-700 px-3 py-2 text-center text-xs font-bold text-white hover:bg-teal-800 rounded-xl flex items-center justify-center gap-2"
                                 >
                                     {isSavingBakongAccount ? (
                                         <>

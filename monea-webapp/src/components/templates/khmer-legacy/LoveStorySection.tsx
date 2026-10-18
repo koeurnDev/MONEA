@@ -37,11 +37,8 @@ export function LoveStorySection({ wedding }: { wedding: WeddingData }) {
                         </h2>
                     </div>
 
-                    {/* Story Card */}
-                    <div className="bg-white p-6 sm:p-10 md:p-12 rounded-3xl shadow-sm border border-amber-200/60 text-center relative overflow-hidden space-y-6">
-                        <div className="w-12 h-12 mx-auto rounded-full bg-amber-50 border border-amber-200/60 flex items-center justify-center text-[#9C7A3C]">
-                            <Heart size={22} fill="currentColor" />
-                        </div>
+                    <div className="mx-auto max-w-2xl text-center space-y-6">
+                        <Heart size={22} fill="currentColor" className="mx-auto text-[#9C7A3C]" />
 
                         {/* Full Khmer Text (No broken substring slicing) */}
                         {storyText.trim() && storyText !== defaultKh && (
@@ -57,7 +54,7 @@ export function LoveStorySection({ wedding }: { wedding: WeddingData }) {
                                         <img
                                             src={image}
                                             alt={`រូបភាពរឿងរ៉ាវស្នេហាទី ${index + 1}`}
-                                            className="max-h-[28rem] aspect-[4/3] w-full rounded-2xl object-cover shadow-md"
+                                            className="max-h-[28rem] aspect-[4/3] w-full rounded-2xl object-cover"
                                             loading="lazy"
                                         />
                                         {wedding.themeSettings?.storyImageCaptions?.[index]?.trim() && (

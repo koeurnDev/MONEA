@@ -34,7 +34,7 @@ export function BakongCard({
                     {bakongInfo?.isConnected && (
                         <div className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center gap-1.5">
                             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                            <span className="text-[10px] font-black text-emerald-600 uppercase tracking-wider">Connected</span>
+                            <span className="text-xs font-black text-emerald-600 uppercase tracking-wider">Connected</span>
                         </div>
                     )}
                 </div>

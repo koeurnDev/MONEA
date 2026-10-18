@@ -26,7 +26,7 @@ const ParentNameField: React.FC<ParentNameFieldProps> = ({ id, label, placeholde
                 type="button"
                 aria-expanded={false}
                 onClick={() => setIsOpen(true)}
-                className="min-h-10 flex-1 rounded-xl border border-dashed border-teal-500/40 bg-white/70 px-3 py-2 text-[11px] font-bold text-teal-700 transition-colors hover:bg-teal-50 dark:bg-black/10 dark:text-teal-300 dark:hover:bg-teal-900/20"
+                className="min-h-10 flex-1 rounded-xl border border-dashed border-primary/40 bg-card/70 px-3 py-2 text-xs font-bold text-primary transition-colors hover:bg-accent"
             >
                 + {label}
             </button>
@@ -36,7 +36,7 @@ const ParentNameField: React.FC<ParentNameFieldProps> = ({ id, label, placeholde
     return (
         <div className="w-full space-y-2">
             <div className="flex items-center justify-between gap-2">
-                <Label htmlFor={id} className="text-[11px] font-bold text-muted-foreground">{label}</Label>
+                <Label htmlFor={id} className="text-xs font-bold text-muted-foreground">{label}</Label>
                 <button
                     type="button"
                     aria-label={`ដក ${label}`}
@@ -44,7 +44,7 @@ const ParentNameField: React.FC<ParentNameFieldProps> = ({ id, label, placeholde
                         onChange("");
                         setIsOpen(false);
                     }}
-                    className="rounded-md px-2 py-1 text-[10px] font-semibold text-muted-foreground transition-colors hover:bg-slate-100 hover:text-rose-600 dark:hover:bg-white/10"
+                    className="rounded-md px-2 py-1 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-rose-600"
                 >
                     ដកចេញ
                 </button>
@@ -53,7 +53,7 @@ const ParentNameField: React.FC<ParentNameFieldProps> = ({ id, label, placeholde
                 id={id}
                 autoComplete="off"
                 placeholder={placeholder}
-                className="h-10 rounded-xl bg-white dark:bg-black/20 border border-slate-200/80 dark:border-white/10 text-xs text-foreground focus-visible:ring-2 focus-visible:ring-teal-500/20 shadow-sm"
+                className="h-10 rounded-xl bg-background border border-border text-xs text-foreground focus-visible:ring-2 focus-visible:ring-ring shadow-sm"
                 value={value || ""}
                 onDebouncedChange={(nextValue) => onChange(String(nextValue))}
             />
@@ -94,17 +94,17 @@ const Step2Info: React.FC<Step2InfoProps> = ({
     return (
         <div className="space-y-4 sm:space-y-8 font-kantumruy">
             {/* Header info banner */}
-            <div className="bg-teal-500/5 p-3 sm:p-5 rounded-2xl sm:rounded-3xl border border-teal-500/10 shadow-sm relative overflow-hidden">
+            <div className="bg-accent/40 p-3 sm:p-5 rounded-2xl sm:rounded-3xl border border-primary/10 shadow-sm relative overflow-hidden">
                 <h3 className="text-sm font-bold text-foreground mb-1 flex items-center gap-2">
-                    <Heart className="w-4 h-4 text-teal-600 fill-teal-600" />
+                    <Heart className="w-4 h-4 text-primary fill-primary" />
                     {t("wizard.steps.2.coupleTitle", { defaultValue: "ព័ត៌មានរបស់គូស្នេហ៍" })}
                 </h3>
-                <p className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">
+                <p className="text-xs sm:text-xs text-muted-foreground leading-relaxed">
                     {isAnniv 
                         ? t("wizard.steps.2.coupleSubtitleAnniv", { defaultValue: "បញ្ចូលឈ្មោះគូស្វាមីភរិយាទាំងពីរ។ រូបភាពអាចបន្ថែមនៅជំហានបន្ទាប់។" })
                         : t("wizard.steps.2.coupleSubtitle", { defaultValue: "បញ្ចូលឈ្មោះកូនកំលោះ និងកូនក្រមុំ។ រូបភាពអាចបន្ថែមនៅជំហានបន្ទាប់។" })}
                 </p>
-                <div className="mt-2 sm:mt-3 inline-flex items-center rounded-full bg-white/80 px-2.5 py-1.5 text-[10px] sm:text-[11px] font-black text-teal-700 shadow-sm dark:bg-white/10 dark:text-teal-300">
+                <div className="mt-2 sm:mt-3 inline-flex items-center rounded-full bg-card px-2.5 py-1.5 text-xs sm:text-xs font-black text-primary shadow-sm">
                     ត្រូវបំពេញឈ្មោះទាំងពីរ។ ព័ត៌មានមាតាបិតាអាចរំលងបាន។
                 </div>
             </div>
@@ -112,32 +112,32 @@ const Step2Info: React.FC<Step2InfoProps> = ({
             {/* 1. Couple Information */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-5">
                 {/* Groom / Husband */}
-                <div className="space-y-2.5 sm:space-y-4 bg-slate-50/50 dark:bg-white/[0.02] p-3 sm:p-4 rounded-2xl border border-slate-200/80 dark:border-white/10">
+                <div className="space-y-2.5 sm:space-y-4 bg-muted/30 p-3 sm:p-4 rounded-2xl border border-border">
                     <div className="space-y-1.5 sm:space-y-2">
                         <Label className="text-xs font-bold text-foreground block">
-                            {isAnniv ? t("wizard.steps.2.husbandName", { defaultValue: "ឈ្មោះគូដណ្តឹង (ខាងប្រុស)" }) : t("wizard.steps.2.groomName", { defaultValue: "ឈ្មោះកូនកំលោះ" })} <span className="text-teal-500">*</span>
+                            {isAnniv ? t("wizard.steps.2.husbandName", { defaultValue: "ឈ្មោះគូដណ្តឹង (ខាងប្រុស)" }) : t("wizard.steps.2.groomName", { defaultValue: "ឈ្មោះកូនកំលោះ" })} <span className="text-primary">*</span>
                         </Label>
                         <DebouncedInput
                             aria-required="true"
                             value={wedding.groomName}
                             onDebouncedChange={(val) => updateWedding("groomName", val)}
-                            className="h-11 rounded-xl bg-white dark:bg-black/20 border border-slate-200/80 dark:border-white/10 font-bold text-xs text-foreground focus-visible:ring-2 focus-visible:ring-teal-500/20 shadow-sm"
+                            className="h-11 rounded-xl bg-background border border-border font-bold text-xs text-foreground focus-visible:ring-2 focus-visible:ring-ring shadow-sm"
                             placeholder={isAnniv ? t("wizard.steps.2.husbandPlaceholder", { defaultValue: "បញ្ចូលឈ្មោះគូដណ្តឹងខាងប្រុស" }) : t("wizard.steps.2.groomPlaceholder", { defaultValue: "បញ្ចូលឈ្មោះកូនកំលោះ" })}
                         />
                     </div>
                 </div>
 
                 {/* Bride / Wife */}
-                <div className="space-y-2.5 sm:space-y-4 bg-slate-50/50 dark:bg-white/[0.02] p-3 sm:p-4 rounded-2xl border border-slate-200/80 dark:border-white/10">
+                <div className="space-y-2.5 sm:space-y-4 bg-muted/30 p-3 sm:p-4 rounded-2xl border border-border">
                     <div className="space-y-1.5 sm:space-y-2">
                         <Label className="text-xs font-bold text-foreground block">
-                            {isAnniv ? t("wizard.steps.2.wifeName", { defaultValue: "ឈ្មោះគូដណ្តឹង (ខាងស្រី)" }) : t("wizard.steps.2.brideName", { defaultValue: "ឈ្មោះកូនក្រមុំ" })} <span className="text-teal-500">*</span>
+                            {isAnniv ? t("wizard.steps.2.wifeName", { defaultValue: "ឈ្មោះគូដណ្តឹង (ខាងស្រី)" }) : t("wizard.steps.2.brideName", { defaultValue: "ឈ្មោះកូនក្រមុំ" })} <span className="text-primary">*</span>
                         </Label>
                         <DebouncedInput
                             aria-required="true"
                             value={wedding.brideName}
                             onDebouncedChange={(val) => updateWedding("brideName", val)}
-                            className="h-11 rounded-xl bg-white dark:bg-black/20 border border-slate-200/80 dark:border-white/10 font-bold text-xs text-foreground focus-visible:ring-2 focus-visible:ring-teal-500/20 shadow-sm"
+                            className="h-11 rounded-xl bg-background border border-border font-bold text-xs text-foreground focus-visible:ring-2 focus-visible:ring-ring shadow-sm"
                             placeholder={isAnniv ? t("wizard.steps.2.wifePlaceholder", { defaultValue: "បញ្ចូលឈ្មោះគូដណ្តឹងខាងស្រី" }) : t("wizard.steps.2.bridePlaceholder", { defaultValue: "បញ្ចូលឈ្មោះកូនក្រមុំ" })}
                         />
                     </div>
@@ -146,15 +146,15 @@ const Step2Info: React.FC<Step2InfoProps> = ({
             
             {/* Custom Typography (Design Name from Illustrator) - ADMIN ONLY */}
             {isPlatformAdmin && (
-                <div className="space-y-4 bg-teal-50/30 dark:bg-teal-900/10 p-4 rounded-2xl border border-teal-100 dark:border-teal-900/30 relative mt-5">
-                    <div className="absolute -top-3 -right-2 bg-teal-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">Admin Only</div>
+                <div className="space-y-4 bg-accent/30 p-4 rounded-2xl border border-primary/15 relative mt-5">
+                    <div className="absolute -top-3 -right-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">Admin Only</div>
                     <div className="flex items-center gap-2 mb-2">
-                        <Sparkles className="w-4 h-4 text-teal-500" />
+                        <Sparkles className="w-4 h-4 text-primary" />
                         <Label className="text-xs font-bold text-foreground block">
                             អក្សរឈ្មោះរចនា (Custom Typography SVG/PNG)
                         </Label>
                     </div>
-                    <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">
+                    <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
                         (Admin Only): Upload SVG ឬ PNG ពី Illustrator។ វានឹងទៅជំនួសអក្សរវាយធម្មតានៅលើ Cover។
                     </p>
                     <div className="max-w-xs">
@@ -173,10 +173,10 @@ const Step2Info: React.FC<Step2InfoProps> = ({
                         />
                         
                         {wedding?.themeSettings?.customTypographyUrl && (
-                            <div className="mt-4 space-y-3 bg-white/50 dark:bg-black/20 p-3 rounded-xl border border-slate-200/50 dark:border-white/5">
+                            <div className="mt-4 space-y-3 bg-background/70 p-3 rounded-xl border border-border/60">
                                 <div className="flex justify-between items-center">
-                                    <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">ទំហំ (Scale)</Label>
-                                    <span className="text-[10px] font-mono text-slate-500">{wedding?.themeSettings?.customTypographyScale || 100}%</span>
+                                    <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">ទំហំ (Scale)</Label>
+                                    <span className="text-xs font-mono text-muted-foreground">{wedding?.themeSettings?.customTypographyScale || 100}%</span>
                                 </div>
                                 <Slider
                                     value={[wedding?.themeSettings?.customTypographyScale || 100]}
@@ -188,8 +188,8 @@ const Step2Info: React.FC<Step2InfoProps> = ({
                                 />
                                 
                                 <div className="flex justify-between items-center pt-2">
-                                    <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">ទីតាំង លើ-ក្រោម (Y Offset)</Label>
-                                    <span className="text-[10px] font-mono text-slate-500">{wedding?.themeSettings?.customTypographyY || 0}px</span>
+                                    <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">ទីតាំង លើ-ក្រោម (Y Offset)</Label>
+                                    <span className="text-xs font-mono text-muted-foreground">{wedding?.themeSettings?.customTypographyY || 0}px</span>
                                 </div>
                                 <Slider
                                     value={[wedding?.themeSettings?.customTypographyY || 0]}
@@ -201,9 +201,9 @@ const Step2Info: React.FC<Step2InfoProps> = ({
                                 />
 
                                 <div className="space-y-1.5 pt-2">
-                                    <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">កម្រិតស្រមោល (Drop Shadow)</Label>
+                                    <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">កម្រិតស្រមោល (Drop Shadow)</Label>
                                     <select 
-                                        className="w-full h-8 px-2 text-xs rounded-lg border border-slate-200/50 bg-white/50 dark:bg-black/50 text-foreground"
+                                        className="w-full h-8 px-2 text-xs rounded-lg border border-border bg-background text-foreground"
                                         value={wedding?.themeSettings?.customTypographyDropShadow || "0px 2px 4px rgba(0,0,0,0.5)"}
                                         onChange={(e) => updateTheme("customTypographyDropShadow", e.target.value)}
                                     >
@@ -219,12 +219,12 @@ const Step2Info: React.FC<Step2InfoProps> = ({
                     </div>
 
                     <div className="flex items-center gap-2 mt-6 mb-2">
-                        <Sparkles className="w-4 h-4 text-teal-500" />
+                        <Sparkles className="w-4 h-4 text-primary" />
                         <Label className="text-xs font-bold text-foreground block">
                             អក្សរកាត់ឈ្មោះ (Custom Monogram SVG/PNG)
                         </Label>
                     </div>
-                    <p className="text-[11px] text-muted-foreground mb-3 leading-relaxed">
+                    <p className="text-xs text-muted-foreground mb-3 leading-relaxed">
                         (Admin Only): Upload SVG ឬ PNG អក្សរកាត់ (ឧទាហរណ៍ S & M)។ វានឹងជំនួសអក្សរកាត់នៅតាមផ្ទាំងផ្សេងៗក្នុង Template។
                     </p>
                     <div className="max-w-xs">
@@ -243,10 +243,10 @@ const Step2Info: React.FC<Step2InfoProps> = ({
                         />
                         
                         {wedding?.themeSettings?.customMonogramUrl && (
-                            <div className="mt-4 space-y-3 bg-white/50 dark:bg-black/20 p-3 rounded-xl border border-slate-200/50 dark:border-white/5">
+                            <div className="mt-4 space-y-3 bg-background/70 p-3 rounded-xl border border-border/60">
                                 <div className="flex justify-between items-center">
-                                    <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">ទំហំ (Scale)</Label>
-                                    <span className="text-[10px] font-mono text-slate-500">{wedding?.themeSettings?.customMonogramScale || 100}%</span>
+                                    <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">ទំហំ (Scale)</Label>
+                                    <span className="text-xs font-mono text-muted-foreground">{wedding?.themeSettings?.customMonogramScale || 100}%</span>
                                 </div>
                                 <Slider
                                     value={[wedding?.themeSettings?.customMonogramScale || 100]}
@@ -258,8 +258,8 @@ const Step2Info: React.FC<Step2InfoProps> = ({
                                 />
                                 
                                 <div className="flex justify-between items-center pt-2">
-                                    <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">ទីតាំង លើ-ក្រោម (Y Offset)</Label>
-                                    <span className="text-[10px] font-mono text-slate-500">{wedding?.themeSettings?.customMonogramY || 0}px</span>
+                                    <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">ទីតាំង លើ-ក្រោម (Y Offset)</Label>
+                                    <span className="text-xs font-mono text-muted-foreground">{wedding?.themeSettings?.customMonogramY || 0}px</span>
                                 </div>
                                 <Slider
                                     value={[wedding?.themeSettings?.customMonogramY || 0]}
@@ -271,9 +271,9 @@ const Step2Info: React.FC<Step2InfoProps> = ({
                                 />
 
                                 <div className="space-y-1.5 pt-2">
-                                    <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">កម្រិតស្រមោល (Drop Shadow)</Label>
+                                    <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">កម្រិតស្រមោល (Drop Shadow)</Label>
                                     <select 
-                                        className="w-full h-8 px-2 text-xs rounded-lg border border-slate-200/50 bg-white/50 dark:bg-black/50 text-foreground"
+                                        className="w-full h-8 px-2 text-xs rounded-lg border border-border bg-background text-foreground"
                                         value={wedding?.themeSettings?.customMonogramDropShadow || "0px 2px 4px rgba(0,0,0,0.5)"}
                                         onChange={(e) => updateTheme("customMonogramDropShadow", e.target.value)}
                                     >
@@ -292,28 +292,28 @@ const Step2Info: React.FC<Step2InfoProps> = ({
 
             {/* 3. Family / Parents Information */}
             <details
-                className="group rounded-2xl border border-slate-200/80 bg-white dark:border-white/10 dark:bg-white/[0.02]"
+                className="group rounded-2xl border border-border bg-card"
                 open={showParents}
                 onToggle={(event) => setShowParents(event.currentTarget.open)}
             >
                 <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-3 py-2.5 [&::-webkit-details-marker]:hidden">
                     <span className="flex min-w-0 items-center gap-2 text-xs font-bold text-foreground">
-                        <Users className="h-4 w-4 shrink-0 text-teal-500" />
+                        <Users className="h-4 w-4 shrink-0 text-primary" />
                         <span className="truncate">{t("wizard.steps.2.parentsTitle", { defaultValue: "ព័ត៌មានមាតាបិតាទាំងសងខាង" })}</span>
                     </span>
-                    <span className="flex shrink-0 items-center gap-2 text-[10px] font-semibold text-muted-foreground">
+                    <span className="flex shrink-0 items-center gap-2 text-xs font-semibold text-muted-foreground">
                         អាចរំលងបាន
                         <span className="transition-transform group-open:rotate-180">⌄</span>
                     </span>
                 </summary>
-                <div className="space-y-3 border-t border-slate-200/80 p-3 dark:border-white/10 sm:space-y-4 sm:p-4">
-                    <p className="text-[11px] leading-relaxed text-muted-foreground">
+                <div className="space-y-3 border-t border-border p-3 sm:space-y-4 sm:p-4">
+                    <p className="text-xs leading-relaxed text-muted-foreground">
                         អាចបំពេញឈ្មោះឪពុក ឬម្តាយតាមដែលចង់បាន។
                     </p>
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                         {/* Groom Parents */}
-                        <div className="space-y-2.5 bg-slate-50/50 dark:bg-white/[0.02] p-3 sm:space-y-3 sm:p-4 rounded-2xl border border-slate-200/80 dark:border-white/10">
-                            <span className="text-xs font-bold text-teal-600 dark:text-teal-400 block border-b border-slate-200/80 dark:border-white/10 pb-2">
+                        <div className="space-y-2.5 bg-muted/30 p-3 sm:space-y-3 sm:p-4 rounded-2xl border border-border">
+                            <span className="text-xs font-bold text-primary block border-b border-border pb-2">
                                 មាតាបិតាខាងកូនកំលោះ
                             </span>
                             <div className="flex flex-wrap gap-2">
@@ -335,8 +335,8 @@ const Step2Info: React.FC<Step2InfoProps> = ({
                         </div>
 
                         {/* Bride Parents */}
-                        <div className="space-y-2.5 bg-slate-50/50 dark:bg-white/[0.02] p-3 sm:space-y-3 sm:p-4 rounded-2xl border border-slate-200/80 dark:border-white/10">
-                            <span className="text-xs font-bold text-teal-600 dark:text-teal-400 block border-b border-slate-200/80 dark:border-white/10 pb-2">
+                        <div className="space-y-2.5 bg-muted/30 p-3 sm:space-y-3 sm:p-4 rounded-2xl border border-border">
+                            <span className="text-xs font-bold text-primary block border-b border-border pb-2">
                                 មាតាបិតាខាងកូនក្រមុំ
                             </span>
                             <div className="flex flex-wrap gap-2">

@@ -25,7 +25,7 @@ export const DEFAULT_WEDDING: WeddingData = {
             invite_title: "សិរីសួស្តី អាពាហ៍ពិពាហ៍",
             hero_title: "សិរីមង្គលអាពាហ៍ពិពាហ៍",
             timeline_title: "កម្មវិធីពិធីមង្គលការ",
-            gallery_title: "វិចិត្រសាលរូបថត",
+            gallery_title: "វិចិត្រសាល",
             editorial_1: "",
             moments_title: "អនុស្សាវរីយ៍ផ្អែមល្ហែម",
             invitationHonorTitle: "សូមគោរពអញ្ជើញ",

@@ -19,9 +19,9 @@ import { useAuth } from "@/hooks/useAuth";
 
 import { StepWizard } from "./components/StepWizard";
 import { PreviewSync, MobilePreviewWrapper } from "./components/PreviewSync";
-import { useDesignWizard, STEPS, PRESET_COLORS, TEMPLATE_LAYOUTS } from "./hooks/useDesignWizard";
+import { useDesignWizard, STEPS, PRESET_COLORS } from "./hooks/useDesignWizard";
 import type { WeddingData } from "@/components/templates/types";
-import { isEditingLocked } from "@/lib/permissions";
+import { isEditingLocked, isFreeTrialExpired } from "@/lib/permissions";
 
 const StepSkeleton = () => <div className="h-64 rounded-2xl bg-muted animate-pulse" />;
 
@@ -31,6 +31,8 @@ const Step2Info     = lazy(() => import("./components/Step2Info"));
 const Step3Time     = lazy(() => import("./components/Step3Time"));
 const Step4Media    = lazy(() => import("./components/Step4Media"));
 const Step5Extra    = lazy(() => import("./components/Step5Extra"));
+
+const PHONE_PREVIEW_SIZE = { width: 440, height: 956 } as const;
 
 export default function DesignPage() {
     const { t } = useTranslation();
@@ -79,12 +81,12 @@ function DesignContent() {
         currentStep,
         setCurrentStep,
         progress,
+        photoMigrationNotice,
+        dismissPhotoMigrationNotice,
         mobileTab,
         setMobileTab,
         previewMode,
         setPreviewMode,
-        isDraggingGallery,
-        setIsDraggingGallery,
         activeAccordion,
         setActiveAccordion,
         templateVersions,
@@ -115,9 +117,9 @@ function DesignContent() {
         updateEventType,
         addGalleryItem,
         removeGalleryItem,
+        moveGalleryPhoto,
         removeThemeAsset,
         handleGalleryDirectUpload,
-        updateGalleryOrder,
         saveChanges,
         fetchVersions,
         handleSaveVersion,
@@ -142,7 +144,7 @@ function DesignContent() {
         },
         {
             target: '.tour-next',
-            content: 'ចុចប៊ូតុងនេះ ដើម្បីទៅជំហានបន្ទាប់។ ជំហានដែលមានស្លាកអាចរំលងបាន មិនចាំបាច់បំពេញទាំងអស់ទេ។',
+            content: 'ចុចប៊ូតុងនេះ ដើម្បីទៅជំហានបន្ទាប់។ រូបភាព និងការតុបតែងជាជម្រើស អ្នកអាចបើកផ្នែកខាងក្រោមដើម្បីកែ ឬរំលងបាន។',
             placement: 'auto'
         },
         {
@@ -185,6 +187,7 @@ function DesignContent() {
     );
 
     const isLocked = isEditingLocked(wedding);
+    const isFreeTrialEnded = isFreeTrialExpired(wedding);
 
     const renderStepContent = () => {
         if (!wedding) return null;
@@ -214,20 +217,23 @@ function DesignContent() {
                 return (
                     <Step4Media
                         wedding={wedding}
+                        onPreviewInvitation={() => {
+                            setMobilePreviewReady(false);
+                            setIsSheetOpen(false);
+                        }}
+                        photoMigrationNotice={photoMigrationNotice}
+                        onDismissPhotoMigrationNotice={dismissPhotoMigrationNotice}
                         updateTheme={updateTheme}
                         removeThemeAsset={removeThemeAsset}
-                        addGalleryItem={addGalleryItem}
                         removeGalleryItem={removeGalleryItem}
+                        replaceGalleryPhoto={(index, url, publicId) => addGalleryItem(url, publicId, index)}
+                        moveGalleryPhoto={moveGalleryPhoto}
                         handleGalleryDirectUpload={handleGalleryDirectUpload}
                         galleryUploading={galleryUploading}
                         galleryProgress={galleryProgress}
                         galleryUploadError={galleryUploadError}
                         failedGalleryFileCount={failedGalleryFileCount}
                         retryGalleryUpload={retryGalleryUpload}
-                        isDraggingGallery={isDraggingGallery}
-                        setIsDraggingGallery={setIsDraggingGallery}
-                        TEMPLATE_LAYOUTS={TEMPLATE_LAYOUTS}
-                        updateGalleryOrder={updateGalleryOrder}
                         onUploadingChange={setIsMediaUploading}
                     />
                 );
@@ -514,68 +520,25 @@ function DesignContent() {
                     className={clsx(
                         "relative z-10 transition-all duration-300 ease-in-out flex flex-col group origin-center",
                         previewMode === 'mobile' 
-                            ? "h-[calc(84vh-48px)] max-h-[772px] min-h-[520px] translate-y-6 aspect-[393/852] max-w-[393px]"
+                            ? "h-[calc(84vh-48px)] max-h-[772px] min-h-[520px] translate-y-6"
                             : "w-[95%] h-[82vh] rounded-2xl border-4 border-slate-900/10 dark:border-white/10 overflow-hidden bg-background shadow-2xl"
                     )}
+                    style={previewMode === 'mobile' ? {
+                        aspectRatio: `${PHONE_PREVIEW_SIZE.width} / ${PHONE_PREVIEW_SIZE.height}`,
+                        maxWidth: `${PHONE_PREVIEW_SIZE.width}px`,
+                    } : undefined}
                 >
-                    {previewMode === 'mobile' ? (
-                        /* iPhone Pro Realistic Hardware Body */
-                        <div className="relative w-full h-full p-[4px] bg-gradient-to-b from-slate-700 via-slate-800 to-slate-950 rounded-[3.2rem] shadow-[0_25px_70px_rgba(0,0,0,0.35),0_0_0_1px_rgba(255,255,255,0.15)] flex flex-col">
-                            {/* Left Hardware Buttons (Action Button + Volume Up/Down) */}
-                            <div className="absolute -left-[6px] top-[95px] w-[3px] h-[22px] bg-slate-600 rounded-l-sm shadow-sm" />
-                            <div className="absolute -left-[6px] top-[130px] w-[3px] h-[42px] bg-slate-600 rounded-l-sm shadow-sm" />
-                            <div className="absolute -left-[6px] top-[180px] w-[3px] h-[42px] bg-slate-600 rounded-l-sm shadow-sm" />
-
-                            {/* Right Hardware Button (Power / Siri Button) */}
-                            <div className="absolute -right-[6px] top-[135px] w-[3px] h-[60px] bg-slate-600 rounded-r-sm shadow-sm" />
-
-                            {/* Inner Screen Bezel */}
-                            <div className="relative w-full h-full bg-black rounded-[2.9rem] overflow-hidden flex flex-col ring-1 ring-black">
-                                {/* Top Speaker Slit */}
-                                <div className="absolute top-[5px] left-1/2 -translate-x-1/2 w-[42px] h-[2.5px] bg-slate-800/90 rounded-full z-50 pointer-events-none" />
-
-                                {/* Dynamic Island */}
-                                <div className="absolute top-[10px] left-1/2 -translate-x-1/2 w-[98px] h-[26px] bg-black rounded-full z-50 flex items-center justify-between px-2.5 shadow-md pointer-events-none">
-                                    <div className="w-2.5 h-2.5 rounded-full bg-[#080812] opacity-70" />
-                                    <div className="w-3 h-3 rounded-full bg-[#0a0a1a] shadow-[inset_0_0_2px_rgba(255,255,255,0.25)] flex items-center justify-center">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-900/70 blur-[0.3px]" />
-                                    </div>
-                                </div>
-
-                                {/* Glass Corner Glare Highlight */}
-                                <div className="absolute top-0 right-0 w-[70%] h-[35%] bg-gradient-to-bl from-white/[0.04] to-transparent rounded-tr-[2.9rem] pointer-events-none z-40" />
-
-                                {/* Iframe Content */}
-                                <iframe
-                                    ref={iframeRef}
-                                    src="/preview?mode=editor"
-                                    onLoad={() => {
-                                        if (iframeRef.current?.contentWindow && wedding) {
-                                            iframeRef.current.contentWindow.postMessage({ type: "UPDATE_PREVIEW", payload: wedding }, "*");
-                                        }
-                                    }}
-                                    className="w-full h-full border-none bg-background"
-                                    title={t("design.wizard.preview")}
-                                />
-
-                                {/* Bottom Home Indicator Bar */}
-                                <div className="absolute bottom-[6px] left-1/2 -translate-x-1/2 w-[120px] h-[3.5px] bg-black/40 dark:bg-white/40 rounded-full z-50 pointer-events-none backdrop-blur-sm" />
-                            </div>
-                        </div>
-                    ) : (
-                        /* Desktop Mode Direct Iframe */
-                        <iframe
-                            ref={iframeRef}
-                            src="/preview?mode=editor"
-                            onLoad={() => {
-                                if (iframeRef.current?.contentWindow && wedding) {
-                                    iframeRef.current.contentWindow.postMessage({ type: "UPDATE_PREVIEW", payload: wedding }, "*");
-                                }
-                            }}
-                            className="w-full h-full border-none bg-background"
-                            title={t("design.wizard.preview")}
-                        />
-                    )}
+                    <iframe
+                        ref={iframeRef}
+                        src="/preview?mode=editor"
+                        onLoad={() => {
+                            if (iframeRef.current?.contentWindow && wedding) {
+                                iframeRef.current.contentWindow.postMessage({ type: "UPDATE_PREVIEW", payload: wedding }, "*");
+                            }
+                        }}
+                        className="h-full w-full border-none bg-background"
+                        title={t("design.wizard.preview")}
+                    />
                 </div>
 
                 <PreviewSync wedding={wedding} iframeRef={iframeRef} currentStep={currentStep} enableScrollSync={false} />
@@ -643,10 +606,6 @@ function DesignContent() {
                                 <ExternalLink />
                                 {t("design.wizard.openPreview")}
                             </DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => setRunTour(true)}>
-                                <CircleHelp />
-                                {t("design.wizard.help")}
-                            </DropdownMenuItem>
                             <DropdownMenuItem
                                 disabled={loading || isMediaUploading || galleryUploading}
                                 onSelect={() => void openShareAfterSave()}
@@ -671,7 +630,7 @@ function DesignContent() {
         <div className="md:hidden fixed inset-0 z-40 flex h-[100dvh] w-[100vw] max-w-none min-w-0 flex-col overflow-hidden bg-background pt-[env(safe-area-inset-top)]" role="dialog" aria-modal="true" aria-label={t("design.wizard.mobileEditor")}>
             {/* MOBILE HEADER — min 56px height for comfortable touch targets */}
             <div className={clsx(
-                "h-[52px] bg-white/95 dark:bg-[#0a0a0a]/95 backdrop-blur-xl border-b border-slate-200/60 dark:border-white/10 flex items-center justify-between px-3 z-50 transition-all shadow-xs",
+                "h-14 bg-white/95 dark:bg-background/95 backdrop-blur-xl border-b border-slate-200/60 dark:border-white/10 flex items-center justify-between px-3 z-50 transition-all shadow-xs",
                 isSheetOpen ? "flex-none relative" : "absolute top-0 left-0 w-full"
             )}>
                 <div className="flex-1 flex justify-start items-center">
@@ -736,11 +695,12 @@ function DesignContent() {
                                 setMobilePreviewReady(false);
                                 setIsSheetOpen(false);
                             }}
-                            className="tour-preview h-11 px-2.5 text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 flex items-center justify-center rounded-xl transition-all font-kantumruy font-bold text-sm gap-1.5 active:scale-95"
+                            aria-label={t("design.wizard.previewInvitation")}
+                            className="tour-preview h-11 shrink-0 whitespace-nowrap px-2.5 text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 flex items-center justify-center rounded-xl transition-all font-kantumruy font-bold text-sm gap-1.5 active:scale-95"
                             title={t("design.wizard.preview", { defaultValue: "មើលលទ្ធផល" })}
                         >
                             <ExternalLink size={16} />
-                            <span>{t("design.wizard.previewInvitation")}</span>
+                            <span className="whitespace-nowrap">{t("design.wizard.previewShort", { defaultValue: "មើល" })}</span>
                         </button>
                     ) : (
                         <button
@@ -781,7 +741,7 @@ function DesignContent() {
                         </div>
                         {/* Preview action bar keeps the edit/finish choices visible. */}
                         <div className="absolute bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] left-3 right-3 z-50 pointer-events-auto flex flex-col gap-2 rounded-2xl border border-white/10 bg-black/75 p-2 backdrop-blur-md">
-                            <p role="status" className="px-2 text-center font-kantumruy text-[11px] leading-relaxed text-white/80">
+                            <p role="status" className="px-2 text-center font-kantumruy text-xs leading-relaxed text-white/80">
                                 {mobilePreviewReady
                                     ? "ពិនិត្យរូប និងព័ត៌មានធៀប រួចចុចចែករំលែក។"
                                     : "សូមរង់ចាំឲ្យ Preview បើកសិន។"}
@@ -861,8 +821,16 @@ function DesignContent() {
                         <div className="w-20 h-20 rounded-3xl bg-red-50 dark:bg-red-950/30 flex items-center justify-center mb-6">
                             <Lock className="w-10 h-10 text-red-600" />
                         </div>
-                        <h2 className="text-2xl font-black text-foreground mb-4 font-kantumruy uppercase tracking-tight">{t("design.locked.title")}</h2>
-                        <p className="text-muted-foreground mb-8 font-khmer leading-relaxed">{t("design.locked.description")}</p>
+                        <h2 className="text-2xl font-black text-foreground mb-4 font-kantumruy uppercase tracking-tight">
+                            {isFreeTrialEnded
+                                ? t("design.locked.freeTrialTitle", { defaultValue: "រយៈពេលប្រើប្រាស់ Free បានបញ្ចប់" })
+                                : t("design.locked.title")}
+                        </h2>
+                        <p className="text-muted-foreground mb-8 font-khmer leading-relaxed">
+                            {isFreeTrialEnded
+                                ? t("design.locked.freeTrialDescription", { defaultValue: "M1 អាចប្រើបាន 14 ថ្ងៃ។ រយៈពេលនេះបានបញ្ចប់ហើយ។ សូម Upgrade ដើម្បីបន្តកែ និងប្រើធៀបរបស់អ្នក។" })
+                                : t("design.locked.description")}
+                        </p>
                         <div className="flex flex-col gap-3 w-full">
                             <Button asChild className="h-14 rounded-2xl bg-slate-900 hover:bg-black text-white font-black uppercase tracking-wider shadow-xl dark:bg-slate-800 dark:hover:bg-slate-700">
                                 <Link to="/dashboard/upgrade">{t("design.locked.updateBtn")}</Link>

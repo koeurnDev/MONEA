@@ -1,4 +1,4 @@
-﻿import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,10 +32,10 @@ export function Disable2FADialog({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="w-[92vw] max-w-[400px] max-h-[90dvh] overflow-y-auto p-0 border-none rounded-2xl md:rounded-[2rem] bg-card shadow-2xl">
                 <DialogHeader className="p-5 sm:p-8 pb-0">
-                    <div className="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-950/30 flex items-center justify-center text-red-600 mb-4">
+                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-destructive/10 text-destructive">
                         <ShieldOff size={24} />
                     </div>
-                    <DialogTitle className="text-2xl font-black font-kantumruy text-red-600">{t("account.dialogs.disable2fa.title")}</DialogTitle>
+                    <DialogTitle className="text-2xl font-black font-kantumruy text-destructive">{t("account.dialogs.disable2fa.title")}</DialogTitle>
                     <DialogDescription className="text-sm font-medium font-kantumruy opacity-70 mt-2">
                         {t("account.dialogs.disable2fa.description")}
                     </DialogDescription>
@@ -43,16 +43,16 @@ export function Disable2FADialog({
 
                 <form onSubmit={onSubmit} className="p-5 sm:p-8 space-y-4 sm:space-y-6">
                     {disableError && (
-                        <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold font-kantumruy flex items-center gap-2">
+                        <div className="flex items-center gap-2 rounded-2xl border border-destructive/20 bg-destructive/10 p-4 text-xs font-bold text-destructive font-kantumruy">
                             <AlertCircle size={14} /> {disableError}
                         </div>
                     )}
 
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">{t("account.dialogs.disable2fa.label")}</Label>
+                            <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1">{t("account.dialogs.disable2fa.label")}</Label>
                             <div className="relative group">
-                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground opacity-40 group-focus-within:text-red-500 transition-colors">
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground opacity-40 transition-colors group-focus-within:text-destructive">
                                     <Lock size={16} />
                                 </div>
                                 <Input
@@ -60,7 +60,7 @@ export function Disable2FADialog({
                                     value={disablePassword}
                                     onChange={(e) => setDisablePassword(e.target.value)}
                                     placeholder="••••••••"
-                                    className="h-11 sm:h-12 pl-11 pr-11 bg-muted/40 border-none rounded-xl font-bold focus:ring-2 focus:ring-red-500/20 transition-all"
+                                    className="h-11 rounded-xl border-none bg-muted/40 pl-11 pr-11 font-bold transition-all focus-visible:ring-2 focus-visible:ring-destructive/30 sm:h-12"
                                     required
                                     autoComplete="current-password"
                                 />
@@ -86,8 +86,9 @@ export function Disable2FADialog({
                         </Button>
                         <Button
                             type="submit"
+                            variant="destructive"
                             disabled={disabling2FA || !disablePassword}
-                            className="w-full h-11 bg-red-600 hover:bg-red-700 text-white rounded-xl font-black font-kantumruy shadow-lg shadow-red-500/20 transition-all active:scale-95"
+                            className="h-11 w-full rounded-xl font-black font-kantumruy transition-all active:scale-95"
                         >
                             {disabling2FA ? <RefreshCw className="w-4 h-4 animate-spin" /> : t("account.dialogs.disable2fa.submit")}
                         </Button>

@@ -1,7 +1,7 @@
 {
-  "name": "MONEA Wedding Platform",
-  "short_name": "MONEA",
-  "description": "Platform រៀបចំអាពាហ៍ពិពាហ៍ដ៏ទំនើប",
+  "name": "MONEO - TheapKa Digital",
+  "short_name": "MONEO",
+  "description": "បង្កើត និងចែករំលែកធៀបអញ្ជើញមង្គលការឌីជីថលជាមួយ MONEO",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -9,16 +9,16 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/icons/icon-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "src": "/icons/logomoneo.jpg",
+      "sizes": "1024x1024",
+      "type": "image/jpeg",
+      "purpose": "any"
     },
     {
-      "src": "/icons/icon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "src": "/icons/logomoneo.jpg",
+      "sizes": "1024x1024",
+      "type": "image/jpeg",
+      "purpose": "any"
     }
   ],
   "categories": ["lifestyle", "social"],

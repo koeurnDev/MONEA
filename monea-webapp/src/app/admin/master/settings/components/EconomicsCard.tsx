@@ -39,7 +39,7 @@ export function EconomicsCard({ config, setConfig, handleAutoSave }: EconomicsCa
                                     {t("admin.settings.standardTier", { defaultValue: "កញ្ចប់ STANDARD" })}
                                 </span>
                             </div>
-                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400">
+                            <span className="text-xs font-black uppercase px-2 py-0.5 rounded-md bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400">
                                 PRO TIER
                             </span>
                         </div>
@@ -70,7 +70,7 @@ export function EconomicsCard({ config, setConfig, handleAutoSave }: EconomicsCa
                                     {t("admin.settings.proTier", { defaultValue: "កញ្ចប់ PRO MASTER" })}
                                 </span>
                             </div>
-                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                            <span className="text-xs font-black uppercase px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-400 border border-amber-500/30">
                                 PREMIUM
                             </span>
                         </div>

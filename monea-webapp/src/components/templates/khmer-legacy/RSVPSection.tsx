@@ -105,7 +105,7 @@ export default function RSVPSection({ wedding, guestName }: RSVPSectionProps) {
                     initial={{ opacity: 0, scale: 0.9, y: 30 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-                    className="max-w-xl mx-auto p-8 md:p-16 rounded-[4rem] border border-gold-main/10 space-y-12 relative z-10 bg-white/60 backdrop-blur-2xl shadow-[0_50px_100px_rgba(0,0,0,0.1)] group"
+                    className="max-w-xl mx-auto py-8 space-y-12 relative z-10"
                 >
                     <div className="relative">
                         <m.div 
@@ -113,7 +113,7 @@ export default function RSVPSection({ wedding, guestName }: RSVPSectionProps) {
                             transition={{ duration: 3, repeat: Infinity }}
                             className="absolute inset-0 bg-gold-main/10 rounded-full blur-2xl" 
                         />
-                        <div className="w-24 h-24 bg-gold-gradient rounded-full flex items-center justify-center mx-auto text-white relative shadow-xl shadow-gold-main/20 border-2 border-white/50">
+                        <div className="w-16 h-16 flex items-center justify-center mx-auto text-gold-main relative">
                             <CheckCircle2 size={40} strokeWidth={2.5} />
                         </div>
                     </div>
@@ -138,7 +138,7 @@ export default function RSVPSection({ wedding, guestName }: RSVPSectionProps) {
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 transition={{ delay: 0.5 }}
-                                className="bg-gold-main/5 p-6 rounded-[2rem] border border-gold-main/10"
+                                className="border-l-2 border-gold-main/30 px-5 py-2 text-left"
                             >
                                 <span className="text-gold-main font-khmer-content text-base font-black italic block">
                                     {status === 'CONFIRMED' 
@@ -199,32 +199,21 @@ export default function RSVPSection({ wedding, guestName }: RSVPSectionProps) {
                     </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-12 bg-white/60 backdrop-blur-2xl p-8 md:p-12 rounded-[3rem] border border-white/40 shadow-[0_40px_100px_rgba(0,0,0,0.08)] relative overflow-hidden group">
-                    <div className="absolute -top-24 -right-24 w-80 h-80 bg-gold-main/5 rounded-full blur-3xl" />
-                    
+                <form onSubmit={handleSubmit} className="space-y-12 py-8 relative">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
                         <m.button
                             type="button"
                             whileHover={{ scale: 1.02, y: -4 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => handleStatusSelect('CONFIRMED')}
-                            className={`p-10 rounded-[2.5rem] border transition-all flex flex-col items-center gap-6 relative overflow-hidden shadow-sm ${
-                                status === 'CONFIRMED' 
-                                ? 'border-emerald-500/30 bg-emerald-50/40 text-emerald-800 ring-4 ring-emerald-500/5' 
-                                : 'border-slate-100 bg-white/80 hover:border-gold-main/30'
+                            className={`py-6 border-b-2 transition-all flex items-center justify-center gap-4 relative ${
+                                status === 'CONFIRMED'
+                                ? 'border-emerald-500 text-emerald-800'
+                                : 'border-slate-200 text-slate-500 hover:border-gold-main/50 hover:text-gold-main'
                             }`}
                         >
-                            <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-transform duration-500 ${status === 'CONFIRMED' ? 'bg-emerald-500 text-white scale-110' : 'bg-slate-50 text-slate-400'}`}>
-                                <CheckCircle2 size={28} />
-                            </div>
+                            <CheckCircle2 size={24} className={status === 'CONFIRMED' ? 'text-emerald-600' : 'text-slate-400'} />
                             <span className="font-khmer-moul text-xl tracking-wider">{wedding.themeSettings?.customLabels?.rsvpConfirmBtn || t("invitation.rsvp.confirm")}</span>
-                            
-                            {status === 'CONFIRMED' && (
-                                <m.div 
-                                    layoutId="rsvp-active"
-                                    className="absolute inset-0 bg-emerald-500/5 -z-10"
-                                />
-                            )}
                         </m.button>
 
                         <m.button
@@ -232,23 +221,14 @@ export default function RSVPSection({ wedding, guestName }: RSVPSectionProps) {
                             whileHover={{ scale: 1.02, y: -4 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => handleStatusSelect('DECLINED')}
-                            className={`p-10 rounded-[2.5rem] border transition-all flex flex-col items-center gap-6 relative overflow-hidden shadow-sm ${
-                                status === 'DECLINED' 
-                                ? 'border-rose-400/30 bg-rose-50/40 text-rose-800 ring-4 ring-rose-500/5' 
-                                : 'border-slate-100 bg-white/80 hover:border-gold-main/30'
+                            className={`py-6 border-b-2 transition-all flex items-center justify-center gap-4 relative ${
+                                status === 'DECLINED'
+                                ? 'border-rose-400 text-rose-800'
+                                : 'border-slate-200 text-slate-500 hover:border-gold-main/50 hover:text-gold-main'
                             }`}
                         >
-                            <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-lg transition-transform duration-500 ${status === 'DECLINED' ? 'bg-rose-400 text-white scale-110' : 'bg-slate-50 text-slate-400'}`}>
-                                <XCircle size={28} />
-                            </div>
+                            <XCircle size={24} className={status === 'DECLINED' ? 'text-rose-500' : 'text-slate-400'} />
                             <span className="font-khmer-moul text-xl tracking-wider">{wedding.themeSettings?.customLabels?.rsvpDeclineBtn || t("invitation.rsvp.decline")}</span>
-                            
-                            {status === 'DECLINED' && (
-                                <m.div 
-                                    layoutId="rsvp-active"
-                                    className="absolute inset-0 bg-rose-500/5 -z-10"
-                                />
-                            )}
                         </m.button>
                     </div>
 
@@ -279,9 +259,7 @@ export default function RSVPSection({ wedding, guestName }: RSVPSectionProps) {
                                 {status === 'CONFIRMED' && (
                                     <div className="flex flex-col items-center gap-4">
                                         <label className="font-khmer-content text-sm font-bold text-slate-500 tracking-wide flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-2xl bg-gold-main/10 flex items-center justify-center text-gold-main shadow-inner">
-                                                <Users size={18} />
-                                            </div>
+                                            <Users size={18} className="text-gold-main" />
                                             {wedding.themeSettings?.customLabels?.rsvpGuestCountLabel || t("invitation.rsvp.guestCount")}
                                         </label>
                                         <div className="flex gap-4 w-full max-w-md mx-auto">
@@ -346,4 +324,3 @@ export default function RSVPSection({ wedding, guestName }: RSVPSectionProps) {
         </m.section>
     );
 }
-

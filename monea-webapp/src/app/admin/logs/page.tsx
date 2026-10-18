@@ -81,7 +81,7 @@ export default function AdminLogsPage() {
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="bg-slate-50/50 text-slate-500 text-[10px] font-black uppercase tracking-widest border-b border-slate-50">
+                                <tr className="bg-slate-50/50 text-slate-500 text-xs font-black uppercase tracking-widest border-b border-slate-50">
                                     <th className="px-8 py-4">កាលបរិច្ឆេទ</th>
                                     <th className="px-8 py-4">អ្នកធ្វើការងារ</th>
                                     <th className="px-8 py-4">សកម្មភាព</th>
@@ -114,7 +114,7 @@ export default function AdminLogsPage() {
                                                 </div>
                                             </td>
                                             <td className="px-8 py-5">
-                                                <span className={`px-2 py-1 rounded-md text-[10px] font-black ${log.action === 'CREATE' ? 'bg-green-50 text-green-600' :
+                                                <span className={`px-2 py-1 rounded-md text-xs font-black ${log.action === 'CREATE' ? 'bg-green-50 text-green-600' :
                                                     log.action === 'DELETE' ? 'bg-red-50 text-red-600' :
                                                         'bg-blue-50 text-blue-600'
                                                     }`}>

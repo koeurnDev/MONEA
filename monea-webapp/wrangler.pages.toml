@@ -8,9 +8,9 @@ pages_build_output_dir = "dist"
 # Environment variables for Pages
 [env.production.vars]
 NODE_ENV = "production"
-VITE_API_URL = "https://monea-api.seabkoeurn64.workers.dev"
-VITE_APP_URL = "https://monea-webapp.pages.dev"
-VITE_TURNSTILE_SITE_KEY = "0x4AAAAAACqptbDqodh591Td"
+VITE_API_URL = "https://api.moneoez.com"
+VITE_APP_URL = "https://moneoez.com"
+VITE_TURNSTILE_SITE_KEY = "0x4AAAAAAFVFA2MjGeRSx0-w"
 VITE_GOOGLE_CLIENT_ID = "30891345600-2s6re86u5pj5fugsc0m0kh3kjhdi1brk.apps.googleusercontent.com"
 VITE_CLOUDINARY_CLOUD_NAME = "dilx4i5s4"
 VITE_CLOUDINARY_API_KEY = "678179776217443"

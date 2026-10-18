@@ -29,7 +29,7 @@ export function StatusMaintenanceCard({ config, setConfig, handleAutoSave }: Sta
                             <h3 className="font-black text-lg text-white">
                                 {t("admin.settings.statusTitle", { defaultValue: "ស្ថានភាពប្រព័ន្ធ (Status)" })}
                             </h3>
-                            <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">
+                            <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">
                                 {config?.maintenanceMode 
                                     ? t("admin.settings.statusHalt", { defaultValue: "ប្រព័ន្ធកំពុងបិទថែទាំ" }) 
                                     : t("admin.settings.statusOnline", { defaultValue: "ប្រព័ន្ធដំណើរការជាធម្មតា (Online)" })}

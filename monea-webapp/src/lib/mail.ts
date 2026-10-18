@@ -2,22 +2,22 @@ export async function sendPasswordResetEmail(email: string, token: string) {
     const isLocal = typeof process !== 'undefined' && process.env.NODE_ENV !== 'production';
     const appUrl = isLocal
         ? (process.env.VITE_APP_URL || "http://localhost:3001")
-        : (process.env.NEXT_PUBLIC_APP_URL || process.env.VITE_APP_URL || "https://monea-webapp.pages.dev");
+        : (process.env.NEXT_PUBLIC_APP_URL || process.env.VITE_APP_URL || "https://moneoez.com");
     const resetLink = `${appUrl}/reset-password?token=${token}`;
     
     return await sendMail({
         to: email,
-        subject: "Reset your MONEA password | កំណត់ពាក្យសម្ងាត់ MONEA ឡើងវិញ",
+        subject: "Reset your MONEO password | កំណត់ពាក្យសម្ងាត់ MONEO ឡើងវិញ",
         text: `Reset link: ${resetLink}`,
         html: `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; color: #1e293b; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px;">
                 <div style="text-align: center; margin-bottom: 24px;">
-                    <h1 style="color: #e11d48; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: 1px;">MONEA</h1>
+                    <h1 style="color: #e11d48; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: 1px;">MONEO</h1>
                     <p style="color: #64748b; font-size: 14px; margin-top: 4px;">Wedding & Event Platform</p>
                 </div>
                 <h2 style="font-size: 20px; font-weight: 700; color: #0f172a; margin-bottom: 12px;">Password Reset Request / ស្នើសុំកំណត់ពាក្យសម្ងាត់ឡើងវិញ</h2>
                 <p style="font-size: 14px; line-height: 1.6; color: #334155;">
-                    យើងបានទទួលសំណើសុំកំណត់ពាក្យសម្ងាត់គណនី MONEA របស់អ្នកឡើងវិញ។ សូមចុចប៊ូតុងខាងក្រោមដើម្បីជ្រើសរើសពាក្យសម្ងាត់ថ្មី៖
+                    យើងបានទទួលសំណើសុំកំណត់ពាក្យសម្ងាត់គណនី MONEO របស់អ្នកឡើងវិញ។ សូមចុចប៊ូតុងខាងក្រោមដើម្បីជ្រើសរើសពាក្យសម្ងាត់ថ្មី៖
                 </p>
                 <div style="text-align: center; margin: 32px 0;">
                     <a href="${resetLink}" style="background-color: #e11d48; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px; display: inline-block; box-shadow: 0 4px 12px rgba(225,29,72,0.3);">Reset Password / កំណត់ពាក្យសម្ងាត់</a>
@@ -55,7 +55,7 @@ export async function sendMail({ to, subject, text, html }: { to: string, subjec
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                from: process.env.RESEND_FROM || "MONEA <onboarding@resend.dev>",
+                from: process.env.RESEND_FROM || "MONEO <onboarding@resend.dev>",
                 to: [to],
                 subject: subject,
                 text: text,
@@ -77,4 +77,3 @@ export async function sendMail({ to, subject, text, html }: { to: string, subjec
         return { success: false, error: e.message };
     }
 }
-

@@ -231,8 +231,8 @@ export default function MasterWeddingsPage() {
 
     return (
         <div className="min-h-full bg-background p-1.5 font-kantumruy text-foreground sm:p-5">
-            <div className="mx-auto max-w-[1360px] rounded-[22px] border border-border bg-card p-2 shadow-sm sm:rounded-[28px] sm:p-4">
-                <div className="flex flex-col gap-4 rounded-[18px] border border-border/70 bg-muted/30 p-2.5 sm:rounded-[22px] sm:p-4">
+            <div className="mx-auto max-w-[1360px] rounded-[22px] border border-border bg-card p-1.5 shadow-sm sm:rounded-[28px] sm:p-4">
+                <div className="flex flex-col gap-4 rounded-[18px] border border-border/70 bg-muted/30 p-2 sm:rounded-[22px] sm:p-4">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center justify-between gap-3 sm:w-auto">
                             <button
@@ -271,23 +271,23 @@ export default function MasterWeddingsPage() {
                         </div>
                     </div>
 
-                    <div className="grid gap-4 md:grid-cols-3">
-                        <div className="rounded-[22px] border border-border bg-card p-4 shadow-sm sm:p-5">
+                    <div className="grid grid-cols-2 gap-2 sm:gap-4 md:grid-cols-3">
+                        <div className="rounded-[18px] border border-border bg-card p-3 shadow-sm sm:rounded-[22px] sm:p-5">
                             <p className="text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">TOTAL</p>
-                            <p className="mt-3 text-4xl font-black tracking-[-0.04em] text-foreground">{stats.total}</p>
-                            <p className="mt-1 text-base text-muted-foreground">កម្មវិធីសរុប</p>
+                            <p className="mt-2 text-3xl font-black tracking-[-0.04em] text-foreground sm:mt-3 sm:text-4xl">{stats.total}</p>
+                            <p className="mt-1 text-xs text-muted-foreground sm:text-base">កម្មវិធីសរុប</p>
                         </div>
 
-                        <div className="rounded-[22px] border border-border bg-card p-4 shadow-sm sm:p-5">
+                        <div className="rounded-[18px] border border-border bg-card p-3 shadow-sm sm:rounded-[22px] sm:p-5">
                             <p className="text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">ACTIVE</p>
-                            <p className="mt-3 text-4xl font-black tracking-[-0.04em] text-foreground">{stats.active}</p>
-                            <p className="mt-1 text-base text-muted-foreground">សកម្មភាព</p>
+                            <p className="mt-2 text-3xl font-black tracking-[-0.04em] text-foreground sm:mt-3 sm:text-4xl">{stats.active}</p>
+                            <p className="mt-1 text-xs text-muted-foreground sm:text-base">សកម្មភាព</p>
                         </div>
 
-                        <div className="rounded-[22px] border border-border bg-card p-4 shadow-sm sm:p-5">
+                        <div className="col-span-2 rounded-[18px] border border-border bg-card p-3 shadow-sm sm:rounded-[22px] sm:p-5 md:col-span-1">
                             <p className="text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">PREMIUM</p>
-                            <p className="mt-3 text-4xl font-black tracking-[-0.04em] text-foreground">{stats.premium}</p>
-                            <p className="mt-1 text-base text-muted-foreground">VIP</p>
+                            <p className="mt-2 text-3xl font-black tracking-[-0.04em] text-foreground sm:mt-3 sm:text-4xl">{stats.premium}</p>
+                            <p className="mt-1 text-xs text-muted-foreground sm:text-base">VIP</p>
                         </div>
                     </div>
                 </div>
@@ -298,14 +298,14 @@ export default function MasterWeddingsPage() {
                             <p className="text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">OVERVIEW</p>
                             <h2 className="mt-1 text-lg font-bold text-foreground">បញ្ជីកម្មវិធី</h2>
                         </div>
-                        <div className="flex flex-wrap items-center gap-2">
+                        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
                             {(["ALL", "FREE", "PRO", "PREMIUM"] as const).map((filter) => (
                                 <button
                                     key={filter}
                                     type="button"
                                     onClick={() => setPackageFilter(filter)}
                                     className={cn(
-                                        "min-h-10 rounded-full border px-4 py-2 text-xs font-black uppercase tracking-[0.08em] transition-all",
+                                        "min-h-10 rounded-full border px-3 py-2 text-xs font-black uppercase tracking-[0.08em] transition-all sm:px-4 sm:text-xs",
                                         packageFilter === filter
                                             ? "border-teal-600/30 bg-teal-600/10 text-teal-800 dark:text-teal-300"
                                             : "border-border bg-background text-muted-foreground hover:bg-muted"
@@ -382,7 +382,7 @@ export default function MasterWeddingsPage() {
                                                     <span className="text-xs font-mono font-bold text-muted-foreground">#{w.weddingCode || '---'}</span>
                                                     <div className="flex flex-wrap justify-center gap-1">
                                                         <span className={cn(
-                                                            "rounded-full border px-2.5 py-1 text-[11px] font-bold",
+                                                            "rounded-full border px-2.5 py-1 text-xs font-bold",
                                                             w.status === "ACTIVE"
                                                                 ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
                                                                 : "border-border bg-muted/50 text-muted-foreground"
@@ -390,7 +390,7 @@ export default function MasterWeddingsPage() {
                                                             {w.status === "ACTIVE" ? "សកម្ម" : "បានបិទ"}
                                                         </span>
                                                         <span className={cn(
-                                                            "rounded-full border px-2.5 py-1 text-[11px] font-bold",
+                                                            "rounded-full border px-2.5 py-1 text-xs font-bold",
                                                             w.paymentStatus === "PAID"
                                                                 ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
                                                                 : w.paymentStatus === "AWAITING_VERIFICATION"
@@ -528,7 +528,7 @@ export default function MasterWeddingsPage() {
                                     </div>
                                     <div className="mt-2 flex flex-wrap justify-end gap-1">
                                         <span className={cn(
-                                            "rounded-full border px-2.5 py-1 text-[11px] font-bold",
+                                            "rounded-full border px-2.5 py-1 text-xs font-bold",
                                             w.status === "ACTIVE"
                                                 ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
                                                 : "border-border bg-muted/50 text-muted-foreground"
@@ -536,7 +536,7 @@ export default function MasterWeddingsPage() {
                                             {w.status === "ACTIVE" ? "សកម្ម" : "បានបិទ"}
                                         </span>
                                         <span className={cn(
-                                            "rounded-full border px-2.5 py-1 text-[11px] font-bold",
+                                            "rounded-full border px-2.5 py-1 text-xs font-bold",
                                             w.paymentStatus === "PAID"
                                                 ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
                                                 : w.paymentStatus === "AWAITING_VERIFICATION"
@@ -745,7 +745,7 @@ export default function MasterWeddingsPage() {
                                             <p className="text-xs font-black text-foreground">
                                                 {plan.title}
                                             </p>
-                                            <p className="text-[11px] text-muted-foreground">
+                                            <p className="text-xs text-muted-foreground">
                                                 {plan.desc}
                                             </p>
                                         </div>
@@ -782,7 +782,7 @@ export default function MasterWeddingsPage() {
                                     />
                                     <span>
                                         <span className="block font-bold">បានបង់ប្រាក់</span>
-                                        <span className="mt-1 block text-[10px] text-muted-foreground">ត្រូវបញ្ចូលលេខប្រតិបត្តិការ</span>
+                                        <span className="mt-1 block text-xs text-muted-foreground">ត្រូវបញ្ចូលលេខប្រតិបត្តិការ</span>
                                     </span>
                                 </label>
                                 <label className="flex min-h-[72px] cursor-pointer items-start gap-2 rounded-xl border border-border p-3 text-xs text-foreground">
@@ -796,7 +796,7 @@ export default function MasterWeddingsPage() {
                                     />
                                     <span>
                                         <span className="block font-bold">លើកលែង / ជូនឥតគិតថ្លៃ</span>
-                                        <span className="mt-1 block text-[10px] text-muted-foreground">ត្រូវបញ្ជាក់មូលហេតុខាងក្រោម</span>
+                                        <span className="mt-1 block text-xs text-muted-foreground">ត្រូវបញ្ជាក់មូលហេតុខាងក្រោម</span>
                                     </span>
                                 </label>
                             </div>
@@ -816,7 +816,7 @@ export default function MasterWeddingsPage() {
                                         disabled={!!processingId}
                                         className="h-11 rounded-xl text-base sm:text-xs"
                                     />
-                                    <p className="text-[10px] text-muted-foreground">ត្រូវមានចន្លោះពី ៤ ដល់ ១២០ តួអក្សរ។</p>
+                                    <p className="text-xs text-muted-foreground">ត្រូវមានចន្លោះពី ៤ ដល់ ១២០ តួអក្សរ។</p>
                                 </div>
                             )}
                         </fieldset>
@@ -841,7 +841,7 @@ export default function MasterWeddingsPage() {
                             disabled={!!processingId}
                             className="min-h-[88px] resize-y rounded-xl text-xs"
                         />
-                        <p className="text-right text-[10px] text-muted-foreground">
+                        <p className="text-right text-xs text-muted-foreground">
                             {changeReason.trim().length}/500 (យ៉ាងតិច ១០ តួអក្សរ)
                         </p>
                     </div>

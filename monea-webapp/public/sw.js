@@ -1,5 +1,5 @@
 /**
- * MONEA Service Worker v4
+ * MONEA Service Worker v9
  * Handles static assets caching & SPA navigation fallback gracefully.
  *
  * v3 changes:
@@ -27,15 +27,31 @@
  *  - A failed asset fetch now returns a 504 instead of rejecting
  *    `respondWith()`, so one unreachable file can no longer surface as an
  *    unhandled rejection.
+ *
+ * v6 changes:
+ *  - HTML SPA fallbacks are never accepted or cached as static assets. Invalid
+ *    cached script/style responses are removed and fetched again, preventing a
+ *    stale Pages fallback from breaking lazy-loaded modules after deployment.
+ *
+ * v7 changes:
+ *  - Purges v6 asset caches so clients recover from mixed-version module graphs
+ *    after a deployment.
+ *
+ * v8 changes:
+ *  - Purges v7 asset caches so clients recover from stale module graphs after
+ *    the deployment.
+ *
+ * v9 changes:
+ *  - Refreshes the app shell with the current MONEO logo and manifest.
  */
 
-const CACHE_NAME = 'monea-v5';
+const CACHE_NAME = 'monea-v9';
 const CACHE_PREFIX = 'monea-';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/favicon.png',
+  '/icons/logomoneo.jpg',
   '/logo.png',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
@@ -81,6 +97,15 @@ function isCacheable(response) {
   return true;
 }
 
+function isValidAssetResponse(request, response) {
+  if (!response || response.status !== 200) return false;
+  const contentType = response.headers.get('Content-Type') || '';
+  if (/text\/html/i.test(contentType)) return false;
+  if (request.destination === 'script' && !/(java|ecma)script/i.test(contentType)) return false;
+  if (request.destination === 'style' && !/text\/css/i.test(contentType)) return false;
+  return true;
+}
+
 /**
  * True for anything that produces the HTML document itself: top-level
  * navigations, iframe loads and any explicit HTML fetch.
@@ -96,7 +121,7 @@ const OFFLINE_SHELL = `<!doctype html>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>MONEA — កំពុងភ្ជាប់ឡើងវិញ / Reconnecting</title>
+    <title>MONEO — កំពុងភ្ជាប់ឡើងវិញ / Reconnecting</title>
     <style>
       body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
              font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -162,28 +187,44 @@ async function handleShellRequest(request) {
 }
 
 /**
- * Assets stay cache-first (Vite emits hashed, immutable filenames) with a
- * stale-while-revalidate refresh in the background.
+ * Assets stay cache-first (Vite emits hashed, immutable filenames). Validate
+ * cached and network responses so an SPA HTML fallback is never served as JS.
  */
 async function handleAssetRequest(request) {
-  const cachedResponse = await caches.match(request);
+  const cache = await caches.open(CACHE_NAME);
+  const cachedResponse = await cache.match(request);
   if (cachedResponse) {
-    fetch(request)
-      .then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200 && isCacheable(networkResponse)) {
-          const responseClone = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
-        }
-      })
-      .catch(() => { /* ignore background update errors */ });
-    return cachedResponse;
+    if (isValidAssetResponse(request, cachedResponse)) {
+      fetch(request)
+        .then((networkResponse) => {
+          if (isValidAssetResponse(request, networkResponse) && isCacheable(networkResponse)) {
+            const responseClone = networkResponse.clone();
+            cache.put(request, responseClone);
+          }
+        })
+        .catch(() => { /* ignore background update errors */ });
+      return cachedResponse;
+    }
+
+    await cache.delete(request);
   }
 
   try {
     const networkResponse = await fetch(request);
-    if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic' && isCacheable(networkResponse)) {
+    if (!isValidAssetResponse(request, networkResponse)) {
+      console.warn('[SW] Invalid asset response:', request.url, networkResponse?.headers.get('Content-Type'));
+      if (networkResponse?.status === 200) {
+        return new Response('', {
+          status: 502,
+          statusText: 'Invalid asset response',
+          headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
+        });
+      }
+      return networkResponse;
+    }
+    if (networkResponse.type === 'basic' && isCacheable(networkResponse)) {
       const responseClone = networkResponse.clone();
-      caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
+      await cache.put(request, responseClone);
     }
     return networkResponse;
   } catch (fetchError) {
@@ -229,9 +270,12 @@ self.addEventListener('fetch', (event) => {
   // 3. `only-if-cached` must never reach the network — see handleShellRequest().
   if (request.cache === 'only-if-cached') {
     event.respondWith(
-      caches.match(request).then((cachedResponse) =>
-        cachedResponse || new Response('', { status: 504, statusText: 'Gateway Timeout' })
-      )
+      caches.open(CACHE_NAME).then(async (cache) => {
+        const cachedResponse = await cache.match(request);
+        if (cachedResponse && isValidAssetResponse(request, cachedResponse)) return cachedResponse;
+        if (cachedResponse) await cache.delete(request);
+        return new Response('', { status: 504, statusText: 'Gateway Timeout' });
+      })
     );
     return;
   }

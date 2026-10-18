@@ -3,6 +3,7 @@ import { m } from 'framer-motion';
 import { Heart, Quote } from 'lucide-react';
 import type { WeddingData } from '../types';
 import { getWeddingSectionPhoto } from "../shared/weddingPhotos";
+import { OneLineName } from "../shared/OneLineName";
 
 export default function AnniversaryVows({ wedding }: { wedding: WeddingData }) {
     const settings = wedding.themeSettings as any;
@@ -12,8 +13,8 @@ export default function AnniversaryVows({ wedding }: { wedding: WeddingData }) {
     const groomVows = settings?.groomVows || "អរគុណដែលបានចូលមកក្នុងជីវិតបង និងតែងតែជាកម្លាំងចិត្តដ៏រឹងមាំសម្រាប់បងគ្រប់ពេលវេលា។";
     const brideVows = settings?.brideVows || "អរគុណសម្រាប់ការស្រលាញ់ ការមើលថែ និងភាពកក់ក្តៅដែលបងតែងតែផ្តល់ឱ្យអូនជារៀងរាល់ថ្ងៃ។";
 
-    const groomPhoto = getWeddingSectionPhoto(wedding, 9)?.url || wedding.groomPhoto || '/images/couple.webp';
-    const bridePhoto = getWeddingSectionPhoto(wedding, 10)?.url || wedding.bridePhoto || '/images/couple.webp';
+    const groomPhoto = getWeddingSectionPhoto(wedding, "groom")?.url || wedding.groomPhoto || '/images/couple.webp';
+    const bridePhoto = getWeddingSectionPhoto(wedding, "bride")?.url || wedding.bridePhoto || '/images/couple.webp';
 
     return (
         <section className="py-16 px-4 bg-[#F1ECE5] font-kantumruy relative overflow-hidden" id="vows">
@@ -48,7 +49,7 @@ export default function AnniversaryVows({ wedding }: { wedding: WeddingData }) {
                             </div>
                             <div>
                                 <h4 className="text-sm sm:text-base font-khmer-moul text-[#3B0764]">
-                                    {wedding.groomName}
+                                    <OneLineName name={wedding.groomName} />
                                 </h4>
                                 <span className="text-[11px] text-purple-600 font-bold">កូនកំលោះ</span>
                             </div>
@@ -75,7 +76,7 @@ export default function AnniversaryVows({ wedding }: { wedding: WeddingData }) {
                             </div>
                             <div>
                                 <h4 className="text-sm sm:text-base font-khmer-moul text-[#3B0764]">
-                                    {wedding.brideName}
+                                    <OneLineName name={wedding.brideName} />
                                 </h4>
                                 <span className="text-[11px] text-purple-600 font-bold">កូនក្រមុំ</span>
                             </div>

@@ -2,6 +2,7 @@ import * as React from "react";
 import { WeddingData } from "../types";
 import { RevealSection } from '../shared/CinematicComponents';
 import { useTranslation } from "@/i18n/LanguageProvider";
+import { OneLineName } from "../shared/OneLineName";
 
 export function KhmerInvitation({
     wedding,
@@ -54,7 +55,7 @@ export function KhmerInvitation({
         "ឯកឧត្តម ឧកញ៉ា លោកជំទាវ លោក លោកស្រី អ្នកនាង កញ្ញា និងប្រិយមិត្តអញ្ជើញចូលរួមជាអធិបតីនិងជាភ្ញៀវកិត្តិយសដើម្បីប្រសិទ្ធពរជ័យសិរីសួស្តីជ័យមង្គលក្នុងពិធីរៀបអាពាហ៍ពិពាហ៍ កូនប្រុស / កូនស្រី របស់យើងខ្ញុំ";
 
     return (
-        <section id="invitation-khmer" className="py-12 md:py-20 px-4 sm:px-6 text-center bg-white relative overflow-hidden font-kantumruy w-full max-w-full">
+        <section id="invitation-khmer" className="py-12 md:py-20 px-4 sm:px-6 text-center bg-white relative overflow-hidden font-kantumruy w-full max-w-full [container-type:inline-size]">
             {/* Background subtle luxury watermark */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-[radial-gradient(circle_at_center,_rgba(212,175,55,0.04)_0%,_transparent_70%)] pointer-events-none" />
 
@@ -69,49 +70,46 @@ export function KhmerInvitation({
                             </span>
                             <span className="w-10 h-[1.5px] bg-gradient-to-l from-transparent to-[#D4AF37]" />
                         </div>
-                        <h2 className="font-khmer-moul text-2xl sm:text-3xl md:text-5xl text-gold-gradient text-gold-embossed tracking-wide leading-relaxed py-1">
+                        <h2 className="whitespace-nowrap font-khmer-moul text-[clamp(12px,5cqi,48px)] text-gold-gradient text-gold-embossed tracking-wide leading-tight py-1">
                             {titleText}
                         </h2>
                     </div>
 
                     {/* 2. Parents of Groom & Bride (Traditional 2-Column Format) */}
                     {(groomFather?.trim() || groomMother?.trim() || brideFather?.trim() || brideMother?.trim()) && (
-                    <div className="grid grid-cols-2 gap-4 sm:gap-10 max-w-2xl mx-auto mb-8 md:mb-12 text-left">
-                        {/* Groom Parents */}
-                        {(groomFather?.trim() || groomMother?.trim()) && (
-                            <div className="space-y-2.5 flex flex-col items-center sm:items-start rounded-2xl border border-[#D4AF37]/25 bg-[#FAF7F0] px-4 py-4 shadow-[0_10px_24px_rgba(0,0,0,0.02)]">
-                                {groomFather?.trim() && (
-                                    <div className="flex items-center gap-2 sm:gap-3 w-full justify-center sm:justify-start">
-                                        <span className="font-khmer-moul text-[11px] sm:text-xs text-gold-gradient min-w-[55px] sm:min-w-[65px] text-right sm:text-left">ឪពុក</span>
-                                        <span className="font-khmer-moul text-xs sm:text-sm md:text-base text-gold-gradient text-gold-embossed font-bold">{groomFather.trim()}</span>
-                                    </div>
-                                )}
-                                {groomMother?.trim() && (
-                                    <div className="flex items-center gap-2 sm:gap-3 w-full justify-center sm:justify-start">
-                                        <span className="font-khmer-moul text-[11px] sm:text-xs text-gold-gradient min-w-[55px] sm:min-w-[65px] text-right sm:text-left">ម្ដាយ</span>
-                                        <span className="font-khmer-moul text-xs sm:text-sm md:text-base text-gold-gradient text-gold-embossed font-bold">{groomMother.trim()}</span>
-                                    </div>
-                                )}
+                    <div className="mx-auto mb-8 grid max-w-2xl grid-cols-2 divide-x divide-[#D4AF37]/25 md:mb-12">
+                        {[
+                            {
+                                title: "មាតាបិតាកូនកំលោះ",
+                                father: groomFather,
+                                mother: groomMother,
+                            },
+                            {
+                                title: "មាតាបិតាកូនក្រមុំ",
+                                father: brideFather,
+                                mother: brideMother,
+                            },
+                        ].map(({ title, father, mother }) => (
+                            <div key={title} className="min-w-0 px-2 py-2 text-center sm:px-3 sm:py-3">
+                                <h3 className="font-khmer-moul text-[11px] leading-[1.9] text-[#9b7844] sm:text-sm">
+                                    {title}
+                                </h3>
+                                <div className="mt-2 space-y-1">
+                                    {father?.trim() && (
+                                        <p className="break-words font-kantumruy text-[10px] leading-[1.9] text-slate-700 [overflow-wrap:anywhere] sm:text-sm">
+                                            <span className="text-[#805C00]/75">លោក </span>
+                                            <span className="font-semibold">{father.trim()}</span>
+                                        </p>
+                                    )}
+                                    {mother?.trim() && (
+                                        <p className="break-words font-kantumruy text-[10px] leading-[1.9] text-slate-700 [overflow-wrap:anywhere] sm:text-sm">
+                                            <span className="text-[#805C00]/75">លោកស្រី </span>
+                                            <span className="font-semibold">{mother.trim()}</span>
+                                        </p>
+                                    )}
+                                </div>
                             </div>
-                        )}
-
-                        {/* Bride Parents */}
-                        {(brideFather?.trim() || brideMother?.trim()) && (
-                            <div className={`space-y-2.5 flex flex-col items-center sm:items-end rounded-2xl border border-[#D4AF37]/25 bg-[#FAF7F0] px-4 py-4 shadow-[0_10px_24px_rgba(0,0,0,0.02)] ${!groomFather?.trim() && !groomMother?.trim() ? "col-start-2" : ""}`}>
-                                {brideFather?.trim() && (
-                                    <div className="flex items-center gap-2 sm:gap-3 w-full justify-center sm:justify-end">
-                                        <span className="font-khmer-moul text-[11px] sm:text-xs text-gold-gradient min-w-[55px] sm:min-w-[65px] text-right">ឪពុក</span>
-                                        <span className="font-khmer-moul text-xs sm:text-sm md:text-base text-gold-gradient text-gold-embossed font-bold">{brideFather.trim()}</span>
-                                    </div>
-                                )}
-                                {brideMother?.trim() && (
-                                    <div className="flex items-center gap-2 sm:gap-3 w-full justify-center sm:justify-end">
-                                        <span className="font-khmer-moul text-[11px] sm:text-xs text-gold-gradient min-w-[55px] sm:min-w-[65px] text-right">ម្ដាយ</span>
-                                        <span className="font-khmer-moul text-xs sm:text-sm md:text-base text-gold-gradient text-gold-embossed font-bold">{brideMother.trim()}</span>
-                                    </div>
-                                )}
-                            </div>
-                        )}
+                        ))}
                     </div>
                     )}
 
@@ -139,31 +137,31 @@ export function KhmerInvitation({
                             />
                         </div>
                     ) : (
-                        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-6 max-w-2xl mx-auto py-6 my-4 border-y border-[#D4AF37]/25">
+                        <div className="mx-auto my-4 grid w-full max-w-2xl grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-[1cqi] border-y border-[#D4AF37]/25 py-6">
                         {/* Groom */}
-                        <div className="flex flex-col items-center text-center space-y-1">
-                            <span className="font-kantumruy text-[11px] sm:text-xs text-[#805C00] font-bold">
+                        <div className="flex min-w-0 flex-col items-center space-y-1 text-center">
+                            <span className="whitespace-nowrap font-kantumruy text-[clamp(8px,2.5cqi,12px)] font-bold text-[#805C00]">
                                 កូនប្រុសនាម
                             </span>
-                            <h3 className="font-khmer-moul text-sm sm:text-lg md:text-2xl text-gold-gradient text-gold-embossed tracking-wide leading-snug">
-                                {wedding.groomName}
+                            <h3 className="w-full font-khmer-moul text-[clamp(9px,3.1cqi,20px)] leading-snug tracking-wide text-gold-gradient text-gold-embossed">
+                                <OneLineName name={wedding.groomName} />
                             </h3>
                         </div>
 
                         {/* Center Bridge */}
-                        <div className="flex flex-col items-center justify-center px-1 sm:px-4">
-                            <span className="font-khmer-moul text-xs sm:text-sm md:text-base text-gold-gradient text-gold-embossed whitespace-nowrap">
+                        <div className="flex flex-col items-center justify-center">
+                            <span className="whitespace-nowrap font-khmer-moul text-[clamp(8px,2.8cqi,15px)] text-gold-gradient text-gold-embossed">
                                 ជាគូនឹង
                             </span>
                         </div>
 
                         {/* Bride */}
-                        <div className="flex flex-col items-center text-center space-y-1">
-                            <span className="font-kantumruy text-[11px] sm:text-xs text-[#805C00] font-bold">
+                        <div className="flex min-w-0 flex-col items-center space-y-1 text-center">
+                            <span className="whitespace-nowrap font-kantumruy text-[clamp(8px,2.5cqi,12px)] font-bold text-[#805C00]">
                                 កូនស្រីនាម
                             </span>
-                            <h3 className="font-khmer-moul text-sm sm:text-lg md:text-2xl text-gold-gradient text-gold-embossed tracking-wide leading-snug">
-                                {wedding.brideName}
+                            <h3 className="w-full font-khmer-moul text-[clamp(9px,3.1cqi,20px)] leading-snug tracking-wide text-gold-gradient text-gold-embossed">
+                                <OneLineName name={wedding.brideName} />
                             </h3>
                         </div>
                     </div>

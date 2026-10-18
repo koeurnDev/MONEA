@@ -109,14 +109,14 @@ export function DashboardDataView({ weddingId, canShareInvitation }: { weddingId
 
     if (guestCount === 0) {
         return (
-            <Card className="border-2 border-dashed border-teal-200 dark:border-teal-900/50 shadow-none rounded-[2.5rem] bg-teal-50/30 dark:bg-teal-950/10 overflow-hidden relative">
-                <div className="absolute -top-10 -right-10 w-40 h-40 bg-teal-500/10 blur-3xl rounded-full" />
-                <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-indigo-500/10 blur-3xl rounded-full" />
+            <Card className="border-2 border-dashed border-primary/20 shadow-none rounded-[2.5rem] bg-accent/40 overflow-hidden relative">
+                <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/10 blur-3xl rounded-full" />
+                <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-gold/10 blur-3xl rounded-full" />
                 <CardContent className="p-5 sm:p-8 md:p-12 relative z-10">
                     <div className="max-w-2xl mx-auto space-y-6 sm:space-y-8">
                         <div className="text-center space-y-3">
-                            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white dark:bg-slate-900 rounded-2xl flex items-center justify-center mx-auto shadow-xl shadow-teal-200/50 dark:shadow-none border border-slate-100 dark:border-white/5 mb-4 sm:mb-6">
-                                <Sparkles className="w-7 h-7 sm:w-8 sm:h-8 text-teal-500" />
+                            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-card rounded-2xl flex items-center justify-center mx-auto shadow-xl border border-border mb-4 sm:mb-6">
+                                <Sparkles className="w-7 h-7 sm:w-8 sm:h-8 text-primary" />
                             </div>
                             <h2 className="text-xl sm:text-2xl md:text-3xl font-black font-kantumruy tracking-tight">
                                 {t("dashboard.quickstart.title")}
@@ -127,57 +127,57 @@ export function DashboardDataView({ weddingId, canShareInvitation }: { weddingId
                         </div>
 
                         <div className="grid gap-3 sm:gap-4 mt-6 sm:mt-8">
-                            <Link to="/dashboard/design" className="group rounded-[1.5rem] outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 sm:rounded-[2rem]">
-                                <div className="flex items-center gap-3 sm:gap-5 p-3.5 sm:p-5 bg-white dark:bg-white/5 rounded-[1.5rem] sm:rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md transition-all">
-                                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-indigo-50 dark:bg-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
+                            <Link to="/dashboard/design" className="group rounded-[1.5rem] outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:rounded-[2rem]">
+                                <div className="flex items-center gap-3 sm:gap-5 p-3.5 sm:p-5 bg-card rounded-[1.5rem] sm:rounded-[2rem] border border-border shadow-sm hover:shadow-md transition-all">
+                                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-secondary flex items-center justify-center text-secondary-foreground group-hover:scale-110 transition-transform">
                                         <Wand2 aria-hidden="true" size={20} strokeWidth={2.5} />
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <h4 className="font-black font-kantumruy text-base sm:text-lg text-foreground tracking-tight">
                                             {t("dashboard.quickstart.designTitle")}
                                         </h4>
-                                        <p className="text-[11px] sm:text-xs font-medium text-muted-foreground font-kantumruy leading-relaxed">
+                                        <p className="text-xs sm:text-xs font-medium text-muted-foreground font-kantumruy leading-relaxed">
                                             {t("dashboard.quickstart.designDescription")}
                                         </p>
                                     </div>
-                                    <ArrowRight aria-hidden="true" className="h-5 w-5 shrink-0 text-indigo-600" />
+                                    <ArrowRight aria-hidden="true" className="h-5 w-5 shrink-0 text-secondary-foreground" />
                                 </div>
                             </Link>
 
-                            <Link to="/dashboard/guests" className="group rounded-[1.5rem] outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 sm:rounded-[2rem]">
-                                <div className="flex items-center gap-3 sm:gap-5 p-3.5 sm:p-5 bg-white dark:bg-white/5 rounded-[1.5rem] sm:rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-sm hover:shadow-md transition-all">
-                                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-teal-50 dark:bg-teal-500/20 flex items-center justify-center text-teal-600 dark:text-teal-400 group-hover:scale-110 transition-transform">
+                            <Link to="/dashboard/guests" className="group rounded-[1.5rem] outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:rounded-[2rem]">
+                                <div className="flex items-center gap-3 sm:gap-5 p-3.5 sm:p-5 bg-card rounded-[1.5rem] sm:rounded-[2rem] border border-border shadow-sm hover:shadow-md transition-all">
+                                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-accent flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                                         <Plus aria-hidden="true" size={20} strokeWidth={2.5} />
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <h4 className="font-black font-kantumruy text-base sm:text-lg text-foreground tracking-tight">
                                             {t("dashboard.quickstart.addGuestsTitle")}
                                         </h4>
-                                        <p className="text-[11px] sm:text-xs font-medium text-muted-foreground font-kantumruy leading-relaxed">
+                                        <p className="text-xs sm:text-xs font-medium text-muted-foreground font-kantumruy leading-relaxed">
                                             {t("dashboard.quickstart.addGuestsDescription")}
                                         </p>
                                     </div>
-                                    <ArrowRight aria-hidden="true" className="h-5 w-5 shrink-0 text-teal-600" />
+                                    <ArrowRight aria-hidden="true" className="h-5 w-5 shrink-0 text-primary" />
                                 </div>
                             </Link>
 
                             <a
                                 href={canShareInvitation ? "#invitation-center" : "/dashboard/design"}
-                                className="group rounded-[1.5rem] outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 sm:rounded-[2rem]"
+                                className="group rounded-[1.5rem] outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:rounded-[2rem]"
                             >
-                                <div className="flex min-h-[76px] items-center gap-3 sm:gap-5 p-3.5 sm:p-5 bg-white/70 dark:bg-white/5 rounded-[1.5rem] sm:rounded-[2rem] border border-slate-100 dark:border-white/5 shadow-sm transition-all group-hover:shadow-md">
-                                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-emerald-50 dark:bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                                <div className="flex min-h-[76px] items-center gap-3 sm:gap-5 p-3.5 sm:p-5 bg-card/80 rounded-[1.5rem] sm:rounded-[2rem] border border-border shadow-sm transition-all group-hover:shadow-md">
+                                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-accent flex items-center justify-center text-primary">
                                         <Share2 aria-hidden="true" size={20} strokeWidth={2.5} />
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <h4 className="font-black font-kantumruy text-base sm:text-lg text-foreground tracking-tight">
                                             {t(canShareInvitation ? "dashboard.quickstart.shareTitle" : "dashboard.quickstart.finishDesignTitle")}
                                         </h4>
-                                        <p className="text-[11px] sm:text-xs font-medium text-muted-foreground font-kantumruy leading-relaxed">
+                                        <p className="text-xs sm:text-xs font-medium text-muted-foreground font-kantumruy leading-relaxed">
                                             {t(canShareInvitation ? "dashboard.quickstart.shareDescription" : "dashboard.quickstart.finishDesignDescription")}
                                         </p>
                                     </div>
-                                    <ArrowRight aria-hidden="true" className="h-5 w-5 shrink-0 text-emerald-600" />
+                                    <ArrowRight aria-hidden="true" className="h-5 w-5 shrink-0 text-primary" />
                                 </div>
                             </a>
                         </div>
@@ -191,8 +191,8 @@ export function DashboardDataView({ weddingId, canShareInvitation }: { weddingId
         <div className="space-y-6">
             <div className="rounded-2xl md:rounded-[2rem] bg-card border border-border/60 dark:border-border/40 overflow-hidden shadow-sm">
                 <div className="px-5 py-4 border-b border-border/50 flex items-center gap-2.5">
-                    <div className="p-2 bg-indigo-500/10 rounded-xl">
-                        <Sparkles className="w-4 h-4 text-indigo-500" />
+                    <div className="p-2 bg-accent rounded-xl">
+                        <Sparkles className="w-4 h-4 text-primary" />
                     </div>
                     <h3 className="text-sm md:text-base font-black font-kantumruy text-foreground tracking-tight">{t("dashboard.stats.analysis")}</h3>
                 </div>
@@ -206,7 +206,7 @@ export function DashboardDataView({ weddingId, canShareInvitation }: { weddingId
                                     strokeDasharray={87.96}
                                     strokeDashoffset={87.96 * (1 - checkInRate)}
                                     strokeLinecap="round"
-                                    className="text-indigo-500"
+                                    className="text-primary"
                                 />
                             </svg>
                             <div className="absolute inset-0 flex items-center justify-center">
@@ -217,19 +217,19 @@ export function DashboardDataView({ weddingId, canShareInvitation }: { weddingId
                         </div>
                         <div>
                             <p className="text-xs font-black font-kantumruy text-foreground leading-tight">{t("dashboard.stats.checkInRate")}</p>
-                            <p className="text-[10px] text-muted-foreground/60 font-bold font-kantumruy mt-0.5">
+                            <p className="text-xs text-muted-foreground/60 font-bold font-kantumruy mt-0.5">
                                 {t("dashboard.stats.checkedInCount", { count: checkedInGuests, total: guestCount })}
                             </p>
                         </div>
                     </div>
 
-                    <div className="flex flex-1 items-center gap-4 p-4 bg-emerald-500/5 rounded-xl border border-emerald-500/15">
-                        <div className="w-10 h-10 md:w-12 md:h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500 flex-shrink-0">
+                    <div className="flex flex-1 items-center gap-4 p-4 bg-secondary/40 rounded-xl border border-border/40">
+                        <div className="w-10 h-10 md:w-12 md:h-12 bg-secondary rounded-xl flex items-center justify-center text-secondary-foreground flex-shrink-0">
                             <MessageSquare size={22} />
                         </div>
                         <div>
                             <p className="text-xs font-black font-kantumruy text-foreground leading-tight">{t("dashboard.stats.guestMessages")}</p>
-                            <p className="text-[10px] text-muted-foreground/60 font-bold font-kantumruy mt-0.5">
+                            <p className="text-xs text-muted-foreground/60 font-bold font-kantumruy mt-0.5">
                                 {t("dashboard.stats.guestMessagesCount", { count: guestbookEntries })}
                             </p>
                         </div>

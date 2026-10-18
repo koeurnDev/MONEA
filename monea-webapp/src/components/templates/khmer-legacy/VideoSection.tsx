@@ -39,7 +39,7 @@ export function VideoSection({ wedding }: VideoSectionProps) {
                         </h3>
                     </div>
                     
-                    <div className="rounded-[3rem] md:rounded-[5rem] overflow-hidden shadow-[0_50px_100px_-20px_rgba(0,0,0,0.15)] aspect-video bg-black relative border-[12px] md:border-[24px] border-white group ring-1 ring-gold-main/10">
+                    <div className="rounded-2xl md:rounded-3xl overflow-hidden aspect-video bg-black relative group">
                         {videoId ? (
                             <iframe
                                 title="Wedding Video"
@@ -53,8 +53,6 @@ export function VideoSection({ wedding }: VideoSectionProps) {
                         ) : (
                             <video src={videoUrl} controls className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-[1.02]" />
                         )}
-                        <div className="absolute inset-0 ring-1 ring-inset ring-black/5 pointer-events-none rounded-[1.5rem] md:rounded-[3rem]" />
-                        
                         {/* Glassmorphic Overlay for Play State (conceptual) */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
                     </div>

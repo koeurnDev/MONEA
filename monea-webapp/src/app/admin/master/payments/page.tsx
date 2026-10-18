@@ -22,7 +22,6 @@ import {
     Check,
     X,
     Filter,
-    Crown,
     FileCheck
 } from "lucide-react";
 import { Link } from 'react-router-dom';
@@ -54,6 +53,11 @@ export default function MasterPaymentsPage() {
         date: string;
         ref: string;
     } | null>(null);
+    const [pendingApproval, setPendingApproval] = useState<{
+        weddingId: string;
+        packageType: "PRO" | "PREMIUM";
+        amount: number;
+    } | null>(null);
 
     const loadData = useCallback(async () => {
         setLoading(true);
@@ -79,7 +83,7 @@ export default function MasterPaymentsPage() {
         loadData();
     }, [loadData]);
 
-    const handleUpdatePayment = async (weddingId: string, status: 'PAID' | 'REJECTED', packageType?: string) => {
+    const handleUpdatePayment = async (weddingId: string, status: 'PAID' | 'REJECTED', packageType?: string): Promise<boolean> => {
         setProcessing(weddingId);
         try {
             const res = await moneaClient.post("/api/admin/master/payments", { 
@@ -108,11 +112,14 @@ export default function MasterPaymentsPage() {
                     }
                     return w;
                 }));
+                return true;
             } else {
                 showToast({ title: "បរាជ័យ", description: res.error, type: "error" });
+                return false;
             }
         } catch (error) {
             showToast({ title: "Error", description: "Operation failed", type: "error" });
+            return false;
         } finally {
             setProcessing(null);
         }
@@ -138,45 +145,46 @@ export default function MasterPaymentsPage() {
         <div className="w-full min-h-full font-kantumruy pb-16">
             {/* Top Bar Header */}
             <div className="bg-card/80 backdrop-blur-md border-b border-border/80 sticky top-0 z-20">
-                <div className="max-w-[1400px] mx-auto px-4 sm:px-8 h-20 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                <div className="max-w-[1400px] mx-auto flex items-center justify-between gap-2 px-3 py-3 sm:h-20 sm:px-8 sm:py-0">
+                    <div className="flex min-w-0 items-center gap-2 sm:gap-3">
                         <Link to="/admin/master">
-                            <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10 border border-border bg-card shadow-xs hover:bg-muted">
+                            <Button variant="ghost" size="icon" aria-label={isKm ? "ត្រឡប់ទៅទំព័រគ្រប់គ្រង" : "Back to admin"} className="h-10 w-10 shrink-0 rounded-xl border border-border bg-card shadow-xs hover:bg-muted">
                                 <ArrowLeft size={17} className="text-muted-foreground" />
                             </Button>
                         </Link>
-                        <div>
-                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-teal-800 dark:text-teal-300">
+                        <div className="min-w-0">
+                            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-teal-800 dark:text-teal-300 sm:text-xs">
                                 <ShieldCheck size={13} />
-                                <span>Verification Hub</span>
+                                <span className="truncate">Verification Hub</span>
                             </div>
-                            <h1 className="text-lg sm:text-xl font-bold text-foreground">
+                            <h1 className="line-clamp-2 text-sm font-bold leading-snug text-foreground sm:text-xl">
                                 {isKm ? "មជ្ឈមណ្ឌលផ្ទៀងផ្ទាត់ការបង់ប្រាក់ & វិក្កយបត្រ" : "Payment & Slip Verification"}
                             </h1>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="shrink-0">
                         <Button
                             onClick={loadData}
                             variant="outline"
                             disabled={loading}
-                            className="h-10 px-4 rounded-xl font-bold text-xs border border-border bg-card shadow-xs flex items-center gap-2"
+                            aria-label={isKm ? "ផ្ទុកឡើងវិញ" : "Refresh"}
+                            className="h-10 w-10 rounded-xl border border-border bg-card p-0 text-xs font-bold shadow-xs sm:w-auto sm:px-4 sm:flex sm:items-center sm:gap-2"
                         >
                             <RefreshCcw size={14} className={loading ? "animate-spin" : ""} />
-                            <span>{isKm ? "ផ្ទុកឡើងវិញ" : "Refresh"}</span>
+                            <span className="hidden sm:inline">{isKm ? "ផ្ទុកឡើងវិញ" : "Refresh"}</span>
                         </Button>
                     </div>
                 </div>
             </div>
 
-            <main className="max-w-[1400px] mx-auto p-4 sm:p-8 space-y-6">
+            <main className="max-w-[1400px] mx-auto space-y-4 p-3 sm:space-y-6 sm:p-8">
                 {/* Stats Overview */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
                     <Card className="bg-card border border-border/80 rounded-2xl shadow-xs">
-                        <CardContent className="p-5 flex items-center justify-between">
-                            <div>
-                                <p className="text-xs font-bold text-muted-foreground">{isKm ? "រង់ចាំការផ្ទៀងផ្ទាត់" : "Pending Slips"}</p>
+                        <CardContent className="flex items-center justify-between gap-3 p-4 sm:p-5">
+                            <div className="min-w-0">
+                                <p className="break-words text-xs font-bold leading-snug text-muted-foreground">{isKm ? "រង់ចាំការផ្ទៀងផ្ទាត់" : "Pending Slips"}</p>
                                 <h3 className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">{pendingList.length}</h3>
                             </div>
                             <div className="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold">
@@ -186,9 +194,9 @@ export default function MasterPaymentsPage() {
                     </Card>
 
                     <Card className="bg-card border border-border/80 rounded-2xl shadow-xs">
-                        <CardContent className="p-5 flex items-center justify-between">
-                            <div>
-                                <p className="text-xs font-bold text-muted-foreground">{isKm ? "បានអនុម័តរួចរាល់" : "Approved Payments"}</p>
+                        <CardContent className="flex items-center justify-between gap-3 p-4 sm:p-5">
+                            <div className="min-w-0">
+                                <p className="break-words text-xs font-bold leading-snug text-muted-foreground">{isKm ? "បានអនុម័តរួចរាល់" : "Approved Payments"}</p>
                                 <h3 className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{paidList.length}</h3>
                             </div>
                             <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center font-bold">
@@ -198,9 +206,9 @@ export default function MasterPaymentsPage() {
                     </Card>
 
                     <Card className="bg-card border border-border/80 rounded-2xl shadow-xs">
-                        <CardContent className="p-5 flex items-center justify-between">
-                            <div>
-                                <p className="text-xs font-bold text-muted-foreground">{isKm ? "ចំណូលសរុប (USD)" : "Estimated Revenue"}</p>
+                        <CardContent className="flex items-center justify-between gap-3 p-4 sm:p-5">
+                            <div className="min-w-0">
+                                <p className="break-words text-xs font-bold leading-snug text-muted-foreground">{isKm ? "ចំណូលសរុប (USD)" : "Estimated Revenue"}</p>
                                 <h3 className="text-2xl font-black text-foreground mt-1">${totalRevenue.toFixed(2)}</h3>
                             </div>
                             <div className="w-12 h-12 rounded-xl bg-teal-600/10 text-teal-800 dark:text-teal-300 flex items-center justify-center font-bold">
@@ -211,7 +219,7 @@ export default function MasterPaymentsPage() {
                 </div>
 
                 {/* Filter Tabs Bar */}
-                <div className="flex items-center gap-1.5 p-1.5 bg-muted/50 border border-border/80 rounded-2xl overflow-x-auto scrollbar-none">
+                <div role="tablist" aria-label={isKm ? "ត្រងតាមស្ថានភាពការទូទាត់" : "Filter by payment status"} className="grid grid-cols-2 items-center gap-1.5 p-1.5 bg-muted/50 border border-border/80 rounded-2xl sm:flex sm:overflow-x-auto scrollbar-none">
                     {[
                         { id: 'pending', label: "រង់ចាំការផ្ទៀងផ្ទាត់", count: pendingList.length, icon: Clock, color: "text-amber-500" },
                         { id: 'paid', label: "បានអនុម័ត (Paid)", count: paidList.length, icon: CheckCircle2, color: "text-emerald-500" },
@@ -223,18 +231,21 @@ export default function MasterPaymentsPage() {
                         return (
                             <button
                                 key={tab.id}
+                                type="button"
+                                role="tab"
+                                aria-selected={isActive}
                                 onClick={() => setSelectedTab(tab.id as any)}
                                 className={cn(
-                                    "flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 select-none",
+                                    "flex min-w-0 min-h-11 items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-xs font-bold leading-tight transition-all select-none sm:min-h-0 sm:shrink-0 sm:gap-2 sm:px-4 sm:py-2.5 sm:text-xs",
                                     isActive
                                         ? "bg-card text-foreground shadow-xs border border-border/80 font-bold"
                                         : "text-muted-foreground hover:text-foreground hover:bg-card/50"
                                 )}
                             >
-                                <Icon size={16} className={tab.color} />
-                                <span>{tab.label}</span>
+                                <Icon size={14} className={cn("shrink-0 sm:h-4 sm:w-4", tab.color)} />
+                                <span className="min-w-0 break-words">{tab.label}</span>
                                 <span className={cn(
-                                    "px-1.5 py-0.5 rounded-md text-[10px] font-black",
+                                    "px-1.5 py-0.5 rounded-md text-xs font-black",
                                     isActive ? "bg-muted text-foreground" : "bg-muted/70 text-muted-foreground"
                                 )}>
                                     {tab.count}
@@ -296,7 +307,7 @@ export default function MasterPaymentsPage() {
                                                         <div className="flex flex-wrap items-center gap-2.5">
                                                             {/* Status Badge */}
                                                             <span className={cn(
-                                                                "px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider flex items-center gap-1",
+                                                                "px-2.5 py-1 rounded-md text-xs font-black uppercase tracking-wider flex items-center gap-1",
                                                                 isPending ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 border border-amber-500/30 animate-pulse" :
                                                                 isPaid ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/30" :
                                                                 "bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400 border border-rose-500/30"
@@ -306,7 +317,7 @@ export default function MasterPaymentsPage() {
 
                                                             {/* Package Requested */}
                                                             <span className={cn(
-                                                                "px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider",
+                                                                "px-2.5 py-1 rounded-md text-xs font-black uppercase tracking-wider",
                                                                 w.packageType === 'PREMIUM' ? "bg-amber-500/10 text-amber-600 border border-amber-500/20" :
                                                                 w.packageType === 'PRO' ? "bg-blue-500/10 text-blue-600 border border-blue-500/20" :
                                                                 "bg-muted text-muted-foreground"
@@ -368,7 +379,7 @@ export default function MasterPaymentsPage() {
                                                                 />
                                                                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/slip:opacity-100 flex flex-col items-center justify-center text-white transition-opacity">
                                                                     <Eye size={20} />
-                                                                    <span className="text-[9px] font-black uppercase mt-1">មើលវិក្កយបត្រ</span>
+                                                                    <span className="text-xs font-black uppercase mt-1">មើលវិក្កយបត្រ</span>
                                                                 </div>
                                                                 <span className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-black/70 text-white text-[8px] font-bold">
                                                                     SLIP 🧾
@@ -377,7 +388,7 @@ export default function MasterPaymentsPage() {
                                                         ) : (
                                                             <div className="w-24 h-24 rounded-xl border border-dashed border-border bg-muted/30 flex flex-col items-center justify-center text-muted-foreground p-2 text-center">
                                                                 <ImageIcon size={20} className="text-muted-foreground/60 mb-1" />
-                                                                <span className="text-[9px] font-bold text-muted-foreground">គ្មានរូបភាព</span>
+                                                                <span className="text-xs font-bold text-muted-foreground">គ្មានរូបភាព</span>
                                                             </div>
                                                         )}
                                                     </div>
@@ -387,8 +398,16 @@ export default function MasterPaymentsPage() {
                                                         {isPending ? (
                                                             <>
                                                                 <Button
-                                                                    onClick={() => handleUpdatePayment(w.id, 'PAID', w.packageType === 'PREMIUM' ? 'PREMIUM' : 'PRO')}
-                                                                    disabled={processing === w.id}
+                                                                    onClick={() => {
+                                                                        if (w.packageType === "PRO" || w.packageType === "PREMIUM") {
+                                                                            setPendingApproval({
+                                                                                weddingId: w.id,
+                                                                                packageType: w.packageType,
+                                                                                amount,
+                                                                            });
+                                                                        }
+                                                                    }}
+                                                                    disabled={processing === w.id || (w.packageType !== "PRO" && w.packageType !== "PREMIUM")}
                                                                     className="h-10 px-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-xs flex items-center gap-1.5"
                                                                 >
                                                                     {processing === w.id ? (
@@ -410,31 +429,7 @@ export default function MasterPaymentsPage() {
                                                                     <span>បដិសេធ (Reject)</span>
                                                                 </Button>
                                                             </>
-                                                        ) : (
-                                                            <div className="flex items-center gap-2">
-                                                                {w.packageType !== 'PREMIUM' && (
-                                                                    <Button
-                                                                        onClick={() => handleUpdatePayment(w.id, 'PAID', 'PREMIUM')}
-                                                                        disabled={processing === w.id}
-                                                                        size="sm"
-                                                                        variant="outline"
-                                                                        className="h-9 px-3 text-amber-600 border-amber-500/30 hover:bg-amber-500/10 rounded-xl font-bold text-xs flex items-center gap-1"
-                                                                    >
-                                                                        <Crown size={14} />
-                                                                        <span>ដំឡើងទៅ Premium</span>
-                                                                    </Button>
-                                                                )}
-                                                                <Button
-                                                                    onClick={() => handleUpdatePayment(w.id, 'REJECTED')}
-                                                                    disabled={processing === w.id}
-                                                                    size="sm"
-                                                                    variant="ghost"
-                                                                    className="h-9 px-3 text-muted-foreground hover:text-teal-800 dark:hover:text-teal-300 rounded-xl font-bold text-xs"
-                                                                >
-                                                                    ដកសិទ្ធិ
-                                                                </Button>
-                                                            </div>
-                                                        )}
+                                                        ) : null}
                                                     </div>
                                                 </div>
                                             </CardContent>
@@ -446,6 +441,52 @@ export default function MasterPaymentsPage() {
                     </div>
                 )}
             </main>
+
+            <Dialog open={!!pendingApproval} onOpenChange={(open) => !open && setPendingApproval(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>{isKm ? "បញ្ជាក់ការអនុម័តការបង់ប្រាក់" : "Confirm payment approval"}</DialogTitle>
+                        <DialogDescription>
+                            {isKm
+                                ? "សូមផ្ទៀងផ្ទាត់ package និងចំនួនទឹកប្រាក់ក្នុងវិក្កយបត្រឲ្យត្រូវ មុនអនុម័ត។"
+                                : "Verify that the receipt shows the requested package and amount before approving."}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="rounded-xl border border-border bg-muted/40 p-4 text-sm">
+                        <div className="flex justify-between gap-4">
+                            <span className="text-muted-foreground">{isKm ? "កញ្ចប់" : "Package"}</span>
+                            <strong>{pendingApproval?.packageType}</strong>
+                        </div>
+                        <div className="mt-2 flex justify-between gap-4">
+                            <span className="text-muted-foreground">{isKm ? "ចំនួនទឹកប្រាក់" : "Amount"}</span>
+                            <strong>${pendingApproval?.amount.toFixed(2)}</strong>
+                        </div>
+                    </div>
+                    <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => setPendingApproval(null)}>
+                            {isKm ? "ត្រឡប់" : "Cancel"}
+                        </Button>
+                        <Button
+                            disabled={!pendingApproval || processing === pendingApproval.weddingId}
+                            onClick={async () => {
+                                if (!pendingApproval) return;
+                                const approved = await handleUpdatePayment(
+                                    pendingApproval.weddingId,
+                                    "PAID",
+                                    pendingApproval.packageType,
+                                );
+                                if (approved) setPendingApproval(null);
+                            }}
+                            className="bg-emerald-600 text-white hover:bg-emerald-700"
+                        >
+                            {processing && pendingApproval && processing === pendingApproval.weddingId
+                                ? <Loader2 className="h-4 w-4 animate-spin" />
+                                : <Check size={16} />}
+                            {isKm ? "ផ្ទៀងផ្ទាត់ហើយអនុម័ត" : "Verify and approve"}
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
 
             {/* Receipt Modal (Full Screen Inspection) */}
             <Dialog open={!!viewingReceipt} onOpenChange={(open) => !open && setViewingReceipt(null)}>
@@ -473,11 +514,11 @@ export default function MasterPaymentsPage() {
                         {/* Metadata Details */}
                         <div className="grid grid-cols-2 gap-2 text-xs bg-muted/40 p-3.5 rounded-xl border border-border/60">
                             <div>
-                                <span className="text-muted-foreground block text-[10px] font-bold uppercase">កញ្ចប់សេវា</span>
+                                <span className="text-muted-foreground block text-xs font-bold uppercase">កញ្ចប់សេវា</span>
                                 <span className="font-bold text-foreground">{viewingReceipt?.packageType} PLAN (${viewingReceipt?.amount})</span>
                             </div>
                             <div>
-                                <span className="text-muted-foreground block text-[10px] font-bold uppercase">កាលបរិច្ឆេទ</span>
+                                <span className="text-muted-foreground block text-xs font-bold uppercase">កាលបរិច្ឆេទ</span>
                                 <span className="font-bold text-foreground">{viewingReceipt?.date}</span>
                             </div>
                         </div>
