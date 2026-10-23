@@ -5,6 +5,7 @@ import { SafeBoundary } from "@/components/ui/SafeBoundary";
 import { moneaClient } from "@/lib/api-client";
 import { DEFAULT_WEDDING } from "@/data/wedding";
 import { NEA_M05_DEFAULT_ACTIVITIES } from "@/lib/nea-m05-defaults";
+import { PHONE_FRAME_COLORS, type PhoneFrameColor } from "@/lib/phone-frame-colors";
 
 const DEFAULT_PREVIEW_WEDDING: WeddingData = {
     id: "preview-default",
@@ -122,12 +123,25 @@ function deepDecodeEntities(obj: any): any {
 export default function PreviewPage() {
     const [wedding, setWedding] = useState<WeddingData | null>(null);
     const [mounted, setMounted] = useState(false);
+    const [phoneFrameColor, setPhoneFrameColor] = useState<PhoneFrameColor>("black");
     const isApprovalPreview =
         typeof window !== "undefined" &&
         new URLSearchParams(window.location.search).get("mode") === "approval";
 
     useEffect(() => {
         setMounted(true);
+
+        // Fetch global phone frame color from settings
+        moneaClient.get("/api/admin/master/settings")
+            .then(res => {
+                const data = res.data as any;
+                if (data?.phoneFrameColor && Object.keys(PHONE_FRAME_COLORS).includes(data.phoneFrameColor)) {
+                    setPhoneFrameColor(data.phoneFrameColor as PhoneFrameColor);
+                }
+            })
+            .catch(() => {
+                // Use default "black" on error
+            });
 
         // Check URL params first (for template gallery preview)
         const urlParams = new URLSearchParams(window.location.search);
@@ -296,6 +310,9 @@ export default function PreviewPage() {
     const previewFontClass = `preview-font-${activeWedding.themeSettings?.fontStyle || 'default'}`;
     const isStandalone = typeof window !== 'undefined' && window.self === window.top;
     const usePhoneFrame = isStandalone && !isApprovalPreview;
+    
+    // Get phone frame colors
+    const frameColors = PHONE_FRAME_COLORS[phoneFrameColor];
 
     return (
         <SafeBoundary name="Preview Template" isSilent={false}>
@@ -327,9 +344,15 @@ export default function PreviewPage() {
                     font-family: 'Preahvihear', 'Kantumruy Pro', sans-serif !important;
                 }
             `}</style>
-            <div className={usePhoneFrame ? "min-h-screen bg-background md:flex md:justify-center md:bg-[#f4f1e9] md:px-6 md:py-6" : "relative w-full min-h-screen bg-background"}>
-                <div className={usePhoneFrame ? "mx-auto w-full min-h-screen md:relative md:my-auto md:max-w-[448px] md:rounded-[3.25rem] md:border-[7px] md:border-[#252528] md:bg-[#252528] md:p-[3px] md:shadow-[0_30px_90px_rgba(25,25,25,.22)] lg:p-2" : "w-full min-h-screen"}>
-                    <div className={`relative w-full min-h-screen bg-background ${usePhoneFrame ? "md:h-[min(956px,calc(100svh-3rem))] md:min-h-[700px] md:overflow-y-auto md:overscroll-contain md:rounded-[2.8rem] md:[scrollbar-width:none]" : ""} ${previewFontClass}`}>
+            <div className={usePhoneFrame ? "min-h-screen bg-background md:flex md:justify-center md:bg-gradient-to-br md:from-slate-100 md:via-slate-50 md:to-blue-50 md:px-6 md:py-8" : "relative w-full min-h-screen bg-background"}>
+                <div 
+                    className={usePhoneFrame ? "mx-auto w-full min-h-screen md:relative md:my-auto md:max-w-[402px] md:rounded-[52px] md:border-[12px] md:p-[2px] md:shadow-[0_0_0_2px_rgba(58,58,60,0.5),0_25px_80px_-10px_rgba(0,0,0,0.4),0_35px_60px_-20px_rgba(0,0,0,0.3)]" : "w-full min-h-screen"}
+                    style={usePhoneFrame ? {
+                        background: frameColors.gradient,
+                        borderColor: frameColors.side
+                    } : undefined}
+                >
+                    <div className={`relative w-full min-h-screen bg-background ${usePhoneFrame ? "md:h-[min(870px,calc(100svh-4rem))] md:min-h-[700px] md:overflow-y-auto md:overscroll-contain md:rounded-[46px] md:[scrollbar-width:none]" : ""} ${previewFontClass}`}>
                         <Suspense fallback={
                             <div className="flex items-center justify-center min-h-[500px] animate-pulse font-kantumruy text-sm text-slate-400">
                                 កំពុងផ្ទុកគំរូ...
@@ -349,7 +372,15 @@ export default function PreviewPage() {
                         </Suspense>
                     </div>
                     {usePhoneFrame && (
-                        <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-[15px] z-[100] hidden h-[30px] w-[116px] -translate-x-1/2 rounded-full bg-black md:block" />
+                        <>
+                            {/* iPhone 16 Pro Dynamic Island */}
+                            <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-[20px] z-[100] hidden h-[37px] w-[126px] -translate-x-1/2 rounded-full bg-black md:block shadow-[inset_0_0_8px_rgba(0,0,0,0.5)]" />
+                            {/* Side buttons */}
+                            <div aria-hidden="true" className="pointer-events-none absolute -left-[12px] top-[140px] z-[101] hidden h-[50px] w-[4px] rounded-l-md md:block" style={{ background: frameColors.side }} />
+                            <div aria-hidden="true" className="pointer-events-none absolute -left-[12px] top-[220px] z-[101] hidden h-[60px] w-[4px] rounded-l-md md:block" style={{ background: frameColors.side }} />
+                            <div aria-hidden="true" className="pointer-events-none absolute -left-[12px] top-[300px] z-[101] hidden h-[60px] w-[4px] rounded-l-md md:block" style={{ background: frameColors.side }} />
+                            <div aria-hidden="true" className="pointer-events-none absolute -right-[12px] top-[220px] z-[101] hidden h-[90px] w-[4px] rounded-r-md md:block" style={{ background: frameColors.side }} />
+                        </>
                     )}
                 </div>
             </div>

@@ -103,7 +103,7 @@ export function DashboardShell({ children, isStaff, isAdmin }: DashboardShellPro
             collapsed={isSidebarCollapsed}
             onToggleCollapse={toggleSidebar}
         />
-    ), [isStaff, isEffectiveAdmin, isSidebarCollapsed, toggleSidebar]);
+    ), [isStaff, isEffectiveAdmin, isCustomer, isSidebarCollapsed, toggleSidebar]);
 
     const userName = user?.name || (user?.email ? user.email.split('@')[0] : "");
     const resolvedTitle = userName || "MONEO User";
