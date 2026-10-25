@@ -1,18 +1,19 @@
 export const dynamic = 'force-dynamic';
 import { prisma } from "@/lib/prisma";
-import { getServerUser } from "@/lib/auth";
+import { getOwnerMfaSetupUser, getServerUser } from "@/lib/auth";
 import { isValidProfileName, isValidProfilePhone } from "@/lib/validations/profile";
+import { isRecord, readJsonBodyLimited } from "@/lib/read-json-body-limited";
+
+const MAX_PROFILE_UPDATE_BODY_BYTES = 8_192;
 
 // Helper function to create CORS-compliant Response
 function createCorsResponse(body: any, status: number, origin?: string): Response {
     const response = Response.json(body, { status });
     
     // Set CORS headers
-    if (origin) {
-        response.headers.set('Access-Control-Allow-Origin', origin);
-    } else {
-        response.headers.set('Access-Control-Allow-Origin', '*');
-    }
+    // IMPORTANT: if credentials are allowed, ACAO cannot be "*".
+    // We only reflect the caller origin when it exists.
+    if (origin) response.headers.set('Access-Control-Allow-Origin', origin);
     response.headers.set('Access-Control-Allow-Credentials', 'true');
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-CSRF-Token');
@@ -29,11 +30,29 @@ export async function GET(req: Request) {
     const origin = req.headers.get('origin') || undefined;
     console.log(`[Auth /me] Starting GET request from origin: ${origin}`);
     
+    // Debug: Log request headers
+    const authHeader = req.headers.get('authorization');
+    const cookieHeader = req.headers.get('cookie');
+    console.log(`[Auth /me] Authorization header present: ${!!authHeader}`);
+    console.log(`[Auth /me] Cookie header present: ${!!cookieHeader}`);
+    if (cookieHeader) {
+        const hasToken = cookieHeader.includes('token=');
+        const hasStaffToken = cookieHeader.includes('staff_token=');
+        console.log(`[Auth /me] Has token cookie: ${hasToken}, Has staff_token cookie: ${hasStaffToken}`);
+    }
+    
     try {
         console.log('[Auth /me] Attempting to get server user...');
         const user = await getServerUser(req);
         
         if (!user) {
+            const setupUser = await getOwnerMfaSetupUser(req);
+            if (setupUser) {
+                return createCorsResponse({
+                    error: "Complete two-factor authentication setup to continue",
+                    code: "OWNER_MFA_SETUP_REQUIRED",
+                }, 428, origin);
+            }
             console.log("[Auth /me] No valid user session found");
             return createCorsResponse({ error: "Unauthorized" }, 401, origin);
         }
@@ -145,10 +164,27 @@ export async function PUT(req: Request) {
             return createCorsResponse({ error: "Unauthorized" }, 401, origin);
         }
 
-        const { name, email, phone, avatar } = await req.json();
+        if (user.type === "staff") {
+            return createCorsResponse({ error: "Profile updates are not available for staff accounts" }, 403, origin);
+        }
+
+        const parsedBody = await readJsonBodyLimited(req, MAX_PROFILE_UPDATE_BODY_BYTES);
+        if (parsedBody.kind === "too_large") {
+            return createCorsResponse({ error: "Request body is too large" }, 413, origin);
+        }
+        if (parsedBody.kind !== "ok" || !isRecord(parsedBody.value)) {
+            return createCorsResponse({ error: "Invalid JSON request body" }, 400, origin);
+        }
+
+        const { name, email, phone, avatar } = parsedBody.value;
         const targetUserId = user.userId || user.id;
 
-        const updateData: any = {};
+        const updateData: {
+            name?: string;
+            email?: string;
+            phone?: string;
+            avatar?: string | null;
+        } = {};
         if (name !== undefined) {
             if (!isValidProfileName(name)) {
                 return createCorsResponse({ error: "ឈ្មោះត្រូវមានពី 1 ដល់ 100 តួអក្សរ" }, 400, origin);
@@ -170,7 +206,12 @@ export async function PUT(req: Request) {
             updateData.phone = phone.trim();
         }
         if (avatar === null) updateData.avatar = null;
-        if (typeof avatar === "string" && avatar.length <= 2048) updateData.avatar = avatar.trim();
+        if (avatar !== undefined && avatar !== null) {
+            if (typeof avatar !== "string" || avatar.length > 2048) {
+                return createCorsResponse({ error: "Avatar must be a string of at most 2048 characters" }, 400, origin);
+            }
+            updateData.avatar = avatar.trim();
+        }
 
         const updatedUser = await prisma.user.update({
             where: { id: targetUserId },

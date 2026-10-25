@@ -1,9 +1,18 @@
 import { SignJWT, jwtVerify, type JWTPayload } from "jose";
 import { COOKIE_NAMES, JWT_CONFIG, ROLES } from "./constants";
 
-import redis from "./redis";
 import { getPrisma } from "./prisma";
 import { getIP } from "./utils";
+import { isTokenRevoked, revokeToken } from "./token-revocation";
+export {
+  isTokenRevoked,
+  revokeToken,
+  TokenRevocationStoreUnavailableError,
+} from "./token-revocation";
+import {
+  createExchangeTicket as createSingleUseExchangeTicket,
+  verifyExchangeTicket as verifySingleUseExchangeTicket,
+} from "./exchange-ticket";
 
 // Edge-compatible storage - simplified no-op for Cloudflare Workers
 // In CF Workers, we don't use AsyncLocalStorage - pass Request explicitly instead
@@ -37,30 +46,55 @@ export const getSecretStr = () => {
 };
 export const getSecret = () => new TextEncoder().encode(getSecretStr());
 
-/**
- * Creates a short-lived signed exchange token (expires in 60s) for transferring session across origins/ports securely.
- */
 export async function createExchangeTicket(sessionToken: string): Promise<string> {
-  return await new SignJWT({ token: sessionToken, type: "sso_exchange" })
-    .setProtectedHeader({ alg: "HS256" })
-    .setIssuedAt()
-    .setExpirationTime("60s")
-    .sign(getSecret());
+  return createSingleUseExchangeTicket(sessionToken, getSecret());
 }
 
-/**
- * Verifies a short-lived exchange token and returns the embedded session token.
- */
 export async function verifyExchangeTicket(ticket: string): Promise<string | null> {
-  try {
-    const { payload } = await jwtVerify(ticket, getSecret());
-    if (payload.type !== "sso_exchange" || !payload.token || typeof payload.token !== "string") {
-      return null;
+  return verifySingleUseExchangeTicket(ticket, getSecret());
+}
+
+export async function getOwnerMfaSetupUser(req: Request): Promise<AuthUser | null> {
+    const cookieHeader = req.headers.get("cookie") || "";
+    const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${COOKIE_NAMES.OWNER_MFA_SETUP}=([^;]*)`));
+    if (!match) return null;
+
+    try {
+        const token = decodeURIComponent(match[1]);
+        const { payload } = await jwtVerify(token, getSecret(), {
+            issuer: JWT_CONFIG.ISSUER,
+            audience: JWT_CONFIG.AUDIENCE.ADMIN,
+        });
+        if (payload.purpose !== "owner_mfa_setup" ||
+            typeof payload.userId !== "string" ||
+            typeof payload.email !== "string" ||
+            payload.role !== ROLES.PLATFORM_OWNER) {
+            return null;
+        }
+
+        const user = await getPrisma().user.findUnique({
+            where: { id: payload.userId },
+            select: { id: true, email: true, name: true, role: true, twoFactorEnabled: true, deletedAt: true },
+        });
+        if (!user ||
+            user.role !== ROLES.PLATFORM_OWNER ||
+            user.twoFactorEnabled ||
+            user.deletedAt) {
+            return null;
+        }
+
+        return {
+            id: user.id,
+            userId: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            type: "admin",
+        };
+    } catch (error) {
+        console.warn("[Auth] Owner MFA setup token could not be validated:", error);
+        return null;
     }
-    return payload.token;
-  } catch {
-    return null;
-  }
 }
 
 if (process.env.NODE_ENV === "production") {
@@ -68,44 +102,6 @@ if (process.env.NODE_ENV === "production") {
     console.error("[CRITICAL] JWT_SECRET is missing in production environment!");
   } else if (process.env.JWT_SECRET.length < 32) {
     console.error(`[CRITICAL] JWT_SECRET is too weak (length: ${process.env.JWT_SECRET.length}). Must be at least 32 characters in production.`);
-  }
-}
-
-/**
- * Checks if a token JTI is in the revocation list.
- */
-export async function revokeToken(jti: string, exp: number) {
-  const now = Math.floor(Date.now() / 1000);
-  const ttl = exp - now;
-  if (ttl > 0) {
-    await redis.set(`revoked:${jti}`, "1", { ex: ttl });
-  }
-}
-
-/**
- * Checks if a token JTI is in the revocation list.
- *
- * SECURITY (fail-closed): when the revocation store is unreachable we cannot prove a
- * token is still valid. Failing open (returning false) meant a revoked or stolen
- * token kept working throughout a Redis outage. In production we now fail closed;
- * set `AUTH_REVOCATION_FAIL_MODE=open` to restore the old behaviour during an outage.
- */
-export async function isTokenRevoked(jti: string): Promise<boolean> {
-  try {
-    const res = await redis.get(`revoked:${jti}`);
-    return !!res;
-  } catch (e) {
-    const isProduction =
-      process.env.NODE_ENV === "production" || process.env.ENVIRONMENT === "production";
-    const failOpen = (process.env.AUTH_REVOCATION_FAIL_MODE || "").toLowerCase() === "open";
-
-    if (isProduction && !failOpen) {
-      console.error("[Auth] Revocation store unavailable — failing CLOSED (treating token as revoked):", e);
-      return true;
-    }
-
-    console.error("[Auth] Revocation store unavailable — failing open:", e);
-    return false;
   }
 }
 
@@ -158,8 +154,85 @@ export function getCookieHeader(name: string, value: string, req?: Request, maxA
     if (isLocal) {
         return `${name}=${value}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${maxAgeSeconds}`;
     }
-    // Production cross-origin between Pages (*.pages.dev) and Worker (*.workers.dev)
-    return `${name}=${value}; HttpOnly; Secure; SameSite=None; Partitioned; Path=/; Max-Age=${maxAgeSeconds}`;
+    
+    // Production cross-origin cookies: 
+    // - SameSite=None + Secure required for cross-origin
+    // - NO Partitioned attribute (can cause issues with credential inclusion)
+    // - NO Domain attribute (browser will use current domain = api.moneoez.com)
+    return `${name}=${value}; HttpOnly; Secure; Path=/; SameSite=None; Max-Age=${maxAgeSeconds}`;
+}
+
+export function getSessionTokenFromRequest(req?: Request): string | undefined {
+    const effectiveReq = req || requestStorage.getStore();
+    if (!effectiveReq) return undefined;
+
+    const authorization = effectiveReq.headers.get("authorization") || "";
+    if (authorization.startsWith("Bearer ")) {
+        const bearerToken = authorization.substring(7).trim();
+        if (bearerToken) return bearerToken;
+    }
+
+    const cookieHeader = effectiveReq.headers.get("cookie") || "";
+    const parseCookie = (name: string) => {
+        const match = cookieHeader.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
+        if (!match) return undefined;
+        try {
+            return decodeURIComponent(match[1]);
+        } catch {
+            return undefined;
+        }
+    };
+    return parseCookie(COOKIE_NAMES.TOKEN) || parseCookie(COOKIE_NAMES.STAFF_TOKEN);
+}
+
+export async function revokePresentedSession(req: Request): Promise<void> {
+    const token = getSessionTokenFromRequest(req);
+    if (!token) return;
+
+    let payload: JWTPayload;
+    try {
+        ({ payload } = await jwtVerify(token, getSecret(), { issuer: JWT_CONFIG.ISSUER }));
+    } catch {
+        return;
+    }
+
+    if (payload.type !== undefined || payload.purpose !== undefined) return;
+
+    const isStaffToken = typeof payload.staffId === "string" && payload.staffId.length > 0;
+    const role = payload.role;
+    const expectedAudience = isStaffToken
+        ? JWT_CONFIG.AUDIENCE.STAFF
+        : role === ROLES.PLATFORM_OWNER || role === ROLES.EVENT_MANAGER
+            ? JWT_CONFIG.AUDIENCE.ADMIN
+            : JWT_CONFIG.AUDIENCE.USER;
+    const audiences = Array.isArray(payload.aud)
+        ? payload.aud
+        : typeof payload.aud === "string"
+            ? [payload.aud]
+            : [];
+    if (!audiences.includes(expectedAudience)) return;
+
+    if (typeof payload.jti === "string" && payload.jti && typeof payload.exp === "number") {
+        await revokeToken(payload.jti, payload.exp);
+        return;
+    }
+
+    const userId = isStaffToken ? payload.staffId : payload.userId ?? payload.id;
+    if (typeof userId !== "string" || !userId) return;
+
+    const prisma = getPrisma();
+    const sessionsRevokedAt = new Date();
+    if (isStaffToken) {
+        await prisma.staff.updateMany({
+            where: { id: userId },
+            data: { sessionsRevokedAt },
+        });
+    } else {
+        await prisma.user.updateMany({
+            where: { id: userId },
+            data: { sessionsRevokedAt },
+        });
+    }
 }
 
 
@@ -179,12 +252,32 @@ export async function signToken(payload: any, options: { fingerprint?: string; e
 
     const token = await new SignJWT({ ...payload, ...(options.fingerprint ? { fingerprint: options.fingerprint } : {}) })
         .setProtectedHeader({ alg: "HS256" })
+        .setJti(crypto.randomUUID())
         .setIssuedAt()
         .setIssuer(JWT_CONFIG.ISSUER)
         .setAudience(audience)
         .setExpirationTime(options.expiresIn || "30d")
         .sign(secret);
     return token;
+}
+
+export async function createOwnerMfaSetupCookies(
+    req: Request,
+    user: { id: string; email: string; role: string },
+): Promise<string[]> {
+    if (user.role !== ROLES.PLATFORM_OWNER) {
+        throw new Error("Owner MFA setup tokens can only be issued to the Platform Owner.");
+    }
+    const setupToken = await signToken({
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+        purpose: "owner_mfa_setup",
+    }, { expiresIn: "10m" });
+    return [
+        getCookieHeader(COOKIE_NAMES.TOKEN, "", req, 0),
+        getCookieHeader(COOKIE_NAMES.OWNER_MFA_SETUP, setupToken, req, 10 * 60),
+    ];
 }
 
 /**
@@ -254,6 +347,22 @@ export async function getServerUser(req?: Request): Promise<AuthUser | null> {
             issuer: JWT_CONFIG.ISSUER,
         });
 
+        if (payload.type !== undefined || payload.purpose !== undefined) {
+            console.warn("[Auth] Rejecting a non-session token in an authenticated session.");
+            return null;
+        }
+
+        if (payload.jti !== undefined) {
+            if (typeof payload.jti !== "string" || payload.jti.length === 0) {
+                console.warn("[Auth] Rejecting a session with an invalid token ID.");
+                return null;
+            }
+            if (await isTokenRevoked(payload.jti)) {
+                console.warn("[Auth] Rejecting a revoked session token.");
+                return null;
+            }
+        }
+
         console.log(`[Auth] JWT verified successfully for user: ${payload.userId || payload.id || payload.staffId}`);
 
         // Anti-replay fingerprint validation — relaxed for cross-origin SSO flows
@@ -267,7 +376,27 @@ export async function getServerUser(req?: Request): Promise<AuthUser | null> {
             }
         }
 
-        const userId = (payload.userId || payload.id || payload.staffId) as string;
+        const staffId = payload.staffId;
+        const isStaffToken = typeof staffId === "string" && staffId.length > 0;
+        if (
+            (staffId !== undefined && !isStaffToken) ||
+            (isStaffToken &&
+                (typeof payload.weddingId !== "string" ||
+                    payload.weddingId.length === 0 ||
+                    payload.role !== ROLES.EVENT_STAFF ||
+                    payload.userId !== undefined ||
+                    payload.id !== undefined))
+        ) {
+            console.warn("[Auth] Rejecting malformed staff session claims.");
+            return null;
+        }
+
+        const userIdClaim = isStaffToken ? staffId : payload.userId ?? payload.id;
+        if (typeof userIdClaim !== "string" || userIdClaim.length === 0) {
+            console.warn("[Auth] Rejecting session without a valid user identifier.");
+            return null;
+        }
+        const userId = userIdClaim;
         const iat    = payload.iat ? new Date(payload.iat * 1000) : null;
 
         let dbUser: any = null;
@@ -284,12 +413,12 @@ export async function getServerUser(req?: Request): Promise<AuthUser | null> {
 
             if (payload.staffId) {
                 console.log('[Auth] Querying Staff table...');
-                const results: any[] = await prisma.$queryRaw`SELECT "sessionsRevokedAt", role FROM "Staff" WHERE id = ${userId} LIMIT 1`;
+                const results: any[] = await prisma.$queryRaw`SELECT "sessionsRevokedAt", role, "weddingId" FROM "Staff" WHERE id = ${userId} LIMIT 1`;
                 dbUser = results[0];
                 console.log(`[Auth] Staff query result: ${dbUser ? 'found' : 'not found'}`);
             } else {
                 console.log('[Auth] Querying User table...');
-                const results: any[] = await prisma.$queryRaw`SELECT "sessionsRevokedAt", role FROM "User" WHERE id = ${userId} LIMIT 1`;
+                const results: any[] = await prisma.$queryRaw`SELECT "sessionsRevokedAt", role, "twoFactorEnabled", "deletedAt" FROM "User" WHERE id = ${userId} LIMIT 1`;
                 dbUser = results[0];
                 console.log(`[Auth] User query result: ${dbUser ? 'found' : 'not found'}`);
             }
@@ -304,15 +433,45 @@ export async function getServerUser(req?: Request): Promise<AuthUser | null> {
             return null;
         }
 
+        if (dbUser.deletedAt) {
+            console.warn(`[Auth] Blocking session for deleted user ${userId}`);
+            return null;
+        }
+
+        if (isStaffToken && dbUser.weddingId !== payload.weddingId) {
+            console.warn(`[Auth] Blocking staff session with stale wedding assignment for ${userId}`);
+            return null;
+        }
+
         if (dbUser.sessionsRevokedAt && iat && iat < new Date(dbUser.sessionsRevokedAt)) {
             console.warn(`[Auth] Token issued before session revocation for user ${userId}`);
             return null;
         }
 
         const currentRole = dbUser.role || payload.role;
+        const expectedAudience = isStaffToken
+            ? JWT_CONFIG.AUDIENCE.STAFF
+            : currentRole === ROLES.PLATFORM_OWNER || currentRole === ROLES.EVENT_MANAGER
+                ? JWT_CONFIG.AUDIENCE.ADMIN
+                : JWT_CONFIG.AUDIENCE.USER;
+        const tokenAudiences = Array.isArray(payload.aud)
+            ? payload.aud
+            : typeof payload.aud === "string"
+                ? [payload.aud]
+                : [];
+        if (!tokenAudiences.includes(expectedAudience)) {
+            console.warn(`[Auth] Rejecting token with an audience that does not match user role ${currentRole}`);
+            return null;
+        }
+
+        if (currentRole === ROLES.PLATFORM_OWNER && !dbUser.twoFactorEnabled) {
+            console.warn(`[Auth] Blocking Platform Owner ${userId} session until 2FA enrollment is complete.`);
+            return null;
+        }
+
         let userType: "admin" | "user" | "staff" = "user";
-        if (currentRole === ROLES.PLATFORM_OWNER)  userType = "admin";
-        else if (currentRole === ROLES.EVENT_STAFF) userType = "staff";
+        if (isStaffToken) userType = "staff";
+        else if (currentRole === ROLES.PLATFORM_OWNER) userType = "admin";
 
         console.log(`[Auth] Successfully authenticated user ${userId} with role ${currentRole}`);
         return {
