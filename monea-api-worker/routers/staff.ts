@@ -7,8 +7,11 @@ import { ROLES } from "@/lib/constants"
 import { authLimiter } from "@/lib/ratelimit"
 import { getIP } from "@/lib/utils"
 import { decryptAndMigrateTotpSecret } from "@/lib/totp-secret"
+import { incrementLoginFailureCounter } from "@/lib/login-failure-counter"
+import { isRecord, readJsonBodyLimited } from "@/lib/read-json-body-limited"
 
 const staffRouter = new Hono()
+const MAX_STAFF_LOGIN_BODY_BYTES = 16_384
 
 const staffResponseFields = {
     id: true,
@@ -18,6 +21,76 @@ const staffResponseFields = {
     weddingId: true,
     createdAt: true,
 } as const
+
+async function consumeStaffRecoveryCode(
+    staffId: string,
+    storedCodes: string | null,
+    candidate: string,
+): Promise<boolean> {
+    if (!storedCodes || !/^[A-Fa-f0-9]{10}$/.test(candidate)) return false;
+
+    let hashes: unknown;
+    try {
+        hashes = JSON.parse(storedCodes);
+    } catch {
+        return false;
+    }
+    if (!Array.isArray(hashes) || hashes.some((hash) => typeof hash !== "string")) {
+        return false;
+    }
+
+    for (let index = 0; index < hashes.length; index += 1) {
+        if (!(await CryptoUtils.compare(candidate, hashes[index]))) continue;
+
+        const replacement = JSON.stringify(hashes.filter((_, codeIndex) => codeIndex !== index));
+        const update = await prisma.staff.updateMany({
+            where: { id: staffId, twoFactorRecoveryCodes: storedCodes },
+            data: { twoFactorRecoveryCodes: replacement },
+        });
+        return update.count === 1;
+    }
+    return false;
+}
+
+async function recordStaffLoginFailure(
+    staff: { id: string } | null,
+    ip: string,
+    headers: Headers,
+): Promise<void> {
+    if (staff) {
+        try {
+            await incrementLoginFailureCounter(
+                async () => (await prisma.staff.findUnique({
+                    where: { id: staff.id },
+                    select: { failedAttempts: true },
+                }))?.failedAttempts ?? null,
+                async (expected, next, lockedUntil) => {
+                    const result = await prisma.staff.updateMany({
+                        where: { id: staff.id, failedAttempts: expected },
+                        data: { failedAttempts: next, lockedUntil },
+                    });
+                    return result.count === 1;
+                },
+            );
+        } catch (error) {
+            console.error("[Auth] Failed to update staff sign-in failure count:", error);
+        }
+    }
+
+    try {
+        await prisma.securityLog.create({
+            data: {
+                event: "LOGIN_FAILED",
+                ip,
+                geoIp: headers.get("x-vercel-ip-country") || headers.get("cf-ipcountry") || "UNKNOWN",
+                userAgent: headers.get("user-agent") || "UNKNOWN",
+                details: "Staff authentication failed",
+            },
+        });
+    } catch (error) {
+        console.error("[Auth] Failed to record staff sign-in failure:", error);
+    }
+}
 
 staffRouter.get('/verify-token', async (c) => {
     const token = c.req.query("token");
@@ -51,25 +124,53 @@ staffRouter.post('/login', async (c) => {
     const otplib = await import("otplib") as any;
     try {
         const ip = getIP(c.req.raw as any);
+        const isProduction = process.env.NODE_ENV === "production" || process.env.ENVIRONMENT === "production";
+        if (isProduction && ip === "unknown") {
+            console.error("[Security] Staff sign-in rejected because the trusted client IP is unavailable.");
+            return c.json({ error: "Sign-in is temporarily unavailable. Please try again later." }, 503);
+        }
 
-        const isBlacklisted = await prisma.blacklistedIP.findUnique({ where: { ip } });
+        let isBlacklisted;
+        try {
+            isBlacklisted = await prisma.blacklistedIP.findUnique({ where: { ip } });
+        } catch (error) {
+            console.error("[Security] Staff sign-in IP blacklist check failed; rejecting request.", error);
+            return c.json({ error: "Sign-in is temporarily unavailable. Please try again later." }, 503);
+        }
         if (isBlacklisted) {
             console.warn(`[Security] Blocked blacklisted IP from Staff Login: ${ip}`);
             return c.json({ error: "Access Denied" }, 403);
         }
 
-        const { success: rlSuccess } = await authLimiter.limit(ip);
+        let rlSuccess: boolean;
+        try {
+            ({ success: rlSuccess } = await authLimiter.limit(ip));
+        } catch (error) {
+            console.error("[RateLimit] Staff sign-in protection unavailable; rejecting request.", error);
+            return c.json({ error: "Sign-in is temporarily unavailable. Please try again later." }, 503);
+        }
         if (!rlSuccess) {
             return c.json({ error: "Too many attempts. Please try again later." }, 429);
         }
 
-        let body;
-        try {
-            body = await c.req.json();
-        } catch {
+        const parsedBody = await readJsonBodyLimited(c.req.raw, MAX_STAFF_LOGIN_BODY_BYTES)
+        if (parsedBody.kind === "too_large") {
+            return c.json({ error: "Request body is too large" }, 413)
+        }
+        if (parsedBody.kind === "invalid" || !isRecord(parsedBody.value)) {
             return c.json({ error: "Invalid JSON" }, 400);
         }
+        const body = parsedBody.value
         const { email, password, pin, weddingCode, twoFactorToken } = body;
+        if (
+            (email !== undefined && (typeof email !== "string" || email.length > 254)) ||
+            (password !== undefined && (typeof password !== "string" || password.length > 128)) ||
+            (pin !== undefined && (typeof pin !== "string" || pin.length > 128)) ||
+            (weddingCode !== undefined && (typeof weddingCode !== "string" || weddingCode.length > 64)) ||
+            (twoFactorToken !== undefined && (typeof twoFactorToken !== "string" || twoFactorToken.length > 10))
+        ) {
+            return c.json({ error: "Invalid request body" }, 400)
+        }
 
         await new Promise(resolve => setTimeout(resolve, 500));
 
@@ -108,16 +209,19 @@ staffRouter.post('/login', async (c) => {
         }
 
         if (!staffMember) {
-            if (checkStaff) {
-                const attempts = checkStaff.failedAttempts + 1;
-                const lockTime = attempts >= 5 ? new Date(Date.now() + 15 * 60 * 1000) : null;
-                await prisma.staff.update({ where: { id: checkStaff.id }, data: { failedAttempts: attempts, lockedUntil: lockTime } });
-            }
+            await recordStaffLoginFailure(checkStaff, ip, c.req.raw.headers);
             return c.json({ error: "ព័ត៌មានមិនត្រឹមត្រូវ (Invalid information)" }, 401);
         }
 
-        if (staffMember.twoFactorEnabled && staffMember.twoFactorSecret) {
-            if (!twoFactorToken) return c.json({ require2FA: true }, 428);
+        if (staffMember.twoFactorEnabled) {
+            if (!staffMember.twoFactorSecret) {
+                console.error(`[Auth] Staff ${staffMember.id} has 2FA enabled without a configured secret.`);
+                return c.json({ error: "Two-factor authentication is misconfigured. Please contact support." }, 503);
+            }
+            if (typeof twoFactorToken !== "string" || !twoFactorToken.trim()) {
+                return c.json({ require2FA: true }, 428);
+            }
+            const suppliedToken = twoFactorToken.trim();
             const secret = await decryptAndMigrateTotpSecret(
                 staffMember.twoFactorSecret,
                 encryptedSecret => prisma.staff.update({
@@ -125,23 +229,26 @@ staffRouter.post('/login', async (c) => {
                     data: { twoFactorSecret: encryptedSecret },
                 }),
             );
-            const verifyResult = await otplib.verify({
-                token: twoFactorToken,
-                secret,
-                epochTolerance: 2
-            });
-            let is2faValid = verifyResult && verifyResult.valid;
+            const verifyResult = /^\d{6}$/.test(suppliedToken)
+                ? await otplib.verify({
+                    token: suppliedToken,
+                    secret,
+                    epochTolerance: 2
+                })
+                : { valid: false };
+            let is2faValid = Boolean(verifyResult?.valid);
 
-            if (!is2faValid && staffMember.twoFactorRecoveryCodes) {
-                const codes = JSON.parse(staffMember.twoFactorRecoveryCodes) as string[];
-                const matchedIdx = (await Promise.all(codes.map(c => CryptoUtils.compare(twoFactorToken, c)))).findIndex(r => r === true);
-                if (matchedIdx !== -1) {
-                    is2faValid = true;
-                    const updated = codes.filter((_, i) => i !== matchedIdx);
-                    await prisma.staff.update({ where: { id: staffMember.id }, data: { twoFactorRecoveryCodes: JSON.stringify(updated) } });
-                }
+            if (!is2faValid) {
+                is2faValid = await consumeStaffRecoveryCode(
+                    staffMember.id,
+                    staffMember.twoFactorRecoveryCodes,
+                    suppliedToken,
+                );
             }
-            if (!is2faValid) return c.json({ error: "Invalid 2FA token" }, 401);
+            if (!is2faValid) {
+                await recordStaffLoginFailure(staffMember, ip, c.req.raw.headers);
+                return c.json({ error: "Invalid 2FA token" }, 401);
+            }
         }
 
         await prisma.staff.update({ where: { id: staffMember.id }, data: { failedAttempts: 0, lockedUntil: null } });

@@ -24,9 +24,11 @@ import { BackgroundMusic } from './modern-minimal/BackgroundMusic';
 import { getWeddingHeroImage } from "./shared/weddingPhotos";
 import { isSectionVisible } from "./shared/template-settings";
 import { GuestbookSection } from "./shared/GuestbookSection";
+import { MoneaLogoMark } from "@/components/ui/MoneaLogoMark";
 
 export default function ModernMinimal({ wedding, guestName, config }: TemplateProps) {
-    const { t } = useTranslation();
+    const { locale } = useTranslation();
+    const isKhmer = locale === "km";
     const [revealed, setRevealed] = React.useState(false);
     const [isPlaying, setIsPlaying] = React.useState(false);
     const audioRef = React.useRef<HTMLAudioElement>(null);
@@ -62,7 +64,7 @@ export default function ModernMinimal({ wedding, guestName, config }: TemplatePr
             )}
 
             {revealed && <main
-                className="relative z-10 w-full overflow-x-hidden"
+                className="modern-minimal-content relative z-10 w-full overflow-x-hidden"
             >
                 <HeroSection wedding={wedding} />
                 <CountdownSection wedding={wedding} />
@@ -79,20 +81,46 @@ export default function ModernMinimal({ wedding, guestName, config }: TemplatePr
                 {isSectionVisible(config, "gallery") && <GallerySection wedding={wedding} />}
                 
                 {isSectionVisible(config, "gift") && <GiftSection wedding={wedding} />}
-                {isSectionVisible(config, "guestbook") && <GuestbookSection wedding={wedding} tone="dark" unboxed accentColorOverride="#d6bd83" />}
+                {isSectionVisible(config, "guestbook") && <GuestbookSection wedding={wedding} tone="light" unboxed accentColorOverride="#9b8055" />}
                 <ThankYouSection wedding={wedding} />
 
-                <footer className="border-t border-slate-800 bg-[#0A1226] px-6 py-14 text-center sm:py-16">
-                    <div className="mx-auto flex max-w-xs flex-col items-center gap-4">
-                        <div className="flex items-center gap-3" aria-hidden="true">
-                            <span className="h-px w-10 bg-gradient-to-r from-transparent to-[#C8A96B]/70" />
-                            <span className="flex h-9 w-9 items-center justify-center rounded-full border border-[#C8A96B]/60 font-serif-elegant text-sm text-[#DCC28A]">
-                                M
+                <footer
+                    className="relative overflow-hidden border-t border-[#c8a96b]/25 px-6 py-12 text-center sm:py-16"
+                    style={{
+                        backgroundColor: "var(--monea-paper-color, #f7f1ea)",
+                        backgroundImage: "var(--monea-paper-texture, none)",
+                    }}
+                >
+                    <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-[radial-gradient(ellipse_at_top,rgba(200,169,107,0.12),transparent_70%)]" />
+                    <div className="relative mx-auto flex max-w-sm flex-col items-center">
+                        <a
+                            href="https://moneoez.com"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label="MONEO — moneoez.com"
+                            className="group flex flex-col items-center gap-3 rounded-2xl px-5 py-3 transition-colors hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#d6bd83]"
+                        >
+                            <MoneaLogoMark className="h-14 w-14 border-[#c8a96b]/70 shadow-[0_0_24px_rgba(200,169,107,0.18)]" />
+                            <span className="font-outfit text-lg font-black tracking-[0.24em] text-[#765817]">
+                                MONEO
                             </span>
-                            <span className="h-px w-10 bg-gradient-to-l from-transparent to-[#C8A96B]/70" />
+                            <span className="font-kantumruy text-xs leading-relaxed text-[#5c5140]">
+                                {isKhmer
+                                    ? "ធៀបការដែលជាប់ចិត្ត កុំភ្លេច MONEO"
+                                    : "Modern Digital Wedding Invitations"}
+                            </span>
+                            <span className="font-outfit text-[10px] font-semibold tracking-[0.16em] text-[#8c6b2f]">
+                                MONEOEZ.COM
+                            </span>
+                        </a>
+                        <div className="mt-6 flex w-full items-center gap-3" aria-hidden="true">
+                            <span className="h-px flex-1 bg-gradient-to-r from-transparent to-[#c8a96b]/45" />
+                            <span className="h-1 w-1 rounded-full bg-[#c8a96b]/70" />
+                            <span className="h-px flex-1 bg-gradient-to-l from-transparent to-[#c8a96b]/45" />
                         </div>
-                        <p className="text-[10px] font-semibold tracking-[0.08em] text-slate-400">Powered by MONEO</p>
-                        <p className="text-[11px] text-slate-500">Made for your forever</p>
+                        <p className="mt-4 font-kantumruy text-[10px] text-[#7b7468]">
+                            © {new Date().getFullYear()} MONEO. {isKhmer ? "រក្សាសិទ្ធិគ្រប់យ៉ាង" : "All rights reserved."}
+                        </p>
                     </div>
                 </footer>
             </main>}

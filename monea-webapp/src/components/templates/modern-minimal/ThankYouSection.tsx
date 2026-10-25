@@ -49,11 +49,11 @@ export const ThankYouSection = ({ wedding }: { wedding: WeddingData }) => {
                     យើងខ្ញុំសូមថ្លែងអំណរគុណយ៉ាងជ្រាលជ្រៅបំផុតចំពោះវត្តមានរបស់អ្នកក្នុងពិធីនេះ និងសូមជូនពរឱ្យទទួលបាននូវពុទ្ធពរទាំងបួនប្រការគឺ៖ អាយុ វណ្ណៈ សុខៈ ពលៈ កុំបីឃ្លៀងឃ្លាតឡើយ។
                 </p>
 
-                <div className="mt-6 md:mt-8 pt-5 md:pt-6 border-t border-white/20 flex flex-col items-center">
+                <div className="mt-6 w-full min-w-0 max-w-full border-t border-white/20 pt-5 md:mt-8 md:pt-6">
                     <CoupleNamesLine
                         groom={wedding.groomName}
                         bride={wedding.brideName}
-                        className="m05-font-name w-full text-xl font-bold text-white md:text-2xl"
+                        className="m05-font-name w-full min-w-0 max-w-full text-xl font-bold text-white md:text-2xl"
                     />
                 </div>
             </m.div>

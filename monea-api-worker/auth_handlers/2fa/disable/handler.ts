@@ -4,18 +4,65 @@ import { getServerUser } from "@/lib/auth";
 import { CryptoUtils } from "@/lib/crypto";
 import { SystemGovernance, GOVERNANCE_ACTIONS } from "@/lib/governance";
 import { getIP } from "@/lib/utils";
+import { isRecord, readJsonBodyLimited } from "@/lib/read-json-body-limited";
+import { hashRateLimitKey } from "@/lib/rate-limit-key";
+import { twoFactorDisableLimiter } from "@/lib/ratelimit";
+
+
+import { corsJsonResponse, corsOptionsResponse } from "@/lib/cors-utils";
+const MAX_TWO_FACTOR_DISABLE_BODY_BYTES = 1_024;
 
 export async function POST(req: Request) {
     try {
         // 1. Authenticate user passing Request context
         const user = await getServerUser(req);
-        if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
+        if (!user) return corsJsonResponse({ error: "Unauthorized" }, 401, req);
 
-        const body = await req.json().catch(() => ({}));
-        const { password } = body;
+        const ip = getIP(req);
+        let ipLimit: Awaited<ReturnType<typeof twoFactorDisableLimiter.limit>>;
+        let accountLimit: Awaited<ReturnType<typeof twoFactorDisableLimiter.limit>>;
+        try {
+            [ipLimit, accountLimit] = await Promise.all([
+                twoFactorDisableLimiter.limit(`ip:${ip}`),
+                twoFactorDisableLimiter.limit(
+                    `account:${await hashRateLimitKey(`${user.type}:${user.userId}`)}`,
+                ),
+            ]);
+        } catch (error) {
+            console.error("[RateLimit] 2FA disable protection failed; using in-memory fallback.", error);
+            // Graceful degradation: use in-memory limiter fallback
+            try {
+                [ipLimit, accountLimit] = await Promise.all([
+                    twoFactorDisableLimiter.limit(`ip:${ip}`, undefined),
+                    twoFactorDisableLimiter.limit(
+                        `account:${await hashRateLimitKey(`${user.type}:${user.userId}`)}`,
+                        undefined
+                    ),
+                ]);
+            } catch (fallbackError) {
+                console.warn("[RateLimit] In-memory fallback also failed; proceeding without rate limit.", fallbackError);
+                ipLimit = { success: true, limit: 5, remaining: 4, reset: Math.ceil((Date.now() + 600000) / 1000) };
+                accountLimit = { success: true, limit: 5, remaining: 4, reset: Math.ceil((Date.now() + 600000) / 1000) };
+            }
+        }
+        if (!ipLimit.success || !accountLimit.success) {
+            return Response.json(
+                { error: "Too many attempts. Please try again later." },
+                { status: 429 },
+            );
+        }
+
+        const parsedBody = await readJsonBodyLimited(req, MAX_TWO_FACTOR_DISABLE_BODY_BYTES);
+        if (parsedBody.kind === "too_large") {
+            return corsJsonResponse({ error: "Request body is too large" }, 413, req);
+        }
+        if (parsedBody.kind !== "ok" || !isRecord(parsedBody.value)) {
+            return corsJsonResponse({ error: "Invalid JSON request body" }, 400, req);
+        }
+        const { password } = parsedBody.value;
         
-        if (!password) {
-            return Response.json({ error: "Password verification required to disable 2FA" }, { status: 400 });
+        if (typeof password !== "string" || password.length === 0 || password.length > 128) {
+            return corsJsonResponse({ error: "Password verification required to disable 2FA" }, 400, req);
         }
 
         // 2. Security Check: Verify user password
@@ -33,19 +80,19 @@ export async function POST(req: Request) {
         }
 
         if (!dbUser) {
-            return Response.json({ error: "User account not found" }, { status: 404 });
+            return corsJsonResponse({ error: "User account not found" }, 404, req);
         }
 
         // Handle SSO users who don't have a hashed password stored
         if (!dbUser.password) {
-            return Response.json({ 
+            return corsJsonResponse({ 
                 error: "Password verification unavailable for SSO accounts. Please re-authenticate via SSO." 
-            }, { status: 400 });
+            }, 400, req);
         }
 
         const isPasswordValid = await CryptoUtils.compare(password, dbUser.password);
         if (!isPasswordValid) {
-            return Response.json({ error: "Invalid password" }, { status: 401 });
+            return corsJsonResponse({ error: "Invalid password" }, 401, req);
         }
 
         // 3. Disable 2FA in Database
@@ -70,7 +117,6 @@ export async function POST(req: Request) {
         }
 
         // 4. Extract Trusted Client Info
-        const ip = getIP(req);
         const userAgent = req.headers.get("user-agent") || "unknown";
 
         // 5. Governance & Audit Logging
@@ -88,7 +134,6 @@ export async function POST(req: Request) {
             data: {
                 event: "TWOFA_DISABLED",
                 ip,
-                email: user.email || dbUser.email,
                 details: `2FA disabled by user (${user.type})`
             }
         });
@@ -97,9 +142,9 @@ export async function POST(req: Request) {
 
     } catch (error: any) {
         console.error("[2FA Disable Error]:", error);
-        return Response.json({
+        return corsJsonResponse({
             error: "Internal Server Error",
             details: error?.message || String(error)
-        }, { status: 500 });
+        }, 500, req);
     }
 }

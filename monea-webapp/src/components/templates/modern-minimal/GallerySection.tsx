@@ -53,7 +53,7 @@ export const GallerySection = ({ wedding }: { wedding: WeddingData }) => {
                                 className={`${getGalleryImageClass(galleryStyle)} transition-transform duration-500 group-hover:scale-[1.03]`}
                                 sizes={galleryStyle === "slider"
                                     ? "(max-width: 640px) 82vw, 60vw"
-                                    : "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 320px"}
+                                    : "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 400px"}
                                 loading="lazy"
                             />
                         </m.button>
@@ -113,6 +113,7 @@ export const GallerySection = ({ wedding }: { wedding: WeddingData }) => {
                                 src={validImages[selectedIdx]}
                                 alt="Full preview"
                                 className="max-w-full max-h-[82vh] object-contain"
+                                sizes="(max-width: 768px) 100vw, 800px"
                             />
                         </m.div>
 

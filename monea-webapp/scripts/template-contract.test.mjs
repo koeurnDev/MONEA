@@ -41,6 +41,7 @@ import {
     getGalleryImageClass,
 } from "../src/components/templates/shared/gallery-layout.ts";
 import {
+    appendUploadedPhotosToGallery,
     assignUploadedPhotosToSlots,
     getWeddingPhotoSlotAspectRatio,
     getWeddingPhotoSlotIndex,
@@ -51,6 +52,8 @@ import {
 } from "../src/lib/wedding-photo-layout.ts";
 import { getContrastingTextColor } from "../src/lib/color-contrast.ts";
 import { WeddingDataCache } from "../src/lib/wedding-data-cache.ts";
+import { buildSrcSet, getOriginalMediaUrl, MEDIA_WIDTHS, optimizeMediaUrl } from "../src/lib/media.ts";
+import { getPostLoginPath } from "../src/lib/auth-navigation.ts";
 
 const createWedding = (themeSettings = {}) => ({
     id: "template-contract-test",
@@ -61,6 +64,104 @@ const createWedding = (themeSettings = {}) => ({
     activities: undefined,
     galleryItems: undefined,
     themeSettings,
+});
+
+test("Cloudflare image transforms preserve original R2 images and provide responsive variants", () => {
+    const original = "https://media.moneoez.com/wedding-id/photo%20one.jpg";
+    const transformed = optimizeMediaUrl(original, { width: 640, quality: 78 });
+
+    assert.equal(
+        transformed,
+        "https://moneoez.com/cdn-cgi/image/onerror=redirect,format=auto,quality=78,width=800,fit=scale-down/https://media.moneoez.com/wedding-id/photo%20one.jpg",
+    );
+    assert.equal(getOriginalMediaUrl(transformed), original);
+    assert.equal(optimizeMediaUrl(transformed), transformed);
+    assert.equal(
+        optimizeMediaUrl("https://example.com/photo.jpg", { width: 640 }),
+        "https://example.com/photo.jpg",
+    );
+    assert.match(
+        buildSrcSet(original, MEDIA_WIDTHS.lightbox, { quality: 78 }) || "",
+        /width=400.* 400w, .*width=800.* 800w, .*width=1200.* 1200w, .*width=1600.* 1600w/,
+    );
+    assert.deepEqual(MEDIA_WIDTHS.thumbnail, [400, 800]);
+    assert.deepEqual(MEDIA_WIDTHS.grid, [400, 800]);
+    assert.deepEqual(MEDIA_WIDTHS.lightbox, [400, 800, 1200, 1600]);
+});
+
+test("PhotoImage retries the original image if a Cloudflare transformation fails", async () => {
+    const { readFile } = await import("node:fs/promises");
+    const photoImage = await readFile(
+        new URL("../src/components/templates/shared/PhotoImage.tsx", import.meta.url),
+        "utf8",
+    );
+    assert.match(photoImage, /getOriginalMediaUrl\(src\)/);
+    assert.match(photoImage, /setUseOriginal\(true\)/);
+    assert.match(photoImage, /srcSet=\{useOriginal \? undefined : responsiveSrcSet\}/);
+});
+
+test("invitation galleries declare responsive slot sizes and defer offscreen images", async () => {
+    const { readFile } = await import("node:fs/promises");
+    const galleryFiles = [
+        "../src/components/templates/modern-minimal/GallerySection.tsx",
+        "../src/components/templates/blossom-romance/GallerySection.tsx",
+        "../src/components/templates/emerald-garden/GallerySection.tsx",
+        "../src/components/templates/fortune-harmony/GallerySection.tsx",
+        "../src/components/templates/anniversary-elegant/AnniversaryGallery.tsx",
+    ];
+    const galleries = await Promise.all(
+        galleryFiles.map((path) => readFile(new URL(path, import.meta.url), "utf8")),
+    );
+
+    for (const gallery of galleries) {
+        assert.match(gallery, /sizes=\{galleryStyle === "slider"/);
+        assert.match(gallery, /400px/);
+        assert.match(gallery, /loading="lazy"/);
+        assert.match(gallery, /sizes="\(max-width: 768px\) 100vw, 800px"/);
+    }
+});
+
+test("post-login navigation restores only internal routes allowed for the user's role", () => {
+    const origin = "https://moneoez.com";
+    assert.equal(
+        getPostLoginPath(false, { pathname: "/dashboard/design", search: "?step=4", hash: "#photos" }, origin),
+        "/dashboard/design?step=4#photos",
+    );
+    assert.equal(
+        getPostLoginPath(true, { pathname: "/admin/master/templates" }, origin),
+        "/admin/master/templates",
+    );
+    assert.equal(getPostLoginPath(false, { pathname: "/admin/master" }, origin), "/dashboard");
+    assert.equal(getPostLoginPath(false, { pathname: "//evil.example/path" }, origin), "/dashboard");
+    assert.equal(getPostLoginPath(true, null, origin), "/admin");
+});
+
+test("SSO callback initializes the authenticated user without reloading the app", async () => {
+    const { readFile } = await import("node:fs/promises");
+    const callback = await readFile(
+        new URL("../src/pages/auth/AuthCallbackPage.tsx", import.meta.url),
+        "utf8",
+    );
+    assert.match(callback, /moneaClient\.get<CallbackProfile>\(['"]\/api\/auth\/me['"]\)/);
+    assert.match(callback, /setAuthenticatedUser\(\{/);
+    assert.match(callback, /navigate\(getPostLoginPath/);
+    assert.doesNotMatch(callback, /window\.location\.href/);
+});
+
+test("wedding pages keep user photos out of SEO image previews and indexing", async () => {
+    const { readFile } = await import("node:fs/promises");
+    const weddingPage = await readFile(
+        new URL("../src/app/w/[id]/_components/WeddingDataView.tsx", import.meta.url),
+        "utf8",
+    );
+
+    assert.match(weddingPage, /const seoImage = new URL\("\/icons\/SE\.png", window\.location\.origin\)\.href/);
+    assert.match(weddingPage, /ogImage=\{seoImage\}/);
+    assert.match(weddingPage, /"image": seoImage/);
+    assert.match(weddingPage, /index, follow, noimageindex, max-image-preview:none/);
+    assert.match(weddingPage, /noindex, nofollow, noimageindex, max-image-preview:none/);
+    assert.doesNotMatch(weddingPage, /ogImage=\{heroImg\}/);
+    assert.doesNotMatch(weddingPage, /"image": heroImg/);
 });
 
 test("wedding data cache prunes expired data and caps memory and session entries", () => {
@@ -328,6 +429,22 @@ test("new photo uploads fill empty slots without replacing existing photos", () 
     assert.equal(result[3].url, "/new-two.jpg");
 });
 
+test("additional gallery uploads stay out of template slots and skip duplicate assets", () => {
+    const result = appendUploadedPhotosToGallery([
+        { url: "/cover.jpg", publicId: "cover", type: "IMAGE" },
+    ], [
+        { url: "/cover.jpg", publicId: "cover", type: "IMAGE" },
+        { url: "/gallery.jpg", publicId: "gallery", type: "IMAGE" },
+        { url: "/clip.mp4", publicId: "clip", type: "VIDEO" },
+    ], "modern-minimal");
+
+    const slotCount = WEDDING_PHOTO_LAYOUTS["modern-minimal"].slots.length;
+    assert.equal(result[0].url, "/cover.jpg");
+    assert.equal(result[1].url, "");
+    assert.equal(result[slotCount].url, "/gallery.jpg");
+    assert.equal(result.length, slotCount + 1);
+});
+
 test("reordering photos swaps slot assignments without moving certificates or changing the gallery boundary", () => {
     const items = [
         { url: "/cover.jpg", publicId: "cover", type: "IMAGE" },
@@ -352,7 +469,7 @@ test("reordering photos swaps slot assignments without moving certificates or ch
     ], 0, 1, "modern-minimal"), null);
 });
 
-test("photo library uploads multiple images and explains automatic template placement", async () => {
+test("photo library assigns section photos individually and keeps batch uploads in the extra gallery", async () => {
     const { readFile } = await import("node:fs/promises");
     const [mediaStep, library] = await Promise.all([
         readFile(new URL("../src/app/dashboard/design/components/Step4Media.tsx", import.meta.url), "utf8"),
@@ -361,9 +478,11 @@ test("photo library uploads multiple images and explains automatic template plac
 
     assert.match(library, /multiple/);
     assert.match(library, /accept="image\/\*"/);
-    assert.match(library, /រូបទី១ដាក់លើគម្រប/);
-    assert.match(library, /កន្លែងទំនេរបន្ទាប់/);
-    assert.match(library, /រូបដែលនឹងបង្ហាញលើធៀប/);
+    assert.match(library, /ជ្រើសរើសរូបតាមផ្នែក/);
+    assert.match(library, /ចុច «ដាក់រូប» នៅផ្នែកដែលអ្នកចង់ប្ដូរ/);
+    assert.match(library, /ជំនួសរូបចាស់នៅទីតាំងដដែល/);
+    assert.match(library, /រូបវិចិត្រសាលបន្ថែម/);
+    assert.match(library, /មិនត្រូវបានចាត់ទៅផ្នែកខាងលើដោយស្វ័យប្រវត្តិទេ/);
     assert.match(library, /កាត់តម្រឹម \$\{title\}/);
     assert.match(library, /<ImageCropperModal/);
     assert.match(library, /onReplacePhoto\(index, url, publicId\)/);
@@ -371,8 +490,9 @@ test("photo library uploads multiple images and explains automatic template plac
     assert.match(library, /ផ្លាស់ទី \$\{title\} ឡើងលើ/);
     assert.match(library, /ផ្លាស់ទី \$\{title\} ចុះក្រោម/);
     assert.match(library, /onMovePhoto\(fromIndex, toIndex\)/);
-    assert.match(mediaStep, /រូបទី១ជារូបគម្រប/);
-    assert.match(mediaStep, /រូបបន្ទាប់ៗទៅផ្នែកផ្សេងៗដោយស្វ័យប្រវត្តិ/);
+    assert.match(mediaStep, /ជ្រើសរើសរូបសម្រាប់ផ្នែកនីមួយៗខាងក្រោម/);
+    assert.match(mediaStep, /មិនត្រូវបានដាក់ស្ទួនទៅផ្នែកផ្សេងទេ/);
+    assert.doesNotMatch(mediaStep, /រូបបន្ទាប់ៗទៅផ្នែកផ្សេងៗដោយស្វ័យប្រវត្តិ/);
 });
 
 test("template photo migration tells users when photos move to the extra gallery", async () => {
@@ -1334,7 +1454,7 @@ test("brand wordmark defaults to MONEO independently of the UI locale", async ()
     assert.match(logo, /aria-label=\{showText \? brandName : undefined\}/);
     assert.match(footer, /<MoneaLogoMark className="h-12 w-12" \/>/);
     assert.match(footer, /grid grid-cols-2 items-center justify-items-center gap-x-2 gap-y-3/);
-    assert.match(footer, /វេទិកាបង្កើតធៀបមង្គលការឌីជីថល/);
+    assert.match(footer, /ធៀបការដែលជាប់ចិត្ត កុំភ្លេច MONEO/);
     assert.doesNotMatch(footer, /វេទិការៀបចំសំបុត្រមង្គលការឌីជីថល/);
 });
 
@@ -2082,6 +2202,10 @@ test("automatic photo upload reports persistence results and retries failed file
         new URL("../src/hooks/use-cloudinary.ts", import.meta.url),
         "utf8",
     );
+    const sectionUpload = await readFile(
+        new URL("../src/hooks/use-cloudinary-upload.ts", import.meta.url),
+        "utf8",
+    );
     const wizard = await readFile(
         new URL("../src/app/dashboard/design/hooks/useDesignWizard.ts", import.meta.url),
         "utf8",
@@ -2095,14 +2219,17 @@ test("automatic photo upload reports persistence results and retries failed file
         "utf8",
     );
 
-    assert.match(gallerySection, /រូបត្រូវបានដាក់តាមលំដាប់ និងរក្សាទុករួចរាល់/);
+    assert.match(gallerySection, /រូបវិចិត្រសាលត្រូវបានបន្ថែម និងរក្សាទុករួចរាល់/);
     assert.match(gallerySection, /role="alert"/);
     assert.match(mediaStep, /រូបបានផ្ទុកឡើង ប៉ុន្តែរក្សាទុកមិនបាន/);
-    assert.match(wizard, /assignUploadedPhotosToSlots\(/);
+    assert.match(wizard, /appendUploadedPhotosToGallery\(/);
     assert.match(wizard, /return saveChanges\(updated, \{ silent: true \}\)/);
     assert.match(wizard, /retryGalleryDirectUpload/);
     assert.match(galleryUpload, /failedUploads\.push\(file\)/);
     assert.match(galleryUpload, /setFailedFiles\(failedUploads\)/);
+    assert.match(galleryUpload, /Math\.min\(3, totalFiles\)/);
+    assert.match(galleryUpload, /uploadFileToR2\(file, options\.folder/);
+    assert.match(sectionUpload, /uploadFileToR2\(file, folder, setProgress\)/);
     assert.match(galleryUpload, /retryFailedUploads: \(\) => failedFiles\.length > 0/);
     assert.match(gallerySection, /សាកដាក់រូបដែលបរាជ័យម្ដងទៀត/);
     assert.doesNotMatch(gallerySection, /toggleGalleryPhotoVisibility|hiddenGalleryPhotoKeys|EyeOff|លាក់រូបនេះពីធៀប/);

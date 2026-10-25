@@ -85,6 +85,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ wedding, primaryColor 
                                     src={couplePhoto}
                                     alt={`${groomName} និង ${brideName}`}
                                     className="aspect-[4/5] w-full object-cover"
+                                    sizes="240px"
                                     loading="eager"
                                     decoding="async"
                                 />

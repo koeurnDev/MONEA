@@ -205,6 +205,7 @@ export interface WeddingData {
     packageType?: string | null;
     paymentStatus?: string | null;
     guestId?: string; // Unique ID for QR check-in
+    previewUploadedImagesOnly?: boolean;
 }
 
 export interface TemplateProps {

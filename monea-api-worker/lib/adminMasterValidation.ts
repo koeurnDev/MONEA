@@ -35,37 +35,6 @@ export function validateAdminReason(reason: unknown): reason is string {
         && reason.trim().length <= MAX_ADMIN_REASON_LENGTH;
 }
 
-export function resolveAdminPackagePayment(
-    packageType: unknown,
-    disposition: unknown,
-    reference: unknown
-):
-    | { valid: true; paymentStatus: "PENDING" | "PAID"; disposition: "NOT_APPLICABLE" | "PAID" | "WAIVED"; reference: string | null }
-    | { valid: false; error: string } {
-    if (!["FREE", "PRO", "PREMIUM"].includes(String(packageType))) {
-        return { valid: false, error: "Invalid packageType" };
-    }
-    if (packageType === "FREE") {
-        return { valid: true, paymentStatus: "PENDING", disposition: "NOT_APPLICABLE", reference: null };
-    }
-    if (disposition === "WAIVED") {
-        return { valid: true, paymentStatus: "PAID", disposition: "WAIVED", reference: null };
-    }
-    if (disposition !== "PAID") {
-        return { valid: false, error: "Select paid or waived payment" };
-    }
-    if (typeof reference !== "string" || reference.trim().length < 4 || reference.trim().length > 120) {
-        return { valid: false, error: "A payment reference between 4 and 120 characters is required" };
-    }
-
-    return {
-        valid: true,
-        paymentStatus: "PAID",
-        disposition: "PAID",
-        reference: reference.trim()
-    };
-}
-
 export function escapeWeddingSearch(search: string): string {
     return search.replace(/[!%_]/g, "!$&");
 }

@@ -82,7 +82,7 @@ export function InteractiveThemeGallery() {
                         className="inline-flex items-center gap-2 px-6 h-12 rounded-xl bg-card hover:bg-muted border border-border text-foreground font-bold text-xs shadow-xs active:scale-95 transition-all self-start md:self-auto"
                     >
                         <span>មើលគ្រប់ម៉ូដទាំងអស់</span>
-                        <ArrowRight className="w-4 h-4 text-rose-600" />
+                        <ArrowRight className="w-4 h-4 text-primary" />
                     </Link>
                 </div>
 
@@ -148,7 +148,7 @@ export function InteractiveThemeGallery() {
 
                                     <Link
                                         to={AUTH_URLS.SIGN_UP}
-                                        className="text-xs text-rose-600 dark:text-rose-400 font-bold hover:underline inline-flex items-center gap-1"
+                                        className="text-xs text-primary font-bold hover:underline inline-flex items-center gap-1"
                                     >
                                         <span>រចនាម៉ូដនេះ</span>
                                         <ArrowRight className="w-3 h-3" />

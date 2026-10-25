@@ -9,6 +9,7 @@ import { InstallAppPrompt } from "./InstallAppPrompt";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { TwoFactorSetup } from "@/components/admin/TwoFactorSetup";
 
 import { cn } from "@/lib/utils";
 import { MoneaLogo } from "@/components/ui/MoneaLogo";
@@ -43,6 +44,7 @@ export function DashboardShell({ children, isStaff, isAdmin }: DashboardShellPro
     const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(false);
     const [isLogoutModalOpen, setIsLogoutModalOpen] = React.useState(false);
+    const [is2FASetupOpen, setIs2FASetupOpen] = React.useState(false);
     const [mounted, setMounted] = React.useState(false);
     const { pathname } = useLocation();
 
@@ -58,6 +60,18 @@ export function DashboardShell({ children, isStaff, isAdmin }: DashboardShellPro
     React.useEffect(() => {
         setIsMobileMenuOpen(false);
     }, [pathname]);
+
+    // Listen for 2FA setup required event
+    React.useEffect(() => {
+        const handle2FASetupRequired = (event: Event) => {
+            const customEvent = event as CustomEvent<{ code?: string; error?: string }>;
+            console.log('[DashboardShell] 2FA setup required event received:', customEvent.detail);
+            setIs2FASetupOpen(true);
+        };
+        
+        window.addEventListener('monea:2fa-setup-required', handle2FASetupRequired);
+        return () => window.removeEventListener('monea:2fa-setup-required', handle2FASetupRequired);
+    }, []);
 
     const toggleSidebar = React.useCallback(() => {
         setIsSidebarCollapsed((collapsed) => {
@@ -242,6 +256,16 @@ export function DashboardShell({ children, isStaff, isAdmin }: DashboardShellPro
                 confirmLabel={t("common.actions.logout")}
                 cancelLabel={t("common.actions.cancel")}
                 variant="logout"
+            />
+
+            <TwoFactorSetup 
+                open={is2FASetupOpen}
+                onOpenChange={setIs2FASetupOpen}
+                onSuccess={() => {
+                    setIs2FASetupOpen(false);
+                    // Refetch user data after successful 2FA setup
+                    window.location.reload();
+                }}
             />
         </div>
     );

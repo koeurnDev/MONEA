@@ -4,17 +4,19 @@ import { ROLES } from "@/lib/constants";
 import { CryptoUtils } from "@/lib/crypto";
 import { authLimiter, getIP, signupEmailLimiter } from "@/lib/ratelimit";
 import { verifyTurnstileDetailed } from "@/lib/turnstile";
+import { notifyTelegramLifecycle } from "@/lib/telegram-lifecycle";
+import { isRecord, readJsonBodyLimited } from "@/lib/read-json-body-limited";
+
+const MAX_SIGNUP_BODY_BYTES = 16_384;
+const MAX_TURNSTILE_TOKEN_LENGTH = 2_048;
 
 // Helper function to create CORS-compliant Response
 function createCorsResponse(body: any, status: number, origin?: string): Response {
     const response = Response.json(body, { status });
     
     // Set CORS headers
-    if (origin) {
-        response.headers.set('Access-Control-Allow-Origin', origin);
-    } else {
-        response.headers.set('Access-Control-Allow-Origin', '*');
-    }
+    // IMPORTANT: if credentials are allowed, ACAO cannot be "*".
+    if (origin) response.headers.set('Access-Control-Allow-Origin', origin);
     response.headers.set('Access-Control-Allow-Credentials', 'true');
     response.headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-CSRF-Token');
@@ -27,7 +29,7 @@ export async function OPTIONS(req: Request) {
     return createCorsResponse(null, 204, origin);
 }
 
-export async function POST(req: Request) {
+export async function POST(req: Request, env?: unknown) {
     const origin = req.headers.get('origin') || undefined;
 
     const isProduction = process.env.NODE_ENV === 'production' || process.env.ENVIRONMENT === 'production';
@@ -39,11 +41,6 @@ export async function POST(req: Request) {
         return createCorsResponse({ error: "សេវាចុះឈ្មោះកំពុងរៀបចំសុវត្ថិភាព។ សូមព្យាយាមម្ដងទៀតពេលក្រោយ។" }, 503, origin);
     }
 
-    const contentLength = Number(req.headers.get('content-length') || 0);
-    if (contentLength > 16_384) {
-        return createCorsResponse({ error: "Request body is too large" }, 413, origin);
-    }
-    
     // Simplified rate limiting
     const ip = getIP(req);
     try {
@@ -57,18 +54,15 @@ export async function POST(req: Request) {
     }
 
     try {
-        let body;
-        try {
-            body = await req.json();
-        } catch (e) {
+        const parsedBody = await readJsonBodyLimited(req, MAX_SIGNUP_BODY_BYTES);
+        if (parsedBody.kind === "too_large") {
+            return createCorsResponse({ error: "Request body is too large" }, 413, origin);
+        }
+        if (parsedBody.kind !== "ok" || !isRecord(parsedBody.value)) {
             return createCorsResponse({ error: "Invalid request body" }, 400, origin);
         }
 
-        if (!body || typeof body !== 'object' || Array.isArray(body)) {
-            return createCorsResponse({ error: "Invalid request body" }, 400, origin);
-        }
-
-        const { name, email, password, turnstileToken } = body;
+        const { name, email, password, turnstileToken } = parsedBody.value;
         const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : email;
         const normalizedName = typeof name === 'string' ? name.trim() : name;
 
@@ -83,6 +77,12 @@ export async function POST(req: Request) {
         }
         if (typeof password !== 'string' || password.length < 8 || password.length > 128) {
             return createCorsResponse({ error: "ពាក្យសម្ងាត់ត្រូវមានយ៉ាងហោចណាស់ ៨ ខ្ទង់ (Password must be at least 8 characters)" }, 400, origin);
+        }
+        if (
+            turnstileToken !== undefined &&
+            (typeof turnstileToken !== "string" || turnstileToken.length > MAX_TURNSTILE_TOKEN_LENGTH)
+        ) {
+            return createCorsResponse({ error: "CAPTCHA token is invalid" }, 400, origin);
         }
 
         const hasTurnstileSecret = Boolean(process.env.TURNSTILE_SECRET_KEY || process.env.TURNSTILE_SECRET);
@@ -120,7 +120,7 @@ export async function POST(req: Request) {
             select: { id: true }
         });
         if (existingUser) {
-            console.warn(`[Security] Registration attempt for existing email: ${normalizedEmail}`);
+            console.warn("[Security] Registration attempt for an existing email.");
             return createCorsResponse({
                 error: "អ៊ីមែលនេះមានគណនីក្នុងប្រព័ន្ធរួចហើយ! សូមចូលទៅកាន់ទំព័រ \"ចូលប្រើ\" (Email already registered. Please sign in)."
             }, 400, origin);
@@ -136,6 +136,15 @@ export async function POST(req: Request) {
             },
         });
 
+        void notifyTelegramLifecycle({
+            event: "ACCOUNT_CREATED",
+            dedupKey: `signup:${user.id}:${normalizedEmail}`,
+            userId: user.id,
+            userName: user.name,
+            userEmail: user.email,
+            weddingId: null,
+        }, { env });
+
         // 4. Auto-login on registration
         const { signToken, generateFingerprint, getCookieHeader } = await import("@/lib/auth");
         const fingerprint = await generateFingerprint({ headers: req.headers, ip });
@@ -145,11 +154,8 @@ export async function POST(req: Request) {
         headers.append("Set-Cookie", getCookieHeader("token", token, req, 60 * 60 * 24 * 30));
         
         // Set CORS headers
-        if (origin) {
-            headers.set('Access-Control-Allow-Origin', origin);
-        } else {
-            headers.set('Access-Control-Allow-Origin', '*');
-        }
+        // IMPORTANT: if credentials are enabled, ACAO cannot be "*".
+        if (origin) headers.set('Access-Control-Allow-Origin', origin);
         headers.set('Access-Control-Allow-Credentials', 'true');
 
         return new Response(JSON.stringify({ 

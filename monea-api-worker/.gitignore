@@ -14,6 +14,15 @@ backups/
 *.sql.backup
 *.dump
 *.pgdump
+!drizzle/migrations/0003_template_preview.sql
+!drizzle/migrations/0004_social_links.sql
+!drizzle/migrations/0005_phone_frame_color.sql
+!drizzle/migrations/0006_template_license_payment_hash.sql
+!drizzle/migrations/0007_template_license_receipt_review.sql
+!drizzle/migrations/0008_template_license_purchase_date.sql
+!drizzle/migrations/0009_template_license_schema_compatibility.sql
+!drizzle/migrations/0010_template_license_payment_qr.sql
+!drizzle/migrations/0011_user_template_access.sql
 
 # Dependencies
 node_modules/

@@ -1,0 +1,2 @@
+ALTER TABLE "SystemConfig"
+  ADD COLUMN IF NOT EXISTS "phoneFrameColor" TEXT NOT NULL DEFAULT 'black';

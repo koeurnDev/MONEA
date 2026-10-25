@@ -10,5 +10,10 @@ crons = ["0 3 * * *"]
 # Environment variables
 ENVIRONMENT = "production"
 NODE_ENV = "production"
-NEXT_PUBLIC_APP_URL = "https://monea-webapp.pages.dev"
-TELEGRAM_REDIRECT_URI = "https://monea-webapp.pages.dev/auth/telegram/callback"
+NEXT_PUBLIC_APP_URL = "https://moneoez.com"
+TELEGRAM_REDIRECT_URI = "https://moneoez.com/auth/telegram/callback"
+R2_PUBLIC_BASE_URL = "https://media.moneoez.com"
+
+[[r2_buckets]]
+binding = "MONEA_MEDIA"
+bucket_name = "monea-media"

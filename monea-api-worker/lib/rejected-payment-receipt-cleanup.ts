@@ -1,4 +1,5 @@
 import { cloudinaryDelete } from "@/lib/cloudinary-edge";
+import { deleteR2Object, R2_PUBLIC_ID_PREFIX } from "@/lib/r2-storage";
 import { executeRaw, queryRaw } from "@/lib/prisma";
 
 const RECEIPT_RETENTION_DAYS = 7;
@@ -17,9 +18,13 @@ interface LegacyRejectedReceipt {
     paymentRejectedAt: Date | string;
 }
 
-function getCloudinaryPublicId(receiptUrl: string): string | null {
+function getReceiptPublicId(receiptUrl: string): string | null {
     try {
         const url = new URL(receiptUrl);
+        if (url.hostname === "media.moneoez.com" && url.protocol === "https:") {
+            const key = url.pathname.split("/").filter(Boolean).map(decodeURIComponent).join("/");
+            return key ? `${R2_PUBLIC_ID_PREFIX}${key}` : null;
+        }
         if (url.hostname !== "res.cloudinary.com") return null;
 
         const segments = url.pathname.split("/").filter(Boolean);
@@ -79,16 +84,20 @@ export async function cleanupRejectedPaymentReceipts(env: Record<string, unknown
                 continue;
             }
 
-            const publicId = getCloudinaryPublicId(receipt.receiptUrl);
+            const publicId = getReceiptPublicId(receipt.receiptUrl);
             if (!publicId) {
-                console.error("[RejectedReceiptCleanup] Could not parse Cloudinary public ID:", receipt.id);
+                console.error("[RejectedReceiptCleanup] Could not parse media public ID:", receipt.id);
                 continue;
             }
 
-            const result = await cloudinaryDelete(publicId, "image", env);
-            if (result.result !== "ok" && result.result !== "not found") {
-                console.error("[RejectedReceiptCleanup] Cloudinary deletion failed:", receipt.id, result.result);
-                continue;
+            if (publicId.startsWith(R2_PUBLIC_ID_PREFIX)) {
+                await deleteR2Object(env, publicId);
+            } else {
+                const result = await cloudinaryDelete(publicId, "image", env);
+                if (result.result !== "ok" && result.result !== "not found") {
+                    console.error("[RejectedReceiptCleanup] Cloudinary deletion failed:", receipt.id, result.result);
+                    continue;
+                }
             }
 
             await executeRaw(
@@ -127,6 +136,10 @@ export async function cleanupRejectedPaymentReceipts(env: Record<string, unknown
 
     for (const receipt of legacyReceipts) {
         try {
+            const publicId = getReceiptPublicId(receipt.paymentInfo);
+            if (publicId?.startsWith(R2_PUBLIC_ID_PREFIX)) {
+                await deleteR2Object(env, publicId);
+            }
             await executeRaw(
                 `UPDATE "Wedding"
                  SET "paymentInfo" = NULL, "paymentRejectedAt" = NULL, "updatedAt" = NOW()

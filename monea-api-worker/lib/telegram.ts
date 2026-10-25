@@ -1,4 +1,4 @@
-import { SECURITY_CONFIG } from "./config";
+import { getSecurityConfig } from "./config";
 
 /**
  * Escapes unsafe HTML characters to prevent Telegram HTML Parse Errors & Injection.
@@ -32,8 +32,9 @@ export const sendTelegramAlert = async (
   header: string = "🚨 <b>MONEA Security Alert</b> 🚨",
   env?: any
 ): Promise<void> => {
+  const securityConfig = getSecurityConfig(env);
   // Feature Flag & Channel Validation
-  if (!SECURITY_CONFIG?.enableAlerts || !SECURITY_CONFIG?.channels?.telegram) {
+  if (!securityConfig.enableAlerts || !securityConfig.channels.telegram) {
     return;
   }
 

@@ -14,6 +14,7 @@ import analyticsRouter from './routers/analytics';
 import broadcastRouter from './routers/broadcast';
 import cloudinaryRouter from './routers/cloudinary';
 import imagekitRouter from './routers/imagekit';
+import r2Router from './routers/r2';
 import giftsRouter from './routers/gifts';
 import staffRouter from './routers/staff';
 import supportRouter from './routers/support';
@@ -22,26 +23,29 @@ import templatesRouter from './routers/templates';
 import { userRouter, usersRouter } from './routers/user';
 import galleryRouter from './routers/gallery';
 import logsRouter from './routers/logs';
-import pricingRouter from './routers/pricing';
 import publicStatsRouter from './routers/publicStats';
 import pingRouter from './routers/ping';
 import sentryTunnelRouter from './routers/sentryTunnel';
 import cronRouter from './routers/cron';
+import telegramWebhookRouter from './routers/telegram/webhook';
+import templatePricingRouter from './routers/template-pricing';
+import templatePurchaseRouter from './routers/template-purchase';
+import templatePreviewRouter, { adminTemplatePreviewRouter } from './routers/template-preview';
 import { cors } from 'hono/cors';
 import { HTTPException } from 'hono/http-exception';
 import { csrfProtection } from './lib/csrf';
+import { RateLimitUnavailableError } from './lib/ratelimit';
 
 // Export the root hono app
 const app = new Hono().basePath('/api');
 const workerStartedAt = Date.now();
 
 const allowedOrigin = (origin: string | undefined) => {
-  if (!origin) return 'https://monea-webapp.pages.dev';
+  if (!origin) return 'https://moneoez.com';
 
   const allowedOrigins = [
-    'https://monea-webapp.pages.dev',
-    'https://monea.app',
-    'https://www.monea.app',
+    'https://moneoez.com',
+    'https://www.moneoez.com',
     'http://localhost:5173',
     'http://localhost:3000',
     'http://localhost:3001',
@@ -51,8 +55,6 @@ const allowedOrigin = (origin: string | undefined) => {
   ];
 
   if (allowedOrigins.includes(origin)) return origin;
-  if (/^https:\/\/[a-z0-9-]+\.monea-webapp\.pages\.dev$/.test(origin)) return origin;
-  if (/^https:\/\/(.*\.)?monea\.app$/.test(origin)) return origin;
   if (/^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin)) return origin;
 
   return undefined;
@@ -83,9 +85,9 @@ const allowedOrigin = (origin: string | undefined) => {
 
 // Configure CORS for cross-origin requests (optimized for performance)
 app.use('*', cors({
-  origin: (origin) => allowedOrigin(origin) || 'https://monea-webapp.pages.dev',
+  origin: (origin) => allowedOrigin(origin) || 'https://moneoez.com',
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'],
-  allowHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'X-Client-Fingerprint', 'Cache-Control', 'Pragma', 'sentry-trace', 'baggage', 'Priority'],
+  allowHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token', 'X-Client-Fingerprint', 'X-File-Name', 'Cache-Control', 'Pragma', 'sentry-trace', 'baggage', 'Priority'],
   exposeHeaders: ['Content-Length', 'Cache-Control', 'X-CSRF-Token', 'Server-Timing', 'sentry-trace', 'baggage'],
   maxAge: 86400,
   credentials: true,
@@ -172,6 +174,7 @@ app.route('/analytics', analyticsRouter);
 app.route('/broadcast', broadcastRouter);
 app.route('/cloudinary', cloudinaryRouter);
 app.route('/imagekit', imagekitRouter);
+app.route('/r2', r2Router);
 app.route('/gifts', giftsRouter);
 app.route('/staff', staffRouter);
 app.route('/support', supportRouter);
@@ -181,25 +184,40 @@ app.route('/user', userRouter);
 app.route('/users', usersRouter);
 app.route('/gallery', galleryRouter);
 app.route('/logs', logsRouter);
-app.route('/pricing', pricingRouter);
 app.route('/public-stats', publicStatsRouter);
 app.route('/ping', pingRouter);
 app.route('/sentry-tunnel', sentryTunnelRouter);
 app.route('/cron', cronRouter);
+  app.route('/telegram/webhook', telegramWebhookRouter);
+app.route('/template-pricing', templatePricingRouter);
+app.route('/template-purchase', templatePurchaseRouter);
+app.route('/template-preview', templatePreviewRouter);
+app.route('/admin/template-preview', adminTemplatePreviewRouter);
 
 // Global Error Handler - simplified for better performance  
 app.onError((err, c) => {
   const requestId = crypto.randomUUID();
-  const status = err instanceof HTTPException ? err.status : 500;
-  const message = err instanceof HTTPException ? err.message : 'Internal Server Error';
+  const rateLimitUnavailable = err instanceof RateLimitUnavailableError;
+  const status = rateLimitUnavailable ? 503 : err instanceof HTTPException ? err.status : 500;
+  const message = rateLimitUnavailable
+    ? 'Request protection is temporarily unavailable. Please try again later.'
+    : err instanceof HTTPException ? err.message : 'Internal Server Error';
 
   console.error(`[Error] ${requestId} ${c.req.method} ${c.req.url}:`, err);
 
+  // Always set CORS headers on error responses
   const origin = allowedOrigin(c.req.header('origin'));
-  if (origin) c.header('Access-Control-Allow-Origin', origin);
+  if (origin) {
+    c.header('Access-Control-Allow-Origin', origin);
+  } else {
+    c.header('Access-Control-Allow-Origin', 'https://moneoez.com');
+  }
   c.header('Access-Control-Allow-Credentials', 'true');
+  c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD');
+  c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-CSRF-Token, X-Client-Fingerprint, X-File-Name, Cache-Control, Pragma, sentry-trace, baggage, Priority');
   c.header('Cache-Control', 'no-store');
   c.header('X-Request-ID', requestId);
+  if (rateLimitUnavailable) c.header('Retry-After', '30');
 
   return c.json({
     success: false,

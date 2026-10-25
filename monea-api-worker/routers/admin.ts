@@ -7,6 +7,9 @@ import { prisma, queryRaw } from "@/lib/prisma";
 import { getServerUser } from "@/lib/auth";
 import { ROLES } from "@/lib/constants";
 import { SystemGovernance, GOVERNANCE_ACTIONS } from "@/lib/governance";
+import { canUseTemplate, getActiveTemplates } from "@/lib/template-licensing";
+import { getTemplatePricing } from "@/lib/template-pricing";
+import { getSystemTemplatePricing } from "@/lib/template-pricing-setup";
 
 const adminRouter = new Hono();
 
@@ -56,6 +59,26 @@ function escapeCSV(val: any): string {
         return `'${sanitized}`;
     }
     return sanitized;
+}
+
+/**
+ * Check if a wedding has access to export features via template licensing
+ * Export features (guest list, gift list) require a paid template license
+ */
+async function hasExportAccess(wedding: any): Promise<boolean> {
+    if (!wedding || !wedding.id) return false;
+    
+    try {
+        // Get all active template licenses for this wedding
+        const activeTemplates = await getActiveTemplates(wedding.id);
+        
+        // If wedding has any paid template license, allow export
+        // This replaces the old "PRO or PREMIUM package" check
+        return activeTemplates.length > 0;
+    } catch (error) {
+        console.error("[Export Access] Error checking template licenses:", error);
+        return false;
+    }
 }
 
 adminRouter.get('/weddings', async (c) => {
@@ -227,7 +250,48 @@ adminRouter.get('/users/:id', async (c) => {
     try {
         const targetUser = await prisma.user.findUnique({
             where: { id: targetUserId },
-            select: { id: true, email: true, name: true, role: true, createdAt: true, deletedAt: true, twoFactorEnabled: true, weddings: true }
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                role: true,
+                createdAt: true,
+                deletedAt: true,
+                twoFactorEnabled: true,
+                templateAccess: {
+                    where: { revokedAt: null },
+                    select: {
+                        id: true,
+                        templateId: true,
+                        grantedBy: true,
+                        createdAt: true,
+                    },
+                    orderBy: { createdAt: "desc" },
+                },
+                weddings: {
+                    select: {
+                        id: true,
+                        groomName: true,
+                        brideName: true,
+                        weddingCode: true,
+                        templateId: true,
+                        eventType: true,
+                        templateLicenses: {
+                            select: {
+                                id: true,
+                                templateId: true,
+                                status: true,
+                                amount: true,
+                                currency: true,
+                                purchaseDate: true,
+                                paymentOrderId: true,
+                                bakongTrxId: true,
+                            },
+                            orderBy: { createdAt: "desc" },
+                        },
+                    },
+                },
+            },
         });
 
         if (!targetUser) {
@@ -237,6 +301,157 @@ adminRouter.get('/users/:id', async (c) => {
         return c.json({ data: targetUser });
     } catch (error: any) {
         return c.json({ error: "Internal Server Error", details: error.message }, 500);
+    }
+});
+
+adminRouter.post('/users/:id/template-access', async (c) => {
+    const user = await getServerUser(c.req.raw);
+    if (!isPlatformOwnerOnly(user)) {
+        return c.json({ error: "Unauthorized" }, 401);
+    }
+
+    const targetUserId = c.req.param("id");
+    try {
+        const body = await c.req.json<{ templateId?: unknown }>();
+        const templateId = typeof body.templateId === "string" ? body.templateId.trim() : "";
+        if (!templateId || templateId.length > 100) {
+            return c.json({ error: "Valid templateId is required" }, 400);
+        }
+
+        const targetUser = await prisma.user.findUnique({
+            where: { id: targetUserId },
+            select: { id: true, deletedAt: true },
+        });
+        if (!targetUser || targetUser.deletedAt) {
+            return c.json({ error: "Active user not found" }, 404);
+        }
+
+        const pricingConfig = await getSystemTemplatePricing(c.env);
+        if (!getTemplatePricing(templateId, pricingConfig)) {
+            return c.json({ error: "Unknown template" }, 400);
+        }
+
+        const access = await prisma.userTemplateAccess.upsert({
+            where: { userId_templateId: { userId: targetUserId, templateId } },
+            create: {
+                userId: targetUserId,
+                templateId,
+                grantedBy: user.userId || user.id,
+            },
+            update: {
+                grantedBy: user.userId || user.id,
+                revokedAt: null,
+                revokedBy: null,
+            },
+        });
+
+        return c.json({ success: true, data: access });
+    } catch (error) {
+        console.error("[Admin User Template Access API] Grant failed:", error);
+        return c.json({ error: "Failed to grant template access" }, 500);
+    }
+});
+
+adminRouter.delete('/users/:id/template-access/:templateId', async (c) => {
+    const user = await getServerUser(c.req.raw);
+    if (!isPlatformOwnerOnly(user)) {
+        return c.json({ error: "Unauthorized" }, 401);
+    }
+
+    const targetUserId = c.req.param("id");
+    const templateId = c.req.param("templateId");
+    try {
+        const result = await prisma.userTemplateAccess.updateMany({
+            where: { userId: targetUserId, templateId, revokedAt: null },
+            data: { revokedAt: new Date(), revokedBy: user.userId || user.id },
+        });
+        if (result.count === 0) {
+            return c.json({ error: "Active template access not found" }, 404);
+        }
+        return c.json({ success: true });
+    } catch (error) {
+        console.error("[Admin User Template Access API] Revoke failed:", error);
+        return c.json({ error: "Failed to revoke template access" }, 500);
+    }
+});
+
+adminRouter.post('/users/:id/template-license', async (c) => {
+    const user = await getServerUser(c.req.raw);
+    if (!isPlatformOwnerOnly(user)) {
+        return c.json({ error: "Unauthorized" }, 401);
+    }
+
+    const targetUserId = c.req.param("id");
+
+    try {
+        const body = await c.req.json<{ weddingId?: unknown; templateId?: unknown }>();
+        const weddingId = typeof body.weddingId === "string" ? body.weddingId.trim() : "";
+        const templateId = typeof body.templateId === "string" ? body.templateId.trim() : "";
+        if (!weddingId || !templateId || weddingId.length > 128 || templateId.length > 100) {
+            return c.json({ error: "Valid weddingId and templateId are required" }, 400);
+        }
+
+        const wedding = await prisma.wedding.findFirst({
+            where: { id: weddingId, userId: targetUserId },
+            select: { id: true, eventType: true },
+        });
+        if (!wedding) {
+            return c.json({ error: "Wedding not found for this user" }, 404);
+        }
+
+        const existingLicense = await prisma.templateLicense.findUnique({
+            where: { weddingId_templateId: { weddingId, templateId } },
+        });
+        if (existingLicense?.status === "ACTIVE") {
+            return c.json({ error: "This template is already unlocked" }, 409);
+        }
+
+        const pricingConfig = await getSystemTemplatePricing(c.env);
+        const pricing = getTemplatePricing(templateId, pricingConfig);
+        if (!pricing) {
+            return c.json({ error: "Unknown template" }, 400);
+        }
+        if (!pricing.eventTypes.includes(wedding.eventType)) {
+            return c.json({ error: "Template is not available for this event type" }, 400);
+        }
+        if (!Number.isFinite(pricing.price) || pricing.price < 0 || !["USD", "KHR"].includes(pricing.currency)) {
+            console.error(`[Admin Template License API] Invalid pricing configuration for template "${templateId}".`);
+            return c.json({ error: "Template pricing is invalid" }, 500);
+        }
+
+        const license = await prisma.$transaction(async (transaction) => {
+            const activatedLicense = await transaction.templateLicense.upsert({
+                where: { weddingId_templateId: { weddingId, templateId } },
+                create: {
+                    weddingId,
+                    templateId,
+                    status: "ACTIVE",
+                    amount: pricing.price,
+                    currency: pricing.currency,
+                },
+                update: {
+                    status: "ACTIVE",
+                    purchaseDate: new Date(),
+                    expiresAt: null,
+                },
+            });
+
+            await transaction.log.create({
+                data: {
+                    action: "PAYMENT_APPROVAL",
+                    description: `Admin confirmed payment and unlocked template "${templateId}" for wedding ${weddingId}.`,
+                    actorName: user.name || user.email || user.id,
+                    weddingId,
+                },
+            });
+
+            return activatedLicense;
+        });
+
+        return c.json({ success: true, data: license });
+    } catch (error) {
+        console.error("[Admin Template License API] Activation failed:", error);
+        return c.json({ error: "Failed to activate template license" }, 500);
     }
 });
 
@@ -719,12 +934,14 @@ adminRouter.get('/export/guests', async (c) => {
         if (user.role !== ROLES.PLATFORM_OWNER && user.role !== "SUPERADMIN") {
             const wedding = await prisma.wedding.findFirst({
                 where: { id: weddingId, userId: currentUserId },
-                select: { id: true, userId: true, packageType: true }
+                select: { id: true, userId: true }
             });
             if (!wedding) return c.text("Unauthorized access to this wedding", 403);
 
-            if (wedding.packageType !== "PREMIUM" && wedding.packageType !== "PRO") {
-                return c.text("Export feature requires a PRO or PREMIUM package", 403);
+            // Check template license access instead of package type
+            const hasAccess = await hasExportAccess(wedding);
+            if (!hasAccess) {
+                return c.text("Export feature requires an active template license. Please purchase a template to enable export.", 403);
             }
         }
 
@@ -768,12 +985,14 @@ adminRouter.get('/export/gifts', async (c) => {
         if (user.role !== ROLES.PLATFORM_OWNER && user.role !== "SUPERADMIN") {
             const wedding = await prisma.wedding.findFirst({
                 where: { id: weddingId, userId: currentUserId },
-                select: { id: true, userId: true, packageType: true }
+                select: { id: true, userId: true }
             });
             if (!wedding) return c.text("Unauthorized access to this wedding", 403);
 
-            if (wedding.packageType !== "PREMIUM" && wedding.packageType !== "PRO") {
-                return c.text("Export feature requires a PRO or PREMIUM package", 403);
+            // Check template license access instead of package type
+            const hasAccess = await hasExportAccess(wedding);
+            if (!hasAccess) {
+                return c.text("Export feature requires an active template license. Please purchase a template to enable export.", 403);
             }
         }
 
@@ -874,8 +1093,7 @@ adminRouter.get('/bakong/status', async (c) => {
             email: bakongConfig.email || "",
             organization: bakongConfig.organization || "",
             project: bakongConfig.project || "",
-            // Receiving account the KHQR codes are generated against. Without it
-            // /api/payment/generate-qr answers "Payment system not configured".
+            // Receiving account used to generate KHQR codes for active payment flows.
             accountID: bakongConfig.accountID || "",
             merchantName: bakongConfig.merchantName || "",
             isConnected: !!bakongConfig.token,
@@ -889,11 +1107,7 @@ adminRouter.get('/bakong/status', async (c) => {
 });
 
 // ── POST /api/admin/bakong/account ───────────────────────────────────────────
-// Stores the Bakong receiving account that KHQR codes are generated against.
-//
-// Historically no endpoint could persist `bakongConfig.accountID`, so even a
-// fully "Connected" Bakong gateway (token present) still failed with
-// "Payment system not configured" (400) on POST /api/payment/generate-qr.
+// Stores the Bakong receiving account used by active KHQR payment flows.
 adminRouter.post('/bakong/account', async (c) => {
     try {
         const user = await getServerUser(c.req.raw);

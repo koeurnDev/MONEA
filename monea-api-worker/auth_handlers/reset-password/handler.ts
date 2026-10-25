@@ -5,11 +5,10 @@ import { CryptoUtils } from "@/lib/crypto";
 import { getIP } from "@/lib/utils";
 import { authLimiter } from "@/lib/ratelimit";
 import { hashPasswordResetToken } from "@/lib/password-reset-token";
+import { hashRateLimitKey } from "@/lib/rate-limit-key";
+import { isRecord, readJsonBodyLimited } from "@/lib/read-json-body-limited";
 
-async function hashRateLimitKey(value: string): Promise<string> {
-    const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
-    return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
-}
+const MAX_RESET_PASSWORD_BODY_BYTES = 16_384;
 
 export async function POST(req: Request) {
     const isProduction = process.env.NODE_ENV === "production" || process.env.ENVIRONMENT === "production";
@@ -32,26 +31,30 @@ export async function POST(req: Request) {
     }
 
     try {
-        // Safe JSON Request Parsing
-        let body: any = {};
-        try {
-            body = await req.json();
-        } catch {
+        const parsedBody = await readJsonBodyLimited(req, MAX_RESET_PASSWORD_BODY_BYTES);
+        if (parsedBody.kind === "too_large") {
+            return errorResponse("Request body is too large", 413);
+        }
+        if (
+            parsedBody.kind !== "ok" ||
+            !isRecord(parsedBody.value)
+        ) {
             return errorResponse("ទម្រង់ Request JSON មិនត្រឹមត្រូវ", 400);
         }
 
+        const body = parsedBody.value;
         const { token, newPassword } = body;
         const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
 
-        if (!token || typeof token !== "string") {
+        if (typeof token !== "string" || token.length === 0 || token.length > 512) {
             return errorResponse("Token ត្រូវបានតម្រូវ", 400);
         }
 
-        if (!email || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        if (!email || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.trim().length === 0) {
             return errorResponse("Email មិនត្រឹមត្រូវ", 400);
         }
 
-        if (!newPassword || typeof newPassword !== "string" || newPassword.length < 8) {
+        if (typeof newPassword !== "string" || newPassword.length < 8 || newPassword.length > 128) {
             return errorResponse("លេខសម្ងាត់ថ្មីត្រូវមានយ៉ាងតិច ៨ ខ្ទង់", 400);
         }
 
@@ -92,61 +95,81 @@ export async function POST(req: Request) {
             return errorResponse("Token មិនត្រឹមត្រូវ ឬត្រូវបានប្រើប្រាស់រួចហើយ", 400);
         }
 
-        // 2. Check Expiration
         if (resetToken.expiresAt < new Date()) {
-            await prisma.passwordResetToken.delete({ where: { id: resetToken.id } });
+            await prisma.passwordResetToken.deleteMany({
+                where: { id: resetToken.id, token: resetToken.token, expiresAt: { lte: new Date() } },
+            });
             return errorResponse("Token នេះបានផុតកំណត់ហើយ។ សូមស្នើសុំសារជាថ្មី។", 400);
         }
 
-        // 3. Hash the new password using CryptoUtils Pepper
+        // Hash before opening the transaction so the reset token lock is held briefly.
         const hashedPassword = await CryptoUtils.hash(newPassword);
         const now = new Date();
-
-        // 4. Update password across User or Staff tables
-        const userExists = await prisma.user.findUnique({ where: { email } });
-        let updatedRole = "user";
-
-        if (userExists) {
-            await prisma.user.update({
-                where: { email },
-                data: {
-                    password: hashedPassword,
-                    failedAttempts: 0,
-                    lockedUntil: null,
-                    sessionsRevokedAt: now, // Invalidate all existing sessions
-                },
-            });
-        } else {
-            const staffExists = await prisma.staff.findUnique({ where: { email } });
-            if (!staffExists) {
-                return errorResponse("រកមិនឃើញគណនីដែលពាក់ព័ន្ធនឹង Token នេះទេ", 404);
-            }
-            updatedRole = "staff";
-            await prisma.staff.update({
-                where: { email },
-                data: {
-                    password: hashedPassword,
-                    failedAttempts: 0,
-                    lockedUntil: null,
-                },
-            });
-        }
-
-        // 5. Invalidate ALL pending reset tokens for this email
-        await prisma.passwordResetToken.deleteMany({
-            where: { email },
-        });
-
-        // 6. Log Security Event (Using existing Prisma Enum: PASSWORD_CHANGE_SUCCESS)
         const ip = getIP(req);
-        await prisma.securityLog.create({
-            data: {
-                event: "PASSWORD_CHANGE_SUCCESS",
-                ip,
-                email,
-                details: `Password reset successfully via token (${updatedRole})`
+
+        const resetResult = await prisma.$transaction(async (transaction) => {
+            const consumedToken = await transaction.passwordResetToken.deleteMany({
+                where: {
+                    id: resetToken.id,
+                    email,
+                    token: resetToken.token,
+                    expiresAt: { gt: now },
+                },
+            });
+            if (consumedToken.count !== 1) return "invalid" as const;
+
+            const user = await transaction.user.findUnique({
+                where: { email },
+                select: { id: true },
+            });
+            let updatedRole: "user" | "staff";
+
+            if (user) {
+                await transaction.user.update({
+                    where: { email },
+                    data: {
+                        password: hashedPassword,
+                        failedAttempts: 0,
+                        lockedUntil: null,
+                        sessionsRevokedAt: now,
+                    },
+                });
+                updatedRole = "user";
+            } else {
+                const staff = await transaction.staff.findUnique({
+                    where: { email },
+                    select: { id: true },
+                });
+                if (!staff) return "account_not_found" as const;
+
+                await transaction.staff.update({
+                    where: { email },
+                    data: {
+                        password: hashedPassword,
+                        failedAttempts: 0,
+                        lockedUntil: null,
+                    },
+                });
+                updatedRole = "staff";
             }
+
+            await transaction.passwordResetToken.deleteMany({ where: { email } });
+            await transaction.securityLog.create({
+                data: {
+                    event: "PASSWORD_CHANGE_SUCCESS",
+                    ip,
+                    details: `Password reset successfully via token (${updatedRole})`,
+                },
+            });
+            return "success" as const;
         });
+
+        if (resetResult === "invalid") {
+            return errorResponse("Token មិនត្រឹមត្រូវ ឬត្រូវបានប្រើប្រាស់រួចហើយ", 400);
+        }
+        if (resetResult === "account_not_found") {
+            return errorResponse("រកមិនឃើញគណនីដែលពាក់ព័ន្ធនឹង Token នេះទេ", 404);
+        }
 
         return Response.json({ 
             success: true, 

@@ -11,9 +11,10 @@ import {
 } from "../lib/template-availability.ts";
 
 test("template availability defaults enable the full selectable catalog", () => {
-    assert.equal(Object.values(TEMPLATE_AVAILABILITY_DEFAULTS).filter(Boolean).length, 7);
+    assert.equal(Object.values(TEMPLATE_AVAILABILITY_DEFAULTS).filter(Boolean).length, 8);
     assert.equal(TEMPLATE_AVAILABILITY_DEFAULTS["emerald-garden"], true);
     assert.equal(TEMPLATE_AVAILABILITY_DEFAULTS["anniversary-elegant"], true);
+    assert.equal(TEMPLATE_AVAILABILITY_DEFAULTS["garden-editorial"], true);
 });
 
 test("normalization preserves defaults for missing and malformed values", () => {
@@ -42,6 +43,7 @@ test("template metadata normalization keeps defaults and does not mutate them", 
     assert.equal(metadata["modern-minimal"].eventType, "anniversary");
     assert.equal(metadata["modern-minimal"].image, TEMPLATE_METADATA_DEFAULTS["modern-minimal"].image);
     assert.equal(metadata["nea-m05"].title, TEMPLATE_METADATA_DEFAULTS["nea-m05"].title);
+    assert.equal(metadata["garden-editorial"].image, TEMPLATE_METADATA_DEFAULTS["garden-editorial"].image);
     assert.equal(TEMPLATE_METADATA_DEFAULTS["modern-minimal"].title, "ទំនើប សាមញ្ញ");
 });
 

@@ -51,7 +51,7 @@ const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/icons/logomoneo.jpg',
+  '/icons/logomoneo.webp',
   '/logo.png',
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',

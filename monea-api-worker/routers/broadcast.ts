@@ -8,11 +8,8 @@ function createCorsResponse(c: any, data: any, status: number = 200) {
     const origin = c.req.header('origin');
     
     // Set CORS headers before returning response
-    if (origin) {
-        c.header('Access-Control-Allow-Origin', origin);
-    } else {
-        c.header('Access-Control-Allow-Origin', '*');
-    }
+    // IMPORTANT: if credentials are allowed, ACAO cannot be "*".
+    if (origin) c.header('Access-Control-Allow-Origin', origin);
     c.header('Access-Control-Allow-Credentials', 'true');
     c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-CSRF-Token');
@@ -42,13 +39,15 @@ broadcastRouter.get('/', async (c) => {
         console.log('[Broadcast] Prisma client available, executing query...');
         
         // Fetch active broadcasts ensuring correct time validity (scheduled and expiration check)
-        const broadcasts = await prisma.$queryRawUnsafe(`
-            SELECT * FROM "Broadcast"
+        // Static query: use $queryRaw (parameterized) instead of $queryRawUnsafe.
+        const broadcasts = await prisma.$queryRaw<any[]>`
+            SELECT *
+            FROM "Broadcast"
             WHERE active = true
-            AND ( "scheduledAt" IS NULL OR "scheduledAt" <= NOW() )
-            AND ( "expiresAt" IS NULL OR "expiresAt" > NOW() )
+              AND ( "scheduledAt" IS NULL OR "scheduledAt" <= NOW() )
+              AND ( "expiresAt" IS NULL OR "expiresAt" > NOW() )
             ORDER BY "createdAt" DESC
-        `);
+        `;
 
         console.log(`[Broadcast] Successfully fetched ${Array.isArray(broadcasts) ? broadcasts.length : 'unknown'} broadcasts`);
         return createCorsResponse(c, broadcasts || []);

@@ -1,4 +1,4 @@
-import { Hono } from 'hono'
+import { Hono, type Context } from 'hono'
 import { getDb } from "@/lib/drizzle"
 import { weddings, systemConfig } from "@/drizzle/schema"
 import { and, eq, desc } from "drizzle-orm"
@@ -9,12 +9,30 @@ import { z } from "zod"
 import { ROLES } from "@/lib/constants"
 import { ResilientRatelimit } from "@/lib/ratelimit"
 
+import { notifyTelegramLifecycle } from "@/lib/telegram-lifecycle";
+
 const paymentRouter = new Hono()
+
+const retiredPackageUpgrade = async (c: Context, next: () => Promise<void>) => {
+    if (c.req.method !== "POST") return next()
+    return c.json({
+        error: "Wedding package upgrades are no longer available. Purchase a template instead.",
+        code: "PACKAGE_UPGRADES_RETIRED",
+    }, 410)
+}
+
+paymentRouter.use('/confirm', retiredPackageUpgrade)
+paymentRouter.use('/submit-slip', retiredPackageUpgrade)
+paymentRouter.use('/generate-qr', retiredPackageUpgrade)
 
 function isReceiptImageForWedding(receiptUrl: string, weddingId: string): boolean {
     try {
         const url = new URL(receiptUrl);
-        if (url.protocol !== "https:" || url.hostname !== "res.cloudinary.com") return false;
+        if (url.protocol !== "https:") return false;
+        if (url.hostname === "media.moneoez.com") {
+            return url.pathname.split("/").filter(Boolean)[0] === weddingId;
+        }
+        if (url.hostname !== "res.cloudinary.com") return false;
 
         const segments = url.pathname.split("/").filter(Boolean);
         const uploadIndex = segments.indexOf("upload");
@@ -107,6 +125,18 @@ paymentRouter.post('/check-status', async (c) => {
             bakongToken,
         )
 
+        if (result.status === "PAID") {
+            notifyTelegramLifecycle({
+                event: "PAYMENT_CONFIRMED",
+                dedupKey: `payment-confirmed:${wedding.id}:${wedding.paymentHash}:${orderId}`,
+                weddingId: wedding.id,
+                userId: user.userId || user.id,
+                orderId,
+                packageType: actualPackage,
+                method: (result as any).method || null,
+            }, { env: c.env }).catch(() => null);
+        }
+
         return c.json({
             status:      result.status,
             packageType: result.status === "PAID" ? actualPackage : wedding.packageType,
@@ -178,6 +208,15 @@ paymentRouter.post('/confirm', async (c) => {
             .returning()
             .then((r: any) => r[0]);
 
+        notifyTelegramLifecycle({
+            event: "PAYMENT_INITIATED",
+            dedupKey: `payment-initiated:confirm:${wedding.id}:${packageType}:${Date.now().toString(36)}`,
+            weddingId: wedding.id,
+            userId: user.userId || user.id,
+            packageType,
+            orderId: null,
+        }, { env: c.env }).catch(() => null);
+
         const ip = c.req.header("x-real-ip") || c.req.header("x-forwarded-for") || "unknown"
         const ua = c.req.header("user-agent") || "unknown"
         console.warn(`[payment/confirm] Wedding ${wedding.id} → ${packageType} by User ${user.id}. IP: ${ip}, UA: ${ua}`)
@@ -243,7 +282,7 @@ paymentRouter.post('/submit-slip', async (c) => {
         }
 
         if (receiptImage && !isReceiptImageForWedding(receiptImage, wedding.id)) {
-            return c.json({ error: "Receipt image must be uploaded to the wedding's Cloudinary folder" }, 400)
+            return c.json({ error: "Receipt image must be uploaded to the wedding's media folder" }, 400)
         }
 
         const expiresAt = new Date()
@@ -264,6 +303,15 @@ paymentRouter.post('/submit-slip', async (c) => {
             .returning()
             .then((r: any) => r[0]);
 
+        notifyTelegramLifecycle({
+            event: "PAYMENT_INITIATED",
+            dedupKey: `payment-initiated:slip:${wedding.id}:${updated.paymentHash}:${packageType}`,
+            weddingId: wedding.id,
+            userId: user.userId || user.id,
+            packageType,
+            orderId: updated.paymentOrderId,
+        }, { env: c.env }).catch(() => null);
+
         return c.json({ success: true, message: "Receipt submitted successfully", wedding: updated })
     } catch (error: any) {
         console.error("[payment/submit-slip]", error)
@@ -271,9 +319,8 @@ paymentRouter.post('/submit-slip', async (c) => {
     }
 })
 
-// ── POST /api/payment/generate-qr ───────────────────────────────────────────
-// Generates a KHQR code for a package upgrade (PRO / PREMIUM).
-// orderId encodes packageType server-side to prevent price manipulation.
+// This legacy package-upgrade endpoint is retired. New template purchases use
+// /api/template-purchase/initiate.
 paymentRouter.post('/generate-qr', async (c) => {
     const user = await getServerUser(c.req.raw)
     if (!user) return c.json({ error: "Unauthorized" }, 401)

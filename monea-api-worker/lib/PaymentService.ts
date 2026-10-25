@@ -8,6 +8,7 @@ export interface QRPayload {
   accountID: string;
   orderId: string;
   weddingId?: string;
+  expiresInMs?: number;
 }
 
 /**
@@ -33,7 +34,7 @@ export class PaymentService {
   static async generateKHQR(payload: QRPayload) {
     try {
       const safeBillNumber = (payload.orderId || `BILL-${Date.now().toString(36)}`).slice(0, 24);
-      const expiresAt = Date.now() + 10 * 60 * 1000;
+      const expiresAt = Date.now() + (payload.expiresInMs ?? 10 * 60 * 1000);
 
       const result = KHQR.generate({
         tag: TAG.INDIVIDUAL,
@@ -53,6 +54,9 @@ export class PaymentService {
 
       const qrData = result.data.qr;
       const md5Hash = result.data.md5;
+      if (typeof qrData !== "string" || !qrData.trim() || typeof md5Hash !== "string" || !/^[a-fA-F0-9]{32}$/.test(md5Hash)) {
+        throw new Error("Bakong KHQR generation returned an incomplete payment payload");
+      }
       const orderId = safeBillNumber;
 
       if (payload.weddingId && md5Hash) {
@@ -243,6 +247,173 @@ export class PaymentService {
           await sleep(500);
         }
       }
+    }
+  }
+
+  /**
+   * Activates a template license after successful payment
+   */
+  static async activateTemplateLicense(
+    licenseId: string,
+    templateId: string,
+    weddingId: string,
+    trxHash: string,
+    orderId?: string
+  ) {
+    let attempts = 3;
+    while (attempts > 0) {
+      try {
+        const updated = await prisma.templateLicense.update({
+          where: { id: licenseId },
+          data: {
+            status: "ACTIVE",
+            bakongTrxId: trxHash,
+            paymentHash: null,
+            publishedAt: new Date(),
+            updatedAt: new Date(),
+          },
+        });
+
+        console.info(
+          `[DB/TemplateLicenseActivation] Template '${templateId}' license activated for wedding ${weddingId}.`
+        );
+        return updated;
+      } catch (err: any) {
+        attempts--;
+        console.error(
+          `[DB/TemplateLicenseActivation] Attempt failed (${attempts} left): ${err.message}`
+        );
+        if (attempts === 0) {
+          throw err;
+        }
+        await sleep(500);
+      }
+    }
+  }
+
+  /**
+   * Verifies a Bakong transaction and activates template license
+   */
+  static async verifyAndActivateTemplateLicense(
+    licenseId: string,
+    templateId: string,
+    weddingId: string,
+    md5: string,
+    orderId: string,
+    accountID: string,
+    env?: any,
+    tokenOverride?: string
+  ): Promise<{ status: string; alreadyPaid: boolean; license?: any; message?: string }> {
+    const token = (tokenOverride || "").trim() || getEnvVar("BAKONG_API_TOKEN", env);
+    if (!token) throw new Error("BAKONG_API_TOKEN environment variable is missing.");
+
+    try {
+      // Check if license is already activated
+      const license = await prisma.templateLicense.findUnique({
+        where: { id: licenseId },
+        select: { status: true, bakongTrxId: true },
+      });
+
+      if (!license) throw new Error("License record not found.");
+
+      if (license.status === "ACTIVE") {
+        return { status: "ACTIVE", alreadyPaid: true, license };
+      }
+
+      const bakongUrlEnv = getEnvVar("BAKONG_API_URL", env);
+      const isUat =
+        accountID.includes("uat@bkrt") ||
+        accountID.includes("@uat") ||
+        bakongUrlEnv.includes("uat");
+
+      const baseUrl = isUat
+        ? "https://api-bakong-uat.nbc.gov.kh"
+        : "https://api-bakong.nbc.gov.kh";
+      const timeout = 12000;
+
+      const headers = {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      };
+
+      // --- MD5 PROBE (PRIMARY) ---
+      if (md5) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+          const response = await fetch(`${baseUrl}/v1/check_transaction_by_md5`, {
+            method: "POST",
+            headers,
+            body: JSON.stringify({ md5, merchant_id: accountID }),
+            signal: controller.signal,
+          });
+
+          clearTimeout(timeoutId);
+
+          if (response.ok) {
+            const result = await response.json();
+            if (result.responseCode === 0 && result.data) {
+              console.log(
+                `[Bakong/TemplateLicense] MD5 match for Template: ${templateId}, Wedding: ${weddingId}`
+              );
+              const activated = await this.activateTemplateLicense(
+                licenseId,
+                templateId,
+                weddingId,
+                result.data.hash || md5,
+                orderId
+              );
+              return { status: "ACTIVE", alreadyPaid: false, license: activated };
+            }
+          }
+        } catch (err: any) {
+          console.warn(`[Bakong/TemplateLicense/L1] MD5 probe warning: ${err.message}`);
+        }
+      }
+
+      // --- EXTERNAL ID PROBE (FALLBACK) ---
+      if (orderId) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+          const response = await fetch(`${baseUrl}/v1/check_transaction_by_external_id`, {
+            method: "POST",
+            headers,
+            body: JSON.stringify({ external_id: orderId, merchant_id: accountID }),
+            signal: controller.signal,
+          });
+
+          clearTimeout(timeoutId);
+
+          if (response.ok) {
+            const result = await response.json();
+            if (result.responseCode === 0 && result.data) {
+              console.log(
+                `[Bakong/TemplateLicense] ExtID match for Order: ${orderId}, Template: ${templateId}`
+              );
+              const activated = await this.activateTemplateLicense(
+                licenseId,
+                templateId,
+                weddingId,
+                result.data.hash || md5,
+                orderId
+              );
+              return { status: "ACTIVE", alreadyPaid: false, license: activated };
+            }
+          }
+        } catch (err: any) {
+          console.error(
+            `[Bakong/TemplateLicense/L2] External ID probe warning: ${err.message}`
+          );
+        }
+      }
+
+      return { status: "PENDING", alreadyPaid: false };
+    } catch (e: any) {
+      console.error("[Bakong/TemplateLicense] Verification error:", e?.message || e);
+      return { status: "ERROR", message: e?.message || "Verification failed", alreadyPaid: false };
     }
   }
 }

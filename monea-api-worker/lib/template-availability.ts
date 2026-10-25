@@ -6,6 +6,7 @@ export const TEMPLATE_AVAILABILITY_DEFAULTS = {
     "nea-m05": true,
     "emerald-garden": true,
     "anniversary-elegant": true,
+    "garden-editorial": true,
 } as const;
 
 export type TemplateId = keyof typeof TEMPLATE_AVAILABILITY_DEFAULTS;
@@ -64,6 +65,12 @@ export const TEMPLATE_METADATA_DEFAULTS: TemplateMetadataMap = {
         description: "រចនាបែបឆើតឆាយសម្រាប់ពិធីភ្ជាប់ពាក្យ",
         image: "/assets/anniversary-elegant/anniversary-elegant-bg.webp",
         eventType: "anniversary",
+    },
+    "garden-editorial": {
+        title: "Palace Bloom",
+        description: "រចនាបែបវិមានផ្កា ទន់ភ្លន់ និងប្រណីត ជាមួយពណ៌មាស",
+        image: "/assets/blossom-romance/blossom-arch-bg.jpg",
+        eventType: "wedding",
     },
 };
 

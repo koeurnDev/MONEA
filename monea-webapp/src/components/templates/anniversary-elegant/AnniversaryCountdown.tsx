@@ -47,8 +47,8 @@ export const AnniversaryCountdown = ({ wedding }: { wedding: WeddingData }) => {
         return () => clearInterval(interval);
     }, [date]);
 
-    const countdownPhoto = getWeddingSectionPhoto(wedding, "countdown")?.url ||
-                           '/assets/khmer-legacy/621811002_905396558712142_5126771807004187076_n.jpg';
+    const countdownPhoto = getWeddingSectionPhoto(wedding, "countdown")?.url
+        || (!wedding.previewUploadedImagesOnly ? '/assets/khmer-legacy/621811002_905396558712142_5126771807004187076_n.jpg' : undefined);
 
     if (!date) return null;
 
@@ -79,11 +79,13 @@ export const AnniversaryCountdown = ({ wedding }: { wedding: WeddingData }) => {
                     transition={{ duration: 0.8 }}
                     className="relative aspect-[16/9] sm:aspect-[2/1] rounded-3xl overflow-hidden shadow-md border-2 border-white bg-slate-100 group"
                 >
-                    <img 
-                        src={countdownPhoto} 
-                        alt="Countdown Couple Moment" 
-                        className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" 
-                    />
+                    {countdownPhoto && (
+                        <img
+                            src={countdownPhoto}
+                            alt="Countdown Couple Moment"
+                            className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                        />
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
                     <div className="absolute bottom-3 left-4 text-white text-left font-serif italic text-xs sm:text-sm drop-shadow-md">
                         <CoupleNamesLine groom={wedding.groomName} bride={wedding.brideName} className="text-left" />

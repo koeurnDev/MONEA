@@ -46,10 +46,14 @@ export function TemplatesShowcase() {
                         <p className="mt-1 text-sm leading-relaxed text-muted-foreground sm:text-base">
                             ជ្រើសរើសរចនាបថដែលសមនឹងថ្ងៃពិសេសរបស់អ្នក។
                         </p>
+
+                        <p className="mt-4 text-sm leading-7 text-muted-foreground sm:text-base">
+                            ចង់ធ្វើ<strong>ធៀបការឌីជីថល</strong>ឆាប់ៗ? សូមមើលព័ត៌មានលើទំព័រ <Link className="text-primary hover:underline" to="/khmer-digital-wedding-invitation">ធៀបការឌីជីថល</Link> ឬចាប់ផ្តើមបង្កើតដោយខ្លួនឯង។
+                        </p>
                     </div>
                     <Link
                         to="/templates"
-                        className="inline-flex min-h-11 w-fit items-center gap-2 rounded-full border border-border px-5 text-sm font-bold text-foreground transition-colors hover:border-primary hover:text-primary"
+                        className="inline-flex min-h-11 w-fit items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-5 text-sm font-bold text-primary transition-colors hover:border-primary/60 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     >
                         មើលគំរូទាំងអស់ <ArrowRight size={16} aria-hidden="true" />
                     </Link>

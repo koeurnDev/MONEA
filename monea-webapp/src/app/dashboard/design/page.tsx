@@ -1,6 +1,6 @@
 import React, { lazy, useEffect, useState, useCallback, useRef, Suspense } from "react";
 import { createPortal } from "react-dom";
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { m, AnimatePresence } from 'framer-motion';
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -21,7 +21,9 @@ import { StepWizard } from "./components/StepWizard";
 import { PreviewSync, MobilePreviewWrapper } from "./components/PreviewSync";
 import { useDesignWizard, STEPS, PRESET_COLORS } from "./hooks/useDesignWizard";
 import type { WeddingData } from "@/components/templates/types";
-import { isEditingLocked, isFreeTrialExpired } from "@/lib/permissions";
+import { isEditingLocked } from "@/lib/permissions";
+import { isPhoneFrameColor, PHONE_FRAME_COLORS, type PhoneFrameColor } from "@/lib/phone-frame-colors";
+import { moneaClient } from "@/lib/api-client";
 
 const StepSkeleton = () => <div className="h-64 rounded-2xl bg-muted animate-pulse" />;
 
@@ -38,12 +40,20 @@ export default function DesignPage() {
     const { t } = useTranslation();
     const { user, isLoading } = useAuth();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    
+    // Admin template preview mode
+    const templatePreviewId = searchParams.get('templatePreview');
+    const isTemplatePreviewMode = !!templatePreviewId;
 
     useEffect(() => {
+        // Skip wedding check if in template preview mode
+        if (isTemplatePreviewMode) return;
+        
         if (!isLoading && !user?.weddingId) {
             navigate('/dashboard/create', { replace: true });
         }
-    }, [isLoading, user?.weddingId, navigate]);
+    }, [isLoading, user?.weddingId, navigate, isTemplatePreviewMode]);
 
     return (
         <Suspense fallback={
@@ -61,6 +71,11 @@ function DesignContent() {
     const { t } = useTranslation();
     const { isMobile } = useMobileDetection();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    
+    // Admin template preview mode
+    const templatePreviewId = searchParams.get('templatePreview');
+    const isTemplatePreviewMode = !!templatePreviewId;
     const [isSheetOpen, setIsSheetOpen] = useState(true);
     const [leaving, setLeaving] = useState(false);
     const [finishing, setFinishing] = useState(false);
@@ -71,8 +86,37 @@ function DesignContent() {
     const [finishSaveError, setFinishSaveError] = useState(false);
     const [previewError, setPreviewError] = useState(false);
     const [mobilePreviewReady, setMobilePreviewReady] = useState(false);
+    const [phoneFrameColor, setPhoneFrameColor] = useState<PhoneFrameColor>("black");
     const shareLinkInputRef = useRef<HTMLInputElement>(null);
     const supportsNativeShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
+
+    // Load the global appearance setting once per editor visit.
+    useEffect(() => {
+        let cancelled = false;
+        const loadPhoneFrameColor = async () => {
+            const response = await moneaClient.get<{ phoneFrameColor: unknown }>(
+                "/api/system/phone-frame-color",
+                { cache: "no-store" },
+            );
+            if (cancelled) return;
+            if (response.error) {
+                console.warn("[Phone Preview] Could not load global frame color:", response.error);
+                return;
+            }
+            if (!isPhoneFrameColor(response.data?.phoneFrameColor)) {
+                console.warn("[Phone Preview] API returned an invalid global frame color");
+                return;
+            }
+            setPhoneFrameColor(response.data.phoneFrameColor);
+        };
+        void loadPhoneFrameColor();
+        return () => {
+            cancelled = true;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const phoneFrame = PHONE_FRAME_COLORS[phoneFrameColor];
     const {
         mounted,
         wedding,
@@ -187,7 +231,6 @@ function DesignContent() {
     );
 
     const isLocked = isEditingLocked(wedding);
-    const isFreeTrialEnded = isFreeTrialExpired(wedding);
 
     const renderStepContent = () => {
         if (!wedding) return null;
@@ -515,12 +558,12 @@ function DesignContent() {
                     <div className="absolute bottom-[20%] right-[-5%] w-[30%] h-[30%] bg-amber-500/5 rounded-full blur-[100px]"></div>
                 </div>
 
-                {/* Desktop Preview Container (iPhone Pro Ultra-Sleek Titanium Mockup) */}
+                {/* Desktop Preview Container (iPhone 16 Pro Mockup) */}
                 <div
                     className={clsx(
                         "relative z-10 transition-all duration-300 ease-in-out flex flex-col group origin-center",
                         previewMode === 'mobile' 
-                            ? "h-[calc(84vh-48px)] max-h-[772px] min-h-[520px] translate-y-6"
+                            ? "h-[calc(88vh-48px)] max-h-[820px] min-h-[520px] translate-y-6"
                             : "w-[95%] h-[82vh] rounded-2xl border-4 border-slate-900/10 dark:border-white/10 overflow-hidden bg-background shadow-2xl"
                     )}
                     style={previewMode === 'mobile' ? {
@@ -528,17 +571,53 @@ function DesignContent() {
                         maxWidth: `${PHONE_PREVIEW_SIZE.width}px`,
                     } : undefined}
                 >
-                    <iframe
-                        ref={iframeRef}
-                        src="/preview?mode=editor"
-                        onLoad={() => {
-                            if (iframeRef.current?.contentWindow && wedding) {
-                                iframeRef.current.contentWindow.postMessage({ type: "UPDATE_PREVIEW", payload: wedding }, "*");
-                            }
-                        }}
-                        className="h-full w-full border-none bg-background"
-                        title={t("design.wizard.preview")}
-                    />
+                    {/* iPhone 16 Pro Frame - Mobile Mode Only */}
+                    {previewMode === 'mobile' && (
+                        <div className="absolute inset-0">
+                            <div className="absolute left-[-3px] top-[16%] z-0 h-[7%] w-[4px] rounded-l-full shadow-sm" style={{ background: phoneFrame.side }} />
+                            <div className="absolute left-[-3px] top-[25%] z-0 h-[11%] w-[4px] rounded-l-full shadow-sm" style={{ background: phoneFrame.side }} />
+                            <div className="absolute right-[-3px] top-[23%] z-0 h-[13%] w-[4px] rounded-r-full shadow-sm" style={{ background: phoneFrame.side }} />
+
+                            <div className="relative z-10 h-full w-full rounded-[3.8rem] border border-black/30 p-[6px] shadow-[0_32px_80px_rgba(0,0,0,0.48),inset_0_1px_1px_rgba(255,255,255,0.42)]" style={{ background: phoneFrame.gradient }}>
+                                <div className="relative h-full w-full rounded-[3.45rem] border border-[#090a0c] bg-[#090a0c] p-[5px] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)]">
+                                    <div className="relative h-full w-full overflow-hidden rounded-[3.1rem] bg-background ring-1 ring-black/80">
+                                        <iframe
+                                            ref={iframeRef}
+                                            src="/preview?mode=editor"
+                                            onLoad={() => {
+                                                if (iframeRef.current?.contentWindow && wedding) {
+                                                    iframeRef.current.contentWindow.postMessage({ type: "UPDATE_PREVIEW", payload: wedding }, "*");
+                                                }
+                                            }}
+                                            className="h-full w-full border-none bg-background"
+                                            title={t("design.wizard.preview")}
+                                        />
+                                        <div
+                                            aria-hidden="true"
+                                            className="pointer-events-none absolute left-1/2 top-[2.3%] z-40 h-9 w-[38%] max-w-[156px] -translate-x-1/2 rounded-full border border-white/[0.06] bg-black shadow-[0_2px_8px_rgba(0,0,0,0.72)]"
+                                        >
+                                            <span className="absolute right-[18%] top-1/2 h-2 w-2 -translate-y-1/2 rounded-full bg-[#10141a] shadow-[inset_0_0_2px_rgba(100,140,190,0.45)]" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {/* Desktop Mode - Full Width */}
+                    {previewMode === 'desktop' && (
+                        <iframe
+                            ref={iframeRef}
+                            src="/preview?mode=editor"
+                            onLoad={() => {
+                                if (iframeRef.current?.contentWindow && wedding) {
+                                    iframeRef.current.contentWindow.postMessage({ type: "UPDATE_PREVIEW", payload: wedding }, "*");
+                                }
+                            }}
+                            className="h-full w-full border-none bg-background"
+                            title={t("design.wizard.preview")}
+                        />
+                    )}
                 </div>
 
                 <PreviewSync wedding={wedding} iframeRef={iframeRef} currentStep={currentStep} enableScrollSync={false} />
@@ -822,18 +901,14 @@ function DesignContent() {
                             <Lock className="w-10 h-10 text-red-600" />
                         </div>
                         <h2 className="text-2xl font-black text-foreground mb-4 font-kantumruy uppercase tracking-tight">
-                            {isFreeTrialEnded
-                                ? t("design.locked.freeTrialTitle", { defaultValue: "រយៈពេលប្រើប្រាស់ Free បានបញ្ចប់" })
-                                : t("design.locked.title")}
+                            {t("design.locked.title")}
                         </h2>
                         <p className="text-muted-foreground mb-8 font-khmer leading-relaxed">
-                            {isFreeTrialEnded
-                                ? t("design.locked.freeTrialDescription", { defaultValue: "M1 អាចប្រើបាន 14 ថ្ងៃ។ រយៈពេលនេះបានបញ្ចប់ហើយ។ សូម Upgrade ដើម្បីបន្តកែ និងប្រើធៀបរបស់អ្នក។" })
-                                : t("design.locked.description")}
+                            {t("design.locked.description")}
                         </p>
                         <div className="flex flex-col gap-3 w-full">
                             <Button asChild className="h-14 rounded-2xl bg-slate-900 hover:bg-black text-white font-black uppercase tracking-wider shadow-xl dark:bg-slate-800 dark:hover:bg-slate-700">
-                                <Link to="/dashboard/upgrade">{t("design.locked.updateBtn")}</Link>
+                                <Link to="/dashboard">{t("design.locked.updateBtn")}</Link>
                             </Button>
                             <Button variant="ghost" asChild className="h-12 rounded-2xl font-bold font-khmer">
                                 <Link to="/dashboard">{t("design.locked.backBtn")}</Link>

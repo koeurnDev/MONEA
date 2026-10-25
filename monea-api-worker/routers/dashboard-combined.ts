@@ -61,14 +61,17 @@ dashboardCombinedRouter.get('/init', async (c) => {
                 },
             }),
             
-            // Active broadcasts
-            prisma.$queryRawUnsafe(`
-                SELECT * FROM "Broadcast"
-                WHERE active = true
-                AND ( "scheduledAt" IS NULL OR "scheduledAt" <= NOW() )
-                AND ( "expiresAt" IS NULL OR "expiresAt" > NOW() )
-                ORDER BY "createdAt" DESC
-            `),
+            // Active broadcasts (static SQL => prefer $queryRaw)
+            prisma.$queryRaw<any[]>(
+                prisma.$queryRaw`
+                    SELECT *
+                    FROM "Broadcast"
+                    WHERE active = true
+                      AND ( "scheduledAt" IS NULL OR "scheduledAt" <= NOW() )
+                      AND ( "expiresAt" IS NULL OR "expiresAt" > NOW() )
+                    ORDER BY "createdAt" DESC
+                ` as any
+            ),
             
             // Quick stats (if user has wedding)
             user.userId ? prisma.$queryRaw`

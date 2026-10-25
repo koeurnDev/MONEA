@@ -29,6 +29,10 @@ export interface MediaTransformOptions {
 const CLOUDINARY_MARKER = 'res.cloudinary.com';
 const IMAGEKIT_MARKER = 'ik.imagekit.io';
 const UNSPLASH_MARKER = 'images.unsplash.com';
+const R2_MEDIA_HOST = 'media.moneoez.com';
+const CLOUDFLARE_TRANSFORM_ORIGIN = 'https://moneoez.com';
+const CLOUDFLARE_TRANSFORM_PATH = '/cdn-cgi/image/';
+const CLOUDFLARE_WIDTHS = [400, 800, 1200, 1600] as const;
 
 /** True when the value can be safely handed to an <img src>. */
 export function isRenderableUrl(url: unknown): url is string {
@@ -100,6 +104,60 @@ function unsplashUrl(url: string, options: MediaTransformOptions): string {
   }
 }
 
+function cloudflareImageUrl(url: string, options: MediaTransformOptions): string {
+  let source: URL;
+  try {
+    source = new URL(url);
+  } catch {
+    return url;
+  }
+  if (source.protocol !== 'https:' || source.hostname !== R2_MEDIA_HOST) return url;
+  if (url.startsWith(`${CLOUDFLARE_TRANSFORM_ORIGIN}${CLOUDFLARE_TRANSFORM_PATH}`)) return url;
+
+  const transformations = ['onerror=redirect', 'format=auto'];
+  if (options.quality !== 'auto') {
+    const quality = options.quality ?? 80;
+    transformations.push(`quality=${Math.min(100, Math.max(1, Math.round(quality)))}`);
+  }
+  if (options.width && Number.isFinite(options.width)) {
+    transformations.push(`width=${getCloudflareWidth(options.width)}`);
+  }
+  if (options.height && Number.isFinite(options.height)) {
+    transformations.push(`height=${Math.min(4000, Math.max(1, Math.round(options.height)))}`);
+  }
+  const fit = options.crop === 'fill'
+    ? 'cover'
+    : options.crop === 'fit'
+      ? 'contain'
+      : 'scale-down';
+  transformations.push(`fit=${fit}`);
+
+  return `${CLOUDFLARE_TRANSFORM_ORIGIN}${CLOUDFLARE_TRANSFORM_PATH}${transformations.join(',')}/${url}`;
+}
+
+function getCloudflareWidth(width: number): number {
+  const requestedWidth = Math.max(1, Math.round(width));
+  return CLOUDFLARE_WIDTHS.find((standardWidth) => standardWidth >= requestedWidth)
+    ?? CLOUDFLARE_WIDTHS[CLOUDFLARE_WIDTHS.length - 1];
+}
+
+function isR2MediaUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:' && parsed.hostname === R2_MEDIA_HOST;
+  } catch {
+    return false;
+  }
+}
+
+export function getOriginalMediaUrl(url: unknown): string | null {
+  if (typeof url !== 'string') return null;
+  const match = url.match(
+    /^https:\/\/moneoez\.com\/cdn-cgi\/image\/[^/]+\/(https:\/\/media\.moneoez\.com\/.+)$/i,
+  );
+  return match?.[1] || url;
+}
+
 /**
  * Returns an optimised URL for the given transform.
  * When no width is supplied the function still adds `f_auto`/`q_auto` for
@@ -109,6 +167,8 @@ export function optimizeMediaUrl(url: unknown, options: MediaTransformOptions = 
   if (!isRenderableUrl(url)) return '';
   if (url.startsWith('data:') || url.startsWith('blob:') || url.startsWith('/')) return url;
 
+  if (url.startsWith(`${CLOUDFLARE_TRANSFORM_ORIGIN}${CLOUDFLARE_TRANSFORM_PATH}`)) return url;
+  if (isR2MediaUrl(url)) return cloudflareImageUrl(url, options);
   if (url.includes(CLOUDINARY_MARKER)) return cloudinaryUrl(url, options);
   if (url.includes(IMAGEKIT_MARKER)) return imagekitUrl(url, options);
   if (url.includes(UNSPLASH_MARKER)) return unsplashUrl(url, options);
@@ -129,12 +189,16 @@ export function buildSrcSet(
   if (
     !url.includes(CLOUDINARY_MARKER) &&
     !url.includes(IMAGEKIT_MARKER) &&
-    !url.includes(UNSPLASH_MARKER)
+    !url.includes(UNSPLASH_MARKER) &&
+    !isR2MediaUrl(url)
   ) {
     return undefined;
   }
 
-  const unique = [...new Set(widths.filter((w) => w > 0))].sort((a, b) => a - b);
+  const normalizedWidths = isR2MediaUrl(url)
+    ? widths.filter((width) => width > 0 && Number.isFinite(width)).map(getCloudflareWidth)
+    : widths.filter((width) => width > 0);
+  const unique = [...new Set(normalizedWidths)].sort((a, b) => a - b);
   const entries = unique.map(
     (w) => `${optimizeMediaUrl(url, { ...options, width: w })} ${w}w`
   );
@@ -143,9 +207,27 @@ export function buildSrcSet(
   return entries.join(', ');
 }
 
-/** Common gallery widths - thumbnail, grid, lightbox, full bleed. */
+/** Standardized source widths keep responsive variants reusable in the CDN cache. */
 export const MEDIA_WIDTHS = {
-  thumbnail: [120, 240, 320],
-  grid: [320, 480, 640, 960],
-  lightbox: [640, 960, 1280, 1920],
+  thumbnail: [400, 800],
+  grid: [400, 800],
+  lightbox: [400, 800, 1200, 1600],
+  // Finite, UI-critical srcSet widths derived from template breakpoints.
+  // Hero cards are rendered in two branches (mobile/desktop) with fixed
+  // viewport widths; see performance notes.
+  hero: {
+    mobile: [800],
+    desktop: [800, 1200, 1600],
+  },
+  // Finite, UI-critical gallery srcSet widths.
+  // Source of truth: gallery layouts' `sizes` strings.
+  gallery: {
+    // Slider cards: `(max-width: 640px) 82vw, 60vw`
+    // Slider cards use the shared 400/800px variants.
+    slider: [400, 800],
+    // Grid/polaroid cards use the shared 400/800px variants.
+    grid: [400, 800],
+    // Lightbox images can use 800/1200/1600px variants.
+    lightbox: [400, 800, 1200, 1600],
+  },
 } as const;

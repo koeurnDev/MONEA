@@ -1,6 +1,11 @@
 import { getPrisma } from "@/lib/prisma";
 import { getGoogleTokens, getGoogleUser } from "@/lib/sso";
-import { signToken, generateFingerprint, createExchangeTicket } from "@/lib/auth";
+import {
+    createOwnerMfaSetupCookies,
+    signToken,
+    generateFingerprint,
+    createExchangeTicket,
+} from "@/lib/auth";
 import { ROLES } from "@/lib/constants";
 import { getIP } from "@/lib/utils";
 
@@ -11,7 +16,7 @@ export async function GET(req: Request) {
     // Frontend URL - where users should be redirected after auth
     const appUrl = isLocal
         ? (process.env.VITE_APP_URL || "http://localhost:3001")
-        : (process.env.NEXT_PUBLIC_APP_URL || "https://monea-webapp.pages.dev");
+        : (process.env.NEXT_PUBLIC_APP_URL || "https://moneoez.com");
 
     console.log('[SSO Callback] Starting OAuth callback processing...');
     console.log('[SSO Callback] Request hostname:', url.hostname);
@@ -69,24 +74,29 @@ export async function GET(req: Request) {
                 twoFactorEnabled: true,
                 password: true,
             }
-        }).catch((err) => {
-            console.error('[SSO Callback] User query error:', err);
-            // If P2023 date conversion error, try minimal query
-            if (err?.code === 'P2023') {
-                return prisma.user.findFirst({
-                    where: { OR: [{ googleId: googleUser.id }, { email: cleanEmail }] },
-                    select: {
-                        id: true,
-                        email: true,
-                        name: true,
-                        googleId: true,
-                        avatar: true,
-                        role: true,
-                    }
-                }).catch(() => null);
-            }
-            return null;
         });
+
+        if (user?.role === ROLES.PLATFORM_OWNER && !user.twoFactorEnabled) {
+            const signInUrl = new URL(`${appUrl}/sign-in`);
+            signInUrl.searchParams.set("error", "owner_mfa_setup_required");
+            const response = new Response(null, {
+                status: 302,
+                headers: {
+                    "Location": signInUrl.toString(),
+                    "Cache-Control": "no-store",
+                },
+            });
+            for (const cookie of await createOwnerMfaSetupCookies(req, user)) {
+                response.headers.append("Set-Cookie", cookie);
+            }
+            return response;
+        }
+
+        if (user?.twoFactorEnabled) {
+            const signInUrl = new URL(`${appUrl}/sign-in`);
+            signInUrl.searchParams.set("error", "two_factor_required");
+            return Response.redirect(signInUrl.toString(), 302);
+        }
 
         if (!user) {
             console.log('[SSO Callback] Creating new user...');

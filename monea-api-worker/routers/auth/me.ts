@@ -1,25 +1,30 @@
 import { Hono } from 'hono';
-import { getServerUser } from "@/lib/auth";
+import { getOwnerMfaSetupUser, getServerUser } from "@/lib/auth";
 import { getDb } from "@/lib/drizzle";
 import { isValidProfileName, isValidProfilePhone } from "@/lib/validations/profile";
+import { isRecord, readJsonBodyLimited } from "@/lib/read-json-body-limited";
 import { users, weddings } from "@/drizzle/schema";
 import { eq, desc } from "drizzle-orm";
 
 const router = new Hono();
+const MAX_PROFILE_UPDATE_BODY_BYTES = 8_192;
 
 // Helper function to create CORS response
 function createCorsResponse(c: any, data: any, status: number = 200) {
     const origin = c.req.header('origin');
     
     // Set CORS headers before returning response
+    // IMPORTANT: if credentials are allowed, ACAO cannot be "*".
+    // Always provide CORS headers even on error responses
     if (origin) {
         c.header('Access-Control-Allow-Origin', origin);
     } else {
-        c.header('Access-Control-Allow-Origin', '*');
+        c.header('Access-Control-Allow-Origin', 'https://moneoez.com');
     }
     c.header('Access-Control-Allow-Credentials', 'true');
     c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-CSRF-Token');
+    c.header('Cache-Control', 'no-store');
     
     return c.json(data, status);
 }
@@ -33,10 +38,25 @@ router.get('/', async (c) => {
     
     try {
         console.log('[Auth /me] Attempting to get server user...');
+        console.log('[Auth /me] Request headers:', {
+            cookie: c.req.header('cookie') ? 'present' : 'missing',
+            authorization: c.req.header('authorization') ? 'present' : 'missing',
+            origin: c.req.header('origin'),
+        });
+        
         const user = await getServerUser(c.req.raw);
         
         if (!user) {
-            console.log("[Auth /me] No valid user session found");
+            console.log('[Auth /me] No user found via getServerUser');
+            const setupUser = await getOwnerMfaSetupUser(c.req.raw);
+            if (setupUser) {
+                console.log('[Auth /me] Found owner MFA setup user, returning 428');
+                return createCorsResponse(c, {
+                    error: "Complete two-factor authentication setup to continue",
+                    code: "OWNER_MFA_SETUP_REQUIRED",
+                }, 428);
+            }
+            console.log("[Auth /me] No valid user session found, returning 401");
             return createCorsResponse(c, { error: "Unauthorized" }, 401);
         }
 
@@ -143,31 +163,55 @@ router.put('/', async (c) => {
             return createCorsResponse(c, { error: "Unauthorized" }, 401);
         }
 
-        const body = await c.req.json();
-        const { name, email, phone, avatar } = body;
+        if (user.type === "staff") {
+            return createCorsResponse(c, { error: "Profile updates are not available for staff accounts" }, 403);
+        }
+
+        const parsedBody = await readJsonBodyLimited(c.req.raw, MAX_PROFILE_UPDATE_BODY_BYTES);
+        if (parsedBody.kind === "too_large") {
+            return createCorsResponse(c, { error: "Request body is too large" }, 413);
+        }
+        if (parsedBody.kind !== "ok" || !isRecord(parsedBody.value)) {
+            return createCorsResponse(c, { error: "Invalid JSON request body" }, 400);
+        }
+
+        const { name, email, phone, avatar } = parsedBody.value;
         const targetUserId = user.userId || user.id;
 
         const db = getDb(c.env);
 
-        const updateData: any = {};
+        const updateData: {
+            name?: string;
+            email?: string;
+            phone?: string;
+            avatar?: string | null;
+        } = {};
         if (name !== undefined) {
             if (!isValidProfileName(name)) {
                 return createCorsResponse(c, { error: "ឈ្មោះត្រូវមានពី 1 ដល់ 100 តួអក្សរ" }, 400);
             }
             updateData.name = name.trim();
         }
-        if (email && typeof email === "string" && email.includes("@")) {
-            const cleanEmail = email.toLowerCase().trim();
-            const existing = await db.select()
-                .from(users)
-                .where(eq(users.email, cleanEmail))
-                .limit(1)
-                .then((r: any) => r[0]);
-                
-            if (existing && existing.id !== targetUserId) {
-                return createCorsResponse(c, { error: "Email នេះត្រូវបានប្រើប្រាស់រួចហើយ" }, 400);
+        if (email !== undefined) {
+            if (typeof email !== "string" || email.length > 254) {
+                return createCorsResponse(c, { error: "សូមបញ្ចូលអ៊ីមែលត្រឹមត្រូវ។" }, 400);
             }
-            updateData.email = cleanEmail;
+            if (email.trim()) {
+                const cleanEmail = email.toLowerCase().trim();
+                if (!cleanEmail.includes("@")) {
+                    return createCorsResponse(c, { error: "សូមបញ្ចូលអ៊ីមែលត្រឹមត្រូវ។" }, 400);
+                }
+                const existing = await db.select()
+                    .from(users)
+                    .where(eq(users.email, cleanEmail))
+                    .limit(1)
+                    .then((r: any) => r[0]);
+
+                if (existing && existing.id !== targetUserId) {
+                    return createCorsResponse(c, { error: "Email នេះត្រូវបានប្រើប្រាស់រួចហើយ" }, 400);
+                }
+                updateData.email = cleanEmail;
+            }
         }
         if (phone !== undefined) {
             if (!isValidProfilePhone(phone)) {
@@ -176,7 +220,12 @@ router.put('/', async (c) => {
             updateData.phone = phone.trim();
         }
         if (avatar === null) updateData.avatar = null;
-        if (typeof avatar === "string" && avatar.length <= 2048) updateData.avatar = avatar.trim();
+        if (avatar !== undefined && avatar !== null) {
+            if (typeof avatar !== "string" || avatar.length > 2048) {
+                return createCorsResponse(c, { error: "Avatar must be a string of at most 2048 characters" }, 400);
+            }
+            updateData.avatar = avatar.trim();
+        }
 
         if (Object.keys(updateData).length === 0) {
             return createCorsResponse(c, { error: "No profile fields to update" }, 400);

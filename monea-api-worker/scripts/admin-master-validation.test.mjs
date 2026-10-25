@@ -6,7 +6,6 @@ import {
     MAX_WEDDING_SEARCH_LENGTH,
     validateAdminReason,
     validateWeddingListParams,
-    resolveAdminPackagePayment,
     escapeWeddingSearch
 } from "../lib/adminMasterValidation.ts";
 import { isPlatformOwner } from "../lib/constants.ts";
@@ -45,35 +44,6 @@ test("requires a trimmed administrative reason between 10 and 500 characters", (
     assert.equal(validateAdminReason("This reason is long enough."), true);
     assert.equal(validateAdminReason(`a${"b".repeat(MAX_ADMIN_REASON_LENGTH - 1)}`), true);
     assert.equal(validateAdminReason(`a${"b".repeat(MAX_ADMIN_REASON_LENGTH)}`), false);
-});
-
-test("requires a payment reference for paid non-free package upgrades", () => {
-    assert.deepEqual(resolveAdminPackagePayment("PRO", "PAID", "  tx-1234  "), {
-        valid: true,
-        paymentStatus: "PAID",
-        disposition: "PAID",
-        reference: "tx-1234"
-    });
-    assert.equal(resolveAdminPackagePayment("PREMIUM", "PAID", "abc").valid, false);
-    assert.equal(resolveAdminPackagePayment("PRO", "PAID", "x".repeat(121)).valid, false);
-    assert.equal(resolveAdminPackagePayment("PRO", "PAID", null).valid, false);
-});
-
-test("allows explicitly waived paid packages and keeps free packages pending", () => {
-    assert.deepEqual(resolveAdminPackagePayment("PREMIUM", "WAIVED", null), {
-        valid: true,
-        paymentStatus: "PAID",
-        disposition: "WAIVED",
-        reference: null
-    });
-    assert.deepEqual(resolveAdminPackagePayment("FREE", "NOT_APPLICABLE", null), {
-        valid: true,
-        paymentStatus: "PENDING",
-        disposition: "NOT_APPLICABLE",
-        reference: null
-    });
-    assert.equal(resolveAdminPackagePayment("ENTERPRISE", "WAIVED", null).valid, false);
-    assert.equal(resolveAdminPackagePayment("PRO", "NOT_APPLICABLE", null).valid, false);
 });
 
 test("only the platform owner role qualifies for owner-only wedding directory access", () => {

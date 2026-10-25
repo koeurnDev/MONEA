@@ -7,12 +7,13 @@ import { getServerUser } from "@/lib/auth";
 import { isPlatformOwner, ROLES } from "@/lib/constants";
 import {
     escapeWeddingSearch,
-    resolveAdminPackagePayment,
+    MAX_WEDDING_SEARCH_LENGTH,
     validateAdminReason,
     validateWeddingListParams
 } from "@/lib/adminMasterValidation";
-import { UPDATE_WEDDING_PACKAGE_SQL, UPDATE_WEDDING_STATUS_SQL } from "@/lib/adminMasterSql";
+import { UPDATE_WEDDING_STATUS_SQL } from "@/lib/adminMasterSql";
 import { SystemGovernance, GOVERNANCE_ACTIONS } from "@/lib/governance";
+import { notifyTelegramLifecycle } from "@/lib/telegram-lifecycle";
 import redis from "@/lib/redis";
 import { v2 as cloudinary } from 'cloudinary';
 import { z } from "zod"
@@ -22,6 +23,8 @@ import {
     normalizeTemplateMetadata,
     type TemplateEventType,
 } from "@/lib/template-availability";
+import { normalizeSocialLinks } from "@/lib/social-links";
+import { isPhoneFrameColor } from "@/lib/phone-frame-colors";
 
 const BACKUP_PAGE_SIZE = 250;
 
@@ -113,6 +116,68 @@ try {
 }
 
 const adminMasterRouter = new Hono();
+
+adminMasterRouter.get('/social-links', async (c) => {
+    const user = await getServerUser(c.req.raw);
+    if (!isAuthorizedMaster(user)) {
+        return c.json({ error: "Unauthorized" }, 401);
+    }
+
+    try {
+        const db = getDb(c.env);
+        const config = await db.select({ socialLinks: systemConfig.socialLinks })
+            .from(systemConfig)
+            .where(eq(systemConfig.id, "GLOBAL"))
+            .limit(1)
+            .then((rows: any) => rows[0]);
+        return c.json({ links: normalizeSocialLinks(config?.socialLinks) });
+    } catch (error) {
+        console.error("[ADMIN_SOCIAL_LINKS_GET]", error);
+        return c.json({ error: "Failed to fetch social links" }, 500);
+    }
+});
+
+adminMasterRouter.patch('/social-links', async (c) => {
+    const user = await getServerUser(c.req.raw);
+    if (!isAuthorizedMaster(user)) {
+        return c.json({ error: "Unauthorized" }, 401);
+    }
+
+    let body: unknown;
+    try {
+        body = await c.req.json();
+    } catch {
+        return c.json({ error: "Invalid JSON" }, 400);
+    }
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+        return c.json({ error: "Invalid social links payload" }, 400);
+    }
+
+    const links = normalizeSocialLinks((body as Record<string, unknown>).links);
+    if (!links) {
+        return c.json({ error: "Valid social links are required" }, 400);
+    }
+
+    try {
+        const db = getDb(c.env);
+        const existing = await db.select({ id: systemConfig.id })
+            .from(systemConfig)
+            .where(eq(systemConfig.id, "GLOBAL"))
+            .limit(1)
+            .then((rows: any) => rows[0]);
+        if (existing) {
+            await db.update(systemConfig)
+                .set({ socialLinks: links })
+                .where(eq(systemConfig.id, "GLOBAL"));
+        } else {
+            await db.insert(systemConfig).values({ id: "GLOBAL", socialLinks: links });
+        }
+        return c.json({ links });
+    } catch (error) {
+        console.error("[ADMIN_SOCIAL_LINKS_PATCH]", error);
+        return c.json({ error: "Failed to update social links" }, 500);
+    }
+});
 
 adminMasterRouter.get('/templates', async (c) => {
     const user = await getServerUser(c.req.raw);
@@ -239,16 +304,20 @@ adminMasterRouter.patch('/templates/metadata', async (c) => {
     const isSafeImagePath = /^\/(?:assets|images|khmer-invite-starter-kit)\/[a-zA-Z0-9_./-]+$/.test(image)
         && !image.split("/").includes("..");
     let isCloudinaryImage = false;
+    let isR2TemplateImage = false;
     try {
         const imageUrl = new URL(image);
         isCloudinaryImage = imageUrl.protocol === "https:"
             && imageUrl.hostname === "res.cloudinary.com"
             && imageUrl.pathname.includes("/image/upload/");
+        isR2TemplateImage = imageUrl.protocol === "https:"
+            && imageUrl.hostname === "media.moneoez.com"
+            && imageUrl.pathname.split("/").filter(Boolean)[0] === "template-covers";
     } catch {
         // Relative paths are validated separately; malformed absolute URLs are rejected below.
     }
-    if (!isSafeImagePath && !isCloudinaryImage) {
-        return c.json({ error: "Cover must be an application image or a Cloudinary image URL" }, 400);
+    if (!isSafeImagePath && !isCloudinaryImage && !isR2TemplateImage) {
+        return c.json({ error: "Cover must be an application, Cloudinary, or R2 image URL" }, 400);
     }
 
     try {
@@ -421,6 +490,12 @@ adminMasterRouter.get('/weddings', async (c) => {
             SELECT 
                 w.*,
                 json_build_object('name', u.name, 'email', u.email) as user,
+                (
+                    SELECT COALESCE(json_agg(DISTINCT tl."templateId"), '[]'::json)
+                    FROM "TemplateLicense" tl
+                    WHERE tl."weddingId" = w.id
+                      AND tl.status::text = 'ACTIVE'
+                ) as "activeTemplateIds",
                 json_build_object('guests', (SELECT count(*) FROM "Guest" g WHERE g."weddingId" = w.id), 
                                   'gifts', (SELECT count(*) FROM "Gift" gi WHERE gi."weddingId" = w.id)) as _count
             FROM "Wedding" w
@@ -439,8 +514,7 @@ adminMasterRouter.get('/weddings', async (c) => {
 
         const total = Number(totalResults[0]?.count || 0);
 
-        const [configs, weddingStats, allWeddingResults] = await Promise.all([
-            queryRaw('SELECT "stadPrice", "proPrice" FROM "SystemConfig" LIMIT 1'),
+        const [weddingStats, allWeddingResults] = await Promise.all([
             queryRaw(`
                 SELECT
                     count(*) FILTER (WHERE status::text = 'ACTIVE') as active,
@@ -449,9 +523,6 @@ adminMasterRouter.get('/weddings', async (c) => {
             `),
             queryRaw('SELECT count(*) as count FROM "Wedding"')
         ]);
-        const config = configs[0];
-        const stadPrice = Number(config?.stadPrice) || 9;
-        const proPrice = Number(config?.proPrice) || 19;
 
         return c.json({
             weddings,
@@ -466,11 +537,8 @@ adminMasterRouter.get('/weddings', async (c) => {
                 premium: Number(weddingStats[0]?.premium || 0)
             },
             permissions: {
-                canEditPackages: true
-            },
-            pricing: {
-                standard: stadPrice,
-                pro: proPrice
+                canEditPackages: false,
+                canManageStatus: true
             }
         });
     } catch (error: any) {
@@ -490,18 +558,18 @@ adminMasterRouter.patch('/weddings', async (c) => {
         if (!body || typeof body !== "object" || Array.isArray(body)) {
             return c.json({ error: "Invalid request body" }, 400);
         }
-        const { weddingId, packageType, paymentDisposition, paymentReference, reason, action } = body;
+        const { weddingId, reason, action } = body;
         if (typeof weddingId !== "string" || !weddingId.trim()) {
             return c.json({ error: "weddingId is required" }, 400);
         }
         if (action !== undefined && action !== "ARCHIVE" && action !== "RESTORE") {
             return c.json({ error: "Invalid wedding action" }, 400);
         }
-        if (!validateAdminReason(reason)) {
-            return c.json({ error: "Reason must be between 10 and 500 characters" }, 400);
-        }
-
         if (action === "ARCHIVE" || action === "RESTORE") {
+            if (!validateAdminReason(reason)) {
+                return c.json({ error: "Reason must be between 10 and 500 characters" }, 400);
+            }
+
             const targetStatus = action === "ARCHIVE" ? "ARCHIVED" : "ACTIVE";
             const actorId = user.userId || user.id;
             const actorName = user.name || user.email || "Admin";
@@ -524,38 +592,12 @@ adminMasterRouter.patch('/weddings', async (c) => {
             return c.json({ success: true, status: targetStatus, changed: changed[0].changed });
         }
 
-        const payment = resolveAdminPackagePayment(packageType, paymentDisposition, paymentReference);
-        if (!payment.valid) return c.json({ error: payment.error }, 400);
-        const finalPackage = packageType as "FREE" | "PRO" | "PREMIUM";
-
-        const actorId = user.userId || user.id;
-        const actorName = user.name || user.email || "Admin";
-        const ip = c.req.header("x-forwarded-for") || "unknown";
-        const userAgent = c.req.header("user-agent") || "unknown";
-
-        const auditIds = [crypto.randomUUID(), crypto.randomUUID()];
-        const updatedWedding = await queryRaw<{ id: string }>(
-            UPDATE_WEDDING_PACKAGE_SQL,
-            weddingId,
-            finalPackage,
-            payment.paymentStatus,
-            actorId,
-            actorName,
-            ip.slice(0, 45),
-            userAgent.slice(0, 255),
-            auditIds[0],
-            auditIds[1],
-            reason.trim(),
-            payment.disposition,
-            payment.reference
-        );
-        if (updatedWedding.length === 0) {
-            return c.json({ error: "Wedding not found" }, 404);
-        }
-
-        return c.json({ success: true, packageType: finalPackage, paymentStatus: payment.paymentStatus });
+        return c.json({
+            error: "Wedding package changes are no longer available.",
+            code: "PACKAGE_MANAGEMENT_RETIRED",
+        }, 410);
     } catch (error: any) {
-        console.error("Master Wedding Upgrade Error:", error?.message || error);
+        console.error("Master Wedding Status Update Error:", error?.message || error);
         return c.json({ error: error.message || "Failed to update wedding" }, 500);
     }
 });
@@ -732,7 +774,10 @@ adminMasterRouter.get('/settings', async (c) => {
                 .then((r: any) => r[0]);
         }
 
-        return c.json(config);
+        const settings = { ...config };
+        delete settings.stadPrice;
+        delete settings.proPrice;
+        return c.json(settings);
     } catch (error: any) {
         console.error("Settings Get Error:", error?.message || error);
         return c.json({ error: "Failed to fetch config" }, 500);
@@ -747,10 +792,10 @@ adminMasterRouter.post('/settings', async (c) => {
         }
 
         const body = await c.req.json();
-        const { maintenanceMode, allowNewSignups, globalCheckIn, stadPrice, proPrice, maintenanceStart, maintenanceEnd } = body;
-
-        const parsedStadPrice = stadPrice !== undefined && !isNaN(parseFloat(stadPrice)) ? parseFloat(stadPrice) : undefined;
-        const parsedProPrice = proPrice !== undefined && !isNaN(parseFloat(proPrice)) ? parseFloat(proPrice) : undefined;
+        const { maintenanceMode, allowNewSignups, globalCheckIn, maintenanceStart, maintenanceEnd, phoneFrameColor } = body;
+        if (phoneFrameColor !== undefined && !isPhoneFrameColor(phoneFrameColor)) {
+            return c.json({ error: "Invalid phone frame color" }, 400);
+        }
 
         const db = getDb(c.env);
         
@@ -770,8 +815,7 @@ adminMasterRouter.post('/settings', async (c) => {
             if (maintenanceEnd !== undefined) updateData.maintenanceEnd = maintenanceEnd ? new Date(maintenanceEnd) : null;
             if (allowNewSignups !== undefined) updateData.allowNewSignups = allowNewSignups;
             if (globalCheckIn !== undefined) updateData.globalCheckIn = globalCheckIn;
-            if (parsedStadPrice !== undefined) updateData.stadPrice = parsedStadPrice.toString();
-            if (parsedProPrice !== undefined) updateData.proPrice = parsedProPrice.toString();
+            if (phoneFrameColor !== undefined) updateData.phoneFrameColor = phoneFrameColor;
 
             config = await db.update(systemConfig)
                 .set(updateData)
@@ -788,8 +832,7 @@ adminMasterRouter.post('/settings', async (c) => {
                     maintenanceEnd: maintenanceEnd ? new Date(maintenanceEnd) : null,
                     allowNewSignups: allowNewSignups ?? true,
                     globalCheckIn: globalCheckIn ?? true,
-                    stadPrice: parsedStadPrice !== undefined ? parsedStadPrice.toString() : "9.0",
-                    proPrice: parsedProPrice !== undefined ? parsedProPrice.toString() : "19.0"
+                    phoneFrameColor: isPhoneFrameColor(phoneFrameColor) ? phoneFrameColor : "black",
                 })
                 .returning()
                 .then((r: any) => r[0]);
@@ -1002,56 +1045,165 @@ adminMasterRouter.delete('/security/blacklist', async (c) => {
     }
 });
 
-// ─── Payments ─────────────────────────────────────────────────────────────────
-adminMasterRouter.get('/payments', async (c) => {
+// ─── Template Sales ──────────────────────────────────────────────────────────
+adminMasterRouter.get('/template-payments', async (c) => {
     try {
         const user = await getServerUser(c.req.raw);
         if (!isAuthorizedMaster(user)) {
             return c.json({ error: "Unauthorized" }, 401);
         }
 
-        const configs = await queryRaw('SELECT "stadPrice", "proPrice" FROM "SystemConfig" LIMIT 1');
-        const config = configs[0] || null;
+        const page = Math.max(1, Number.parseInt(c.req.query("page") || "1", 10) || 1);
+        const pageSize = 50;
+        const status = c.req.query("status") || "ALL";
+        const search = (c.req.query("search") || "").trim();
+        if (search.length > MAX_WEDDING_SEARCH_LENGTH) {
+            return c.json({ error: `search must be at most ${MAX_WEDDING_SEARCH_LENGTH} characters` }, 400);
+        }
+        if (!["ALL", "ACTIVE", "INACTIVE", "EXPIRED", "PENDING_REVIEW", "PENDING_PAYMENT"].includes(status)) {
+            return c.json({ error: "Invalid template sale status" }, 400);
+        }
+        const filters: string[] = ["tl.amount > 0"];
+        const params: unknown[] = [];
+        if (search) {
+            params.push(`%${escapeWeddingSearch(search)}%`);
+            const searchParam = `$${params.length}`;
+            filters.push(`(
+                w."groomName" ILIKE ${searchParam} ESCAPE '!'
+                OR w."brideName" ILIKE ${searchParam} ESCAPE '!'
+                OR u.name ILIKE ${searchParam} ESCAPE '!'
+                OR u.email ILIKE ${searchParam} ESCAPE '!'
+                OR tl."templateId" ILIKE ${searchParam} ESCAPE '!'
+                OR tl."paymentOrderId" ILIKE ${searchParam} ESCAPE '!'
+            )`);
+        }
+        if (status === "PENDING_REVIEW") {
+            filters.push(`tl."receiptReviewStatus" = 'PENDING'`);
+        } else if (status === "PENDING_PAYMENT") {
+            filters.push(`tl.status = 'INACTIVE'`);
+            filters.push(`tl."receiptReviewStatus" IS NULL`);
+            filters.push(`tl."paymentOrderId" IS NOT NULL`);
+            filters.push(`tl."bakongTrxId" IS NULL`);
+        } else if (status !== "ALL") {
+            params.push(status);
+            filters.push(`tl.status = $${params.length}::"TemplateLicenseStatus"`);
+        }
+        const whereClause = filters.length ? `WHERE ${filters.join(" AND ")}` : "";
+        const offset = (page - 1) * pageSize;
 
-        const allWeddings = await queryRaw(`
-            SELECT 
-                w.id,
+        const [licenses, countResults, summaryResults] = await Promise.all([
+            queryRaw(`
+            SELECT
+                tl.id,
+                tl."weddingId",
+                tl."templateId",
+                tl.status,
+                tl.amount,
+                tl.currency,
+                tl."paymentOrderId",
+                tl."receiptUrl",
+                tl."receiptReference",
+                tl."receiptReviewStatus",
+                tl."receiptSubmittedAt",
+                tl."bakongTrxId",
+                tl."purchaseDate",
+                tl."expiresAt",
+                tl."createdAt",
+                tl."updatedAt",
                 w."groomName",
                 w."brideName",
-                w."packageType",
-                w."paymentStatus",
-                w.status,
-                w."paymentInfo",
-                w."paymentHash",
-                w."bakongTrxId",
-                w."createdAt",
-                w."updatedAt",
-                json_build_object('name', u.name, 'email', u.email) as user
-            FROM "Wedding" w
-            LEFT JOIN "User" u ON w."userId" = u.id
-            WHERE (w."packageType" != 'FREE' OR w."paymentStatus"::text = 'REJECTED')
-              AND (w."paymentStatus"::text != 'NONE' OR w."paymentInfo" IS NOT NULL)
-            ORDER BY 
-                CASE 
-                    WHEN w."paymentStatus"::text = 'AWAITING_VERIFICATION' THEN 1
-                    WHEN w."paymentStatus"::text = 'PENDING' THEN 2
-                    WHEN w."paymentStatus"::text = 'PAID' THEN 3
-                    ELSE 4
-                END,
-                w."updatedAt" DESC
-        `);
+                json_build_object('name', u.name, 'email', u.email) AS "user"
+            FROM "TemplateLicense" tl
+            JOIN "Wedding" w ON w.id = tl."weddingId"
+            LEFT JOIN "User" u ON u.id = w."userId"
+            ${whereClause}
+            ORDER BY
+                CASE WHEN tl."receiptReviewStatus" = 'PENDING' THEN 0 ELSE 1 END,
+                tl."updatedAt" DESC
+            LIMIT $${params.length + 1} OFFSET $${params.length + 2}
+        `, ...params, pageSize, offset),
+            queryRaw(`
+                SELECT count(*)::int AS count
+                FROM "TemplateLicense" tl
+                JOIN "Wedding" w ON w.id = tl."weddingId"
+                LEFT JOIN "User" u ON u.id = w."userId"
+                ${whereClause}
+            `, ...params),
+            queryRaw(`
+                SELECT
+                    count(*) FILTER (WHERE amount > 0 AND (status IN ('ACTIVE', 'EXPIRED') OR "receiptReviewStatus" = 'APPROVED' OR "bakongTrxId" IS NOT NULL))::int AS "totalSales",
+                    count(*) FILTER (WHERE amount > 0 AND status = 'ACTIVE')::int AS active,
+                    count(*) FILTER (WHERE amount > 0 AND status = 'INACTIVE' AND ("receiptReviewStatus" = 'APPROVED' OR "bakongTrxId" IS NOT NULL))::int AS inactive,
+                    count(*) FILTER (WHERE amount > 0 AND status = 'EXPIRED')::int AS expired,
+                    count(*) FILTER (WHERE "receiptReviewStatus" = 'PENDING')::int AS pending,
+                    count(*) FILTER (WHERE amount > 0 AND status = 'INACTIVE' AND "receiptReviewStatus" IS NULL AND "paymentOrderId" IS NOT NULL AND "bakongTrxId" IS NULL)::int AS "pendingPayment",
+                    COALESCE(SUM(amount) FILTER (WHERE amount > 0 AND (status IN ('ACTIVE', 'EXPIRED') OR "receiptReviewStatus" = 'APPROVED' OR "bakongTrxId" IS NOT NULL) AND currency = 'USD'), 0)::float AS "revenueUSD",
+                    COALESCE(SUM(amount) FILTER (WHERE amount > 0 AND (status IN ('ACTIVE', 'EXPIRED') OR "receiptReviewStatus" = 'APPROVED' OR "bakongTrxId" IS NOT NULL) AND currency = 'KHR'), 0)::float AS "revenueKHR"
+                FROM "TemplateLicense"
+            `),
+        ]);
 
+        const total = Number(countResults[0]?.count || 0);
         return c.json({
-            weddings: allWeddings || [],
-            pricing: { standard: config?.stadPrice || 9, pro: config?.proPrice || 19 }
+            licenses,
+            summary: summaryResults[0] || {
+                totalSales: 0,
+                active: 0,
+                inactive: 0,
+                expired: 0,
+                pending: 0,
+                revenueUSD: 0,
+                revenueKHR: 0,
+            },
+            pagination: {
+                page,
+                pageSize,
+                total,
+                pages: Math.ceil(total / pageSize),
+            },
         });
-    } catch (error: any) {
-        console.error("Payment Fetch Error:", error?.message || error);
-        return c.json({ error: "Failed to fetch payments" }, 500);
+    } catch (error) {
+        console.error("[Template Payment Review] Fetch error:", error);
+        return c.json({ error: "Failed to load template payment receipts" }, 500);
     }
 });
 
-adminMasterRouter.post('/payments', async (c) => {
+adminMasterRouter.get('/template-payments/:licenseId/history', async (c) => {
+    try {
+        const user = await getServerUser(c.req.raw);
+        if (!isAuthorizedMaster(user)) {
+            return c.json({ error: "Unauthorized" }, 401);
+        }
+
+        const licenseId = c.req.param("licenseId");
+        const license = await queryRaw<{ id: string }>(
+            'SELECT id FROM "TemplateLicense" WHERE id = $1 LIMIT 1',
+            licenseId,
+        );
+        if (!license.length) return c.json({ error: "Template license not found" }, 404);
+
+        const history = await queryRaw(`
+            SELECT id, action, details, "actorId", "actorName", "createdAt"
+            FROM "GovernanceLog"
+            WHERE details->>'licenseId' = $1
+              AND details->>'target' IN (
+                  'TEMPLATE_PAYMENT_RECEIPT',
+                  'TEMPLATE_LICENSE_ACCESS',
+                  'TEMPLATE_PAYMENT_CONFIRMED',
+                  'TEMPLATE_PAYMENT_RECEIPT_SUBMITTED'
+              )
+            ORDER BY "createdAt" DESC
+            LIMIT 100
+        `, licenseId);
+
+        return c.json({ history });
+    } catch (error) {
+        console.error("[Template License History] Fetch error:", error);
+        return c.json({ error: "Failed to load template license history" }, 500);
+    }
+});
+
+adminMasterRouter.patch('/template-payments/:licenseId', async (c) => {
     try {
         const user = await getServerUser(c.req.raw);
         if (!isAuthorizedMaster(user)) {
@@ -1059,85 +1211,141 @@ adminMasterRouter.post('/payments', async (c) => {
         }
 
         const parsed = z.object({
-            weddingId: z.string().min(1),
-            status: z.enum(["PAID", "REJECTED"]),
-            packageType: z.enum(["PRO", "PREMIUM"]).optional(),
-        }).safeParse(await c.req.json());
-        if (!parsed.success) return c.json({ error: "Invalid payment review request" }, 400);
-        const { weddingId, status, packageType } = parsed.data;
-
-        const currentWeddings = await queryRaw('SELECT * FROM "Wedding" WHERE id = $1 LIMIT 1', weddingId);
-        const currentWedding = currentWeddings[0];
-        if (!currentWedding) return c.json({ error: "Wedding not found" }, 404);
-        if (!["PENDING", "AWAITING_VERIFICATION", "PAID"].includes(currentWedding.paymentStatus)) {
-            return c.json({ error: "Payment request is no longer available for review" }, 409);
-        }
-        const approvedPackage = packageType || currentWedding.packageType;
-        if (status === "PAID" && !["PRO", "PREMIUM"].includes(approvedPackage)) {
-            return c.json({ error: "Wedding does not have a valid upgrade package to approve" }, 409);
+            decision: z.enum(["APPROVED", "REJECTED"]).optional(),
+            licenseAction: z.enum(["ACTIVATE", "DEACTIVATE"]).optional(),
+        }).refine((value) => Number(Boolean(value.decision)) + Number(Boolean(value.licenseAction)) === 1)
+            .safeParse(await c.req.json());
+        if (!parsed.success) {
+            return c.json({ error: "Invalid template payment review decision" }, 400);
         }
 
-        let retries = 3;
-        const weddingStatus = 'ACTIVE';
-        const finalPackage = status === 'PAID' ? approvedPackage : 'FREE';
-        const finalPaymentStatus = status;
-        const paymentRejectedAt = status === 'REJECTED' ? new Date() : null;
-        const finalPaymentInfo = currentWedding.paymentInfo;
-        const expectedUpdatedAt = currentWedding.updatedAt;
-        const receiptArchiveId = crypto.randomUUID();
-        let updated = false;
-
-        while (retries > 0) {
-            try {
-                const changedRows = await queryRaw<{ id: string }>(`
-                    WITH changed AS (
-                        UPDATE "Wedding"
-                        SET "paymentStatus" = $1, "status" = $2, "packageType" = $3, "paymentInfo" = $4,
-                            "paymentRejectedAt" = $5, "updatedAt" = NOW()
-                        WHERE "id" = $6
-                          AND "paymentStatus" = $7::"PaymentStatus"
-                          AND "packageType" = $8::"PackageType"
-                          AND "updatedAt" = $9
-                        RETURNING id, "paymentInfo"
-                    ),
-                    archived AS (
-                        INSERT INTO "RejectedPaymentReceipt" ("id", "weddingId", "receiptUrl", "rejectedAt")
-                        SELECT $10, id, "paymentInfo", $5
-                        FROM changed
-                        WHERE $5 IS NOT NULL
-                          AND "paymentInfo" LIKE 'https://res.cloudinary.com/%'
-                        RETURNING id
-                    )
-                    SELECT id FROM changed
-                `, finalPaymentStatus, weddingStatus, finalPackage, finalPaymentInfo, paymentRejectedAt, weddingId, currentWedding.paymentStatus, currentWedding.packageType, expectedUpdatedAt, receiptArchiveId);
-                if (changedRows.length === 0) {
-                    return c.json({ error: "Payment request changed while it was being reviewed. Refresh and try again." }, 409);
-                }
-                updated = true;
-                break;
-            } catch (err: any) {
-                retries--;
-                if (retries === 0) throw err;
-                await new Promise(r => setTimeout(r, 1000));
+        const { decision, licenseAction } = parsed.data;
+        const licenseId = c.req.param("licenseId");
+        if (licenseAction) {
+            const current = await queryRaw<{
+                id: string;
+                weddingId: string;
+                templateId: string;
+                status: string;
+                receiptReviewStatus: string | null;
+                bakongTrxId: string | null;
+            }>(`
+                SELECT id, "weddingId", "templateId", status, "receiptReviewStatus", "bakongTrxId"
+                FROM "TemplateLicense"
+                WHERE id = $1
+                LIMIT 1
+            `, licenseId);
+            if (!current.length) return c.json({ error: "Template license not found" }, 404);
+            if (current[0].receiptReviewStatus === "PENDING") {
+                return c.json({ error: "Review the pending receipt before changing license access" }, 409);
             }
+            if (licenseAction === "ACTIVATE"
+                && current[0].receiptReviewStatus !== "APPROVED"
+                && !current[0].bakongTrxId) {
+                return c.json({ error: "A verified payment is required before activating this template license" }, 409);
+            }
+            if (!["ACTIVE", "INACTIVE"].includes(current[0].status)) {
+                return c.json({ error: "Expired template licenses cannot be changed" }, 409);
+            }
+            const nextStatus = licenseAction === "ACTIVATE" ? "ACTIVE" : "INACTIVE";
+            if (current[0].status === nextStatus) {
+                return c.json({ error: `Template license is already ${nextStatus.toLowerCase()}` }, 409);
+            }
+            const changed = await queryRaw(`
+                UPDATE "TemplateLicense"
+                SET status = $1::"TemplateLicenseStatus", "updatedAt" = NOW()
+                WHERE id = $2
+                  AND status = $3::"TemplateLicenseStatus"
+                  AND COALESCE("receiptReviewStatus", '') <> 'PENDING'
+                RETURNING id, "weddingId", "templateId", status, "receiptReviewStatus"
+            `, nextStatus, licenseId, current[0].status);
+            if (!changed.length) {
+                return c.json({ error: "Template license changed while it was being updated. Refresh and try again." }, 409);
+            }
+            await SystemGovernance.logAction(
+                user?.userId || user?.id || "admin",
+                user?.name || user?.email || "Platform Owner",
+                GOVERNANCE_ACTIONS.CONFIG_UPDATE,
+                {
+                    target: "TEMPLATE_LICENSE_ACCESS",
+                    licenseId,
+                    weddingId: current[0].weddingId,
+                    templateId: current[0].templateId,
+                    action: licenseAction,
+                },
+            );
+            return c.json({ success: true, license: changed[0] });
         }
-        if (!updated) return c.json({ error: "Failed to update payment review" }, 500);
+        if (!decision) return c.json({ error: "A receipt decision or license action is required" }, 400);
+        const updated = await queryRaw(`
+            UPDATE "TemplateLicense"
+            SET
+                "receiptReviewStatus" = $1,
+                "receiptReviewedAt" = NOW(),
+                status = CASE WHEN $1 = 'APPROVED' THEN 'ACTIVE'::"TemplateLicenseStatus" ELSE status END,
+                "purchaseDate" = CASE WHEN $1 = 'APPROVED' AND status = 'INACTIVE' THEN NOW() ELSE "purchaseDate" END,
+                "publishedAt" = CASE WHEN $1 = 'APPROVED' AND status = 'INACTIVE' THEN NOW() ELSE "publishedAt" END,
+                "updatedAt" = NOW()
+            WHERE id = $2
+              AND status IN ('INACTIVE', 'ACTIVE')
+              AND "receiptReviewStatus" = 'PENDING'
+              AND "receiptUrl" IS NOT NULL
+            RETURNING id, "weddingId", "templateId", "paymentOrderId", amount, currency, status, "receiptReviewStatus"
+        `, decision, licenseId);
 
-        const updatedWeddings = await queryRaw('SELECT * FROM "Wedding" WHERE id = $1 LIMIT 1', weddingId);
-        const updatedWedding = updatedWeddings[0];
+        if (!updated.length) {
+            const current = await queryRaw<{
+                status: string;
+                receiptReviewStatus: string | null;
+                receiptUrl: string | null;
+            }>(`
+                SELECT status, "receiptReviewStatus", "receiptUrl"
+                FROM "TemplateLicense"
+                WHERE id = $1
+                LIMIT 1
+            `, licenseId);
+            if (!current.length) return c.json({ error: "Template license not found" }, 404);
+            if (current[0].receiptReviewStatus !== "PENDING") {
+                return c.json({ error: "Receipt is no longer pending review" }, 409);
+            }
+            if (!current[0].receiptUrl) {
+                return c.json({ error: "The pending receipt has no image to review" }, 409);
+            }
+            if (current[0].status === "EXPIRED") {
+                return c.json({ error: "This license has expired; the purchase must be restarted before reviewing payment" }, 409);
+            }
+            return c.json({ error: "Receipt review could not be saved because the license changed. Refresh and try again." }, 409);
+        }
 
-        const currentUserId = user?.userId || user?.id || "admin";
         await SystemGovernance.logAction(
-            currentUserId,
+            user?.userId || user?.id || "admin",
             user?.name || user?.email || "Platform Owner",
             GOVERNANCE_ACTIONS.CONFIG_UPDATE,
-            { target: "WEDDING_PAYMENT", weddingId, packageType: finalPackage, status: finalPaymentStatus, action: status }
+            {
+                target: "TEMPLATE_PAYMENT_RECEIPT",
+                licenseId,
+                weddingId: updated[0].weddingId,
+                templateId: updated[0].templateId,
+                decision,
+            },
         );
 
-        return c.json(updatedWedding || { success: true });
-    } catch (error: any) {
-        console.error("Payment Verification Error:", error?.message || error);
-        return c.json({ error: "Failed to verify payment" }, 500);
+        void notifyTelegramLifecycle({
+            event: "TEMPLATE_RECEIPT_REVIEWED",
+            dedupKey: `template-receipt-review:${licenseId}:${decision}`,
+            weddingId: updated[0].weddingId,
+            orderId: updated[0].paymentOrderId || null,
+            templateId: updated[0].templateId,
+            amount: Number(updated[0].amount),
+            currency: updated[0].currency,
+            decision,
+            actorName: user?.name || user?.email || "Platform Owner",
+        }, { env: c.env });
+
+        return c.json({ success: true, license: updated[0] });
+    } catch (error) {
+        console.error("[Template Payment Review] Update error:", error);
+        return c.json({ error: "Failed to update template payment review" }, 500);
     }
 });
 
@@ -1279,7 +1487,8 @@ adminMasterRouter.get('/maintenance/tasks', async (c) => {
                     usedFormatted: dbSizeFormatted,
                     maxQuotaMB: maxQuotaMB,
                     freeMB: Number(freeMB.toFixed(2)),
-                    usagePercent: Number(usagePercent.toFixed(1))
+                    usagePercent: Number(usagePercent.toFixed(1)),
+                    isLiveAPI: true
                 },
                 cloudinary: {
                     usedBytes: realCloudinaryStorageBytes,
@@ -1768,11 +1977,6 @@ adminMasterRouter.get('/analytics', async (c) => {
             return c.json({ error: "Forbidden" }, 403);
         }
 
-        const configs = await queryRaw('SELECT "stadPrice", "proPrice" FROM "SystemConfig" LIMIT 1');
-        const config = configs[0] || null;
-        const stadPrice = Number(config?.stadPrice) || 9;
-        const proPrice = Number(config?.proPrice) || 19;
-
         const weddingsByMonth: any[] = await prisma.$queryRaw`
             SELECT to_char("createdAt", 'YYYY-MM') as month, COUNT(*)::int as count 
             FROM "Wedding" 
@@ -1780,11 +1984,7 @@ adminMasterRouter.get('/analytics', async (c) => {
             ORDER BY month ASC 
             LIMIT 12
         `;
-
-        const packageDist = await prisma.wedding.groupBy({
-            by: ['packageType'],
-            _count: true
-        });
+        const totalWeddings = await prisma.wedding.count();
 
         const giftTotals: any[] = await prisma.$queryRaw`
             SELECT currency, COALESCE(SUM(amount), 0)::float as total, COUNT(*)::int as count
@@ -1801,34 +2001,42 @@ adminMasterRouter.get('/analytics', async (c) => {
             }
         }
 
-        let totalPlanRevenue = 0;
-        let proCount = 0;
-        let premiumCount = 0;
-        let freeCount = 0;
-        for (const p of packageDist) {
-            if (p.packageType === 'PRO') {
-                proCount = p._count;
-                totalPlanRevenue += p._count * stadPrice;
-            } else if (p.packageType === 'PREMIUM') {
-                premiumCount = p._count;
-                totalPlanRevenue += p._count * proPrice;
-            } else {
-                freeCount = p._count;
+        const templateLicenseRevenue: any[] = await prisma.$queryRaw`
+            SELECT
+                currency,
+                COALESCE(SUM(amount), 0)::float as total,
+                COUNT(*)::int as count
+            FROM "TemplateLicense"
+            WHERE status = 'ACTIVE' AND amount > 0
+            GROUP BY currency
+        `;
+
+        let templateRevenueUSD = 0;
+        let templateRevenueKHR = 0;
+        let templateSalesCount = 0;
+
+        if (Array.isArray(templateLicenseRevenue)) {
+            for (const t of templateLicenseRevenue) {
+                if (t.currency === 'USD') {
+                    templateRevenueUSD = t.total || 0;
+                    templateSalesCount += t.count || 0;
+                }
+                if (t.currency === 'KHR') {
+                    templateRevenueKHR = t.total || 0;
+                    templateSalesCount += t.count || 0;
+                }
             }
         }
 
         return c.json({
             weddingsByMonth: weddingsByMonth || [],
-            packageDist: packageDist || [],
-            pricing: { standard: stadPrice, pro: proPrice },
             summary: {
-                totalPlanRevenue,
+                templateRevenueUSD,
+                templateRevenueKHR,
+                templateSalesCount,
                 usdGifts,
                 khrGifts,
-                proCount,
-                premiumCount,
-                freeCount,
-                totalWeddings: proCount + premiumCount + freeCount
+                totalWeddings
             }
         });
     } catch (error: any) {

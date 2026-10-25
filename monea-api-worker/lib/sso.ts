@@ -15,8 +15,8 @@ const getAppUrl = (req?: Request) => {
         return process.env.NEXT_PUBLIC_APP_URL;
     }
     
-    // Fallback to Cloudflare Pages deployment
-    return 'https://monea-webapp.pages.dev';
+    // Production frontend uses the canonical domain.
+    return 'https://moneoez.com';
 };
 
 export const getRedirectUri = (req?: Request) => {

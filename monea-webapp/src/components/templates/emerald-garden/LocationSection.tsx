@@ -36,6 +36,7 @@ export const LocationSection: React.FC<LocationSectionProps> = ({ wedding, prima
                                 src={locationPhoto}
                                 alt="រូបភាពទីតាំងប្រារព្ធពិធី"
                                 className="h-full w-full object-cover"
+                                sizes="(max-width: 640px) 50vw, 400px"
                                 loading="lazy"
                             />
                         </div>

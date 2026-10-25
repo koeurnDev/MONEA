@@ -55,13 +55,13 @@ export const LetterSection = ({ wedding, guestName }: { wedding: WeddingData; gu
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8 }}
                     viewport={{ once: true }}
-                    className="relative mx-auto max-w-4xl space-y-7 px-5 py-10 sm:space-y-8 sm:px-12 sm:py-14 md:px-16 md:py-16"
+                    className="relative mx-auto max-w-4xl space-y-7 px-2 py-10 sm:space-y-8 sm:px-8 sm:py-14 md:px-12 md:py-16"
                 >
                     <div className="space-y-3 sm:space-y-4">
                         <div className="text-[10px] font-kantumruy uppercase tracking-[0.28em] text-[#827a68] sm:text-xs">
                             Invitation
                         </div>
-                        <h3 className="whitespace-nowrap font-khmer-moul text-[clamp(14px,3.5vw,36px)] leading-relaxed text-[#37352f]">
+                        <h3 className="mx-auto max-w-full break-words text-balance font-khmer-moul text-[clamp(14px,3.5vw,36px)] leading-relaxed text-[#37352f]">
                             សិរីសួស្តី អាពាហ៍ពិពាហ៍
                         </h3>
                     </div>
@@ -70,16 +70,32 @@ export const LetterSection = ({ wedding, guestName }: { wedding: WeddingData; gu
                         <div className="mx-auto grid w-full max-w-xl grid-cols-2 gap-3 text-center sm:gap-5">
                             {(groomFather || groomMother) && (
                                 <div className="space-y-1 border-y border-[#cfc5af] px-2 py-4">
-                                    <h5 className="mb-2 whitespace-nowrap font-khmer-moul text-[clamp(9px,3vw,14px)] text-[#77613a]">មាតាបិតាខាងកូនកំលោះ</h5>
-                                    {groomFather && <p className="text-xs leading-relaxed text-[#4a473f] sm:text-sm">ឪពុក៖ {groomFather}</p>}
-                                    {groomMother && <p className="text-xs leading-relaxed text-[#4a473f] sm:text-sm">ម្តាយ៖ {groomMother}</p>}
+                                    <h5 className="mb-2 break-words font-khmer-moul text-[clamp(9px,3vw,14px)] leading-relaxed text-[#77613a]">មាតាបិតាខាងកូនកំលោះ</h5>
+                                    {groomFather && (
+                                        <p className="w-full min-w-0 text-xs leading-relaxed text-[#4a473f] sm:text-sm">
+                                            <OneLineName name={`ឪពុក៖ ${groomFather}`} className="font-kantumruy" />
+                                        </p>
+                                    )}
+                                    {groomMother && (
+                                        <p className="w-full min-w-0 text-xs leading-relaxed text-[#4a473f] sm:text-sm">
+                                            <OneLineName name={`ម្តាយ៖ ${groomMother}`} className="font-kantumruy" />
+                                        </p>
+                                    )}
                                 </div>
                             )}
                             {(brideFather || brideMother) && (
                                 <div className={`space-y-1 border-y border-[#cfc5af] px-2 py-4 ${!groomFather && !groomMother ? "col-start-2" : ""}`}>
-                                    <h5 className="mb-2 whitespace-nowrap font-khmer-moul text-[clamp(9px,3vw,14px)] text-[#77613a]">មាតាបិតាខាងកូនក្រមុំ</h5>
-                                    {brideFather && <p className="text-xs leading-relaxed text-[#4a473f] sm:text-sm">ឪពុក៖ {brideFather}</p>}
-                                    {brideMother && <p className="text-xs leading-relaxed text-[#4a473f] sm:text-sm">ម្តាយ៖ {brideMother}</p>}
+                                    <h5 className="mb-2 break-words font-khmer-moul text-[clamp(9px,3vw,14px)] leading-relaxed text-[#77613a]">មាតាបិតាខាងកូនក្រមុំ</h5>
+                                    {brideFather && (
+                                        <p className="w-full min-w-0 text-xs leading-relaxed text-[#4a473f] sm:text-sm">
+                                            <OneLineName name={`ឪពុក៖ ${brideFather}`} className="font-kantumruy" />
+                                        </p>
+                                    )}
+                                    {brideMother && (
+                                        <p className="w-full min-w-0 text-xs leading-relaxed text-[#4a473f] sm:text-sm">
+                                            <OneLineName name={`ម្តាយ៖ ${brideMother}`} className="font-kantumruy" />
+                                        </p>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -89,16 +105,16 @@ export const LetterSection = ({ wedding, guestName }: { wedding: WeddingData; gu
 
                     {/* Letter Body */}
                     <div className="mx-auto flex max-w-3xl flex-col gap-5 font-kantumruy text-sm leading-8 text-[#4a473f] sm:gap-7 sm:text-base sm:leading-9">
-                        <p className="mx-auto max-w-3xl border-y border-[#cfc5af] px-3 py-5 text-center text-xs font-medium leading-7 text-[#77613a] sm:px-6 sm:py-6 sm:text-sm sm:leading-8">
+                        <p className="mx-auto w-full max-w-none border-y border-[#cfc5af] px-1 py-4 text-center font-suwannaphum text-base font-medium leading-[1.9] text-[#77613a] sm:px-4 sm:py-5 sm:text-lg sm:leading-[1.9]">
                             មានកិត្តិយសសូមគោរពអញ្ជើញ{" "}
-                            <strong className="font-khmer-moul text-sm font-normal text-[#37352f] sm:text-base">
+                            <strong className="font-khmer-moul text-base font-normal text-[#37352f] sm:text-lg">
                                 {guestName || wedding.guestName || "ឯកឧត្តម លោកជំទាវ លោក លោកស្រី អ្នកនាងកញ្ញា"}
                             </strong>{" "}
                             អញ្ជើញចូលរួមជាអធិបតី ដើម្បីប្រសិទ្ធពរជ័យសិរីសួស្តី ជ័យមង្គល ក្នុងពិធីរៀបអាពាហ៍ពិពាហ៍កូនប្រុស-កូនស្រីរបស់យើងខ្ញុំ
                         </p>
 
                         {/* Perfectly Aligned Couple Portraits Grid */}
-                        <div className="mx-auto grid w-full max-w-xl grid-cols-[1fr_auto_1fr] items-start justify-center gap-2 py-3 sm:gap-4 sm:py-5 md:gap-8">
+                        <div className="mx-auto grid w-full max-w-xl grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-start justify-center gap-2 py-3 sm:gap-4 sm:py-5 md:gap-8">
                             {/* Groom Column */}
                             <div className="flex flex-col items-center text-center space-y-1.5 min-w-0">
                                 {groomPhoto && <div
@@ -117,7 +133,7 @@ export const LetterSection = ({ wedding, guestName }: { wedding: WeddingData; gu
                                 <span className="block pt-1 font-kantumruy text-[10px] font-bold text-[#827a68] sm:text-xs">
                                     កូនប្រុសនាម
                                 </span>
-                                <h4 className="m05-font-name max-w-full whitespace-nowrap px-1 font-khmer-muol text-sm font-normal leading-normal text-[#37352f] sm:text-base md:text-xl">
+                                <h4 className="m05-font-name w-full min-w-0 max-w-full overflow-hidden whitespace-nowrap px-1 font-khmer-muol text-base font-normal leading-normal text-[#37352f] sm:text-lg md:text-xl">
                                     <OneLineName name={wedding.groomName} />
                                 </h4>
                             </div>
@@ -145,7 +161,7 @@ export const LetterSection = ({ wedding, guestName }: { wedding: WeddingData; gu
                                 <span className="block pt-1 font-kantumruy text-[10px] font-bold text-[#827a68] sm:text-xs">
                                     កូនស្រីនាម
                                 </span>
-                                <h4 className="m05-font-name max-w-full whitespace-nowrap px-1 font-khmer-muol text-sm font-normal leading-normal text-[#37352f] sm:text-base md:text-xl">
+                                <h4 className="m05-font-name w-full min-w-0 max-w-full overflow-hidden whitespace-nowrap px-1 font-khmer-muol text-base font-normal leading-normal text-[#37352f] sm:text-lg md:text-xl">
                                     <OneLineName name={wedding.brideName} />
                                 </h4>
                             </div>
@@ -153,7 +169,7 @@ export const LetterSection = ({ wedding, guestName }: { wedding: WeddingData; gu
 
                         <div className="mx-auto h-px w-16 bg-[#b9ad93]" />
 
-                        <p className="mx-auto max-w-xl text-center text-sm leading-8 text-[#4a473f] sm:leading-9">
+                        <p className="mx-auto w-full max-w-none px-0 text-center font-suwannaphum text-[13px] leading-[1.8] text-[#4a473f] sm:px-2 sm:text-base sm:leading-[1.9]">
                             {wedding.themeSettings?.invitationText || "យើងខ្ញុំសូមថ្លែងអំណរគុណយ៉ាងជ្រាលជ្រៅបំផុត ចំពោះវត្តមានដ៏ឧត្តុង្គឧត្តមរបស់លោកអ្នក ដែលបានចំណាយពេលវេលាដ៏មានតម្លៃចូលរួមក្នុងថ្ងៃមង្គលរបស់យើងខ្ញុំ។"}
                         </p>
 

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { LayoutGrid, Loader2, Pencil, Save, X } from "lucide-react";
+import { DollarSign, Eye, LayoutGrid, Loader2, Pencil, Save, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/Toast";
@@ -8,6 +8,7 @@ import { TEMPLATE_DEFINITIONS } from "@/components/templates/template-config";
 import type { TemplatePresentationMetadata } from "@/components/templates/template-config";
 import ImageUploadWidget from "@/components/ui/image-upload-widget";
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 type Availability = Record<string, boolean>;
 type TemplateMetadata = Record<string, TemplatePresentationMetadata>;
@@ -110,9 +111,15 @@ export default function TemplateAvailabilityPage() {
                 <div className="min-w-0">
                     <h1 className="text-xl font-black text-foreground sm:text-2xl">គ្រប់គ្រង Template</h1>
                     <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted-foreground sm:text-sm">
-                        បើក ឬបិទ template សម្រាប់ការជ្រើសរើសថ្មី។ ការបិទមិនប៉ះពាល់ដល់ invitation ដែលកំពុងប្រើ template នោះទេ។
+                        គ្រប់គ្រងព័ត៌មាន រូបភាព សិទ្ធិប្រើប្រាស់ និងតម្លៃរបស់ Template នៅទីនេះ។
                     </p>
                 </div>
+                <Button asChild variant="outline" className="ml-auto shrink-0 gap-2">
+                    <Link to="/admin/master/template-pricing">
+                        <DollarSign className="h-4 w-4" />
+                        តម្លៃ និងបញ្ចុះតម្លៃ
+                    </Link>
+                </Button>
             </header>
 
             {loading ? (
@@ -157,7 +164,7 @@ export default function TemplateAvailabilityPage() {
                                                 </p>
                                             </div>
                                         </div>
-                                        <div className="flex w-full shrink-0 items-center justify-between gap-3 border-t pt-3 sm:w-auto sm:justify-end sm:border-0 sm:pt-0">
+                                        <div className="flex w-full shrink-0 items-center justify-between gap-2 border-t pt-3 sm:w-auto sm:justify-end sm:border-0 sm:pt-0">
                                             <div className="flex items-center gap-2">
                                                 {busy && <Loader2 aria-label="កំពុងរក្សាទុក" className="h-4 w-4 animate-spin text-muted-foreground" />}
                                                 <Switch
@@ -167,6 +174,12 @@ export default function TemplateAvailabilityPage() {
                                                     aria-label={`${enabled ? "បិទ" : "បើក"} ${details?.title || template.title}`}
                                                 />
                                             </div>
+                                            <Button asChild type="button" variant="outline" size="sm" className="h-9 px-3">
+                                                <Link to={`/dashboard/design?templatePreview=${encodeURIComponent(template.id)}`}>
+                                                    <Eye className="h-3.5 w-3.5 sm:mr-2" />
+                                                    <span className="hidden sm:inline">កែ Demo</span>
+                                                </Link>
+                                            </Button>
                                             {!isEditing && (
                                                 <Button
                                                     type="button"

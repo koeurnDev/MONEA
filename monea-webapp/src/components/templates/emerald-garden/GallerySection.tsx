@@ -48,6 +48,9 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ wedding, primary
                                 src={photo.url}
                                 alt={`Photo ${idx + 1}`}
                                 className="h-full w-full object-cover"
+                                sizes={galleryStyle === "slider"
+                                    ? "(max-width: 640px) 82vw, 60vw"
+                                    : "(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 400px"}
                                 loading="lazy"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity flex items-end p-2.5">
@@ -85,6 +88,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ wedding, primary
                                 src={photos[selectedPhoto].url}
                                 alt="Enlarged moment"
                                 className="max-w-full max-h-[80vh] object-contain rounded-2xl shadow-2xl"
+                                sizes="(max-width: 768px) 100vw, 800px"
                             />
                         </div>
                     </motion.div>

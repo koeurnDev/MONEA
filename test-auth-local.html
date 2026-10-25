@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Test - Monea</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #555;
+            margin-top: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-left: 4px solid #007bff;
+            border-radius: 4px;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px 0;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status-200 { background: #28a745; color: white; }
+        .status-401 { background: #dc3545; color: white; }
+        .status-428 { background: #ffc107; color: black; }
+        .status-other { background: #6c757d; color: white; }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Authentication Test Tool</h1>
+        <p>Test the authentication fixes for the 401 error issue.</p>
+
+        <div class="test-section">
+            <h2>1️⃣ Sign In Test</h2>
+            <p>Test the signin endpoint and token storage</p>
+            <input type="email" id="email" placeholder="Email" value="">
+            <input type="password" id="password" placeholder="Password" value="">
+            <button onclick="testSignIn()">Test Sign In</button>
+            <div id="signin-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>2️⃣ Test /me with Cookie</h2>
+            <p>Test the /me endpoint using cookies (preferred method)</p>
+            <button onclick="testMeWithCookie()">Test /me with Cookie</button>
+            <div id="me-cookie-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>3️⃣ Test /me with Authorization Header</h2>
+            <p>Test the /me endpoint using Bearer token (fallback method)</p>
+            <button onclick="testMeWithToken()" id="token-btn" disabled>Test /me with Token</button>
+            <div id="me-token-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>4️⃣ Check Storage</h2>
+            <p>Verify token is stored in sessionStorage</p>
+            <button onclick="checkStorage()">Check Storage</button>
+            <div id="storage-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>5️⃣ Check Cookies</h2>
+            <p>Check cookie attributes (Note: HttpOnly cookies won't be visible in document.cookie)</p>
+            <button onclick="checkCookies()">Check Cookies</button>
+            <div id="cookie-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>6️⃣ Clear All</h2>
+            <p>Clear stored token and sign out</p>
+            <button onclick="clearAll()">Clear Storage & Sign Out</button>
+            <div id="clear-result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://api.moneoez.com';
+        let storedToken = null;
+
+        function showResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.className = `result ${type}`;
+            element.textContent = message;
+        }
+
+        async function testSignIn() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (!email || !password) {
+                showResult('signin-result', '❌ Please enter email and password', 'error');
+                return;
+            }
+
+            showResult('signin-result', '⏳ Signing in...', 'info');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/signin`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.token) {
+                    storedToken = data.token;
+                    sessionStorage.setItem('auth_token', data.token);
+                    document.getElementById('token-btn').disabled = false;
+                    
+                    showResult('signin-result', 
+                        `✅ Sign in successful!\n\nStatus: ${response.status}\n` +
+                        `Token received: ${data.token.substring(0, 50)}...\n` +
+                        `User: ${JSON.stringify(data.user, null, 2)}\n\n` +
+                        `Token stored in sessionStorage ✓`,
+                        'success'
+                    );
+                } else {
+                    showResult('signin-result', 
+                        `❌ Sign in failed\n\nStatus: ${response.status}\n` +
+                        `Response: ${JSON.stringify(data, null, 2)}`,
+                        'error'
+                    );
+                }
+            } catch (error) {
+                showResult('signin-result', 
+                    `❌ Network error\n\n${error.message}`,
+                    'error'
+                );
+            }
+        }
+
+        async function testMeWithCookie() {
+            showResult('me-cookie-result', '⏳ Testing /me with cookies...', 'info');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/me`, {
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+                const type = response.ok ? 'success' : 'error';
+                
+                showResult('me-cookie-result', 
+                    `${response.ok ? '✅' : '❌'} /me with Cookie\n\n` +
+                    `Status: ${response.status}\n` +
+                    `Response: ${JSON.stringify(data, null, 2)}\n\n` +
+                    `${response.ok ? 'Cookie authentication working ✓' : 'Cookie authentication failed ✗'}`,
+                    type
+                );
+            } catch (error) {
+                showResult('me-cookie-result', 
+                    `❌ Network error\n\n${error.message}`,
+                    'error'
+                );
+            }
+        }
+
+        async function testMeWithToken() {
+            const token = sessionStorage.getItem('auth_token') || storedToken;
+            
+            if (!token) {
+                showResult('me-token-result', '❌ No token found. Sign in first.', 'error');
+                return;
+            }
+
+            showResult('me-token-result', '⏳ Testing /me with Authorization header...', 'info');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/me`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+                const type = response.ok ? 'success' : 'error';
+                
+                showResult('me-token-result', 
+                    `${response.ok ? '✅' : '❌'} /me with Authorization Header\n\n` +
+                    `Status: ${response.status}\n` +
+                    `Token: ${token.substring(0, 50)}...\n` +
+                    `Response: ${JSON.stringify(data, null, 2)}\n\n` +
+                    `${response.ok ? 'Bearer token authentication working ✓' : 'Bearer token authentication failed ✗'}`,
+                    type
+                );
+            } catch (error) {
+                showResult('me-token-result', 
+                    `❌ Network error\n\n${error.message}`,
+                    'error'
+                );
+            }
+        }
+
+        function checkStorage() {
+            try {
+                const token = sessionStorage.getItem('auth_token');
+                
+                if (token) {
+                    showResult('storage-result', 
+                        `✅ Token found in sessionStorage\n\n` +
+                        `Token: ${token.substring(0, 100)}...\n` +
+                        `Length: ${token.length} characters\n\n` +
+                        `Fallback authentication available ✓`,
+                        'success'
+                    );
+                    storedToken = token;
+                    document.getElementById('token-btn').disabled = false;
+                } else {
+                    showResult('storage-result', 
+                        `⚠️ No token in sessionStorage\n\n` +
+                        `Sign in first to store a token.`,
+                        'info'
+                    );
+                }
+            } catch (error) {
+                showResult('storage-result', 
+                    `❌ Could not access sessionStorage\n\n${error.message}`,
+                    'error'
+                );
+            }
+        }
+
+        function checkCookies() {
+            const cookies = document.cookie;
+            
+            showResult('cookie-result', 
+                `📋 Document Cookies (non-HttpOnly only):\n\n` +
+                `${cookies || '(empty)'}\n\n` +
+                `⚠️ Note: HttpOnly cookies (like 'token') won't appear here.\n` +
+                `Check DevTools → Application → Cookies → api.moneoez.com\n\n` +
+                `Expected cookie attributes:\n` +
+                `- Name: token\n` +
+                `- HttpOnly: ✓\n` +
+                `- Secure: ✓\n` +
+                `- SameSite: None\n` +
+                `- Partitioned: ✗ (should NOT be present)`,
+                'info'
+            );
+        }
+
+        async function clearAll() {
+            showResult('clear-result', '⏳ Clearing storage and signing out...', 'info');
+
+            try {
+                // Clear sessionStorage
+                sessionStorage.removeItem('auth_token');
+                storedToken = null;
+                document.getElementById('token-btn').disabled = true;
+
+                // Call logout endpoint
+                await fetch(`${API_BASE}/api/auth/logout`, {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+
+                showResult('clear-result', 
+                    `✅ Cleanup complete\n\n` +
+                    `- Token removed from sessionStorage\n` +
+                    `- Logout endpoint called\n` +
+                    `- Cookies should be cleared\n\n` +
+                    `You can sign in again to test.`,
+                    'success'
+                );
+            } catch (error) {
+                showResult('clear-result', 
+                    `⚠️ Partial cleanup\n\n` +
+                    `sessionStorage cleared, but logout failed:\n${error.message}`,
+                    'info'
+                );
+            }
+        }
+
+        // Check for existing token on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const token = sessionStorage.getItem('auth_token');
+            if (token) {
+                storedToken = token;
+                document.getElementById('token-btn').disabled = false;
+                console.log('✅ Existing token found in sessionStorage');
+            }
+        });
+    </script>
+</body>
+</html>

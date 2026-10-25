@@ -40,18 +40,21 @@ export function formatCambodiaDate(date: Date | string | number, options?: Intl.
 export function getIP(req: Request | any): string {
   const headers = req instanceof Request ? req.headers : new Headers(req.headers);
   
-  // 1. Prioritize Trusted Cloudflare header if available
+  // Cloudflare overwrites this header at its edge; proxy-supplied headers below
+  // are only suitable as fallbacks outside production.
   const cf = headers.get("cf-connecting-ip");
   if (cf) return cf;
+
+  const isProduction =
+    process.env.NODE_ENV === "production" || process.env.ENVIRONMENT === "production";
+  if (isProduction) return "unknown";
   
-  // 2. Vercel/Standard Proxy header
+  // Local development can use common proxy headers when Cloudflare is absent.
   const xRealIp = headers.get("x-real-ip");
   if (xRealIp) return xRealIp;
 
-  // 3. Fallback to X-Forwarded-For (Validated/Parsed)
   const forwarded = headers.get("x-forwarded-for");
   if (forwarded) {
-    // Only take the first IP in the list to prevent spoofing
     const ips = forwarded.split(",").map(ip => ip.trim());
     if (ips[0]) return ips[0];
   }

@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { corsJsonResponse, corsOptionsResponse } from '@/lib/cors-utils';
 import * as nextRoute from '@/auth_handlers/signin/handler';
 
 const router = new Hono();
@@ -13,12 +14,13 @@ router.post('/', async (c) => {
   } catch (error: any) {
     console.error('[Hono Signin Route Error]:', error?.message || error);
     
-    return c.json(
+    return corsJsonResponse(
       {
         success: false,
         error: error?.message || 'Failed to process sign-in request',
       },
-      500
+      500,
+      c.req.raw
     );
   }
 });
@@ -29,11 +31,10 @@ router.options('/', async (c) => {
     if (typeof nextRoute.OPTIONS === 'function') {
       return await nextRoute.OPTIONS(c.req.raw);
     }
-    // Use c.body(null, 204) or c.status(204) for empty 204 No Content responses
-    return c.body(null, 204);
+    return corsOptionsResponse(c.req.raw);
   } catch (error: any) {
     console.error('[Hono Signin OPTIONS Error]:', error?.message || error);
-    return c.text('Internal Server Error', 500);
+    return corsJsonResponse({ error: 'Internal Server Error' }, 500, c.req.raw);
   }
 });
 

@@ -2,7 +2,7 @@ export async function sendPasswordResetEmail(email: string, token: string) {
     const isLocal = typeof process !== 'undefined' && process.env.NODE_ENV !== 'production';
     const appUrl = isLocal
         ? (process.env.VITE_APP_URL || "http://localhost:3001")
-        : (process.env.NEXT_PUBLIC_APP_URL || process.env.VITE_APP_URL || "https://monea-webapp.pages.dev");
+        : (process.env.NEXT_PUBLIC_APP_URL || process.env.VITE_APP_URL || "https://moneoez.com");
     const resetLink = `${appUrl}/reset-password?token=${token}`;
     
     return await sendMail({
@@ -77,4 +77,3 @@ export async function sendMail({ to, subject, text, html }: { to: string, subjec
         return { success: false, error: e.message };
     }
 }
-

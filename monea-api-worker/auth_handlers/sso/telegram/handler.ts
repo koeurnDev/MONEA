@@ -1,8 +1,16 @@
 import { createRemoteJWKSet, jwtVerify, type JWTPayload } from "jose";
 import { getPrisma } from "@/lib/prisma";
-import { getSecret, signToken, generateFingerprint, createExchangeTicket, getServerUser } from "@/lib/auth";
+import {
+    createOwnerMfaSetupCookies,
+    getSecret,
+    signToken,
+    generateFingerprint,
+    createExchangeTicket,
+    getServerUser,
+} from "@/lib/auth";
 import { ROLES } from "@/lib/constants";
 import { getIP } from "@/lib/utils";
+import { isRecord, readJsonBodyLimited } from "@/lib/read-json-body-limited";
 
 const TELEGRAM_ISSUER = "https://oauth.telegram.org";
 const TELEGRAM_AUTH_URL = `${TELEGRAM_ISSUER}/auth`;
@@ -10,6 +18,8 @@ const TELEGRAM_TOKEN_URL = `${TELEGRAM_ISSUER}/token`;
 const TELEGRAM_JWKS = createRemoteJWKSet(new URL(`${TELEGRAM_ISSUER}/.well-known/jwks.json`));
 const OIDC_STATE_TTL_SECONDS = 600;
 const OIDC_STATE_MAX_LENGTH = 240;
+const MAX_TELEGRAM_CALLBACK_BODY_BYTES = 4_096;
+const MAX_TELEGRAM_AUTHORIZATION_CODE_LENGTH = 2_048;
 const OIDC_STATE_CONTEXT = "monea-telegram-oidc";
 
 type TelegramIdToken = JWTPayload & {
@@ -193,28 +203,34 @@ export async function LINK(req: Request): Promise<Response> {
 }
 
 export async function CALLBACK(req: Request): Promise<Response> {
-    const fail = (error: string, status = 400) =>
-        Response.json({ success: false, error }, {
+    const fail = (error: string, status = 400, code?: string) =>
+        Response.json({ success: false, error, ...(code ? { code } : {}) }, {
             status,
             headers: { "Cache-Control": "no-store" },
         });
 
     try {
-        const body = await req.json() as {
-            code?: unknown;
-            state?: unknown;
-            verifier?: unknown;
-        };
-        if (typeof body.code !== "string" || typeof body.state !== "string" ||
-            typeof body.verifier !== "string") {
+        const parsedBody = await readJsonBodyLimited(req, MAX_TELEGRAM_CALLBACK_BODY_BYTES);
+        if (parsedBody.kind === "too_large") {
+            return fail("Telegram authorization response is too large.", 413);
+        }
+        if (parsedBody.kind !== "ok" || !isRecord(parsedBody.value)) {
+            return fail("Telegram authorization response is invalid.");
+        }
+
+        const { code, state: stateToken, verifier } = parsedBody.value;
+        if (typeof code !== "string" || code.length === 0 ||
+            code.length > MAX_TELEGRAM_AUTHORIZATION_CODE_LENGTH ||
+            typeof stateToken !== "string" || stateToken.length > OIDC_STATE_MAX_LENGTH ||
+            typeof verifier !== "string" || !/^[A-Za-z0-9_-]{43}$/.test(verifier)) {
             return fail("Telegram authorization response is incomplete.");
         }
 
-        const state = await verifyOidcState(body.state);
+        const state = await verifyOidcState(stateToken);
         if (!state) {
             return fail("Telegram authorization state is invalid.");
         }
-        if (await createCodeChallenge(body.verifier) !== state.codeChallenge) {
+        if (await createCodeChallenge(verifier) !== state.codeChallenge) {
             return fail("Telegram authorization verification failed.");
         }
 
@@ -237,10 +253,10 @@ export async function CALLBACK(req: Request): Promise<Response> {
             },
             body: new URLSearchParams({
                 grant_type: "authorization_code",
-                code: body.code,
+                code,
                 redirect_uri: redirectUri,
                 client_id: clientId,
-                code_verifier: body.verifier,
+                code_verifier: verifier,
             }),
             signal: AbortSignal.timeout(10_000),
         });
@@ -262,7 +278,7 @@ export async function CALLBACK(req: Request): Promise<Response> {
             maxTokenAge: "1h",
             clockTolerance: 60,
         });
-        if (!payload.sub || payload.nonce !== body.state) {
+        if (!payload.sub || payload.nonce !== stateToken) {
             console.error("[Telegram OIDC] ID token subject or nonce validation failed.");
             return fail("Telegram sign-in verification failed.");
         }
@@ -282,12 +298,12 @@ export async function CALLBACK(req: Request): Promise<Response> {
             user = await prisma.user.update({
                 where: { id: sessionUserId },
                 data: { telegramId },
-                select: { id: true, email: true, role: true, deletedAt: true },
+                select: { id: true, email: true, role: true, deletedAt: true, twoFactorEnabled: true },
             });
         } else {
             user = await prisma.user.findUnique({
                 where: { telegramId },
-                select: { id: true, email: true, role: true, deletedAt: true },
+                select: { id: true, email: true, role: true, deletedAt: true, twoFactorEnabled: true },
             });
             if (!user) {
                 const name = payload.name || (payload.preferred_username
@@ -301,7 +317,7 @@ export async function CALLBACK(req: Request): Promise<Response> {
                         avatar: payload.picture || null,
                         role: ROLES.EVENT_MANAGER,
                     },
-                    select: { id: true, email: true, role: true, deletedAt: true },
+                    select: { id: true, email: true, role: true, deletedAt: true, twoFactorEnabled: true },
                 });
             }
         }
@@ -314,6 +330,25 @@ export async function CALLBACK(req: Request): Promise<Response> {
             return Response.json({ success: true, linked: true }, {
                 headers: { "Cache-Control": "no-store" },
             });
+        }
+
+        if (user.role === ROLES.PLATFORM_OWNER && !user.twoFactorEnabled) {
+            const headers = new Headers({ "Cache-Control": "no-store" });
+            for (const cookie of await createOwnerMfaSetupCookies(req, user)) {
+                headers.append("Set-Cookie", cookie);
+            }
+            return new Response(JSON.stringify({ success: true, ownerMfaSetupRequired: true }), {
+                status: 200,
+                headers,
+            });
+        }
+
+        if (user.twoFactorEnabled) {
+            return fail(
+                "This account requires sign-in with a password and authenticator code.",
+                403,
+                "TWO_FACTOR_REQUIRED"
+            );
         }
 
         const ip = getIP(req);

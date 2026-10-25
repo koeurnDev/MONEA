@@ -10,7 +10,9 @@
     "worker:deploy": "wrangler deploy",
     "build": "tsc --noEmit",
     "test:admin-master": "node --experimental-strip-types --test scripts/admin-master-validation.test.mjs scripts/admin-master-status.integration.test.mjs scripts/template-availability.test.mjs",
-    "test:security-hardening": "node --experimental-strip-types --test scripts/auth-rate-limit.test.mjs",
+    "test:template-pricing": "node --experimental-strip-types --test scripts/template-pricing.test.mjs",
+    "test:security-hardening": "node --experimental-strip-types --test scripts/auth-rate-limit.test.mjs scripts/request-body-limited.test.mjs scripts/security-template-purchase-audit.test.mjs scripts/sso-mfa-contract.test.mjs scripts/signin-security-contract.test.mjs",
+    "test:r2-presign": "node --experimental-strip-types --test scripts/r2-presign.test.mjs",
     "preview": "vite preview",
     "lint": "tsc --noEmit",
     "postinstall": "prisma generate"

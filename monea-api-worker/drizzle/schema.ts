@@ -69,6 +69,21 @@ export const users = pgTable('User', {
   roleCreatedAtIdx: index('User_role_createdAt_idx').on(table.role, table.createdAt),
 }));
 
+export const userTemplateAccess = pgTable('UserTemplateAccess', {
+  id: text('id').primaryKey(),
+  userId: text('userId').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  templateId: text('templateId').notNull(),
+  grantedBy: text('grantedBy'),
+  revokedAt: timestamp('revokedAt'),
+  revokedBy: text('revokedBy'),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+}, (table) => ({
+  userIdTemplateIdUnique: uniqueIndex('UserTemplateAccess_userId_templateId_key').on(table.userId, table.templateId),
+  userIdRevokedAtIdx: index('UserTemplateAccess_userId_revokedAt_idx').on(table.userId, table.revokedAt),
+  templateIdIdx: index('UserTemplateAccess_templateId_idx').on(table.templateId),
+}));
+
 export const weddings = pgTable('Wedding', {
   id: text('id').primaryKey(),
   groomName: text('groomName').notNull(),
@@ -293,8 +308,43 @@ export const systemConfig = pgTable('SystemConfig', {
   bakongConfig: json('bakongConfig'),
   templateAvailability: jsonb('templateAvailability'),
   templateMetadata: jsonb('templateMetadata'),
+  templatePricing: jsonb('templatePricing'),
+  socialLinks: jsonb('socialLinks'),
+  phoneFrameColor: text('phoneFrameColor').default('black').notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
 });
+
+export const templateLicenseStatusEnum = pgEnum('TemplateLicenseStatus', ['ACTIVE', 'INACTIVE', 'EXPIRED']);
+
+export const templateLicenses = pgTable('TemplateLicense', {
+  id: text('id').primaryKey(),
+  weddingId: text('weddingId').notNull(),
+  templateId: text('templateId').notNull(),
+  status: templateLicenseStatusEnum('status').default('ACTIVE').notNull(),
+  purchaseDate: timestamp('purchaseDate').defaultNow().notNull(),
+  expiresAt: timestamp('expiresAt'),
+  publishedAt: timestamp('publishedAt'),
+  hostingExpiresAt: timestamp('hostingExpiresAt'),
+  paymentOrderId: text('paymentOrderId'),
+  paymentHash: text('paymentHash'),
+  paymentQr: text('paymentQr'),
+  bakongTrxId: text('bakongTrxId'),
+  receiptUrl: text('receiptUrl'),
+  receiptReference: text('receiptReference'),
+  receiptReviewStatus: text('receiptReviewStatus'),
+  receiptSubmittedAt: timestamp('receiptSubmittedAt'),
+  receiptReviewedAt: timestamp('receiptReviewedAt'),
+  amount: decimal('amount').notNull(),
+  currency: currencyEnum('currency').notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+}, (table) => ({
+  weddingIdIdx: index('TemplateLicense_weddingId_idx').on(table.weddingId),
+  templateIdIdx: index('TemplateLicense_templateId_idx').on(table.templateId),
+  statusIdx: index('TemplateLicense_status_idx').on(table.status),
+  weddingIdTemplateIdUnique: uniqueIndex('TemplateLicense_weddingId_templateId_key').on(table.weddingId, table.templateId),
+  expiresAtIdx: index('TemplateLicense_expiresAt_idx').on(table.expiresAt),
+}));
 
 export const broadcasts = pgTable('Broadcast', {
   id: text('id').primaryKey(),

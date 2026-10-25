@@ -15,8 +15,7 @@ let cachedDbUrl = "";
  *   P2023 Inconsistent column data: Conversion failed:
  *   expected a string in column 'updatedAt', found {}
  *
- * That broke `/api/pricing` (which masks the failure by falling back to
- * hard-coded prices), `/api/system/maintenance`, payments, guests, weddings and
+ * That broke the legacy package-pricing route, `/api/system/maintenance`, payments, guests, weddings and
  * every admin list. `neon()` in @neondatabase/serverless 0.10.x ignores a
  * client-level `types` option, so the parser map is injected per call instead.
  */

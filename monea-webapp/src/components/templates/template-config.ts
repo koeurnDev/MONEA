@@ -90,7 +90,7 @@ const STANDARD_VISIBILITY_CONTROLS = ["story", "gallery", "timeline", "guestbook
 
 export const TEMPLATE_DEFINITIONS = {
     "khmer-legacy": {
-        code: "M-01",
+        code: "M1",
         id: "khmer-legacy",
         title: "Khmer Legacy",
         description: "រចនាបែបប្រពៃណីខ្មែរ សម្រាប់ពិធីមង្គលការ និងភ្ជាប់ពាក្យ",
@@ -104,21 +104,21 @@ export const TEMPLATE_DEFINITIONS = {
         component: lazy(() => import("./KhmerLegacy")),
     },
     "modern-minimal": {
-        code: "M-02",
+        code: "M2",
         id: "modern-minimal",
         title: "ទំនើប សាមញ្ញ",
         description: "រចនាស្អាតសាមញ្ញ សម្រាប់ពិធីមង្គលការ និងភ្ជាប់ពាក្យ",
         eventType: "both",
         image: "/images/bg_tunnel.webp",
         primaryColor: "#0A1226",
-        isFree: false,
+        isFree: true,
         comingSoon: false,
         selectable: true,
         visibilityControls: STANDARD_VISIBILITY_CONTROLS,
         component: lazy(() => import("./ModernMinimal")),
     },
     "fortune-harmony": {
-        code: "M-03",
+        code: "M3",
         id: "fortune-harmony",
         title: "ប្រណីត - Fortune Harmony",
         description: "រចនាបែបប្រណីត សម្រាប់ពិធីមង្គលការ និងភ្ជាប់ពាក្យ",
@@ -132,7 +132,7 @@ export const TEMPLATE_DEFINITIONS = {
         component: lazy(() => import("./FortuneHarmony")),
     },
     "blossom-romance": {
-        code: "M-04",
+        code: "M4",
         id: "blossom-romance",
         title: "Rose Garden",
         description: "រចនាបែបផ្កា ទន់ភ្លន់ និងរ៉ូម៉ង់ សម្រាប់ពិធីមង្គលការ និងភ្ជាប់ពាក្យ",
@@ -146,7 +146,7 @@ export const TEMPLATE_DEFINITIONS = {
         component: lazy(() => import("./BlossomRomance")),
     },
     "nea-m05": {
-        code: "M-05",
+        code: "M5",
         id: "nea-m05",
         title: "NEA - Olive & Gold",
         description: "រចនាបែបក្រដាសធៀបខ្មែរ សម្រាប់ពិធីមង្គលការ និងភ្ជាប់ពាក្យ",
@@ -160,7 +160,7 @@ export const TEMPLATE_DEFINITIONS = {
         component: lazy(() => import("./NeaM05")),
     },
     "emerald-garden": {
-        code: "M-06",
+        code: "M6",
         id: "emerald-garden",
         title: "Emerald Garden",
         description: "រចនាបែបសួនបៃតង សម្រាប់ពិធីមង្គលការ និងភ្ជាប់ពាក្យ",
@@ -174,7 +174,7 @@ export const TEMPLATE_DEFINITIONS = {
         component: lazy(() => import("./EmeraldGarden")),
     },
     "anniversary-elegant": {
-        code: "M-07",
+        code: "M7",
         id: "anniversary-elegant",
         title: "Anniversary Elegant",
         description: "រចនាបែបឆើតឆាយសម្រាប់ពិធីភ្ជាប់ពាក្យ",
@@ -188,7 +188,7 @@ export const TEMPLATE_DEFINITIONS = {
         component: lazy(() => import("./AnniversaryElegant")),
     },
     "garden-editorial": {
-        code: "M-08",
+        code: "M8",
         id: "garden-editorial",
         title: "Palace Bloom",
         description: "រចនាបែបវិមានផ្កា ទន់ភ្លន់ និងប្រណីត ជាមួយពណ៌មាស",

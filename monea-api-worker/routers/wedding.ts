@@ -10,6 +10,7 @@ import { weddingSchema, weddingUpdateSchema } from "@/lib/validations/wedding"
 import { isEditingLocked } from "@/lib/permissions"
 import { cloudinaryDelete } from "@/lib/cloudinary-edge"
 import { imagekitDelete } from "@/lib/imagekit-edge"
+import { deleteR2Object } from "@/lib/r2-storage"
 import { publicLimiter, publicWeddingSeoLimiter, getIP } from "@/lib/ratelimit"
 import {
     getUserWedding,
@@ -28,6 +29,22 @@ import {
     normalizeTemplateAvailability,
     normalizeTemplateMetadata,
 } from "@/lib/template-availability"
+
+async function deleteStoredMedia(
+    env: unknown,
+    publicId: string,
+    resourceType: "image" | "video",
+    url?: string,
+) {
+    if (publicId.startsWith("r2:")) {
+        await deleteR2Object(env, publicId);
+    } else if (url?.includes("imagekit.io")) {
+        const deleted = await imagekitDelete(publicId, undefined, env);
+        if (!deleted) throw new Error("ImageKit delete request failed");
+    } else {
+        await cloudinaryDelete(publicId, resourceType, env);
+    }
+}
 
 const weddingRouter = new Hono()
 
@@ -455,7 +472,7 @@ weddingRouter.post('/', async (c) => {
             weddingCode: generateWeddingCode(),
             groomName,
             brideName,
-            date,
+            date: new Date(date),
             location: location || "",
             status: "ACTIVE",
             eventType: eventType || "wedding",
@@ -523,7 +540,7 @@ weddingRouter.put('/', async (c) => {
         }
 
         const currentTemplateId = wedding?.templateId;
-        const requestedTemplateId = templateId || (!wedding ? "khmer-legacy" : undefined);
+        const requestedTemplateId = templateId || (!wedding ? "modern-minimal" : undefined);
         const effectiveEventType = eventType || wedding?.eventType || "wedding";
         if (requestedTemplateId && requestedTemplateId !== currentTemplateId) {
             if (!isTemplateId(requestedTemplateId)) {
@@ -571,7 +588,7 @@ weddingRouter.put('/', async (c) => {
                 date: date ? new Date(date) : new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
                 location: location || "",
                 status: status || "ACTIVE",
-                templateId: templateId || "khmer-legacy",
+                templateId: templateId || "modern-minimal",
                 eventType: eventType || "wedding",
                 themeSettings: JSON.stringify(mergedTheme),
             }).returning();
@@ -612,8 +629,8 @@ weddingRouter.put('/', async (c) => {
             const newHeroPublicId = sanitizedBody.themeSettings.heroImagePublicId;
             if (oldHeroPublicId && newHeroPublicId && oldHeroPublicId !== newHeroPublicId) {
                 try {
-                    await cloudinaryDelete(oldHeroPublicId, 'image');
-                    console.log(`[Cloudinary] Deleted old hero image: ${oldHeroPublicId}`);
+                    await deleteStoredMedia(c.env, oldHeroPublicId, 'image');
+                    console.log(`[Media] Deleted old hero image: ${oldHeroPublicId}`);
                 } catch (e: any) {
                     console.error(`[Cloudinary] Failed to delete old hero image:`, e.message);
                 }
@@ -623,8 +640,8 @@ weddingRouter.put('/', async (c) => {
             const newMusicPublicId = sanitizedBody.themeSettings.musicUrlPublicId;
             if (oldMusicPublicId && newMusicPublicId && oldMusicPublicId !== newMusicPublicId) {
                 try {
-                    await cloudinaryDelete(oldMusicPublicId, 'video');
-                    console.log(`[Cloudinary] Deleted old music file: ${oldMusicPublicId}`);
+                    await deleteStoredMedia(c.env, oldMusicPublicId, 'video');
+                    console.log(`[Media] Deleted old music file: ${oldMusicPublicId}`);
                 } catch (e: any) {
                     console.error(`[Cloudinary] Failed to delete old music file:`, e.message);
                 }
@@ -634,21 +651,6 @@ weddingRouter.put('/', async (c) => {
         if (sanitizedBody.galleryItems) {
             const incomingPublicIds = sanitizedBody.galleryItems.map((item: any) => item?.publicId).filter(Boolean);
             const deletedGalleryItems = (wedding.galleryItems || []).filter((item: any) => item.publicId && !incomingPublicIds.includes(item.publicId));
-            
-            for (const item of deletedGalleryItems) {
-                try {
-                    if (item.url?.includes("imagekit.io")) {
-                        const deleted = await imagekitDelete(item.publicId, undefined, c.env);
-                        if (!deleted) throw new Error("ImageKit delete request failed");
-                        console.log(`[ImageKit] Deleted orphaned gallery item: ${item.publicId}`);
-                    } else {
-                        await cloudinaryDelete(item.publicId, item.type === 'VIDEO' ? 'video' : 'image', c.env);
-                        console.log(`[Cloudinary] Deleted orphaned gallery item: ${item.publicId}`);
-                    }
-                } catch (e: any) {
-                    console.error(`[Gallery] Failed to delete orphaned gallery item ${item.publicId}:`, e.message);
-                }
-            }
 
             // Delete old gallery items
             await getDb(c.env).delete(galleryItems).where(eq(galleryItems.weddingId, wedding.id));
@@ -668,6 +670,15 @@ weddingRouter.put('/', async (c) => {
             if (newGalleryItems.length > 0) {
                 await getDb(c.env).insert(galleryItems).values(newGalleryItems);
             }
+
+            for (const item of deletedGalleryItems) {
+                try {
+                    await deleteStoredMedia(c.env, item.publicId, item.type === 'VIDEO' ? 'video' : 'image', item.url);
+                    console.log(`[Media] Deleted orphaned gallery item: ${item.publicId}`);
+                } catch (e: any) {
+                    console.error(`[Gallery] Failed to delete orphaned gallery item ${item.publicId}:`, e.message);
+                }
+            }
         }
 
         if (sanitizedBody.activities) {
@@ -676,8 +687,8 @@ weddingRouter.put('/', async (c) => {
             
             for (const item of deletedActivities) {
                 try {
-                    await cloudinaryDelete(item.publicId, 'image');
-                    console.log(`[Cloudinary] Deleted orphaned activity image: ${item.publicId}`);
+                    await deleteStoredMedia(c.env, item.publicId, 'image');
+                    console.log(`[Media] Deleted orphaned activity image: ${item.publicId}`);
                 } catch (e: any) {
                     console.error(`[Cloudinary] Failed to delete orphaned activity image ${item.publicId}:`, e.message);
                 }
