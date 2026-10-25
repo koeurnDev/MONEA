@@ -19,11 +19,31 @@ export async function OPTIONS(req: Request) {
 
 export async function POST(req: Request, env?: Record<string, unknown>) {
     try {
+        console.log('[2FA Setup] Starting POST request');
+        const cookieHeader = req.headers.get('cookie');
+        const authHeader = req.headers.get('authorization');
+        console.log(`[2FA Setup] Cookie header present: ${!!cookieHeader}`);
+        console.log(`[2FA Setup] Authorization header present: ${!!authHeader}`);
+        if (cookieHeader) {
+            console.log(`[2FA Setup] Cookie contains owner_mfa_setup: ${cookieHeader.includes('owner_mfa_setup')}`);
+            console.log(`[2FA Setup] Cookie contains token: ${cookieHeader.includes('token=')}`);
+        }
+        
         const sessionUser = await getServerUser(req);
+        console.log(`[2FA Setup] Session user found: ${!!sessionUser}`);
+        
         const setupUser = sessionUser ? null : await getOwnerMfaSetupUser(req);
+        console.log(`[2FA Setup] Setup user found: ${!!setupUser}`);
+        
         const user = sessionUser || setupUser;
         const isOwnerMfaBootstrap = Boolean(setupUser);
-        if (!user) return corsJsonResponse({ error: "Unauthorized" }, 401, req);
+        
+        if (!user) {
+            console.warn('[2FA Setup] No user found - returning 401');
+            return corsJsonResponse({ error: "Unauthorized" }, 401, req);
+        }
+        
+        console.log(`[2FA Setup] User type: ${user.type}, Bootstrap mode: ${isOwnerMfaBootstrap}`);
 
         const parsedBody = await readJsonBodyLimited(req, MAX_TWO_FACTOR_SETUP_BODY_BYTES);
         if (parsedBody.kind === "too_large") {
