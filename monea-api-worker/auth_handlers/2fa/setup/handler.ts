@@ -2,44 +2,103 @@ export const dynamic = 'force-dynamic';
 import { authenticator } from "@otplib/preset-default";
 import QRCode from "qrcode-svg";
 import { prisma } from "@/lib/prisma";
-import { getServerUser } from "@/lib/auth";
+import { getOwnerMfaSetupUser, getServerUser } from "@/lib/auth";
 import { CryptoUtils } from "@/lib/crypto";
 import { encryptTotpSecret } from "@/lib/totp-secret";
+import { isRecord, readJsonBodyLimited } from "@/lib/read-json-body-limited";
+import { hashRateLimitKey } from "@/lib/rate-limit-key";
+import { getIP } from "@/lib/utils";
+import { twoFactorSetupLimiter } from "@/lib/ratelimit";
+import { corsJsonResponse, corsOptionsResponse } from "@/lib/cors-utils";
 
-export async function POST(req: Request) {
+const MAX_TWO_FACTOR_SETUP_BODY_BYTES = 1_024;
+
+export async function OPTIONS(req: Request) {
+    return corsOptionsResponse(req);
+}
+
+export async function POST(req: Request, env?: Record<string, unknown>) {
     try {
-        const user = await getServerUser(req);
-        if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
+        const sessionUser = await getServerUser(req);
+        const setupUser = sessionUser ? null : await getOwnerMfaSetupUser(req);
+        const user = sessionUser || setupUser;
+        const isOwnerMfaBootstrap = Boolean(setupUser);
+        if (!user) return corsJsonResponse({ error: "Unauthorized" }, 401, req);
 
-        let password = "";
+        const parsedBody = await readJsonBodyLimited(req, MAX_TWO_FACTOR_SETUP_BODY_BYTES);
+        if (parsedBody.kind === "too_large") {
+            return corsJsonResponse({ error: "Request body is too large" }, 413, req);
+        }
+        if (parsedBody.kind !== "ok" || !isRecord(parsedBody.value)) {
+            return corsJsonResponse({ error: "Invalid JSON request body" }, 400, req);
+        }
+        const password = parsedBody.value.password;
+
+        if (password !== undefined &&
+            (typeof password !== "string" || password.length === 0 || password.length > 128)) {
+            return corsJsonResponse({ error: "Password must be a string of at most 128 characters" }, 400, req);
+        }
+        if (!isOwnerMfaBootstrap && typeof password !== "string") {
+            return corsJsonResponse({ error: "Password is required" }, 400, req);
+        }
+
+        const ip = getIP(req);
+        let ipLimit: Awaited<ReturnType<typeof twoFactorSetupLimiter.limit>>;
+        let accountLimit: Awaited<ReturnType<typeof twoFactorSetupLimiter.limit>>;
         try {
-            const body = await req.json();
-            password = body.password;
-        } catch {
-            return Response.json({ error: "Password verification required to setup 2FA" }, { status: 400 });
+            const accountKey = await hashRateLimitKey(`${user.type}:${user.userId}`, env);
+            [ipLimit, accountLimit] = await Promise.all([
+                twoFactorSetupLimiter.limit(`ip:${ip}`, env),
+                twoFactorSetupLimiter.limit(`account:${accountKey}`, env),
+            ]);
+        } catch (error) {
+            console.error("[RateLimit] 2FA setup protection degraded; allowing request with in-memory fallback.", error);
+            // Graceful degradation: use in-memory limiter as fallback
+            // Allow the request to proceed rather than reject with 503
+            const accountKey = await hashRateLimitKey(`${user.type}:${user.userId}`, env);
+            try {
+                [ipLimit, accountLimit] = await Promise.all([
+                    twoFactorSetupLimiter.limit(`ip:${ip}`, undefined),
+                    twoFactorSetupLimiter.limit(`account:${accountKey}`, undefined),
+                ]);
+            } catch (fallbackError) {
+                // Even fallback failed, allow request to proceed (user experience takes priority)
+                console.warn("[RateLimit] In-memory fallback also failed; proceeding without rate limit.", fallbackError);
+                ipLimit = { success: true, limit: 5, remaining: 4, reset: Math.ceil((Date.now() + 600000) / 1000) };
+                accountLimit = { success: true, limit: 5, remaining: 4, reset: Math.ceil((Date.now() + 600000) / 1000) };
+            }
+        }
+        if (!ipLimit.success || !accountLimit.success) {
+            return Response.json(
+                { error: "Too many attempts. Please try again later." },
+                { status: 429 },
+            );
         }
 
-        if (!password) return Response.json({ error: "Password is required" }, { status: 400 });
+        if (!isOwnerMfaBootstrap) {
+            // Verify the password before revealing a 2FA secret.
+            let dbSecret: string | null = null;
+            if (user.type === "admin") {
+                const account = await prisma.user.findUnique({ where: { id: user.userId }, select: { password: true } });
+                dbSecret = account?.password ?? null;
+            } else {
+                const account = await prisma.staff.findUnique({ where: { id: user.userId }, select: { password: true } });
+                dbSecret = account?.password ?? null;
+            }
 
-        // 1. Security Check: Verify password before revealing secrets
-        let dbSecret: string | null = null;
-        if (user.type === "admin") {
-            const u = await prisma.user.findUnique({ where: { id: user.userId }, select: { password: true } });
-            dbSecret = u?.password ?? null;
-        } else {
-            const s = await prisma.staff.findUnique({ where: { id: user.userId }, select: { password: true } });
-            dbSecret = s?.password ?? null;
-        }
+            // Handle SSO accounts without password
+            if (!dbSecret) {
+                return corsJsonResponse({
+                    error: "Password verification unavailable for SSO accounts. Please set up an account password first."
+                }, 400, req);
+            }
 
-        // Handle SSO accounts without password
-        if (!dbSecret) {
-            return Response.json({ 
-                error: "Password verification unavailable for SSO accounts. Please set up an account password first." 
-            }, { status: 400 });
-        }
-
-        if (!(await CryptoUtils.compare(password, dbSecret))) {
-            return Response.json({ error: "Invalid password" }, { status: 401 });
+            if (typeof password !== "string") {
+                return corsJsonResponse({ error: "Password is required" }, 400, req);
+            }
+            if (!(await CryptoUtils.compare(password, dbSecret))) {
+                return corsJsonResponse({ error: "Invalid password" }, 401, req);
+            }
         }
 
         // 2. Generate TOTP Secret
@@ -97,13 +156,13 @@ export async function POST(req: Request) {
             secret, 
             qrCodeDataUrl, 
             recoveryCodes: plainRecoveryCodes 
-        });
+        }, { headers: { "Cache-Control": "no-store" } });
 
     } catch (error: any) {
         console.error("[2FA Setup Error]:", error);
-        return Response.json({
+        return corsJsonResponse({
             error: "Internal Server Error",
             details: error?.message || String(error),
-        }, { status: 500 });
+        }, 500, req);
     }
 }
