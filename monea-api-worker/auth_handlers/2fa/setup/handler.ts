@@ -172,11 +172,11 @@ export async function POST(req: Request, env?: Record<string, unknown>) {
             });
         }
 
-        return Response.json({ 
+        return corsJsonResponse({ 
             secret, 
             qrCodeDataUrl, 
             recoveryCodes: plainRecoveryCodes 
-        }, { headers: { "Cache-Control": "no-store" } });
+        }, 200, req, { "Cache-Control": "no-store" });
 
     } catch (error: any) {
         console.error("[2FA Setup Error]:", error);
