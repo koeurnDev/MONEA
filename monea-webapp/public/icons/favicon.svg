@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
+  <defs>
+    <style>
+      /* Light mode: white background */
+      rect { fill: #ffffff; }
+      
+      /* Dark mode: dark background */
+      @media (prefers-color-scheme: dark) {
+        rect { fill: #1e293b; }
+      }
+    </style>
+  </defs>
+  
+  <!-- Background with rounded corners -->
+  <rect width="96" height="96" rx="12"/>
+  
+  <!-- M letter in center (stylized) -->
+  <g transform="translate(24, 24)" fill="#0ea5e9">
+    <path d="M0,8 L0,40 L6,40 L6,16 L18,40 L24,40 L36,16 L36,40 L42,40 L42,8 L32,8 L21,32 L10,8 Z" 
+          stroke="#0ea5e9" stroke-width="1"/>
+  </g>
+  
+  <style>
+    @media (prefers-color-scheme: dark) {
+      g { fill: #38bdf8; }
+      path { stroke: #38bdf8; }
+    }
+  </style>
+</svg>
