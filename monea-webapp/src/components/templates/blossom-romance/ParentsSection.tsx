@@ -31,10 +31,10 @@ export const ParentsSection: React.FC<ParentsSectionProps> = ({ wedding, primary
                 </div>
 
                 {/* Parents Grid */}
-                {(groomFather || groomMother || brideFather || brideMother) && <div className="grid grid-cols-2 gap-4 text-xs sm:text-sm">
+                {(groomFather || groomMother || brideFather || brideMother) && <div className="grid grid-cols-2 gap-4 text-sm sm:text-base">
                     {/* Groom Parents */}
                     {(groomFather || groomMother) && <div className="space-y-1.5 border-t border-rose-200/80 py-3">
-                        <span className="text-[11px] font-bold text-rose-700 block uppercase tracking-wider">
+                        <span className="text-sm font-bold text-rose-700 block uppercase tracking-wider">
                             មាតាបិតាខាងប្រុស
                         </span>
                         {groomFather && <p className="font-bold text-slate-800">ឪពុក៖ {groomFather}</p>}
@@ -43,7 +43,7 @@ export const ParentsSection: React.FC<ParentsSectionProps> = ({ wedding, primary
 
                     {/* Bride Parents */}
                     {(brideFather || brideMother) && <div className={`space-y-1.5 border-t border-rose-200/80 py-3 ${!groomFather && !groomMother ? "col-start-2" : ""}`}>
-                        <span className="text-[11px] font-bold text-rose-700 block uppercase tracking-wider">
+                        <span className="text-sm font-bold text-rose-700 block uppercase tracking-wider">
                             មាតាបិតាខាងស្រី
                         </span>
                         {brideFather && <p className="font-bold text-slate-800">ឪពុក៖ {brideFather}</p>}
@@ -52,12 +52,12 @@ export const ParentsSection: React.FC<ParentsSectionProps> = ({ wedding, primary
                 </div>}
 
                 {/* Formal Invitation Paragraph */}
-                <div className="border-y border-rose-200/70 py-5 text-xs leading-relaxed text-slate-700 sm:py-6 sm:text-sm">
-                    <p className="font-bold text-rose-900 text-sm">
+                <div className="border-y border-rose-200/70 py-5 text-sm leading-relaxed text-slate-700 sm:py-6 sm:text-base">
+                    <p className="font-bold text-rose-900 text-base">
                         សូមគោរពអញ្ជើញ
                     </p>
                     <p className="mt-3">
-                        {wedding.themeSettings?.customLabels?.formal_invitation_text || 
+                        {wedding.themeSettings?.invitationText || wedding.themeSettings?.customLabels?.formal_invitation_text ||
                         "ឯកឧត្តម លោកជំទាវ អ្នកឧកញ៉ា លោក លោកស្រី អ្នកនាងកញ្ញា អញ្ជើញចូលរួមជាអធិបតី និងជាភ្ញៀវកិត្តិយស ដើម្បីប្រសិទ្ធពរជ័យ សិរីសួស្តី ជ័យមង្គល ក្នុងពិធីមង្គលការ កូនប្រុស-កូនស្រី របស់យើងខ្ញុំ។"}
                     </p>
                 </div>
@@ -66,11 +66,11 @@ export const ParentsSection: React.FC<ParentsSectionProps> = ({ wedding, primary
                 <div className="py-2 space-y-1">
                     <div className="grid grid-cols-2 gap-4 items-center">
                         <div className="text-right">
-                            <span className="text-[11px] text-muted-foreground block">កូនប្រុសនាម</span>
+                            <span className="text-sm text-muted-foreground block">កូនប្រុសនាម</span>
                             <OneLineName name={groomName} className="m05-font-name text-base sm:text-lg font-khmer-moul text-[#881337]" />
                         </div>
                         <div className="text-left">
-                            <span className="text-[11px] text-muted-foreground block">កូនស្រីនាម</span>
+                            <span className="text-sm text-muted-foreground block">កូនស្រីនាម</span>
                             <OneLineName name={brideName} className="m05-font-name text-base sm:text-lg font-khmer-moul text-[#881337]" />
                         </div>
                     </div>

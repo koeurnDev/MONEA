@@ -98,7 +98,7 @@ export function HeroSection({ wedding, guestName, heroImage, smartColors, heroPa
                 {/* Subtitle with gold accents */}
                 <div className="inline-flex items-center justify-center gap-2 mx-auto">
                     <span className="w-5 sm:w-7 h-[1px] bg-gradient-to-r from-transparent to-[#D4AF37]" />
-                    <h3 className="whitespace-nowrap font-khmer-moul text-[clamp(8px,2.8vw,14px)] text-gold-gradient text-gold-embossed drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] tracking-[0.12em] uppercase">
+                    <h3 className="whitespace-nowrap font-khmer-moul text-base sm:text-lg text-gold-gradient text-gold-embossed drop-shadow-[0_2px_10px_rgba(0,0,0,0.95)] tracking-[0.12em] uppercase">
                         {wedding.themeSettings?.customLabels?.heroSubtitle || 
                          (isAnniversary ? "សិរីមង្គលពិធីភ្ជាប់ពាក្យ" : "សិរីមង្គលអាពាហ៍ពិពាហ៍")}
                     </h3>
@@ -134,14 +134,14 @@ export function HeroSection({ wedding, guestName, heroImage, smartColors, heroPa
                                                 : undefined,
                                             wedding.brideName,
                                         ].filter(Boolean).join(" ")}
-                                        className="!grid w-full grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-x-1 font-khmer-moul !text-[clamp(13px,4vw,18px)] sm:gap-x-4 text-gold-gradient text-gold-embossed drop-shadow-[0_4px_20px_rgba(0,0,0,0.95)] leading-relaxed py-0.5"
+                                        className="!grid w-full grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-x-2 font-moulpali text-2xl sm:text-3xl md:text-4xl sm:gap-x-4 text-gold-gradient text-gold-embossed drop-shadow-[0_4px_20px_rgba(0,0,0,0.95)] leading-relaxed py-0.5"
                                     >
                                         {wedding.groomName && (
                                         <OneLineName name={wedding.groomName} ariaHidden className="text-right" />
                                         )}
                                         {wedding.groomName && wedding.brideName && (
-                                            <span aria-hidden="true" className="flex flex-col items-center py-0.5 text-[10px] sm:text-sm">
-                                                <span className="block text-xs sm:text-sm text-[#D4AF37] tracking-[0.32em]">
+                                            <span aria-hidden="true" className="flex flex-col items-center py-0.5 text-sm sm:text-base">
+                                                <span className="block text-sm sm:text-base text-[#D4AF37] tracking-[0.32em] font-khmer-moul">
                                                     {wedding.themeSettings?.customLabels?.andLabel || "និង"}
                                                 </span>
                                             </span>
@@ -170,13 +170,13 @@ export function HeroSection({ wedding, guestName, heroImage, smartColors, heroPa
                 {/* Direct Golden Date with Side Accent Lines */}
                 <div className="flex items-center justify-center gap-2 sm:gap-3 w-full">
                     <span className="w-6 sm:w-10 h-[1px] bg-gradient-to-r from-transparent to-[#D4AF37]" />
-                    <p className="font-khmer-moul text-xs sm:text-sm md:text-base text-gold-gradient text-gold-embossed drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] tracking-wide whitespace-nowrap">
+                    <p className="font-khmer-moul text-lg sm:text-xl text-gold-gradient text-gold-embossed drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] tracking-wide whitespace-nowrap">
                         {formattedDateHero}
                     </p>
                     <span className="w-6 sm:w-10 h-[1px] bg-gradient-to-l from-transparent to-[#D4AF37]" />
                 </div>
                 {guestName?.trim() && (
-                    <p className="max-w-full break-words font-khmer-moul text-[11px] leading-relaxed text-amber-100 text-gold-embossed">
+                    <p className="max-w-full break-words font-khmer-moul text-base sm:text-lg leading-relaxed text-amber-100 text-gold-embossed">
                         {guestName.trim()}
                     </p>
                 )}
@@ -196,9 +196,9 @@ export function HeroSection({ wedding, guestName, heroImage, smartColors, heroPa
                         const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${start}/${end}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(location)}`;
                         window.open(url, '_blank');
                     }}
-                    className="inline-flex items-center gap-2 border-b border-[#D4AF37]/50 px-2 py-2 text-amber-200 hover:text-white font-khmer-moul text-[11px] sm:text-xs transition-colors cursor-pointer pointer-events-auto"
+                    className="inline-flex items-center gap-2 border-b border-[#D4AF37]/50 px-3 py-2.5 min-h-[44px] text-amber-200 hover:text-white font-khmer-moul text-base sm:text-lg transition-colors cursor-pointer pointer-events-auto"
                 >
-                    <Calendar size={13} className="text-[#D4AF37]" />
+                    <Calendar size={18} className="text-[#D4AF37]" />
                     <span>{wedding.themeSettings?.customLabels?.heroButton || t("template.khmerLegacy.heroButton") || "រក្សាទុកក្នុងប្រតិទិន"}</span>
                 </m.button>
             </m.div>

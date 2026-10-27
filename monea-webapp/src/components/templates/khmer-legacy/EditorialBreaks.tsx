@@ -110,7 +110,7 @@ export function EditorialBreaks({
                             <div className="w-16 h-[2px] bg-[#9C7A3C]/30 mx-auto md:mx-0 mt-3" />
                         </RevealSection>
                     </div>
-                    <div className="aspect-[4/3] rounded-[2rem] overflow-hidden shadow-xl relative bg-gold-main/5 border-4 border-white">
+                    <div id="editorial-photo-1" className="aspect-[4/3] rounded-[2rem] overflow-hidden shadow-xl relative bg-gold-main/5 border-4 border-white">
                         {editorialPhotos.third ? (
                             <img 
                                 src={editorialPhotos.third}

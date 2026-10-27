@@ -77,9 +77,8 @@ export const EntranceEnvelope = ({ wedding, guestName, onReveal, onStartOpen, au
                             }
                             : {
                                 opacity: 0,
-                                scale: 1.025,
-                                filter: 'blur(6px)',
-                                transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },
+                                y: -8,
+                                transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
                             },
                     }}
                     exit="exit"
@@ -113,7 +112,7 @@ export const EntranceEnvelope = ({ wedding, guestName, onReveal, onStartOpen, au
                         className="relative z-10 pt-2"
                     >
                         <h1 className="font-kantumruy font-bold text-base sm:text-lg text-[#f3d68a] drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)] tracking-wider">
-                            {isEngagement ? "សិរីមង្គលពិធីភ្ជាប់ពាក្យ" : "សិរីមង្គលអាពាហ៍ពិពាហ៍"}
+                            {wedding.themeSettings?.customLabels?.invitationTitle || (isEngagement ? "សិរីមង្គលពិធីភ្ជាប់ពាក្យ" : "សិរីមង្គលអាពាហ៍ពិពាហ៍")}
                         </h1>
                     </m.div>
 
@@ -127,12 +126,12 @@ export const EntranceEnvelope = ({ wedding, guestName, onReveal, onStartOpen, au
                         className="relative z-10 w-full max-w-xs space-y-4 pb-2"
                     >
                         <div className="flex max-w-full flex-col items-center gap-1.5 text-[#f3d68a] drop-shadow-[0_3px_12px_rgba(0,0,0,0.95)]">
-                            <OneLineName name={wedding.groomName} className="m05-font-name text-2xl sm:text-3xl" />
+                            <OneLineName name={wedding.groomName} className="m05-font-name m02-cover-name font-moulpali text-2xl sm:text-3xl" />
                             <Heart size={16} className="fill-rose-200 text-rose-200" aria-hidden="true" />
-                            <OneLineName name={wedding.brideName} className="m05-font-name text-2xl sm:text-3xl" />
+                            <OneLineName name={wedding.brideName} className="m05-font-name m02-cover-name font-moulpali text-2xl sm:text-3xl" />
                         </div>
 
-                        <div className="flex flex-col items-center gap-0.5 font-kantumruy text-xs text-[#f3d68a] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] sm:text-sm">
+                        <div className="flex flex-col items-center gap-0.5 font-kantumruy text-sm sm:text-base text-[#f3d68a] drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)]">
                             <span className="font-light text-[#f3d68a]/80">សូមគោរពអញ្ជើញ</span>
                             <span className="font-bold text-[#ffe8ad]">{displayedGuestName}</span>
                         </div>
@@ -147,9 +146,11 @@ export const EntranceEnvelope = ({ wedding, guestName, onReveal, onStartOpen, au
                                 }
                                 handleOpen();
                             }}
-                            className="relative flex min-h-14 w-full items-center justify-start rounded-full border border-[#f3d68a]/80 bg-gradient-to-b from-[#fffdf7] to-[#f1e2bc] py-3 pl-16 pr-3 font-kantumruy text-xs font-bold text-[#624b20] shadow-[0_8px_28px_rgba(0,0,0,0.32),inset_0_1px_0_rgba(255,255,255,0.9)] transition-colors duration-200 hover:from-white hover:to-[#f6e8c6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f3d68a] focus-visible:ring-offset-2 focus-visible:ring-offset-[#17130c] active:scale-[0.98]"
+                            className="relative flex min-h-14 w-full items-center justify-start rounded-full border border-[#f3d68a]/80 bg-gradient-to-b from-[#fffdf7] to-[#f1e2bc] py-4 pl-16 pr-4 font-kantumruy text-sm sm:text-base font-bold text-[#624b20] shadow-[0_8px_28px_rgba(0,0,0,0.32),inset_0_1px_0_rgba(255,255,255,0.9)] transition-colors duration-200 hover:from-white hover:to-[#f6e8c6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f3d68a] focus-visible:ring-offset-2 focus-visible:ring-offset-[#17130c] active:scale-[0.98]"
                         >
-                            <span className="min-w-0 flex-1 text-center leading-relaxed">អូសទៅស្តាំដើម្បីបើក</span>
+                            <span className="min-w-0 flex-1 text-center leading-relaxed">
+                                {wedding.themeSettings?.customLabels?.heroButton || "អូសទៅស្តាំដើម្បីបើក"}
+                            </span>
                             <div ref={sliderRef} className="absolute inset-0 overflow-hidden rounded-full">
                                 <m.span
                                     aria-hidden="true"
@@ -169,7 +170,7 @@ export const EntranceEnvelope = ({ wedding, guestName, onReveal, onStartOpen, au
                             </div>
                         </button>
 
-                        <div className="flex items-center justify-center gap-2 text-[10px] font-kantumruy tracking-wider text-[#f3d68a]/90 drop-shadow-[0_1px_4px_rgba(0,0,0,0.95)]">
+                        <div className="flex items-center justify-center gap-2 text-sm font-kantumruy tracking-wider text-[#f3d68a]/90 drop-shadow-[0_1px_4px_rgba(0,0,0,0.95)]">
                             <span>ចាប់រង្វង់ខាងឆ្វេង ហើយអូសទៅស្តាំ</span>
                             <m.span
                                 aria-hidden="true"

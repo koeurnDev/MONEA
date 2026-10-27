@@ -27,12 +27,12 @@ export function LoveStorySection({ wedding }: { wedding: WeddingData }) {
                     <div className="text-center space-y-3 mb-8">
                         <div className="flex items-center justify-center gap-3">
                             <span className="w-8 h-[1px] bg-[#9C7A3C]/40" />
-                            <span className="font-khmer-moul text-xs text-[#9C7A3C] tracking-wide">
+                            <span className="font-khmer-moul text-sm text-[#9C7A3C] tracking-wide">
                                 {wedding.themeSettings?.customLabels?.storyBadge || "ដំណើរនៃក្តីស្រឡាញ់"}
                             </span>
                             <span className="w-8 h-[1px] bg-[#9C7A3C]/40" />
                         </div>
-                        <h2 className="font-khmer-moul text-2xl sm:text-3xl md:text-4xl text-[#0A1226] tracking-wide leading-relaxed">
+                        <h2 className="font-khmer-moul text-xl sm:text-2xl md:text-3xl text-[#0A1226] tracking-wide leading-relaxed">
                             {wedding.themeSettings?.customLabels?.storyTitle || "ប្រវត្តិស្នេហារបស់យើង"}
                         </h2>
                     </div>

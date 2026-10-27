@@ -10,6 +10,8 @@ interface LocationSectionProps {
 
 export const LocationSection: React.FC<LocationSectionProps> = ({ wedding, primaryColor }) => {
     const location = wedding.location?.trim() || "";
+    const locationTitle = wedding.themeSettings?.customLabels?.locationTitle || "ទីតាំងប្រារព្ធពិធី";
+    const locationSubtitle = wedding.themeSettings?.customLabels?.locationSubtitle;
     const mapLink = wedding.themeSettings?.mapLink?.trim() || wedding.mapUrl?.trim() || "";
     const mapLocation = mapLink || location;
     if (!mapLocation) return null;
@@ -33,8 +35,9 @@ export const LocationSection: React.FC<LocationSectionProps> = ({ wedding, prima
                         <MapPin aria-hidden="true" size={20} />
                     </span>
                     <h2 className="font-khmer-moul text-xl leading-relaxed text-[#70404e] sm:text-2xl">
-                        ទីតាំងប្រារព្ធពិធី
+                        {locationTitle}
                     </h2>
+                    {locationSubtitle && <p className="mt-2 text-sm leading-relaxed text-[#6c6253]">{locationSubtitle}</p>}
                     <div className="mx-auto mt-3 h-px w-16 bg-gradient-to-r from-transparent via-rose-300 to-transparent" />
                 </header>
 
@@ -42,8 +45,8 @@ export const LocationSection: React.FC<LocationSectionProps> = ({ wedding, prima
                     <div className="flex min-w-0 items-start gap-3 rounded-xl bg-rose-50/70 px-3 py-3 text-left">
                         <MapPin aria-hidden="true" className="mt-0.5 shrink-0" size={18} style={{ color: primaryColor }} />
                         <div className="min-w-0">
-                            <p className="text-xs font-semibold text-[#97727d]">ទីតាំងរៀបចំពិធី</p>
-                            <p className="mt-1 break-words text-sm font-bold leading-7 text-[#49343a] [overflow-wrap:anywhere]">
+                            <p className="text-sm font-semibold text-[#97727d]">ទីតាំងរៀបចំពិធី</p>
+                            <p className="mt-1 break-words text-base font-bold leading-7 text-[#49343a] [overflow-wrap:anywhere]">
                                 {location || mapLink}
                             </p>
                         </div>

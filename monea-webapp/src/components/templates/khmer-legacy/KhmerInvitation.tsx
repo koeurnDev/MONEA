@@ -51,7 +51,8 @@ export function KhmerInvitation({
 
     const honorText = wedding.themeSettings?.customLabels?.invitationHonorTitle || "មានកិត្តិយសសូមគោរពអញ្ជើញ";
 
-    const bodyText = wedding.themeSettings?.customLabels?.invitationBody || 
+    const bodyText = wedding.themeSettings?.invitationText ||
+        wedding.themeSettings?.customLabels?.invitationBody ||
         "ឯកឧត្តម ឧកញ៉ា លោកជំទាវ លោក លោកស្រី អ្នកនាង កញ្ញា និងប្រិយមិត្តអញ្ជើញចូលរួមជាអធិបតីនិងជាភ្ញៀវកិត្តិយសដើម្បីប្រសិទ្ធពរជ័យសិរីសួស្តីជ័យមង្គលក្នុងពិធីរៀបអាពាហ៍ពិពាហ៍ កូនប្រុស / កូនស្រី របស់យើងខ្ញុំ";
 
     return (
@@ -65,7 +66,7 @@ export function KhmerInvitation({
                     <div className="space-y-3 mb-8 md:mb-12">
                         <div className="flex items-center justify-center gap-3">
                             <span className="w-10 h-[1.5px] bg-gradient-to-r from-transparent to-[#D4AF37]" />
-                            <span className="font-kantumruy text-[11px] sm:text-xs text-[#805C00] tracking-wide font-bold">
+                            <span className="font-kantumruy text-sm sm:text-base text-[#805C00] tracking-wide font-bold">
                                 {wedding.themeSettings?.customLabels?.invitationBadge || "សិរីសួស្ដីជ័យមង្គល"}
                             </span>
                             <span className="w-10 h-[1.5px] bg-gradient-to-l from-transparent to-[#D4AF37]" />
@@ -91,18 +92,18 @@ export function KhmerInvitation({
                             },
                         ].map(({ title, father, mother }) => (
                             <div key={title} className="min-w-0 px-2 py-2 text-center sm:px-3 sm:py-3">
-                                <h3 className="font-khmer-moul text-[11px] leading-[1.9] text-[#9b7844] sm:text-sm">
+                                <h3 className="font-khmer-moul text-base sm:text-lg leading-[1.9] text-[#9b7844]">
                                     {title}
                                 </h3>
                                 <div className="mt-2 space-y-1">
                                     {father?.trim() && (
-                                        <p className="break-words font-kantumruy text-[10px] leading-[1.9] text-slate-700 [overflow-wrap:anywhere] sm:text-sm">
+                                        <p className="break-words font-kantumruy text-sm sm:text-base leading-[1.9] text-slate-700 [overflow-wrap:anywhere]">
                                             <span className="text-[#805C00]/75">លោក </span>
                                             <span className="font-semibold">{father.trim()}</span>
                                         </p>
                                     )}
                                     {mother?.trim() && (
-                                        <p className="break-words font-kantumruy text-[10px] leading-[1.9] text-slate-700 [overflow-wrap:anywhere] sm:text-sm">
+                                        <p className="break-words font-kantumruy text-sm sm:text-base leading-[1.9] text-slate-700 [overflow-wrap:anywhere]">
                                             <span className="text-[#805C00]/75">លោកស្រី </span>
                                             <span className="font-semibold">{mother.trim()}</span>
                                         </p>
@@ -115,10 +116,10 @@ export function KhmerInvitation({
 
                     {/* 3. Honorific Greeting & Invitation Text */}
                     <div className="space-y-4 max-w-2xl mx-auto my-8 md:my-12">
-                        <h3 className="font-khmer-moul text-sm sm:text-base md:text-xl text-gold-gradient text-gold-embossed leading-relaxed">
+                        <h3 className="font-khmer-moul text-lg sm:text-xl md:text-2xl text-gold-gradient text-gold-embossed leading-relaxed">
                             {honorText}
                         </h3>
-                        <p className="font-kantumruy text-xs sm:text-sm md:text-base leading-[2.2] sm:leading-[2.6] text-slate-700 font-medium px-2 sm:px-6">
+                        <p className="font-kantumruy text-base sm:text-lg md:text-xl leading-[2.2] sm:leading-[2.6] text-slate-700 font-medium px-2 sm:px-6">
                             {bodyText}
                         </p>
                     </div>
@@ -143,7 +144,7 @@ export function KhmerInvitation({
                             <span className="whitespace-nowrap font-kantumruy text-[clamp(8px,2.5cqi,12px)] font-bold text-[#805C00]">
                                 កូនប្រុសនាម
                             </span>
-                            <h3 className="w-full font-khmer-moul text-[clamp(9px,3.1cqi,20px)] leading-snug tracking-wide text-gold-gradient text-gold-embossed">
+                            <h3 className="w-full font-moulpali text-[clamp(9px,3.1cqi,20px)] leading-snug tracking-wide text-gold-gradient text-gold-embossed">
                                 <OneLineName name={wedding.groomName} />
                             </h3>
                         </div>
@@ -160,7 +161,7 @@ export function KhmerInvitation({
                             <span className="whitespace-nowrap font-kantumruy text-[clamp(8px,2.5cqi,12px)] font-bold text-[#805C00]">
                                 កូនស្រីនាម
                             </span>
-                            <h3 className="w-full font-khmer-moul text-[clamp(9px,3.1cqi,20px)] leading-snug tracking-wide text-gold-gradient text-gold-embossed">
+                            <h3 className="w-full font-moulpali text-[clamp(9px,3.1cqi,20px)] leading-snug tracking-wide text-gold-gradient text-gold-embossed">
                                 <OneLineName name={wedding.brideName} />
                             </h3>
                         </div>
@@ -169,11 +170,11 @@ export function KhmerInvitation({
 
                     {/* 5. Reception Details (ដែលនឹងពិសាភោជនាហារនៅ...) */}
                     <div className="space-y-3 pt-6 max-w-2xl mx-auto">
-                        <h4 className="font-khmer-moul text-xs sm:text-sm md:text-base text-gold-gradient text-gold-embossed leading-relaxed">
+                        <h4 className="font-khmer-moul text-base sm:text-lg md:text-xl text-gold-gradient text-gold-embossed leading-relaxed">
                             {wedding.themeSettings?.customLabels?.receptionTitle || "ដែលនឹងពិសាភោជនាហារនៅ"}
                         </h4>
                         
-                        <div className="space-y-1.5 font-kantumruy text-xs sm:text-sm md:text-base text-slate-700 leading-[2.2] sm:leading-[2.5] font-normal px-2">
+                        <div className="space-y-1.5 font-kantumruy text-base sm:text-lg md:text-xl text-slate-700 leading-[2.2] sm:leading-[2.5] font-normal px-2">
                             {wedding.themeSettings?.lunarDate && (
                                 <p className="text-[#805C00] font-medium">
                                     {wedding.themeSettings.lunarDate} ត្រូវនឹង
@@ -190,7 +191,7 @@ export function KhmerInvitation({
 
                         {/* 6. Closing (សូមអរគុណ!) */}
                         <div className="pt-4">
-                            <p className="font-khmer-moul text-xs sm:text-sm text-gold-gradient text-gold-embossed tracking-wide">
+                            <p className="font-khmer-moul text-base sm:text-lg text-gold-gradient text-gold-embossed tracking-wide">
                                 {wedding.themeSettings?.customLabels?.invitationThankYou || "សូមអរគុណ!"}
                             </p>
                         </div>

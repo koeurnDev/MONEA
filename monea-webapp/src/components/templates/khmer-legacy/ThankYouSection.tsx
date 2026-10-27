@@ -24,7 +24,7 @@ export function ThankYouSection({ wedding, smartColors }: ThankYouSectionProps) 
                                 className="mb-24 max-w-sm mx-auto flex flex-col items-center gap-6 group relative overflow-hidden"
                             >
                                 <div className="text-center space-y-3">
-                                    <p className="font-khmer-moul text-sm text-gold-main tracking-wide leading-relaxed">
+                                    <p className="font-khmer-moul text-base text-gold-main tracking-wide leading-relaxed">
                                         {wedding.themeSettings?.customLabels?.ticketHeader || t("template.khmerLegacy.ticketHeader")}
                                     </p>
                                     <div className="w-12 h-[1px] bg-gold-main/20 mx-auto" />

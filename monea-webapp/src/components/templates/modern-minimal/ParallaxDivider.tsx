@@ -12,7 +12,7 @@ export const ParallaxDivider = ({ text }: { text: string }) => {
                 className="flex w-full max-w-xs items-center gap-4"
             >
                 <span className="h-px flex-1 bg-[#cfc5af]" aria-hidden="true" />
-                <h2 className="whitespace-nowrap font-playfair text-[10px] font-medium uppercase tracking-[0.22em] text-[#827a68]">
+                <h2 className="whitespace-nowrap font-playfair text-sm sm:text-base font-medium uppercase tracking-[0.22em] text-[#827a68]">
                     {text}
                 </h2>
                 <span className="h-px flex-1 bg-[#cfc5af]" aria-hidden="true" />

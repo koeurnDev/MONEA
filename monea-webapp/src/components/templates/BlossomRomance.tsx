@@ -98,7 +98,7 @@ export const BlossomRomance: React.FC<TemplateProps> = ({ wedding, guestName, co
                             </h2>
                             <div className="mx-auto mb-5 mt-3 h-px w-16 bg-gradient-to-r from-transparent via-rose-300 to-transparent" />
                             {loveStory && (
-                                <p className="whitespace-pre-line break-words text-sm leading-8 text-slate-700 sm:text-base">
+                                <p className="whitespace-pre-line break-words text-base leading-8 text-slate-700 sm:text-lg">
                                     {loveStory}
                                 </p>
                             )}
@@ -114,7 +114,7 @@ export const BlossomRomance: React.FC<TemplateProps> = ({ wedding, guestName, co
                                                 decoding="async"
                                             />
                                             {wedding.themeSettings?.storyImageCaptions?.[index]?.trim() && (
-                                                <figcaption className="mt-2 text-sm leading-relaxed text-slate-700">
+                                                <figcaption className="mt-2 text-base leading-relaxed text-slate-700">
                                                     {wedding.themeSettings.storyImageCaptions[index]}
                                                 </figcaption>
                                             )}

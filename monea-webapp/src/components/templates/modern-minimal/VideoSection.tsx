@@ -27,7 +27,7 @@ export function VideoSection({ wedding }: { wedding: WeddingData }) {
                         វីដេអូអនុស្សាវរីយ៍
                     </h2>
                     <div className="w-12 h-1 bg-white/30 mx-auto mb-6" />
-                    <p className="text-white/50 text-xs font-bold tracking-[0.4em] uppercase">
+                    <p className="text-white/50 text-sm sm:text-base font-bold tracking-[0.4em] uppercase">
                         Cinematic Memory
                     </p>
                 </m.div>

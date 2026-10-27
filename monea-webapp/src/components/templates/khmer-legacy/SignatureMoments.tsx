@@ -39,8 +39,8 @@ export function SignatureMoments({
             <div className="max-w-6xl mx-auto px-6">
                 <RevealSection className="space-y-6 mb-12 md:mb-16">
                     <div className="text-center space-y-4">
-                        <h2 className="font-khmer-moul text-base sm:text-xl md:text-5xl text-gold-gradient text-gold-embossed py-2">
-                            {wedding.themeSettings?.customLabels?.galleryTitle || "កម្រងរូបភាពអនុស្សាវរីយ៍"}
+                        <h2 className="font-khmer-moul text-xl sm:text-2xl md:text-5xl text-gold-gradient text-gold-embossed py-2">
+                            {wedding.themeSettings?.customLabels?.galleryTitle || wedding.themeSettings?.customLabels?.gallery_title || "កម្រងរូបភាពអនុស្សាវរីយ៍"}
                         </h2>
                         <p className="font-kantumruy text-xs md:text-sm text-gold/60 tracking-wide font-bold">
                             {wedding.themeSettings?.customLabels?.gallerySubtitle || "PRE-WEDDING PHOTOS"}

@@ -14,6 +14,9 @@ interface GallerySectionProps {
 export const GallerySection: React.FC<GallerySectionProps> = ({ wedding, primaryColor }) => {
     const photos = getWeddingPhotos(wedding);
     const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
+    const galleryTitle = wedding.themeSettings?.customLabels?.galleryTitle
+        || wedding.themeSettings?.customLabels?.gallery_title
+        || "កម្រងរូបភាពអនុស្សាវរីយ៍";
 
     const galleryStyle = getGalleryDisplayStyle(wedding.themeSettings?.galleryStyle);
     const galleryContainerClass = galleryStyle === "masonry"
@@ -26,7 +29,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ wedding, primary
             <div className="max-w-md mx-auto space-y-6 relative z-10">
                 <div className="text-center space-y-1">
                     <span className="text-xl sm:text-2xl font-khmer-moul text-[#B45309] block">
-                        កម្រងរូបភាពអនុស្សាវរីយ៍
+                        {galleryTitle}
                     </span>
                     <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto" />
                 </div>

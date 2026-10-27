@@ -49,8 +49,13 @@ export const HeroSection = ({ wedding }: { wedding: WeddingData }) => {
             >
                 <div className="inline-flex items-center justify-center">
                     <p className="max-w-full break-words font-khmer-moul text-sm leading-relaxed text-slate-700 sm:text-base">
-                        {isWedding ? "សិរីមង្គលអាពាហ៍ពិពាហ៍" : "សិរីមង្គលពិធីភ្ជាប់ពាក្យ"}
+                        {wedding.themeSettings?.customLabels?.invitationTitle || (isWedding ? "សិរីមង្គលអាពាហ៍ពិពាហ៍" : "សិរីមង្គលពិធីភ្ជាប់ពាក្យ")}
                     </p>
+                    {wedding.themeSettings?.customLabels?.heroSubtitle && (
+                        <p className="mt-2 max-w-md break-words font-kantumruy text-sm leading-relaxed text-slate-600 sm:text-base">
+                            {wedding.themeSettings.customLabels.heroSubtitle}
+                        </p>
+                    )}
                 </div>
             </div>
 
@@ -61,7 +66,7 @@ export const HeroSection = ({ wedding }: { wedding: WeddingData }) => {
                 <div className="flex max-w-full flex-col items-center gap-2 text-slate-900 drop-shadow-[0_2px_12px_rgba(255,255,255,0.9)]">
                     <h1
                         aria-label={`${groomName} និង ${brideName}`}
-                        className="m05-font-name w-full min-w-0 max-w-full text-2xl sm:text-4xl"
+                        className="m05-font-name font-moulpali w-full min-w-0 max-w-full text-2xl sm:text-4xl"
                     >
                         <OneLineName name={groomName} />
                         <span aria-hidden="true" className="my-2 flex justify-center">
@@ -72,7 +77,7 @@ export const HeroSection = ({ wedding }: { wedding: WeddingData }) => {
                 </div>
 
                 {/* Scroll Indicator */}
-                <div className="pt-3 flex flex-col items-center opacity-80 animate-bounce text-slate-700">
+                <div className="pt-3 flex flex-col items-center opacity-80 text-slate-700">
                     <ChevronDown size={18} />
                 </div>
             </div>

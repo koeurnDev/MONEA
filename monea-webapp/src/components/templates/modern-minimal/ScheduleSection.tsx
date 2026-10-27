@@ -46,7 +46,7 @@ export const ScheduleSection = ({ wedding, title }: { wedding: WeddingData; titl
                         {title || (wedding.eventType === "anniversary" ? "កម្មវិធីពិធីភ្ជាប់ពាក្យ" : "កម្មវិធីអាពាហ៍ពិពាហ៍")}
                     </h2>
                     {formattedEventDate && (
-                        <p className="mt-1 break-words font-suwannaphum text-sm font-semibold leading-7 text-[#5d4b52] sm:text-base">
+                        <p className="mt-1 break-words font-suwannaphum text-base font-semibold leading-7 text-[#5d4b52] sm:text-lg">
                             {formattedEventDate}
                         </p>
                     )}
@@ -66,15 +66,15 @@ export const ScheduleSection = ({ wedding, title }: { wedding: WeddingData; titl
                                 <BookOpen className="h-7 w-7" strokeWidth={1.5} />
                             </span>
                             <span className="font-khmer-moul text-lg leading-relaxed sm:text-xl">សៀវភៅកម្មវិធី</span>
-                            <span className="mt-2 font-suwannaphum text-sm text-[#f1e2c6]">{formattedEventDate}</span>
-                            <span className="mt-7 rounded-full border border-[#ead9b5]/55 px-5 py-2 font-suwannaphum text-sm transition-colors group-hover:bg-white/10">
+                            <span className="mt-2 font-suwannaphum text-base text-[#f1e2c6]">{formattedEventDate}</span>
+                            <span className="mt-7 rounded-full border border-[#ead9b5]/55 px-5 py-3 min-h-[44px] font-suwannaphum text-base transition-colors group-hover:bg-white/10">
                                 បើកមើលកម្មវិធី
                             </span>
                         </m.button>
                     ) : (
                         <div className="overflow-hidden rounded-r-2xl rounded-l-md border border-[#dfd5c5] bg-[#fffdf8] shadow-[8px_12px_28px_rgba(55,38,28,0.2),inset_8px_0_0_#e9e0d1]">
                             <div className="flex items-center justify-between border-b border-[#704858]/15 py-3 pl-7 pr-4">
-                                <span className="font-suwannaphum text-xs text-[#806a47]">
+                                <span className="font-suwannaphum text-sm sm:text-base text-[#806a47]">
                                     កម្មវិធី {pageIndex + 1} / {activities.length}
                                 </span>
                                 <button
@@ -104,7 +104,7 @@ export const ScheduleSection = ({ wedding, title }: { wedding: WeddingData; titl
                                                     {currentActivity.title}
                                                 </h3>
                                                 {currentActivity.description && (
-                                                    <p className="mt-3 break-words font-suwannaphum text-sm leading-8 text-[#5d4b52] sm:text-base">
+                                                    <p className="mt-3 break-words font-suwannaphum text-base leading-8 text-[#5d4b52] sm:text-lg">
                                                         {currentActivity.description}
                                                     </p>
                                                 )}
@@ -113,8 +113,8 @@ export const ScheduleSection = ({ wedding, title }: { wedding: WeddingData; titl
                                             <>
                                                 <ActivityIcon aria-hidden="true" className="mx-auto mb-4 h-7 w-7 text-[#9b8055]" strokeWidth={1.5} />
                                                 {displayTime && (
-                                                    <p className="mb-3 flex items-center justify-center gap-2 break-words font-suwannaphum text-sm font-semibold leading-7 text-[#704858] sm:text-base">
-                                                        <Clock aria-hidden="true" className="h-4 w-4 shrink-0" />
+                                                    <p className="mb-3 flex items-center justify-center gap-2 break-words font-suwannaphum text-base font-semibold leading-7 text-[#704858] sm:text-lg">
+                                                        <Clock aria-hidden="true" className="h-5 w-5 shrink-0" />
                                                         <span>{displayTime}</span>
                                                     </p>
                                                 )}
@@ -122,7 +122,7 @@ export const ScheduleSection = ({ wedding, title }: { wedding: WeddingData; titl
                                                     {currentActivity.title}
                                                 </h3>
                                                 {currentActivity.description && (
-                                                    <p className="mt-2 break-words font-suwannaphum text-sm leading-8 text-[#5d4b52] sm:text-base">
+                                                    <p className="mt-2 break-words font-suwannaphum text-base leading-8 text-[#5d4b52] sm:text-lg">
                                                         {currentActivity.description}
                                                     </p>
                                                 )}
@@ -136,19 +136,19 @@ export const ScheduleSection = ({ wedding, title }: { wedding: WeddingData; titl
                                     type="button"
                                     onClick={() => setCurrentPage((page) => Math.max(0, pageIndex - 1))}
                                     disabled={pageIndex === 0}
-                                    className="inline-flex items-center gap-1 rounded-full px-3 py-2 font-suwannaphum text-sm text-[#704858] transition hover:bg-[#704858]/10 disabled:cursor-not-allowed disabled:opacity-35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9b8055]"
+                                    className="inline-flex items-center gap-1 rounded-full px-4 py-3 min-h-[44px] font-suwannaphum text-base text-[#704858] transition hover:bg-[#704858]/10 disabled:cursor-not-allowed disabled:opacity-35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9b8055]"
                                 >
-                                    <ChevronLeft aria-hidden="true" className="h-4 w-4" />
+                                    <ChevronLeft aria-hidden="true" className="h-5 w-5" />
                                     មុន
                                 </button>
                                 <button
                                     type="button"
                                     onClick={() => setCurrentPage((page) => Math.min(activities.length - 1, pageIndex + 1))}
                                     disabled={pageIndex === activities.length - 1}
-                                    className="inline-flex items-center gap-1 rounded-full px-3 py-2 font-suwannaphum text-sm text-[#704858] transition hover:bg-[#704858]/10 disabled:cursor-not-allowed disabled:opacity-35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9b8055]"
+                                    className="inline-flex items-center gap-1 rounded-full px-4 py-3 min-h-[44px] font-suwannaphum text-base text-[#704858] transition hover:bg-[#704858]/10 disabled:cursor-not-allowed disabled:opacity-35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9b8055]"
                                 >
                                     បន្ទាប់
-                                    <ChevronRight aria-hidden="true" className="h-4 w-4" />
+                                    <ChevronRight aria-hidden="true" className="h-5 w-5" />
                                 </button>
                             </div>
                         </div>

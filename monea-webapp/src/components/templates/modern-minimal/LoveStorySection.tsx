@@ -53,7 +53,7 @@ export function LoveStorySection({ wedding }: { wedding: WeddingData }) {
                             viewport={{ once: true }}
                             className="w-full md:w-1/2 relative"
                         >
-                            <div className={`grid w-full gap-3 ${images.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
+                            <div className={`grid w-full gap-4 ${images.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
                                 {images.map((image, index) => (
                                     <figure key={`${image}-${index}`}>
                                         <img
@@ -63,7 +63,7 @@ export function LoveStorySection({ wedding }: { wedding: WeddingData }) {
                                             loading="lazy"
                                         />
                                         {wedding.themeSettings?.storyImageCaptions?.[index]?.trim() && (
-                                            <figcaption className="mt-2 text-center text-sm leading-relaxed text-slate-600">
+                                            <figcaption className="mt-2 text-center text-base leading-relaxed text-slate-600">
                                                 {wedding.themeSettings.storyImageCaptions[index]}
                                             </figcaption>
                                         )}

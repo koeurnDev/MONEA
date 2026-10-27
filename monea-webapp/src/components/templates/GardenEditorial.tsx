@@ -8,6 +8,8 @@ import { getConfiguredPaymentAccounts, getWeddingPhotos, getWeddingSectionPhoto 
 import { getDirectMapUrl, getMapEmbedUrl } from "./shared/mapUtils";
 import { PhotoImage } from "./shared/PhotoImage";
 import { CoupleNamesLine, OneLineName } from "./shared/OneLineName";
+import { MoneaFooterBrand } from "./shared/MoneaFooterBrand";
+import { SocialLinksSection } from "./shared/SocialLinksSection";
 
 interface YouTubePlayerStateEvent {
     data: number;
@@ -68,7 +70,7 @@ function GardenEventCalendar({ wedding }: { wedding: WeddingData }) {
     return (
         <section id="event-calendar" className="relative isolate overflow-hidden border-y border-[#b8944c]/25 bg-gradient-to-b from-[#f8f2e5] to-[#f3ead7] px-5 py-10 text-center text-[#493b2c] sm:px-8 sm:py-12">
             <div className="relative mx-auto max-w-lg px-4 py-7 sm:px-7 sm:py-9 lg:max-w-3xl lg:px-12 lg:py-12">
-                <div className="mx-auto inline-flex min-h-10 items-center gap-2 px-5 py-2 font-khmer-moul text-[11px] text-[#654d17] sm:text-xs lg:min-h-12 lg:px-6 lg:text-sm">
+                <div className="mx-auto inline-flex min-h-10 items-center gap-2 px-5 py-2 font-khmer-moul text-sm sm:text-base text-[#654d17] lg:min-h-12 lg:px-6 lg:text-lg">
                     <CalendarDays aria-hidden="true" className="h-4 w-4" />
                     <span>សូមគោរពអញ្ជើញចូលរួម</span>
                 </div>
@@ -85,7 +87,7 @@ function GardenEventCalendar({ wedding }: { wedding: WeddingData }) {
                         <div className="mx-auto mt-5 max-w-sm p-3 sm:mt-6 sm:p-4 lg:mt-7 lg:max-w-xl lg:p-6">
                             <div className="grid grid-cols-7 gap-y-1 sm:gap-y-2 lg:gap-y-3" aria-label={`ប្រតិទិនខែ${KHMER_MONTHS[month]} ឆ្នាំ${year}`}>
                                 {KHMER_WEEKDAYS.map(({ short, full }) => (
-                                    <div key={full} aria-label={full} className="pb-2 font-khmer-moul text-[10px] text-[#80672e] sm:text-xs lg:pb-3 lg:text-sm">
+                                    <div key={full} aria-label={full} className="pb-2 font-khmer-moul text-sm text-[#80672e] sm:text-base lg:pb-3 lg:text-lg">
                                         {short}
                                     </div>
                                 ))}
@@ -99,7 +101,7 @@ function GardenEventCalendar({ wedding }: { wedding: WeddingData }) {
                                         <span
                                             key={day}
                                             aria-label={isEventDay ? `ថ្ងៃកម្មវិធី ${day} ${KHMER_MONTHS[month]} ${year}` : undefined}
-                                            className={`relative mx-auto flex h-9 w-9 items-center justify-center rounded-full font-serif text-[11px] sm:text-xs lg:h-11 lg:w-11 lg:text-sm ${
+                                            className={`relative mx-auto flex h-9 w-9 items-center justify-center rounded-full font-serif text-sm sm:text-base lg:h-11 lg:w-11 lg:text-lg ${
                                                 isEventDay
                                                     ? "bg-gradient-to-b from-[#f3df91] to-[#c89c27] font-bold text-[#644b12] shadow-[0_3px_10px_rgba(129,94,20,.25)]"
                                                     : "text-[#554832]"
@@ -112,11 +114,11 @@ function GardenEventCalendar({ wedding }: { wedding: WeddingData }) {
                                 })}
                             </div>
                         </div>
-                        {wedding.time && <p className="mt-4 flex items-center justify-center gap-1.5 font-kantumruy text-xs text-[#746344] lg:mt-5 lg:text-sm"><Clock3 aria-hidden="true" className="h-3.5 w-3.5" />{wedding.time}</p>}
-                        {wedding.themeSettings?.lunarDate && <p className="mt-2 break-words font-kantumruy text-xs leading-6 text-[#746344] lg:text-sm">{wedding.themeSettings.lunarDate}</p>}
+                        {wedding.time && <p className="mt-4 flex items-center justify-center gap-1.5 font-kantumruy text-sm text-[#746344] lg:mt-5 lg:text-base"><Clock3 aria-hidden="true" className="h-4 w-4" />{wedding.time}</p>}
+                        {wedding.themeSettings?.lunarDate && <p className="mt-2 break-words font-kantumruy text-sm leading-6 text-[#746344] lg:text-base">{wedding.themeSettings.lunarDate}</p>}
                     </>
                 ) : (
-                    <p className="mt-5 font-kantumruy text-sm text-[#746344]">សូមបញ្ចូលកាលបរិច្ឆេទកម្មវិធី</p>
+                    <p className="mt-5 font-kantumruy text-base text-[#746344]">សូមបញ្ចូលកាលបរិច្ឆេទកម្មវិធី</p>
                 )}
             </div>
         </section>
@@ -126,7 +128,7 @@ function GardenEventCalendar({ wedding }: { wedding: WeddingData }) {
 function GardenSectionHeading({ eyebrow, children, className = "mb-7" }: { eyebrow?: string; children: ReactNode; className?: string }) {
     return (
         <div className={`${className} text-center`}>
-            {eyebrow && <p className="mb-2 font-serif text-[11px] uppercase tracking-[0.28em] text-[#9b7a2e]">{eyebrow}</p>}
+            {eyebrow && <p className="mb-2 font-serif text-sm uppercase tracking-[0.28em] text-[#9b7a2e]">{eyebrow}</p>}
             <h2 className="khmer-readable-type-system font-khmer-moul text-xl text-[#34452f] sm:text-2xl">{children}</h2>
             <div aria-hidden="true" className="mx-auto mt-3 flex items-center justify-center gap-2 text-[#b2944e]">
                 <span className="h-px w-10 bg-[#b2944e]/55" />
@@ -154,7 +156,7 @@ function GardenStory({ wedding }: { wedding: WeddingData }) {
             </GardenSectionHeading>
             {story && (
                 <div className="mx-auto mb-6 max-w-lg px-5 py-4 sm:mb-7 sm:px-7 sm:py-5 lg:max-w-3xl lg:px-10 lg:py-7">
-                    <p className="whitespace-pre-line break-words text-center font-kantumruy text-sm leading-8 text-[#566049] sm:text-base sm:leading-9 lg:text-lg lg:leading-10">{story}</p>
+                    <p className="whitespace-pre-line break-words text-center font-kantumruy text-base leading-8 text-[#566049] sm:text-lg sm:leading-9 lg:text-xl lg:leading-10">{story}</p>
                 </div>
             )}
             {storyImages.length > 0 && (
@@ -171,7 +173,7 @@ function GardenStory({ wedding }: { wedding: WeddingData }) {
                                 loading="lazy"
                             />
                             {wedding.themeSettings?.storyImageCaptions?.[index]?.trim() && (
-                                <p className="px-3 py-2 text-center font-kantumruy text-xs leading-6 text-[#566049]">
+                                <p className="px-3 py-2 text-center font-kantumruy text-sm leading-6 text-[#566049]">
                                     {wedding.themeSettings.storyImageCaptions[index]}
                                 </p>
                             )}
@@ -197,8 +199,8 @@ function GardenSchedule({ wedding }: { wedding: WeddingData }) {
                         return (
                             <div key={`${item.title}-${index}`} className="m08-schedule-header relative z-10 py-3 pl-8 text-left">
                                 <span aria-hidden="true" className="m08-schedule-header-dot absolute left-[2px] top-1/2 h-3 w-3 -translate-y-1/2 rounded-full border-2 border-[#b8944c] bg-[#f7f0de]" />
-                                <span className="inline-flex max-w-full items-center gap-2 font-khmer-moul text-sm text-[#80632e]">
-                                    <CalendarDays aria-hidden="true" className="h-4 w-4 shrink-0 text-[#9b7a2e]" />
+                                <span className="inline-flex max-w-full items-center gap-2 font-khmer-moul text-base text-[#80632e]">
+                                    <CalendarDays aria-hidden="true" className="h-5 w-5 shrink-0 text-[#9b7a2e]" />
                                     <span className="break-words">{item.title}</span>
                                 </span>
                             </div>
@@ -210,9 +212,9 @@ function GardenSchedule({ wedding }: { wedding: WeddingData }) {
                         <div key={`${item.title}-${index}`} data-side={isLeft ? "left" : "right"} className="m08-schedule-event relative mb-5 pl-8 last:mb-0">
                             <span aria-hidden="true" className="m08-schedule-node absolute left-[2px] top-2 h-3 w-3 rounded-full border-2 border-[#b8944c] bg-[#fffaf0] shadow-[0_0_0_3px_rgba(255,250,239,.8)]" />
                             <article className="m08-schedule-copy">
-                                {item.time && <p className="m08-schedule-time mb-1 inline-flex items-center gap-1.5 font-kantumruy text-xs font-bold tracking-wide text-[#92772f]"><Clock3 aria-hidden="true" className="h-3.5 w-3.5" />{item.time}</p>}
-                                <h3 className="m08-schedule-title font-khmer-moul text-sm leading-7 text-[#394a34]">{item.title}</h3>
-                                {item.description && <p className="m08-schedule-description mt-1 break-words font-kantumruy text-xs leading-6 text-[#626957]">{item.description}</p>}
+                                {item.time && <p className="m08-schedule-time mb-1 inline-flex items-center gap-1.5 font-kantumruy text-sm font-bold tracking-wide text-[#92772f]"><Clock3 aria-hidden="true" className="h-4 w-4" />{item.time}</p>}
+                                <h3 className="m08-schedule-title font-khmer-moul text-base leading-7 text-[#394a34]">{item.title}</h3>
+                                {item.description && <p className="m08-schedule-description mt-1 break-words font-kantumruy text-sm leading-6 text-[#626957]">{item.description}</p>}
                             </article>
                         </div>
                     );
@@ -237,7 +239,14 @@ function GardenLocation({ wedding }: { wedding: WeddingData }) {
 
     return (
         <section id="location" className="bg-gradient-to-b from-[#e9eadb] to-[#f6efdd] px-5 py-12 sm:px-8 sm:py-14">
-            <GardenSectionHeading eyebrow="THE VENUE">ទីតាំងប្រារព្ធពិធី</GardenSectionHeading>
+            <GardenSectionHeading eyebrow="THE VENUE">
+                {wedding.themeSettings?.customLabels?.locationTitle || "ទីតាំងប្រារព្ធពិធី"}
+            </GardenSectionHeading>
+            {wedding.themeSettings?.customLabels?.locationSubtitle && (
+                <p className="mx-auto -mt-4 mb-3 max-w-md px-5 text-center font-kantumruy text-base leading-7 text-[#756948]">
+                    {wedding.themeSettings.customLabels.locationSubtitle}
+                </p>
+            )}
             <div className="mx-auto max-w-md p-3 sm:p-4 lg:max-w-5xl lg:grid lg:grid-cols-2 lg:items-center lg:gap-5 lg:p-6">
                 {(photo || embedUrl) && (
                     <div className="space-y-4">
@@ -259,12 +268,12 @@ function GardenLocation({ wedding }: { wedding: WeddingData }) {
                     {location && (
                         <div className="mb-4 flex items-start gap-3 px-1 py-3 lg:px-2 lg:py-4">
                             <MapPin aria-hidden="true" className="mt-1 h-4 w-4 shrink-0 text-[#9b7a2e] lg:h-5 lg:w-5" />
-                            <p className="break-words text-left font-kantumruy text-sm font-bold leading-7 text-[#46513b] lg:text-base lg:leading-8">{location}</p>
+                            <p className="break-words text-left font-kantumruy text-base font-bold leading-7 text-[#46513b] lg:text-lg lg:leading-8">{location}</p>
                         </div>
                     )}
                     {destination && (
-                        <a href={getDirectMapUrl(destination, location)} target="_blank" rel="noopener noreferrer" className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-[#b38b1d] bg-gradient-to-b from-[#f5df8d] to-[#d1aa35] px-4 py-3 font-khmer-moul text-xs text-[#624b16] shadow-[0_4px_14px_rgba(111,78,20,.16)] transition hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9b7a2e] focus-visible:ring-offset-2 lg:min-h-14 lg:text-sm">
-                            <Navigation aria-hidden="true" className="h-4 w-4" />បើកមើលផ្លូវ
+                        <a href={getDirectMapUrl(destination, location)} target="_blank" rel="noopener noreferrer" className="flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-[#b38b1d] bg-gradient-to-b from-[#f5df8d] to-[#d1aa35] px-5 py-3.5 font-khmer-moul text-sm text-[#624b16] shadow-[0_4px_14px_rgba(111,78,20,.16)] transition hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9b7a2e] focus-visible:ring-offset-2 lg:min-h-[48px] lg:text-base">
+                            <Navigation aria-hidden="true" className="h-5 w-5" />បើកមើលផ្លូវ
                         </a>
                     )}
                 </div>
@@ -280,7 +289,9 @@ function GardenGallery({ wedding }: { wedding: WeddingData }) {
 
     return (
         <section id="gallery" className="bg-gradient-to-b from-[#fffdf7] to-[#f6efdd] px-5 py-12 sm:px-8 sm:py-14">
-            <GardenSectionHeading eyebrow="MEMORIES">កម្រងរូបភាពអនុស្សាវរីយ៍</GardenSectionHeading>
+            <GardenSectionHeading eyebrow="MEMORIES">
+                {wedding.themeSettings?.customLabels?.galleryTitle || wedding.themeSettings?.customLabels?.gallery_title || "កម្រងរូបភាពអនុស្សាវរីយ៍"}
+            </GardenSectionHeading>
             <div className="mx-auto grid max-w-lg grid-cols-2 gap-3 sm:gap-4 lg:max-w-2xl lg:grid-cols-3">
                 {photos.map((photo, index) => (
                     <button key={`${photo.url}-${index}`} type="button" onClick={() => setSelectedPhoto(photo.url)} aria-label={`មើលរូបភាពទី ${index + 1}`} className={`group relative overflow-hidden transition duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9b7a2e] focus-visible:ring-offset-2 ${index === 0 ? photos.length > 1 ? "col-span-2 lg:col-span-2" : "col-span-2 lg:col-span-3" : ""}`}>
@@ -323,10 +334,15 @@ function GardenGift({ wedding }: { wedding: WeddingData }) {
             <GardenSectionHeading eyebrow="WEDDING GIFT">
                 {wedding.themeSettings?.customLabels?.giftTitle || "ចំណងដៃ"}
             </GardenSectionHeading>
-            <p className="mx-auto mb-7 max-w-md text-center font-kantumruy text-sm leading-7 text-[#756948] lg:mb-9 lg:max-w-2xl lg:text-base lg:leading-8">
+            <p className="mx-auto mb-7 max-w-md text-center font-kantumruy text-base leading-7 text-[#756948] lg:mb-9 lg:max-w-2xl lg:text-lg lg:leading-8">
                 {wedding.themeSettings?.customLabels?.giftSubtitle
                     || "សម្រាប់ភ្ញៀវកិត្តិយសដែលមិនអាចអញ្ជើញចូលរួមដោយផ្ទាល់ អាចផ្ញើចំណងដៃតាមរយៈ KHQR ខាងក្រោម"}
             </p>
+            {wedding.themeSettings?.customLabels?.giftBadge && (
+                <p className="mx-auto -mt-4 mb-5 w-fit rounded-full border border-[#b38b1d]/35 px-3 py-1 text-sm font-semibold text-[#756948]">
+                    {wedding.themeSettings.customLabels.giftBadge}
+                </p>
+            )}
             <div className="mx-auto grid max-w-md gap-4 lg:max-w-4xl lg:gap-5">
                 {accounts.map((account, index) => {
                     const accountQr = account.qrUrl || account.qrCodeUrl;
@@ -334,9 +350,9 @@ function GardenGift({ wedding }: { wedding: WeddingData }) {
                         <article key={`${account.bankName || "account"}-${index}`} className="grid gap-4 py-4 text-center sm:grid-cols-[1fr_auto] sm:items-center sm:py-5 sm:text-left lg:gap-8 lg:py-6">
                             <div className="min-w-0">
                                 <Gift aria-hidden="true" className="mx-auto mb-2 h-5 w-5 text-[#9b7a2e] sm:mx-0 lg:mb-3 lg:h-6 lg:w-6" />
-                                {account.bankName && <h3 className="font-serif text-sm font-semibold tracking-wide text-[#596443] lg:text-base">{account.bankName}</h3>}
-                                {account.accountName && <p className="mt-2 break-words font-kantumruy text-sm font-bold text-[#414c38] lg:text-base">{account.accountName}</p>}
-                                {account.accountNumber && <p className="mt-1 break-all font-kantumruy text-sm tracking-wide text-[#7e6c3c] lg:text-base">{account.accountNumber}</p>}
+                                {account.bankName && <h3 className="font-serif text-base font-semibold tracking-wide text-[#596443] lg:text-lg">{account.bankName}</h3>}
+                                {account.accountName && <p className="mt-2 break-words font-kantumruy text-base font-bold text-[#414c38] lg:text-lg">{account.accountName}</p>}
+                                {account.accountNumber && <p className="mt-1 break-all font-kantumruy text-base tracking-wide text-[#7e6c3c] lg:text-lg">{account.accountNumber}</p>}
                             </div>
                             {accountQr && (
                                 <div className="mx-auto bg-white p-2 sm:mx-0 lg:p-3">
@@ -350,7 +366,7 @@ function GardenGift({ wedding }: { wedding: WeddingData }) {
                     <article className="py-5 text-center lg:grid lg:grid-cols-[1fr_auto] lg:items-center lg:gap-8 lg:py-6 lg:text-left">
                         <div>
                             <Gift aria-hidden="true" className="mx-auto mb-2 h-5 w-5 text-[#9b7a2e] lg:mx-0 lg:mb-3 lg:h-6 lg:w-6" />
-                            <p className="font-khmer-moul text-sm text-[#80632e] lg:text-base">KHQR សម្រាប់ចំណងដៃ</p>
+                            <p className="font-khmer-moul text-base text-[#80632e] lg:text-lg">KHQR សម្រាប់ចំណងដៃ</p>
                         </div>
                         <div className="mx-auto w-fit bg-white p-2">
                             <img src={qrUrl} alt="QR សម្រាប់ចំណងដៃ" className="h-40 w-40 object-contain sm:h-44 sm:w-44 lg:h-48 lg:w-48" loading="lazy" />
@@ -512,7 +528,7 @@ export default function GardenEditorial({ wedding, guestName, config }: Template
                                 />
                             )}
                         </div>
-                        <button type="button" onClick={enterInvitation} className="mt-6 inline-flex min-h-12 items-center justify-center rounded-full border border-[#e0c56e] bg-gradient-to-b from-[#f9e9a6] to-[#c49c32] px-7 py-3 font-khmer-moul text-sm text-[#5e4519] shadow-lg transition hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f5dfa0] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1c1a15]">
+                        <button type="button" onClick={enterInvitation} className="mt-6 inline-flex min-h-[44px] items-center justify-center rounded-full border border-[#e0c56e] bg-gradient-to-b from-[#f9e9a6] to-[#c49c32] px-7 py-3.5 font-khmer-moul text-base text-[#5e4519] shadow-lg transition hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f5dfa0] focus-visible:ring-offset-2 focus-visible:ring-offset-[#1c1a15]">
                             រំលងវីដេអូ និងបើកធៀប
                         </button>
                     </div>
@@ -530,7 +546,7 @@ export default function GardenEditorial({ wedding, guestName, config }: Template
                     )}
                     <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,250,239,.22),rgba(246,234,216,.42))]" />
                     <div className="relative z-10 mx-auto flex min-h-[min(760px,calc(100dvh-4rem))] w-full max-w-[430px] flex-col items-center justify-center rounded-none border-0 bg-transparent px-4 py-6 shadow-none sm:px-7 sm:py-8 lg:max-w-[540px] lg:px-10 lg:py-10">
-                        <p className="mb-2 font-khmer-moul text-xs tracking-wide text-[#8d671d] drop-shadow-[0_1px_2px_rgba(255,255,255,.9)] sm:text-sm lg:text-base">
+                        <p className="mb-2 font-khmer-moul text-sm tracking-wide text-[#8d671d] drop-shadow-[0_1px_2px_rgba(255,255,255,.9)] sm:text-base lg:text-lg">
                             {getInvitationTitle(wedding)}
                         </p>
                         <div className="relative my-1 flex h-40 w-40 items-center justify-center sm:h-52 sm:w-52 lg:h-60 lg:w-60">
@@ -569,15 +585,15 @@ export default function GardenEditorial({ wedding, guestName, config }: Template
                             <span aria-hidden="true" className="font-serif text-xl italic text-[#9f782c] lg:text-2xl">&amp;</span>
                             <OneLineName name={wedding.brideName || "កូនក្រមុំ"} ariaHidden />
                         </h1>
-                        {weddingDate && <p className="mt-2 font-kantumruy text-xs text-[#805f25] drop-shadow-[0_1px_3px_rgba(255,255,255,.95)] sm:text-sm">{weddingDate}</p>}
+                        {weddingDate && <p className="mt-2 font-kantumruy text-sm text-[#805f25] drop-shadow-[0_1px_3px_rgba(255,255,255,.95)] sm:text-base">{weddingDate}</p>}
                         <span aria-hidden="true" className="my-3 h-px w-16 bg-gradient-to-r from-transparent via-[#b08b39] to-transparent lg:my-4 lg:w-24" />
-                        {guestName && <p className="mb-2 rounded-full border border-[#bd9847]/40 bg-[#fffaf0]/55 px-4 py-1.5 font-kantumruy text-xs text-[#74531d]">{guestName}</p>}
-                        <p className="mx-auto max-w-xs font-khmer-moul text-xs leading-7 text-[#72521c] drop-shadow-[0_1px_3px_rgba(255,255,255,.95)] sm:text-sm lg:max-w-sm lg:text-base lg:leading-8">
+                        {guestName && <p className="mb-2 rounded-full border border-[#bd9847]/40 bg-[#fffaf0]/55 px-4 py-1.5 font-kantumruy text-sm text-[#74531d]">{guestName}</p>}
+                        <p className="mx-auto max-w-xs font-khmer-moul text-sm leading-7 text-[#72521c] drop-shadow-[0_1px_3px_rgba(255,255,255,.95)] sm:text-base lg:max-w-sm lg:text-lg lg:leading-8">
                             {invitationText || "សូមគោរពអញ្ជើញចូលរួមជាភ្ញៀវកិត្តិយសក្នុងថ្ងៃដ៏មានអត្ថន័យរបស់យើងខ្ញុំ"}
                         </p>
-                        <button type="button" onClick={openInvitation} className="mt-4 inline-flex w-full max-w-[680px] min-h-14 items-center justify-center gap-2 rounded-xl border border-[#d0af58] bg-gradient-to-b from-[#f4d883] via-[#e6c86d] to-[#c79d3b] px-6 py-3 font-khmer-moul text-sm text-[#5a4317] shadow-[0_6px_18px_rgba(112,82,23,0.18)] transition hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9b7a2e] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffaf0] lg:mt-6 lg:min-h-[3.5rem] lg:text-base">
-                            <Music2 aria-hidden="true" className="h-4 w-4" />
-                            <span className="leading-none">បើកសំបុត្រអញ្ជើញ</span>
+                        <button type="button" onClick={openInvitation} className="mt-4 inline-flex w-full max-w-[680px] min-h-[44px] items-center justify-center gap-2 rounded-xl border border-[#d0af58] bg-gradient-to-b from-[#f4d883] via-[#e6c86d] to-[#c79d3b] px-6 py-3.5 font-khmer-moul text-base text-[#5a4317] shadow-[0_6px_18px_rgba(112,82,23,0.18)] transition hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#9b7a2e] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fffaf0] lg:mt-6 lg:min-h-[48px] lg:text-lg">
+                            <Music2 aria-hidden="true" className="h-5 w-5" />
+                            <span className="leading-none">{wedding.themeSettings?.customLabels?.heroButton || "បើកសំបុត្រអញ្ជើញ"}</span>
                         </button>
                     </div>
                 </section>
@@ -607,6 +623,11 @@ export default function GardenEditorial({ wedding, guestName, config }: Template
                                     </div>
                                 )}
                                 <h1 className="m08-hero-invitation-title font-khmer-moul text-sm leading-7 text-[#80632e] sm:text-base">{getInvitationTitle(wedding)}</h1>
+                                {wedding.themeSettings?.customLabels?.heroSubtitle && (
+                                    <p className="mt-2 max-w-lg break-words font-kantumruy text-xs leading-7 text-[#756948] sm:text-sm">
+                                        {wedding.themeSettings.customLabels.heroSubtitle}
+                                    </p>
+                                )}
                                 <div className="my-5 flex items-center justify-center gap-3 text-[#ac873d]"><span className="h-px w-12 bg-gradient-to-r from-transparent to-current" /><Heart aria-hidden="true" className="h-3.5 w-3.5 fill-current" /><span className="h-px w-12 bg-gradient-to-l from-transparent to-current" /></div>
                                 <div className="m08-hero-couple grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4">
                                     <div className="min-w-0 text-center">
@@ -666,6 +687,8 @@ export default function GardenEditorial({ wedding, guestName, config }: Template
                             <h2 className="font-khmer-moul text-lg text-[#80632e] lg:text-2xl">សូមអរគុណ</h2>
                             <p className="mx-auto mt-3 max-w-md whitespace-pre-line break-words font-kantumruy text-sm leading-8 text-[#626957] lg:mt-5 lg:max-w-2xl lg:text-base lg:leading-9">{acknowledgment || "សូមថ្លែងអំណរគុណយ៉ាងជ្រាលជ្រៅ ចំពោះវត្តមាន និងពរជ័យរបស់លោកអ្នក។"}</p>
                             <CoupleNamesLine groom={wedding.groomName} bride={wedding.brideName} className="m05-font-name mt-5 text-lg text-[#755826] lg:mt-7 lg:text-2xl" />
+                            <SocialLinksSection wedding={wedding} />
+                            <MoneaFooterBrand className="mt-8" />
                         </footer>
                     </main>
                 </>

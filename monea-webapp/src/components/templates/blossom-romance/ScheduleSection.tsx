@@ -32,12 +32,12 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({ wedding, prima
                                 >
                                     <div                                     className="inline-flex max-w-full items-center gap-2 border-y border-rose-200/80 py-2.5 text-[#881337] dark:text-rose-200">
                                         <Calendar size={14} className="text-rose-600" />
-                                        <span className="font-khmer-moul text-xs sm:text-sm tracking-wide">
+                                        <span className="font-khmer-moul text-sm sm:text-base tracking-wide">
                                             {item.title}
                                         </span>
                                     </div>
                                     {item.description && (
-                                        <p className="text-xs text-muted-foreground mt-2 italic">
+                                        <p className="text-sm text-muted-foreground mt-2 italic">
                                             {item.description}
                                         </p>
                                     )}
@@ -62,8 +62,8 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({ wedding, prima
                                 {/* Content Card */}
                                 <div className="py-1 space-y-1">
                                     {item.time && (
-                                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-rose-600">
-                                            <Clock size={12} />
+                                        <div className="flex items-center gap-1.5 text-sm font-bold text-rose-600">
+                                            <Clock size={14} />
                                             <span>{item.time}</span>
                                         </div>
                                     )}
@@ -71,7 +71,7 @@ export const ScheduleSection: React.FC<ScheduleSectionProps> = ({ wedding, prima
                                         {item.title}
                                     </h4>
                                     {item.description && (
-                                        <p className="text-xs text-muted-foreground leading-relaxed pt-0.5">
+                                        <p className="text-sm text-muted-foreground leading-relaxed pt-0.5">
                                             {item.description}
                                         </p>
                                     )}

@@ -138,13 +138,13 @@ export function KhmerSchedule({
                                     <div className="text-center py-2 relative z-10">
                                         <div className="inline-flex items-center justify-center gap-2 sm:gap-3 max-w-full px-2">
                                             <span className="w-6 sm:w-10 h-[1px] bg-gradient-to-r from-transparent to-[#D4AF37] shrink-0" />
-                                            <h3 className="font-khmer-moul text-xs sm:text-sm md:text-base text-gold-gradient text-gold-embossed tracking-wide px-1">
+                                            <h3 className="font-khmer-moul text-sm sm:text-base md:text-lg text-gold-gradient text-gold-embossed tracking-wide px-1">
                                                 {group.header.title}
                                             </h3>
                                             <span className="w-6 sm:w-10 h-[1px] bg-gradient-to-l from-transparent to-[#D4AF37] shrink-0" />
                                         </div>
                                         {group.header.description && (
-                                            <p className="font-kantumruy text-[11px] sm:text-xs text-stone-500 font-normal pt-1">
+                                            <p className="font-kantumruy text-sm sm:text-base text-stone-500 font-normal pt-1">
                                                 {group.header.description}
                                             </p>
                                         )}
@@ -166,8 +166,8 @@ export function KhmerSchedule({
                                                 <RevealSection key={actIdx} delay={actIdx * 0.03}>
                                                     <div className="flex items-center gap-3 sm:gap-4 group">
                                                         {/* Left Golden Outline Icon */}
-                                                        <div className="w-8 sm:w-9 flex items-center justify-center shrink-0 text-[#B8860B] drop-shadow-sm group-hover:scale-110 transition-transform">
-                                                            <IconComp size={18} className="stroke-[1.6]" />
+                                                        <div className="w-10 sm:w-11 flex items-center justify-center shrink-0 text-[#B8860B] drop-shadow-sm group-hover:scale-110 transition-transform">
+                                                            <IconComp size={22} className="stroke-[1.6]" />
                                                         </div>
 
                                                         {/* Node Dot on Vertical Line */}
@@ -177,7 +177,7 @@ export function KhmerSchedule({
 
                                                         {/* Right Activity Content (Time ៖ Title) */}
                                                         <div className="flex-1 pl-1 sm:pl-2 text-left">
-                                                            <div className="font-kantumruy text-xs sm:text-sm font-bold text-[#805C00] leading-relaxed">
+                                                            <div className="font-kantumruy text-sm sm:text-base font-bold text-[#805C00] leading-relaxed">
                                                                 {item.time ? (
                                                                     <>
                                                                         <span className="text-[#805C00]">{item.time}</span>
@@ -189,7 +189,7 @@ export function KhmerSchedule({
                                                                 )}
                                                             </div>
                                                             {item.description && (
-                                                                <p className="font-kantumruy text-[11px] sm:text-xs text-stone-500 leading-normal pt-0.5 font-normal">
+                                                                <p className="font-kantumruy text-sm sm:text-base text-stone-500 leading-normal pt-0.5 font-normal">
                                                                     {item.description}
                                                                 </p>
                                                             )}

@@ -15,6 +15,9 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ wedding, primary
     const photos = getWeddingPhotos(wedding);
     const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
     const galleryStyle = getGalleryDisplayStyle(wedding.themeSettings?.galleryStyle);
+    const galleryTitle = wedding.themeSettings?.customLabels?.galleryTitle
+        || wedding.themeSettings?.customLabels?.gallery_title
+        || "កម្រងរូបភាពអនុស្សាវរីយ៍";
 
     if (photos.length === 0) return null;
 
@@ -23,7 +26,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ wedding, primary
             <div className="max-w-md mx-auto space-y-6 relative z-10">
                 <div className="text-center space-y-1">
                     <span className="fh-khmer-safe block px-2 font-khmer-moul text-lg text-[#4d5649] sm:text-2xl">
-                        កម្រងរូបភាពអនុស្សាវរីយ៍
+                        {galleryTitle}
                     </span>
                     <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-[#8ea07a] to-transparent mx-auto" />
                 </div>

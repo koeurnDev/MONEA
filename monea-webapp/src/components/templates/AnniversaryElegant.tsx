@@ -202,14 +202,14 @@ export default function AnniversaryElegant({ wedding, guestName, config }: Templ
                                 : { opacity: 0, scale: 0.72 }}
                             transition={{ duration: 0.5, delay: isOpening ? 0.32 : 0, ease: [0.2, 0.75, 0.25, 1] }}
                         >
-                            <span className="mb-3 text-[10px] tracking-[0.18em] text-[#A27B4D]">សូមគោរពអញ្ជើញ</span>
+                            <span className="mb-3 text-sm tracking-[0.18em] text-[#A27B4D]">សូមគោរពអញ្ជើញ</span>
                             <span className="w-full font-khmer-moul text-[13px] leading-loose text-[#56343A]">
                                 <OneLineName name={groomName} />
-                                <span className="block text-[10px] text-[#A27B4D]">និង</span>
+                                <span className="block text-sm text-[#A27B4D]">និង</span>
                                 <OneLineName name={brideName} ariaHidden />
                             </span>
                             <span className="my-4 h-px w-12 bg-[#B99766]/70" />
-                            <span className="font-kantumruy text-[10px] leading-relaxed text-[#80656A]">
+                            <span className="font-kantumruy text-sm leading-relaxed text-[#80656A]">
                                 សូមអញ្ជើញចូលរួមជាសាក្សី<br />ក្នុងថ្ងៃដ៏មានអត្ថន័យរបស់យើងខ្ញុំ
                             </span>
                             <svg viewBox="0 0 50 20" className="mt-4 h-5 w-12 text-[#A27B4D]" fill="none">
@@ -224,7 +224,7 @@ export default function AnniversaryElegant({ wedding, guestName, config }: Templ
                             transition={{ duration: 0.8 }}
                             className="relative z-10 pt-2"
                         >
-                            <p className="font-khmer-moul text-xs sm:text-sm tracking-[0.16em] text-[#E4C9A0] drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]">
+                            <p className="font-khmer-moul text-sm sm:text-base tracking-[0.16em] text-[#E4C9A0] drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]">
                                 {entranceHeader}
                             </p>
                             <div className="mx-auto mt-3 h-px w-14 bg-gradient-to-r from-transparent via-[#D2A77A]/70 to-transparent" />
@@ -268,7 +268,7 @@ export default function AnniversaryElegant({ wedding, guestName, config }: Templ
                                         <CoupleNamesLine groom={groomName} bride={brideName} />
                                     </h1>
                                 )}
-                                <p className="font-khmer-moul text-[11px] text-[#D9BDA0]">
+                                <p className="font-khmer-moul text-sm text-[#D9BDA0]">
                                     {guestName || "សូមគោរពអញ្ជើញ"}
                                 </p>
                                 <button
@@ -277,7 +277,7 @@ export default function AnniversaryElegant({ wedding, guestName, config }: Templ
                                         event.stopPropagation();
                                         handleOpenEnvelope();
                                     }}
-                                    className="mt-1 inline-flex items-center justify-center rounded-full border border-[#D2A77A]/55 bg-[#401A23]/75 px-5 py-2 font-khmer-moul text-[11px] text-[#F2DDAF] shadow-[0_5px_18px_rgba(0,0,0,0.22)] transition-colors hover:bg-[#592631]"
+                                    className="mt-1 inline-flex min-h-[44px] items-center justify-center rounded-full border border-[#D2A77A]/55 bg-[#401A23]/75 px-5 py-2.5 font-khmer-moul text-sm text-[#F2DDAF] shadow-[0_5px_18px_rgba(0,0,0,0.22)] transition-colors hover:bg-[#592631]"
                                 >
                                     សូមចុចបើកធៀប
                                 </button>
@@ -290,7 +290,7 @@ export default function AnniversaryElegant({ wedding, guestName, config }: Templ
                             transition={{ duration: 0.8, delay: 0.3 }}
                             className="relative z-10 pb-1 text-center"
                         >
-                            <p className="text-[9px] tracking-[0.12em] text-[#C9A2A4]/75">
+                            <p className="text-sm tracking-[0.12em] text-[#C9A2A4]/75">
                                 ចុចត្រាមាស ឬចុចត្រង់ណាក៏បាន
                             </p>
                         </m.div>

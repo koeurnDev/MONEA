@@ -157,10 +157,10 @@ const InvitationCardArtwork = ({
         <div aria-hidden="true" className="pointer-events-none absolute inset-[5px] border-x border-t border-[#b6a17b]/30" />
         <div className="m05-card-heading">
             <EnvelopeEmblem className="m05-card-crest mx-auto h-4 w-5" />
-            <p className="m05-card-title m05-khmer-safe font-khmer-moul text-[10px] leading-[1.5] text-[#554832]">
+            <p className="m05-card-title m05-khmer-safe font-khmer-moul text-sm leading-[1.5] text-[#554832]">
                 {title}
             </p>
-            <p className="m05-card-subtitle font-pinyon-script text-[10px] text-[#9a7a43]">
+            <p className="m05-card-subtitle font-pinyon-script text-sm text-[#9a7a43]">
                 {englishTitle}
             </p>
         </div>
@@ -169,9 +169,9 @@ const InvitationCardArtwork = ({
             <span className="m05-card-heart" aria-hidden="true">♡</span>
             <OneLineName name={wedding.brideName || bridePlaceholder} className="m05-card-couple-name flex-1 text-center" />
         </div>
-        <div className="m05-card-info w-full max-w-[300px] font-kantumruy text-[8px] leading-[1.4] text-[#554832]">
+        <div className="m05-card-info w-full max-w-[300px] font-kantumruy text-sm leading-[1.4] text-[#554832]">
             {invitedName && (
-                <p className="m05-card-invite m05-khmer-safe text-center font-khmer-moul text-[9px] text-[#6f5125] sm:text-[10px]">
+                <p className="m05-card-invite m05-khmer-safe text-center font-khmer-moul text-sm text-[#6f5125] sm:text-base">
                     <span className="m05-card-invite-label">
                         {locale === "km" ? "សូមគោរពអញ្ជើញ" : "Cordially invited"}
                     </span>
@@ -825,10 +825,10 @@ const InvitationEnvelope = ({
 
                         {invitedName && (
                             <div className="pointer-events-none absolute inset-x-[8%] top-[82%] z-[55] flex flex-col items-center text-center drop-shadow-[0_1px_2px_rgba(20,24,14,.65)]">
-                                <p className="m05-khmer-safe font-kantumruy text-[8px] text-[#f0dfb8] sm:text-[9px]">
+                                <p className="m05-khmer-safe font-kantumruy text-sm text-[#f0dfb8] sm:text-base">
                                     {invitedGuestLabel}
                                 </p>
-                                <p className="m05-khmer-safe max-w-full break-words font-khmer-moul text-[9px] text-[#fff0cf] sm:text-[11px]">
+                                <p className="m05-khmer-safe max-w-full break-words font-khmer-moul text-sm text-[#fff0cf] sm:text-base">
                                     {invitedHonorific ? `${invitedHonorific} ` : ""}{invitedName}
                                 </p>
                             </div>
@@ -841,7 +841,7 @@ const InvitationEnvelope = ({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: stage === 0 ? 1 : 0 }}
                     transition={{ duration: 0.4 }}
-                    className="relative z-10 mt-6 flex w-full max-w-[360px] items-center justify-center gap-3 font-kantumruy text-[11px] text-[#e7d7b5]/85 before:h-px before:max-w-8 before:flex-1 before:bg-gradient-to-r before:from-transparent before:to-[#c3a16d]/55 after:h-px after:max-w-8 after:flex-1 after:bg-gradient-to-l after:from-transparent after:to-[#c3a16d]/55 md:text-sm"
+                    className="relative z-10 mt-5 flex w-full max-w-[340px] items-center justify-center gap-2.5 font-kantumruy text-sm text-[#e7d7b5]/75 before:h-px before:max-w-7 before:flex-1 before:bg-gradient-to-r before:from-transparent before:to-[#c3a16d]/45 after:h-px after:max-w-7 after:flex-1 after:bg-gradient-to-l after:from-transparent after:to-[#c3a16d]/45 md:text-base"
                 >
                     {hint}
                 </motion.p>
@@ -864,7 +864,8 @@ const NeaM05: React.FC<TemplateProps> = ({ wedding, guestName, config }) => {
     const reducedMotion = usePrefersReducedMotion();
     const isEngagement = wedding.eventType === "anniversary";
     const text = isEngagement ? { ...copy[locale], ...copy[locale].engagement } : copy[locale];
-    const invitationTitle = isEngagement ? text.engagementInvitationTitle : text.invitationTitle;
+    const invitationTitle = wedding.themeSettings?.customLabels?.invitationTitle
+        || (isEngagement ? text.engagementInvitationTitle : text.invitationTitle);
     const englishInvitationTitle = isEngagement ? text.engagementEnglishInvitationTitle : text.englishInvitationTitle;
     const musicUrl = wedding.themeSettings?.musicUrl;
     const couplePhoto = getNeaM05CouplePhoto(wedding);
@@ -1511,11 +1512,11 @@ const NeaM05: React.FC<TemplateProps> = ({ wedding, guestName, config }) => {
 
             {stage === 6 && (
                 <header className="pointer-events-none fixed inset-x-0 top-0 z-[80] flex items-start justify-center bg-gradient-to-b from-[#100f0d]/90 via-[#100f0d]/55 to-transparent px-4 pb-4 pt-[calc(env(safe-area-inset-top,0px)+1rem)] sm:pt-4">
-                    <div className="pointer-events-auto mx-auto flex w-full max-w-[430px] items-center justify-end gap-3 pr-2">
+                    <div className="pointer-events-auto mx-auto flex w-full max-w-[430px] items-center justify-end gap-2 pr-2">
                         <button
                             type="button"
                             onClick={() => setLocale((current) => current === "km" ? "en" : "km")}
-                            className="rounded-full border border-[#d8bc82]/45 bg-[#17130f]/30 px-3 py-1 font-kantumruy text-[10px] tracking-[0.12em] text-[#f1dfb8] shadow-[0_2px_10px_rgba(0,0,0,.12)] backdrop-blur-sm transition-colors hover:border-[#e7ce99]/75 hover:bg-[#2a2117]/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e7ce99]"
+                            className="inline-flex h-7 min-w-9 items-center justify-center rounded-full border border-[#d8bc82]/45 bg-[#17130f]/30 px-2 font-kantumruy text-[9px] tracking-[0.08em] text-[#f1dfb8] shadow-[0_2px_10px_rgba(0,0,0,.12)] backdrop-blur-sm transition-colors hover:border-[#e7ce99]/75 hover:bg-[#2a2117]/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#e7ce99]"
                             aria-label={text.switchLanguage}
                         >
                             {locale === "km" ? "EN" : "ខ្មែរ"}
@@ -1524,10 +1525,10 @@ const NeaM05: React.FC<TemplateProps> = ({ wedding, guestName, config }) => {
                             <button
                                 type="button"
                                 onClick={toggleMusic}
-                                className="flex h-8 w-8 items-center justify-center rounded-full border border-white/30 bg-black/25 text-white/90 backdrop-blur-sm"
+                                className="flex h-6 w-6 items-center justify-center rounded-full border border-white/25 bg-black/20 text-white/85 backdrop-blur-sm transition-colors hover:bg-black/35"
                                 aria-label={isPlaying ? text.pauseMusic : text.playMusic}
                             >
-                                {isPlaying ? <Volume2 size={14} /> : <VolumeX size={14} />}
+                                {isPlaying ? <Volume2 size={11} strokeWidth={2.2} /> : <VolumeX size={11} strokeWidth={2.2} />}
                             </button>
                         )}
                     </div>
@@ -1549,7 +1550,7 @@ const NeaM05: React.FC<TemplateProps> = ({ wedding, guestName, config }) => {
                         bridePlaceholder={text.bridePlaceholder}
                         title={invitationTitle}
                         englishTitle={englishInvitationTitle}
-                        hint={text.openEnvelope}
+                        hint={wedding.themeSettings?.customLabels?.heroButton || text.openEnvelope}
                         stage={stage}
                         onOpen={startOpening}
                         onCardFullyExtracted={() => setStage(5)}
@@ -1599,7 +1600,12 @@ const NeaM05: React.FC<TemplateProps> = ({ wedding, guestName, config }) => {
                             >
                                 {invitationTitle}
                             </motion.p>
-                            <p className="m05-cover-english-title mt-1 font-pinyon-script text-base text-[#e8d3a7] sm:text-lg">
+                            {wedding.themeSettings?.customLabels?.heroSubtitle && (
+                                <p className="m05-khmer-safe mt-2 max-w-lg font-kantumruy text-xs leading-relaxed text-[#f5e9ce]/90 sm:text-sm">
+                                    {wedding.themeSettings.customLabels.heroSubtitle}
+                                </p>
+                            )}
+                            <p className="m05-cover-english-title mt-1 max-w-full whitespace-nowrap font-pinyon-script text-[clamp(0.7rem,4vw,1.125rem)] text-[#e8d3a7]">
                                 {englishInvitationTitle}
                             </p>
 
@@ -1624,7 +1630,7 @@ const NeaM05: React.FC<TemplateProps> = ({ wedding, guestName, config }) => {
                             </div>
 
                             <div className="m05-cover-details flex w-full flex-col items-center">
-                            <p className="m05-cover-invite mt-4 font-kantumruy text-[11px] text-white/85 sm:text-xs">
+                            <p className="m05-cover-invite mt-4 font-kantumruy text-sm text-white/85 sm:text-base">
                                 {text.invitedGuest}
                             </p>
                             {invitedName && (
@@ -1636,10 +1642,10 @@ const NeaM05: React.FC<TemplateProps> = ({ wedding, guestName, config }) => {
                             <div className="m05-cover-date mt-4 grid w-full max-w-[340px] grid-cols-4 divide-x divide-[#e6d3ac]/40 border-y border-[#e6d3ac]/35 py-2">
                                 {text.dateLabels.map((label, index) => (
                                     <div key={label} className="px-1">
-                                        <p className="m05-khmer-safe whitespace-nowrap font-khmer-moul text-[10px] text-[#fff0cf] sm:text-xs">
+                                        <p className="m05-khmer-safe whitespace-nowrap font-khmer-moul text-sm text-[#fff0cf] sm:text-base">
                                             {dateParts[index]}
                                         </p>
-                                        <p className="m05-cover-date-label m05-khmer-safe mt-0.5 font-kantumruy text-[9px] text-[#e1d0ad]/80">
+                                        <p className="m05-cover-date-label m05-khmer-safe mt-0.5 font-kantumruy text-sm text-[#e1d0ad]/80">
                                             {label}
                                         </p>
                                     </div>
@@ -1647,27 +1653,27 @@ const NeaM05: React.FC<TemplateProps> = ({ wedding, guestName, config }) => {
                             </div>
 
                             {wedding.themeSettings?.lunarDate && (
-                                <p className="m05-cover-lunar m05-khmer-safe mt-2 font-kantumruy text-[10px] text-[#f0dfbc] sm:text-xs">
+                                <p className="m05-cover-lunar m05-khmer-safe mt-2 font-kantumruy text-sm text-[#f0dfbc] sm:text-base">
                                     {wedding.themeSettings.lunarDate}
                                 </p>
                             )}
                             {!wedding.themeSettings?.lunarDate && isApprovalPreview && (
-                                <p className="m05-cover-lunar m05-khmer-safe mt-2 font-kantumruy text-[10px] text-[#f0dfbc]/70 sm:text-xs">
+                                <p className="m05-cover-lunar m05-khmer-safe mt-2 font-kantumruy text-sm text-[#f0dfbc]/70 sm:text-base">
                                     {text.lunarDatePlaceholder}
                                 </p>
                             )}
                             {wedding.location && (
-                                <p className="m05-cover-venue m05-khmer-safe mt-1 max-w-[90%] font-kantumruy text-[10px] text-white/85 sm:text-xs">
+                                <p className="m05-cover-venue m05-khmer-safe mt-1 max-w-[90%] font-kantumruy text-sm text-white/85 sm:text-base">
                                     {wedding.locationName || wedding.location}
                                 </p>
                             )}
                             {!wedding.location && isApprovalPreview && (
-                                <p className="m05-cover-venue m05-khmer-safe mt-1 font-kantumruy text-[10px] text-white/65 sm:text-xs">
+                                <p className="m05-cover-venue m05-khmer-safe mt-1 font-kantumruy text-sm text-white/65 sm:text-base">
                                     {text.venuePlaceholder}
                                 </p>
                             )}
                             {!couplePhoto && (
-                                <p className="m05-cover-photo-placeholder mt-2 font-kantumruy text-[9px] text-white/55">
+                                <p className="m05-cover-photo-placeholder mt-2 font-kantumruy text-sm text-white/55">
                                     {text.photoPlaceholder}
                                 </p>
                             )}
@@ -1676,7 +1682,7 @@ const NeaM05: React.FC<TemplateProps> = ({ wedding, guestName, config }) => {
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 0.8 }}
                                 transition={{ delay: 1.1 }}
-                                className="m05-cover-scroll mt-3 inline-flex flex-col items-center gap-1 font-serif-elegant text-[9px] uppercase tracking-[0.24em] text-[#f4e4bf]"
+                                className="m05-cover-scroll mt-3 inline-flex flex-col items-center gap-1 font-serif-elegant text-sm uppercase tracking-[0.24em] text-[#f4e4bf]"
                             >
                                 <span>{text.scroll}</span>
                                 <motion.span

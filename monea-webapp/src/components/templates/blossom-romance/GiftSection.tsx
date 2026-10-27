@@ -12,6 +12,7 @@ interface GiftSectionProps {
 export const GiftSection: React.FC<GiftSectionProps> = ({ wedding, primaryColor }) => {
     const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
     const bankAccounts = getConfiguredPaymentAccounts(wedding.themeSettings?.bankAccounts);
+    const labels = wedding.themeSettings?.customLabels;
 
     const handleCopy = (num: string, idx: number) => {
         navigator.clipboard.writeText(num);
@@ -26,8 +27,14 @@ export const GiftSection: React.FC<GiftSectionProps> = ({ wedding, primaryColor 
             <div className="max-w-md mx-auto space-y-6 relative z-10">
                 <div className="space-y-1">
                     <span className="text-xl sm:text-2xl font-khmer-moul text-[#B45309] block">
-                        ចំណងដៃអាពាហ៍ពិពាហ៍
+                        {labels?.giftTitle || "ចំណងដៃអាពាហ៍ពិពាហ៍"}
                     </span>
+                    {labels?.giftSubtitle && (
+                        <p className="mx-auto max-w-md text-sm leading-relaxed text-rose-800/80">
+                            {labels.giftSubtitle}
+                        </p>
+                    )}
+                    {labels?.giftBadge && <span className="inline-flex rounded-full border border-rose-200 px-3 py-1 text-sm font-semibold text-rose-700">{labels.giftBadge}</span>}
                     <div className="w-12 h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto" />
                 </div>
 
@@ -38,10 +45,10 @@ export const GiftSection: React.FC<GiftSectionProps> = ({ wedding, primaryColor 
                             className="space-y-4 border-b border-rose-200/80 py-5"
                         >
                             <div className="flex flex-wrap items-start justify-between gap-2">
-                                <span className="max-w-full break-words text-xs font-bold text-rose-700">
+                                <span className="max-w-full break-words text-sm font-bold text-rose-700">
                                     {acc.bankName || "ធនាគារ"}
                                 </span>
-                                <span className="min-w-0 break-words text-right text-xs font-bold text-slate-800 [overflow-wrap:anywhere]">
+                                <span className="min-w-0 break-words text-right text-sm font-bold text-slate-800 [overflow-wrap:anywhere]">
                                     {acc.accountName || "ឈ្មោះគណនី"}
                                 </span>
                             </div>
@@ -59,7 +66,7 @@ export const GiftSection: React.FC<GiftSectionProps> = ({ wedding, primaryColor 
 
                             {/* Account Number with Copy */}
                             {acc.accountNumber && (
-                                <div className="flex min-w-0 items-center justify-between gap-2 border-b border-rose-200/80 px-1 py-2.5 text-xs">
+                                <div className="flex min-w-0 items-center justify-between gap-2 border-b border-rose-200/80 px-1 py-2.5 text-sm">
                                     <span className="min-w-0 break-all font-mono font-bold tracking-wider text-slate-800">
                                         {acc.accountNumber}
                                     </span>

@@ -151,7 +151,7 @@ export default function RSVPSection({ wedding, guestName }: RSVPSectionProps) {
                     
                     <div className="flex flex-col items-center gap-6 pt-6">
                         <div className="w-24 h-[1px] bg-gradient-to-r from-transparent via-gold-main/20 to-transparent" />
-                        <p className="font-khmer-moul text-xs text-gold-main/80 drop-shadow-sm tracking-wide">
+                        <p className="font-khmer-moul text-sm sm:text-base text-gold-main/80 drop-shadow-sm tracking-wide">
                             {wedding.themeSettings?.customLabels?.rsvpClosing || t("invitation.rsvp.closing")}
                         </p>
 

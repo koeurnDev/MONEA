@@ -99,7 +99,7 @@ export const FortuneHarmony: React.FC<TemplateProps> = ({ wedding, guestName, co
                             </h2>
                             <div className="mx-auto mb-4 mt-3 h-px w-14 bg-gradient-to-r from-transparent via-amber-300/70 to-transparent" />
                             {loveStory && (
-                                <p className="fh-khmer-safe whitespace-pre-line break-words text-sm text-[#fff5e8]/90 sm:text-base">
+                                <p className="fh-khmer-safe whitespace-pre-line break-words text-base text-[#fff5e8]/90 sm:text-lg">
                                     {loveStory}
                                 </p>
                             )}
@@ -115,7 +115,7 @@ export const FortuneHarmony: React.FC<TemplateProps> = ({ wedding, guestName, co
                                                 decoding="async"
                                             />
                                             {wedding.themeSettings?.storyImageCaptions?.[index]?.trim() && (
-                                                <figcaption className="fh-khmer-safe mt-2 text-sm text-[#fff5e8]/90">
+                                                <figcaption className="fh-khmer-safe mt-2 text-base text-[#fff5e8]/90">
                                                     {wedding.themeSettings.storyImageCaptions[index]}
                                                 </figcaption>
                                             )}

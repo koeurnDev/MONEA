@@ -45,7 +45,7 @@ export const ThankYouSection = ({ wedding }: { wedding: WeddingData }) => {
                     សូមអំណរគុណ
                 </h2>
                 
-                <p className="text-sm md:text-base font-kantumruy text-white/90 font-light max-w-2xl leading-8">
+                <p className="m02-thankyou-copy font-suwannaphum text-base md:text-lg text-white/90 font-light max-w-2xl leading-8">
                     យើងខ្ញុំសូមថ្លែងអំណរគុណយ៉ាងជ្រាលជ្រៅបំផុតចំពោះវត្តមានរបស់អ្នកក្នុងពិធីនេះ និងសូមជូនពរឱ្យទទួលបាននូវពុទ្ធពរទាំងបួនប្រការគឺ៖ អាយុ វណ្ណៈ សុខៈ ពលៈ កុំបីឃ្លៀងឃ្លាតឡើយ។
                 </p>
 
