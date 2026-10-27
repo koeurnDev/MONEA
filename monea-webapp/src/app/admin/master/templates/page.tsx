@@ -1,17 +1,24 @@
 import { useCallback, useEffect, useState } from "react";
-import { DollarSign, Eye, LayoutGrid, Loader2, Pencil, Save, X } from "lucide-react";
+import { DollarSign, Eye, LayoutGrid, Loader2, Pencil, Save, Search, X, Copy, CheckCircle2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/Toast";
 import { moneaClient } from "@/lib/api-client";
-import { TEMPLATE_DEFINITIONS } from "@/components/templates/template-config";
+import {
+    normalizeTemplatePresentationMetadata,
+    TEMPLATE_DEFINITIONS,
+} from "@/components/templates/template-config";
 import type { TemplatePresentationMetadata } from "@/components/templates/template-config";
 import ImageUploadWidget from "@/components/ui/image-upload-widget";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 type Availability = Record<string, boolean>;
 type TemplateMetadata = Record<string, TemplatePresentationMetadata>;
+type TemplateFilter = "ALL" | "ENABLED" | "DISABLED";
 
 export default function TemplateAvailabilityPage() {
     const [availability, setAvailability] = useState<Availability | null>(null);
@@ -22,7 +29,16 @@ export default function TemplateAvailabilityPage() {
     const [loadError, setLoadError] = useState<string | null>(null);
     const [savingId, setSavingId] = useState<string | null>(null);
     const [savingMetadata, setSavingMetadata] = useState(false);
+    const [search, setSearch] = useState("");
+    const [filter, setFilter] = useState<TemplateFilter>("ALL");
     const { showToast } = useToast();
+    
+    // Bulk copy state
+    const [bulkCopyOpen, setBulkCopyOpen] = useState(false);
+    const [bulkCopySource, setBulkCopySource] = useState("modern-minimal");
+    const [selectedTargets, setSelectedTargets] = useState<string[]>([]);
+    const [bulkCopying, setBulkCopying] = useState(false);
+    const [bulkCopyResults, setBulkCopyResults] = useState<{ templateId: string; success: boolean; error?: string }[] | null>(null);
 
     const loadConfiguration = useCallback(async () => {
         setLoading(true);
@@ -37,7 +53,7 @@ export default function TemplateAvailabilityPage() {
             setLoadError(metadataResponse.error || "Failed to load template metadata");
         } else {
             setAvailability(availabilityResponse.data);
-            setMetadata(metadataResponse.data);
+            setMetadata(normalizeTemplatePresentationMetadata(metadataResponse.data));
         }
         setLoading(false);
     }, []);
@@ -89,7 +105,7 @@ export default function TemplateAvailabilityPage() {
                 type: "error",
             });
         } else {
-            setMetadata(response.data);
+            setMetadata(normalizeTemplatePresentationMetadata(response.data));
             setEditingId(null);
             setDraft(null);
             showToast({ title: "បានរក្សាទុកព័ត៌មាន Template", type: "success" });
@@ -102,8 +118,102 @@ export default function TemplateAvailabilityPage() {
         setDraft(null);
     };
 
+    const handleBulkCopy = async () => {
+        if (selectedTargets.length === 0) {
+            showToast({
+                title: "សូមជ្រើសរើស Template",
+                description: "អ្នកត្រូវជ្រើសរើសយ៉ាងហោចណាស់ template មួយដើម្បី copy",
+                type: "error",
+            });
+            return;
+        }
+
+        setBulkCopying(true);
+        setBulkCopyResults(null);
+
+        const response = await moneaClient.post<{
+            success: boolean;
+            message: string;
+            results: { templateId: string; success: boolean; error?: string }[];
+        }>("/api/admin/template-preview/bulk-copy", {
+            sourceTemplateId: bulkCopySource,
+            targetTemplateIds: selectedTargets,
+        });
+
+        setBulkCopying(false);
+
+        if (response.error || !response.data) {
+            showToast({
+                title: "បរាជ័យក្នុងការ copy demo data",
+                description: response.error || "Failed to copy demo data",
+                type: "error",
+            });
+        } else {
+            setBulkCopyResults(response.data.results);
+            const successCount = response.data.results.filter(r => r.success).length;
+            
+            if (successCount === selectedTargets.length) {
+                showToast({
+                    title: "✅ Copy រួចរាល់!",
+                    description: `បាន copy demo data ទៅ ${successCount} template(s) ដោយជោគជ័យ`,
+                    type: "success",
+                });
+                // Reset selections after success
+                setTimeout(() => {
+                    setBulkCopyOpen(false);
+                    setSelectedTargets([]);
+                    setBulkCopyResults(null);
+                }, 2000);
+            } else {
+                showToast({
+                    title: "Copy រួចមួយផ្នែក",
+                    description: `បាន copy ${successCount}/${selectedTargets.length} template(s)`,
+                    type: "info",
+                });
+            }
+        }
+    };
+
+    const toggleTargetSelection = (templateId: string) => {
+        setSelectedTargets(prev =>
+            prev.includes(templateId)
+                ? prev.filter(id => id !== templateId)
+                : [...prev, templateId]
+        );
+    };
+
+    const selectAllTargets = () => {
+        const allOtherTemplates = templates
+            .filter(t => t.id !== bulkCopySource)
+            .map(t => t.id);
+        setSelectedTargets(allOtherTemplates);
+    };
+
+    const deselectAllTargets = () => {
+        setSelectedTargets([]);
+    };
+
+    const templates = Object.values(TEMPLATE_DEFINITIONS);
+    const enabledCount = templates.filter((template) => availability?.[template.id] === true).length;
+    const disabledCount = templates.length - enabledCount;
+    const visibleTemplates = templates.filter((template) => {
+        const details = metadata?.[template.id];
+        const enabled = availability?.[template.id] === true;
+        const query = search.trim().toLocaleLowerCase();
+        const matchesSearch = !query || [
+            template.id,
+            template.title,
+            template.description,
+            details?.title,
+            details?.description,
+        ].some((value) => value?.toLocaleLowerCase().includes(query));
+        const matchesFilter = filter === "ALL"
+            || (filter === "ENABLED" ? enabled : !enabled);
+        return matchesSearch && matchesFilter;
+    });
+
     return (
-        <div className="mx-auto max-w-5xl space-y-5 p-3 sm:space-y-6 sm:p-6">
+        <div className="mx-auto max-w-6xl space-y-5 p-3 sm:space-y-6 sm:p-6">
             <header className="flex items-start gap-3 sm:gap-4">
                 <div className="shrink-0 rounded-2xl bg-teal-500/10 p-2.5 text-teal-600 dark:text-teal-300 sm:p-3">
                     <LayoutGrid className="h-5 w-5 sm:h-6 sm:w-6" />
@@ -114,13 +224,205 @@ export default function TemplateAvailabilityPage() {
                         គ្រប់គ្រងព័ត៌មាន រូបភាព សិទ្ធិប្រើប្រាស់ និងតម្លៃរបស់ Template នៅទីនេះ។
                     </p>
                 </div>
-                <Button asChild variant="outline" className="ml-auto shrink-0 gap-2">
-                    <Link to="/admin/master/template-pricing">
-                        <DollarSign className="h-4 w-4" />
-                        តម្លៃ និងបញ្ចុះតម្លៃ
-                    </Link>
-                </Button>
+                <div className="ml-auto flex shrink-0 gap-2">
+                    <Button 
+                        type="button"
+                        variant="outline" 
+                        className="gap-2"
+                        onClick={() => setBulkCopyOpen(true)}
+                    >
+                        <Copy className="h-4 w-4" />
+                        <span className="hidden sm:inline">Copy Demo Data</span>
+                    </Button>
+                    <Button asChild variant="outline" className="gap-2">
+                        <Link to="/admin/master/template-pricing">
+                            <DollarSign className="h-4 w-4" />
+                            <span className="hidden sm:inline">តម្លៃ និងបញ្ចុះតម្លៃ</span>
+                        </Link>
+                    </Button>
+                </div>
             </header>
+
+            {/* Bulk Copy Dialog */}
+            <Dialog open={bulkCopyOpen} onOpenChange={setBulkCopyOpen}>
+                <DialogContent className="max-w-2xl">
+                    <DialogTitle className="flex items-center gap-2 text-lg font-black">
+                        <Copy className="h-5 w-5" />
+                        Copy Demo Data ពី Template មួយទៅ Template ផ្សេង
+                    </DialogTitle>
+                    <DialogDescription className="text-sm leading-relaxed">
+                        ជ្រើសរើស source template និង target templates ដើម្បី copy រូបភាព ព័ត៌មាន និងទិន្នន័យ demo។
+                    </DialogDescription>
+
+                    <div className="space-y-4">
+                        {/* Source Template Selection */}
+                        <div className="space-y-2">
+                            <Label className="text-sm font-bold">Source Template (Copy ពី)</Label>
+                            <select
+                                value={bulkCopySource}
+                                onChange={(e) => {
+                                    setBulkCopySource(e.target.value);
+                                    setSelectedTargets(prev => prev.filter(id => id !== e.target.value));
+                                }}
+                                disabled={bulkCopying}
+                                className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
+                            >
+                                {templates.map((template) => {
+                                    const details = metadata?.[template.id];
+                                    return (
+                                        <option key={template.id} value={template.id}>
+                                            {template.code} - {details?.title || template.title}
+                                        </option>
+                                    );
+                                })}
+                            </select>
+                            <p className="text-xs text-muted-foreground">
+                                Demo data ពី template នេះនឹងត្រូវ copy ទៅ templates ដែលបានជ្រើសរើស
+                            </p>
+                        </div>
+
+                        {/* Target Templates Selection */}
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                                <Label className="text-sm font-bold">Target Templates (Copy ទៅ)</Label>
+                                <div className="flex gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={selectAllTargets}
+                                        disabled={bulkCopying}
+                                        className="text-xs font-semibold text-primary hover:underline disabled:opacity-50"
+                                    >
+                                        ជ្រើសទាំងអស់
+                                    </button>
+                                    <span className="text-xs text-muted-foreground">|</span>
+                                    <button
+                                        type="button"
+                                        onClick={deselectAllTargets}
+                                        disabled={bulkCopying}
+                                        className="text-xs font-semibold text-primary hover:underline disabled:opacity-50"
+                                    >
+                                        លុបចោលទាំងអស់
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="max-h-64 space-y-2 overflow-y-auto rounded-lg border bg-muted/30 p-3">
+                                {templates
+                                    .filter(t => t.id !== bulkCopySource)
+                                    .map((template) => {
+                                        const details = metadata?.[template.id];
+                                        const isSelected = selectedTargets.includes(template.id);
+                                        const result = bulkCopyResults?.find(r => r.templateId === template.id);
+                                        
+                                        return (
+                                            <div
+                                                key={template.id}
+                                                className="flex items-center gap-3 rounded-lg border bg-background p-3 transition hover:border-primary/40"
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    id={`target-${template.id}`}
+                                                    checked={isSelected}
+                                                    onChange={() => toggleTargetSelection(template.id)}
+                                                    disabled={bulkCopying}
+                                                    className="h-4 w-4 cursor-pointer rounded border-gray-300 text-primary focus:ring-2 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
+                                                />
+                                                <label
+                                                    htmlFor={`target-${template.id}`}
+                                                    className="flex flex-1 cursor-pointer items-center gap-3"
+                                                >
+                                                    {details?.image ? (
+                                                        <img
+                                                            src={details.image}
+                                                            alt=""
+                                                            className="h-12 w-9 rounded border object-cover"
+                                                        />
+                                                    ) : (
+                                                        <div className="flex h-12 w-9 items-center justify-center rounded border bg-muted text-muted-foreground">
+                                                            <LayoutGrid className="h-4 w-4" />
+                                                        </div>
+                                                    )}
+                                                    <div className="flex-1">
+                                                        <p className="text-sm font-bold">
+                                                            {template.code} - {details?.title || template.title}
+                                                        </p>
+                                                        <p className="text-xs text-muted-foreground">
+                                                            {template.id}
+                                                        </p>
+                                                    </div>
+                                                </label>
+                                                {result && (
+                                                    result.success ? (
+                                                        <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                                                    ) : (
+                                                        <X className="h-5 w-5 text-destructive" />
+                                                    )
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                បានជ្រើសរើស {selectedTargets.length} template(s)
+                            </p>
+                        </div>
+
+                        {/* Results Display */}
+                        {bulkCopyResults && (
+                            <div className="rounded-lg border bg-muted/30 p-3 text-xs">
+                                <p className="mb-2 font-bold">លទ្ធផល:</p>
+                                {bulkCopyResults.map((result) => {
+                                    const template = templates.find(t => t.id === result.templateId);
+                                    return (
+                                        <div key={result.templateId} className="flex items-center gap-2 py-1">
+                                            {result.success ? (
+                                                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                                            ) : (
+                                                <X className="h-4 w-4 text-destructive" />
+                                            )}
+                                            <span className="flex-1">
+                                                {template?.code} - {result.success ? "ជោគជ័យ" : `បរាជ័យ: ${result.error}`}
+                                            </span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+
+                        {/* Action Buttons */}
+                        <div className="flex justify-end gap-2 border-t pt-4">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => {
+                                    setBulkCopyOpen(false);
+                                    setSelectedTargets([]);
+                                    setBulkCopyResults(null);
+                                }}
+                                disabled={bulkCopying}
+                            >
+                                បោះបង់
+                            </Button>
+                            <Button
+                                type="button"
+                                onClick={handleBulkCopy}
+                                disabled={bulkCopying || selectedTargets.length === 0}
+                            >
+                                {bulkCopying ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        កំពុង Copy...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Copy className="mr-2 h-4 w-4" />
+                                        Copy Demo Data
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
 
             {loading ? (
                 <div role="status" className="flex justify-center py-16 text-muted-foreground">
@@ -136,8 +438,97 @@ export default function TemplateAvailabilityPage() {
                     </CardContent>
                 </Card>
             ) : (
+                <>
+                    <section aria-label="សេចក្តីសង្ខេប Template" className="grid grid-cols-3 gap-2 sm:gap-3">
+                        {[
+                            { label: "Template សរុប", value: templates.length, id: "ALL" as const },
+                            { label: "កំពុងបើក", value: enabledCount, id: "ENABLED" as const },
+                            { label: "បានបិទ", value: disabledCount, id: "DISABLED" as const },
+                        ].map((item) => (
+                            <button
+                                key={item.id}
+                                type="button"
+                                onClick={() => setFilter(item.id)}
+                                aria-pressed={filter === item.id}
+                                className="rounded-xl border border-border bg-card p-3 text-left transition hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:rounded-2xl sm:p-4"
+                            >
+                                <span className="block text-[11px] font-semibold leading-snug text-muted-foreground sm:text-xs">{item.label}</span>
+                                <span className="mt-1 block text-lg font-black tabular-nums text-foreground sm:text-2xl">{item.value}</span>
+                            </button>
+                        ))}
+                    </section>
+
+                    <section className="space-y-3 rounded-2xl border border-border bg-card p-3 sm:p-4">
+                        <div className="relative">
+                            <Search aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                                value={search}
+                                onChange={(event) => setSearch(event.target.value)}
+                                placeholder="ស្វែងរកតាមឈ្មោះ ឬលេខសម្គាល់ Template..."
+                                aria-label="ស្វែងរក Template"
+                                className="h-11 rounded-xl pl-10"
+                            />
+                            {search && (
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    aria-label="សម្អាតការស្វែងរក"
+                                    onClick={() => setSearch("")}
+                                    className="absolute right-1 top-1/2 h-9 w-9 -translate-y-1/2 text-muted-foreground"
+                                >
+                                    <X size={16} />
+                                </Button>
+                            )}
+                        </div>
+                        <div className="flex gap-2 overflow-x-auto pb-0.5" role="group" aria-label="ច្រោះតាមស្ថានភាព Template">
+                            {([
+                                { id: "ALL", label: "ទាំងអស់" },
+                                { id: "ENABLED", label: "កំពុងបើក" },
+                                { id: "DISABLED", label: "បានបិទ" },
+                            ] satisfies { id: TemplateFilter; label: string }[]).map((item) => (
+                                <button
+                                    key={item.id}
+                                    type="button"
+                                    onClick={() => setFilter(item.id)}
+                                    aria-pressed={filter === item.id}
+                                    className={`min-h-10 shrink-0 rounded-xl px-4 text-xs font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                                        filter === item.id
+                                            ? "bg-primary text-primary-foreground"
+                                            : "border border-border bg-background text-muted-foreground hover:bg-muted"
+                                    }`}
+                                >
+                                    {item.label}
+                                    <span className="ml-2 tabular-nums opacity-75">
+                                        {item.id === "ALL" ? templates.length : item.id === "ENABLED" ? enabledCount : disabledCount}
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
+                    </section>
+
+                    <div className="flex items-center justify-between gap-3">
+                        <h2 className="text-sm font-black text-foreground">បញ្ជី Template</h2>
+                        <span className="text-xs font-semibold text-muted-foreground">
+                            បង្ហាញ {visibleTemplates.length} / {templates.length}
+                        </span>
+                    </div>
+
+                {visibleTemplates.length === 0 ? (
+                    <Card>
+                        <CardContent className="space-y-3 p-8 text-center">
+                            <LayoutGrid className="mx-auto h-8 w-8 text-muted-foreground/50" />
+                            <p className="text-sm font-bold text-foreground">រកមិនឃើញ Template ត្រូវនឹងលក្ខខណ្ឌទេ</p>
+                            {(search || filter !== "ALL") && (
+                                <Button type="button" variant="outline" onClick={() => { setSearch(""); setFilter("ALL"); }}>
+                                    សម្អាតការស្វែងរក និង Filter
+                                </Button>
+                            )}
+                        </CardContent>
+                    </Card>
+                ) : (
                 <div className="grid gap-3">
-                    {Object.values(TEMPLATE_DEFINITIONS).map((template) => {
+                    {visibleTemplates.map((template) => {
                         const enabled = availability?.[template.id] === true;
                         const busy = savingId === template.id;
                         const details = metadata?.[template.id];
@@ -147,11 +538,17 @@ export default function TemplateAvailabilityPage() {
                                 <CardContent className="space-y-3 p-3 sm:space-y-4 sm:p-5">
                                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
                                         <div className="flex min-w-0 items-center gap-3 sm:flex-1 sm:gap-4">
-                                            <img
-                                                src={details?.image || template.image}
-                                                alt={details?.title || template.title}
-                                                className="h-16 w-12 shrink-0 rounded-lg border object-cover sm:h-20 sm:w-14"
-                                            />
+                                            {details?.image ? (
+                                                <img
+                                                    src={details.image}
+                                                    alt={details.title || template.title}
+                                                    className="h-16 w-12 shrink-0 rounded-lg border object-cover sm:h-20 sm:w-14"
+                                                />
+                                            ) : (
+                                                <div aria-label="មិនទាន់បញ្ចូលរូប Cover" className="flex h-16 w-12 shrink-0 items-center justify-center rounded-lg border bg-muted text-muted-foreground sm:h-20 sm:w-14">
+                                                    <LayoutGrid className="h-5 w-5" aria-hidden="true" />
+                                                </div>
+                                            )}
                                             <div className="min-w-0 flex-1">
                                                 <p className="break-words font-bold leading-snug text-foreground">{details?.title || template.title}</p>
                                                 <p className="mt-1 break-words text-[11px] leading-relaxed text-muted-foreground sm:text-xs">
@@ -237,7 +634,7 @@ export default function TemplateAvailabilityPage() {
                                                 <ImageUploadWidget
                                                     value={draft.image}
                                                     onChange={(image) => setDraft({ ...draft, image })}
-                                                    onRemove={() => setDraft({ ...draft, image: template.image })}
+                                                    onRemove={() => setDraft({ ...draft, image: "" })}
                                                     folder="template-covers"
                                                     compact
                                                     label="បញ្ចូលរូប Cover"
@@ -247,7 +644,13 @@ export default function TemplateAvailabilityPage() {
                                                 <div className="rounded-xl border bg-muted/30 p-3">
                                                     <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">Preview</p>
                                                     <div className="flex gap-3">
-                                                        {draft.image && <img src={draft.image} alt="" className="h-20 w-14 rounded-lg object-cover" />}
+                                                        {draft.image ? (
+                                                            <img src={draft.image} alt="" className="h-20 w-14 rounded-lg object-cover" />
+                                                        ) : (
+                                                            <div className="flex h-20 w-14 items-center justify-center rounded-lg border bg-muted text-[10px] text-muted-foreground">
+                                                                មិនទាន់មានរូប
+                                                            </div>
+                                                        )}
                                                         <div className="min-w-0">
                                                             <p className="font-bold">{draft.title || "ឈ្មោះ Template"}</p>
                                                             <p className="mt-1 line-clamp-3 text-xs text-muted-foreground">{draft.description || "ពិពណ៌នា Template"}</p>
@@ -259,7 +662,7 @@ export default function TemplateAvailabilityPage() {
                                                 <Button type="button" variant="outline" disabled={savingMetadata} onClick={cancelEditing}>
                                                     <X className="mr-2 h-4 w-4" /> បោះបង់
                                                 </Button>
-                                                <Button type="button" disabled={savingMetadata || !draft.title.trim() || !draft.image} onClick={() => void saveMetadata()}>
+                                                <Button type="button" disabled={savingMetadata || !draft.title.trim()} onClick={() => void saveMetadata()}>
                                                     {savingMetadata ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                                                     រក្សាទុក
                                                 </Button>
@@ -271,6 +674,8 @@ export default function TemplateAvailabilityPage() {
                         );
                     })}
                 </div>
+                )}
+                </>
             )}
         </div>
     );
