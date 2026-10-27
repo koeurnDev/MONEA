@@ -256,6 +256,7 @@ export function useGuests() {
             return;
         }
         if (!wedding?.id) return;
+        // Use encoded URL for reliable copy/paste compatibility across all browsers
         const link = `${window.location.origin}/invite/${wedding.id}?to=${encodeURIComponent(name)}&g=${guestId}`;
         const isAnniversary = wedding?.eventType === 'anniversary';
         const eventCeremony = isAnniversary ? 'ពិធីភ្ជាប់ពាក្យ' : 'ពិធីមង្គលការ';
@@ -289,7 +290,8 @@ ${link}`;
         }
 
         if (!wedding?.id) return;
-        const link = `${window.location.origin}/invite/${wedding.id}?to=${encodeURIComponent(name)}&g=${guestId}`;
+        // Telegram decodes URLs automatically, so we use plain Unicode for better display
+        const link = `${window.location.origin}/invite/${wedding.id}?to=${name}&g=${guestId}`;
         const isAnniversary = wedding?.eventType === 'anniversary';
         const eventCeremony = isAnniversary ? 'ពិធីភ្ជាប់ពាក្យ' : 'ពិធីមង្គលការ';
 
