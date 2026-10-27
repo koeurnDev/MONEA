@@ -18,13 +18,30 @@ const config: Config = {
 		},
 		extend: {
 			fontFamily: {
+				// Default
 				sans: ["'Kantumruy Pro'", "sans-serif"],
+				
+				// Primary Khmer fonts for M2 template
 				kantumruy: ["'Kantumruy Pro'", "sans-serif"],
+				"khmer-moul": ["'Moul'", "serif"],
+				moulpali: ["'Moulpali'", "serif"],
+				
+				// Alternative Khmer fonts
+				dangrek: ["'Dangrek'", "sans-serif"],
+				koulen: ["'Koulen'", "sans-serif"],
+				battambang: ["'Battambang'", "sans-serif"],
+				fasthand: ["'Fasthand'", "cursive"],
+				preahvihear: ["'Preahvihear'", "sans-serif"],
+				"noto-serif-khmer": ["'Noto Serif Khmer'", "serif"],
+				
+				// English fonts
+				"serif-elegant": ["'Cormorant Garamond'", "serif"],
+				script: ["'Pinyon Script'", "cursive"],
+				
+				// Legacy/compatibility
 				khmer: ["'Kantumruy Pro'", "sans-serif"],
 				header: ["'Kantumruy Pro'", "sans-serif"],
 				moul: ["'Moul'", "serif"],
-				moulpali: ["'Moulpali'", "serif"],
-				"khmer-moul": ["'Moul'", "serif"],
 				siemreap: ["'Kantumruy Pro'", "sans-serif"],
 				playfair: ["'Kantumruy Pro'", "sans-serif"],
 				"great-vibes": ["'Kantumruy Pro'", "sans-serif"],
