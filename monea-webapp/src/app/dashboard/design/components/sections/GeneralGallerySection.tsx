@@ -80,6 +80,10 @@ export const GeneralGallerySection: React.FC<GeneralGallerySectionProps> = ({
     });
     const isBusy = uploading || cropUploader.uploading || slotUploader.uploading || isReordering;
     const galleryItems = wedding.galleryItems || [];
+    const filledSectionCount = photoLayout.slots.reduce(
+        (count, slot) => count + (galleryItems[slot.index]?.url?.trim() ? 1 : 0),
+        0,
+    );
     const photos = galleryItems
         .map((item: any, index: number) => ({ item, index }))
         .filter(({ item }: { item: any }) =>
@@ -146,7 +150,7 @@ export const GeneralGallerySection: React.FC<GeneralGallerySectionProps> = ({
                     ជ្រើសរើសរូបតាមផ្នែក
                 </h4>
                 <p className="text-xs leading-relaxed text-muted-foreground">
-                    ចុច «ដាក់រូប» នៅផ្នែកដែលអ្នកចង់ប្ដូរ។ រូបមួយនឹងរក្សាទុកតែក្នុងផ្នែកនោះ ហើយការដាក់រូបថ្មីនឹងជំនួសរូបចាស់នៅទីតាំងដដែល។
+                    {filledSectionCount}/{photoLayout.slots.length} ផ្នែកមានរូប · ចុចប៊ូតុងដើម្បីបន្ថែម ឬប្ដូររូប។
                 </p>
             </div>
 
@@ -171,13 +175,13 @@ export const GeneralGallerySection: React.FC<GeneralGallerySectionProps> = ({
                     {slotUploadFeedback}
                 </p>
             )}
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-3">
                 {photoLayout.slots.map((slot) => {
                     const item = galleryItems[slot.index];
                     const hasPhoto = Boolean(item?.url?.trim());
                     return (
-                        <div key={slot.key} className="overflow-hidden rounded-xl border border-border bg-background">
-                            <div className="bg-muted" style={{ aspectRatio: String(slot.aspectRatio) }}>
+                        <div key={slot.key} title={slot.locationHint} className="flex flex-col min-w-0 overflow-hidden rounded-xl border border-border bg-background">
+                            <div className="w-full bg-muted" style={{ aspectRatio: String(slot.aspectRatio) }}>
                                 {hasPhoto ? (
                                     <PhotoImage
                                         src={item.url}
@@ -189,13 +193,17 @@ export const GeneralGallerySection: React.FC<GeneralGallerySectionProps> = ({
                                 ) : (
                                     <div className="flex h-full flex-col items-center justify-center gap-2 p-3 text-center text-muted-foreground">
                                         <ImageIcon className="h-6 w-6 opacity-50" />
-                                        <span className="text-[11px]">មិនទាន់មានរូប</span>
+                                        <span className="text-[10px] leading-tight">មិនទាន់មានរូប</span>
                                     </div>
                                 )}
                             </div>
-                            <div className="space-y-1 p-2.5">
-                                <p className="text-xs font-bold text-foreground">{slot.title}</p>
-                                <p className="min-h-8 text-[10px] leading-relaxed text-muted-foreground">{slot.locationHint}</p>
+                            <div className="flex min-w-0 flex-1 flex-col justify-between gap-1.5 p-2">
+                                <div className="space-y-0.5">
+                                    <p className="line-clamp-1 text-[11px] font-bold leading-tight text-foreground">{slot.title}</p>
+                                    <p className={clsx("text-[10px] font-semibold", hasPhoto ? "text-emerald-700 dark:text-emerald-300" : "text-muted-foreground")}>
+                                        {hasPhoto ? "បានដាក់រូបរួច" : "មិនទាន់មានរូប"}
+                                    </p>
+                                </div>
                                 <button
                                     type="button"
                                     disabled={isBusy}
@@ -204,7 +212,7 @@ export const GeneralGallerySection: React.FC<GeneralGallerySectionProps> = ({
                                         setSlotUploadFeedback(null);
                                         slotInputRef.current?.click();
                                     }}
-                                    className="flex min-h-10 w-full items-center justify-center gap-1 rounded-lg border border-primary/25 bg-primary/5 px-2 text-xs font-bold text-primary hover:bg-primary/10 disabled:opacity-50"
+                                    className="flex min-h-9 w-full items-center justify-center gap-1 rounded-lg border border-primary/25 bg-primary/5 px-2 text-[11px] font-bold text-primary hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50"
                                 >
                                     {hasPhoto ? <Replace size={14} /> : <Plus size={14} />}
                                     {hasPhoto ? "ប្ដូររូប" : "ដាក់រូប"}
@@ -218,18 +226,18 @@ export const GeneralGallerySection: React.FC<GeneralGallerySectionProps> = ({
                                                 setCropFeedback(null);
                                                 setCropIndex(slot.index);
                                             }}
-                                            className="flex min-h-9 items-center justify-center gap-1 rounded-lg px-2 text-xs font-semibold text-primary hover:bg-accent disabled:opacity-50"
+                                            className="flex min-h-8 items-center justify-center gap-1 rounded-lg px-1.5 text-[11px] font-semibold text-primary hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50"
                                         >
-                                            <Scissors size={13} />
+                                            <Scissors size={12} />
                                             កាត់
                                         </button>
                                         <button
                                             type="button"
                                             disabled={isBusy}
                                             onClick={() => removeGalleryItem(slot.index)}
-                                            className="min-h-9 rounded-lg px-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-50 dark:hover:bg-rose-500/10"
+                                            className="min-h-8 rounded-lg px-1.5 text-[11px] font-semibold text-rose-600 hover:bg-rose-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 disabled:opacity-50 dark:hover:bg-rose-500/10"
                                         >
-                                            លុបរូប
+                                            លុប
                                         </button>
                                     </div>
                                 )}
@@ -423,9 +431,9 @@ export const GeneralGallerySection: React.FC<GeneralGallerySectionProps> = ({
                 <Label className="block text-xs font-bold text-foreground">របៀបបង្ហាញកម្រងរូបភាព</Label>
                 <div className="grid grid-cols-3 gap-2">
                     {[
-                        { id: "masonry", label: "ក្រឡារូប", hint: "រូបធំតូចលាយគ្នា", icon: LayoutGrid },
-                        { id: "slider", label: "រំកិលមើល", hint: "មើលម្ដងមួយ", icon: SlidersHorizontal },
-                        { id: "polaroid", label: "ស៊ុមស", hint: "ស្ទីល Polaroid", icon: Film },
+                        { id: "masonry", label: "ក្រឡារូប", hint: "ធំតូចលាយគ្នា", icon: LayoutGrid },
+                        { id: "slider", label: "រំកិលមើល", hint: "ពីរូបមួយៗ", icon: SlidersHorizontal },
+                        { id: "polaroid", label: "ស្ទីល Polaroid", hint: "មានស៊ុម", icon: Film },
                     ].map((style) => {
                         const isSelected = wedding.themeSettings?.galleryStyle === style.id
                             || (style.id === "masonry" && !wedding.themeSettings?.galleryStyle);
@@ -436,15 +444,15 @@ export const GeneralGallerySection: React.FC<GeneralGallerySectionProps> = ({
                                 aria-pressed={isSelected}
                                 onClick={() => updateTheme("galleryStyle", style.id, true)}
                                 className={clsx(
-                                    "flex min-h-20 flex-col items-center justify-center gap-1 rounded-xl border p-2 text-center transition-colors",
+                                    "flex min-h-20 flex-col items-center justify-center gap-1.5 rounded-xl border p-2.5 text-center transition-colors",
                                     isSelected
-                                        ? "border-primary bg-primary text-primary-foreground"
-                                        : "border-border bg-card text-muted-foreground hover:border-primary/40"
+                                        ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                                        : "border-border bg-card text-muted-foreground hover:border-primary/40 hover:bg-accent"
                                 )}
                             >
-                                <style.icon size={16} />
-                                <span className="text-xs font-bold">{style.label}</span>
-                                <span className="text-xs">{style.hint}</span>
+                                <style.icon size={18} strokeWidth={2} />
+                                <span className="text-xs font-bold leading-tight">{style.label}</span>
+                                <span className="text-[10px] leading-tight opacity-80">{style.hint}</span>
                             </button>
                         );
                     })}
