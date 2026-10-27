@@ -20,6 +20,7 @@ import { getTemplatePricing, isTemplateFree } from '@/lib/template-pricing';
 import { generateId } from '@/lib/drizzle-helpers';
 import { standardLimiter, getIP } from '@/lib/ratelimit';
 import { logSecurityEvent, shouldRaiseSecurityAlert } from "@/lib/security-audit";
+import { generateReceipt } from '@/lib/ReceiptGenerator';
 
 const templatePurchaseRouter = new Hono();
 
@@ -64,6 +65,49 @@ templatePurchaseRouter.get('/user-licenses', async (c) => {
   }
 });
 
+/**
+ * GET /api/template-purchase/receipt-reviews
+ * List reviewed receipt decisions for the authenticated user's weddings.
+ */
+templatePurchaseRouter.get('/receipt-reviews', async (c) => {
+  try {
+    const user = await getServerUser(c.req.raw);
+    if (!user) return c.json({ error: 'Unauthorized' }, 401);
+
+    const licenses = await prisma.templateLicense.findMany({
+      where: {
+        wedding: { userId: user.userId || user.id },
+        receiptReviewStatus: { in: ['APPROVED', 'REJECTED'] },
+        receiptReviewedAt: { not: null },
+      },
+      orderBy: { receiptReviewedAt: 'desc' },
+      take: 30,
+      select: {
+        id: true,
+        templateId: true,
+        amount: true,
+        currency: true,
+        paymentOrderId: true,
+        bakongTrxId: true,
+        purchaseDate: true,
+        receiptReviewStatus: true,
+        receiptReviewedAt: true,
+        wedding: {
+          select: {
+            groomName: true,
+            brideName: true,
+          },
+        },
+      },
+    });
+
+    return c.json({ reviews: licenses });
+  } catch (error) {
+    console.error('[Template Purchase] Receipt review notification list error:', error);
+    return c.json({ error: 'Failed to load receipt review notifications' }, 500);
+  }
+});
+
 // Validation schema for purchase initiation
 const purchaseInitSchema = z.object({
   templateId: z.string().min(1, 'Template ID required'),
@@ -73,6 +117,8 @@ const purchaseVerifySchema = z.object({
 });
 const receiptSubmissionSchema = z.object({
   receiptUrl: z.string().url().max(2048),
+  note: z.string().trim().max(500).optional().default(''),
+  // Keep accepting reference from clients that have not updated yet.
   reference: z.string().trim().max(200).optional().default(''),
 });
 
@@ -559,7 +605,7 @@ templatePurchaseRouter.post('/submit-slip/:orderId', async (c) => {
       where: { id: license.id },
       data: {
         receiptUrl: parsed.data.receiptUrl,
-        receiptReference: parsed.data.reference || null,
+        receiptReference: parsed.data.note || parsed.data.reference || null,
         receiptReviewStatus: 'PENDING',
         receiptSubmittedAt: submittedAt,
         receiptReviewedAt: null,
@@ -787,16 +833,19 @@ templatePurchaseRouter.get('/list/:weddingId', async (c) => {
     if (!user) return c.json({ error: 'Unauthorized' }, 401);
 
     const weddingId = c.req.param('weddingId');
-
-    const db = getDb(c.env);
-    await ensureUserTemplateAccessSchema(db);
+    
+    // Get user ID with fallback
     const uid = user.userId || user.id;
+    if (!uid) {
+      console.error('[Template Purchase] List error: No user ID found', { user });
+      return c.json({ error: 'Invalid user session' }, 400);
+    }
 
     // Verify access
     const wedding = await prisma.wedding.findFirst({
       where: {
         id: weddingId,
-        userId: user.userId || user.id,
+        userId: uid,
       },
       select: { id: true },
     });
@@ -809,6 +858,10 @@ templatePurchaseRouter.get('/list/:weddingId', async (c) => {
       where: { weddingId },
       orderBy: { purchaseDate: 'desc' },
     });
+    
+    const db = getDb(c.env);
+    await ensureUserTemplateAccessSchema(db);
+    
     const userAccess = await db
       .select({
         id: userTemplateAccess.id,
@@ -839,6 +892,10 @@ templatePurchaseRouter.get('/list/:weddingId', async (c) => {
           amount: l.amount,
           currency: l.currency,
           receiptReviewStatus: l.receiptReviewStatus,
+          receiptReviewedAt: l.receiptReviewedAt,
+          receiptNumber: l.receiptNumber,
+          officialReceiptGeneratedAt: l.officialReceiptGeneratedAt,
+          hasOfficialReceipt: !!(l.receiptNumber && l.officialReceiptGeneratedAt),
           source: 'wedding',
         })),
         ...userAccess.map((license) => ({
@@ -850,6 +907,9 @@ templatePurchaseRouter.get('/list/:weddingId', async (c) => {
           amount: 0,
           currency: 'USD',
           receiptReviewStatus: null,
+          receiptNumber: null,
+          officialReceiptGeneratedAt: null,
+          hasOfficialReceipt: false,
           source: 'user',
         })),
       ],
@@ -857,6 +917,81 @@ templatePurchaseRouter.get('/list/:weddingId', async (c) => {
   } catch (error: any) {
     console.error('[Template Purchase] List error:', error);
     return c.json({ error: 'Failed to list template licenses' }, 500);
+  }
+});
+
+/**
+ * GET /api/template-purchase/receipt/:licenseId
+ * Download official receipt HTML for an approved template license
+ */
+templatePurchaseRouter.get('/receipt/:licenseId', async (c) => {
+  try {
+    const user = await getServerUser(c.req.raw);
+    if (!user) return c.json({ error: 'Unauthorized' }, 401);
+
+    const licenseId = c.req.param('licenseId');
+    const userId = user.userId || user.id;
+
+    // Verify license exists and user owns it
+    const license = await prisma.templateLicense.findUnique({
+      where: { id: licenseId },
+      select: {
+        id: true,
+        receiptNumber: true,
+        officialReceiptGeneratedAt: true,
+        status: true,
+        receiptReviewStatus: true,
+        weddingId: true,
+        wedding: {
+          select: {
+            userId: true,
+          },
+        },
+      },
+    });
+
+    if (!license) {
+      return c.json({ error: 'License not found' }, 404);
+    }
+
+    // Security: Verify ownership (unless SUPERADMIN)
+    if (license.wedding.userId !== userId && user.role !== 'SUPERADMIN') {
+      return c.json({ error: 'Forbidden' }, 403);
+    }
+
+    // Check if receipt is available
+    if (!license.receiptNumber || !license.officialReceiptGeneratedAt) {
+      return c.json({ 
+        error: 'Official receipt not available. Receipt is generated after admin approval.',
+        availableAfterApproval: true,
+      }, 404);
+    }
+
+    // Check if license was approved
+    if (license.receiptReviewStatus !== 'APPROVED' && license.status !== 'ACTIVE') {
+      return c.json({ 
+        error: 'Receipt is only available for approved licenses',
+      }, 403);
+    }
+
+    // Generate receipt HTML
+    const result = await generateReceipt(licenseId);
+    
+    if (!result) {
+      return c.json({ 
+        error: 'Failed to generate receipt. Please contact support.',
+      }, 500);
+    }
+
+    // Return HTML with proper headers
+    return c.html(result.html, 200, {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Content-Disposition': `inline; filename="receipt-${license.receiptNumber}.html"`,
+      'Cache-Control': 'private, max-age=3600',
+    });
+  } catch (error) {
+    console.error('[Template Purchase] Receipt download error:', error);
+    return c.json({ error: 'Failed to download receipt' }, 500);
   }
 });
 
